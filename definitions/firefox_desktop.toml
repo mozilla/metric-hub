@@ -19,6 +19,8 @@ description = """
     Counts the total number of URIs visited.
     Includes within-page navigation events (e.g. to anchors).
 """
+category = "performance"
+type = "scalar"
 
 
 [metrics.search_count]
@@ -44,6 +46,8 @@ description = """
     Learn more in the
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
+category = "search"
+type = "scalar"
 
 
 [metrics.tagged_follow_on_search_count]
@@ -57,6 +61,8 @@ description = """
     Learn more in the
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
+category = "search"
+type = "scalar"
 
 
 [metrics.ad_clicks]
@@ -91,6 +97,8 @@ description = """
     Learn more in the
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
+category = "search"
+type = "scalar"
 
 
 [metrics.unenroll]
@@ -524,14 +532,6 @@ description = "The subsession length until now in seconds, monotonic"
 category = "performance"
 type = "scalar"
 
-[metrics.uri_count]
-data_source = "main"
-select_expression = "SUM(payload.processes.parent.scalars.browser_engagement_total_uri_count)"
-friendly_name = "Browser Engagement Uri Count"
-description = "The count of the total non-unique http(s) URIs visited in a subsession, including page reloads, after the session has been restored. URIs on minimized or background tabs may also be counted towards this. Private browsing is not included in this count."
-category = "performance"
-type = "scalar"
-
 [metrics.tab_pinned_event_count]
 data_source = "main"
 select_expression = "SUM(payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count)"
@@ -659,22 +659,6 @@ description = "Event memory pressure count"
 category = "performance"
 type = "scalar"
 
-[metrics.tagged_search_count]
-data_source = "search_clients_engines_sources_daily"
-select_expression = "SUM(tagged_sap)"
-friendly_name = "Tagged Search Count"
-description = "Total number of tagged searches (SAP)"
-category = "search"
-type = "scalar"
-
-[metrics.tagged_follow_on_search_count]
-data_source = "search_clients_engines_sources_daily"
-select_expression = "SUM(tagged_follow_on)"
-friendly_name = "Tagged Follow On Search Count"
-description = "Total number of Tagged Follow On Search Counts"
-category = "search"
-type = "scalar"
-
 [metrics.search_with_ads]
 data_source = "search_clients_engines_sources_daily"
 select_expression = "SUM(search_with_ads)"
@@ -688,14 +672,6 @@ data_source = "search_clients_engines_sources_daily"
 select_expression = "SUM(ad_click)"
 friendly_name = "Ad Clicks"
 description = "Total number of Ad Clicks"
-category = "search"
-type = "scalar"
-
-[metrics.organic_search_count]
-data_source = "search_clients_engines_sources_daily"
-select_expression = "SUM(organic)"
-friendly_name = "Organic Search Count"
-description = "Total number of Organic Search Counts"
 category = "search"
 type = "scalar"
 
