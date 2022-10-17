@@ -1,5 +1,233 @@
 [metrics]
 
+[metrics.active_hours]
+friendly_name = "Active hours"
+description = """
+    Measures the amount of time (in 5-second increments) during which
+    Firefox received user input from a keyboard or mouse. The Firefox
+    window does not need to be focused.
+"""
+select_expression = '{{agg_sum("active_hours_sum")}}'
+data_source = "clients_daily"
+
+
+[metrics.uri_count]
+data_source = "clients_daily"
+select_expression = '{{agg_sum("scalar_parent_browser_engagement_total_uri_count_sum")}}'
+friendly_name = "URIs visited"
+description = """
+    Counts the total number of URIs visited.
+    Includes within-page navigation events (e.g. to anchors).
+"""
+
+
+[metrics.search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("sap")}}'
+friendly_name = "SAP searches"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+
+
+[metrics.tagged_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("tagged_sap")}}'
+friendly_name = "Tagged SAP searches"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points that were submitted with a partner code
+    and were potentially revenue-generating.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+
+
+[metrics.tagged_follow_on_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("tagged_follow_on")}}'
+friendly_name = "Tagged follow-on searches"
+description = """
+    Counts the number of follow-on searches with a Mozilla partner tag.
+    These are additional searches that users performed from a search engine
+    results page after executing a tagged search through a SAP.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+
+
+[metrics.ad_clicks]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("ad_click")}}'
+friendly_name = "Ad clicks"
+description = """
+    Counts clicks on ads on search engine result pages with a Mozilla
+    partner tag.
+"""
+
+
+[metrics.searches_with_ads]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("search_with_ads")}}'
+friendly_name = "Search result pages with ads"
+description = """
+    Counts search result pages served with advertising.
+    Users may not actually see these ads thanks to e.g. ad-blockers.
+    Learn more in the
+    [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
+"""
+
+
+[metrics.organic_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("organic")}}'
+friendly_name = "Organic searches"
+description = """
+    Counts organic searches, which are searches that are _not_ performed
+    through a Firefox SAP and which are not monetizable.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+
+
+[metrics.unenroll]
+data_source = "normandy_events"
+select_expression='''{{agg_any(
+    """
+        event_category = 'normandy'
+        AND event_method = 'unenroll'
+        AND event_string_value = '{experiment_slug}'
+    """
+)}}'''
+friendly_name = "Unenrollments"
+description = """
+    Counts the number of clients with an experiment unenrollment event.
+"""
+bigger_is_better = false
+
+
+[metrics.view_about_logins]
+data_source = "events"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'open_management'
+            AND event_category = 'pwmgr'
+        """
+)}}'''
+friendly_name = "about:logins viewers"
+description = """
+    Counts the number of clients that viewed about:logins.
+"""
+
+
+[metrics.view_about_protections]
+data_source = "events"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'show'
+            AND event_object = 'protection_report'
+        """
+)}}'''
+friendly_name = "about:protections viewers"
+description = """
+    Counts the number of clients that viewed about:protections.
+"""
+
+
+
+[metrics.connect_fxa]
+data_source = "events"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'connect'
+            AND event_object = 'account'
+        """
+)}}'''
+friendly_name = "Connected FxA"
+description = """
+    Counts the number of clients that took action to connect to FxA.
+    This does not include clients that were already connected to FxA at
+    the start of the experiment and remained connected.
+"""
+
+
+[metrics.pocket_rec_clicks]
+data_source = "activity_stream_events"
+select_expression = """COUNTIF(
+    event = 'CLICK'
+    AND source = 'CARDGRID'
+    AND JSON_EXTRACT_SCALAR(value, '$.card_type') = 'organic'
+)"""
+friendly_name = "Clicked Pocket organic recs in New Tab"
+description = """
+    Counts the number of Pocket rec clicks made by each client.
+"""
+
+
+[metrics.pocket_spoc_clicks]
+data_source = "activity_stream_events"
+select_expression = """COUNTIF(
+    event = 'CLICK'
+    AND source = 'CARDGRID'
+    AND JSON_EXTRACT_SCALAR(value, '$.card_type') = 'spoc'
+)"""
+friendly_name = "Clicked Pocket sponsored content in New Tab"
+description = """
+    Counts the number of Pocket sponsored content clicks made by each client.
+"""
+
+
+[metrics.days_of_use]
+data_source = "clients_daily"
+select_expression = "COUNT(ds.submission_date)"
+friendly_name = "Days of use"
+description = "The number of days in the interval that each client sent a main ping."
+
+
+[metrics.qualified_cumulative_days_of_use]
+data_source = "clients_daily"
+select_expression = """COUNTIF(
+    active_hours_sum > 0 AND
+    scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum > 0
+)"""
+friendly_name = "QCDOU"
+description = """
+    The number of days in the interval that each client sent a main ping,
+    given that the client had >0 active hours and >0 URIs loaded.
+"""
+
+
+[metrics.disable_pocket_clicks]
+data_source = "activity_stream_events"
+select_expression = """COUNTIF(
+    event = 'PREF_CHANGED'
+    AND source = 'TOP_STORIES'
+    AND JSON_EXTRACT_SCALAR(value, '$.status') = 'false'
+)"""
+friendly_name = "Disabled Pocket in New Tab"
+description = """
+    Counts the number of clicks to disable Pocket in New Tab made by each client.
+"""
+
+
+[metrics.disable_pocket_spocs_clicks]
+data_source = "activity_stream_events"
+select_expression = """COUNTIF(
+    event = 'PREF_CHANGED'
+    AND source = 'POCKET_SPOCS'
+    AND JSON_EXTRACT_SCALAR(value, '$.status') = 'false'
+)"""
+friendly_name = "Disabled Pocket sponsored content in New Tab"
+description = """
+    Counts the number of clicks to disable Pocket sponsored content
+    in New Tab made by each client.
+"""
+
+
+
 [metrics.content_shutdown_crashes]
 data_source = "crash"
 select_expression = "SUM(IF(REGEXP_CONTAINS(payload.process_type, 'content') AND REGEXP_CONTAINS(payload.metadata.ipc_channel_error, 'ShutDownKill'), 1, 0))"
@@ -526,14 +754,26 @@ description = "Normalized Country Code"
 [data_sources]
   
 [data_sources.main]
-from_expression = "mozdata.telemetry.main"
-submission_date_column = "DATE(submission_timestamp)"
-friendly_name = "Main"
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4
+)"""
+experiments_column_type = "native"
+riendly_name = "Main"
 description = "Main ping table"
 
 [data_sources.crash]
-from_expression = "mozdata.telemetry.crash"
-submission_date_column = "DATE(submission_timestamp)"
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM mozdata.telemetry.crash
+)"""
+experiments_column_type = "native"
 description = "Crash ping table"
 friendly_name = "Crash"
 
@@ -556,5 +796,61 @@ description = "Memory related events"
 [data_sources.search_clients_engines_sources_daily]
 from_expression = "mozdata.search.search_clients_engines_sources_daily"
 submission_date_column = "submission_date"
+experiments_column_type = "none"
 friendly_name = "Search Clients Engines Sources Daily"
 description = "Search Clients Engines Sources Daily"
+
+[data_sources.clients_daily]
+from_expression = "mozdata.telemetry.clients_daily"
+friendly_name = "Clients Daily"
+description = "Clients Daily"
+
+[data_sources.search_clients_daily]
+from_expression = "mozdata.search.search_clients_engines_sources_daily"
+experiments_column_type = "none"
+description = "Search Clients Daily"
+friendly_name = "Search Clients Daily"
+
+[data_sources.main_summary]
+from_expression = "mozdata.telemetry.main_summary"
+friendly_name = "Main Summary"
+description = "Main Summary (Deprecated; use clients daily instead)"
+
+[data_sources.events]
+from_expression = "mozdata.telemetry.events"
+experiments_column_type = "native"
+friendly_name = "Events"
+description = "Events Ping"
+
+[data_sources.normandy_events]
+from_expression = """(
+    SELECT
+        *
+    FROM mozdata.telemetry.events
+    WHERE event_category = 'normandy'
+)"""
+experiments_column_type="native"
+friendly_name = "Normandy Events"
+description = "Normandy Events"
+
+[data_sources.cfr]
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-derived-datasets`.messaging_system.cfr
+)"""
+experiments_column_type = "native"
+friendly_name = "CFR"
+description = "CFR pings"
+
+[data_sources.activity_stream_events]
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date
+    FROM mozdata.activity_stream.events
+)"""
+experiments_column_type = "native"
+friendly_name = "Activity Stream Events"
+description = "Activity Stream Event pings"

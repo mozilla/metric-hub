@@ -1,0 +1,66 @@
+[metrics]
+
+[metrics.baseline_ping_count]
+data_source = "baseline"
+select_expression = "COUNT(document_id)"
+friendly_name = "Baseline pings"
+description = "Counts the number of `baseline` pings received from each client."
+
+[metrics.metric_ping_count]
+data_source = "metrics"
+select_expression = "COUNT(document_id)"
+friendly_name = "Metrics pings"
+description = "Counts the number of `metrics` pings received from each client."
+
+
+[metrics.first_run_date]
+data_source = "baseline"
+select_expression = "MIN(client_info.first_run_date)"
+friendly_name = "First run date"
+description = "The earliest first-run date reported by each client."
+
+
+[data_sources]
+
+[data_sources.baseline]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+friendly_name = "Baseline"
+description = "Baseline Ping"
+
+[data_sources.events]
+from_expression = """(
+    SELECT
+        p.* EXCEPT (events),
+        DATE(p.submission_timestamp) AS submission_date,
+        event
+    FROM
+        `moz-fx-data-shared-prod.{dataset}.events` p
+    CROSS JOIN
+        UNNEST(p.events) AS event
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+friendly_name = "Events"
+description = "Events Ping"
+
+[data_sources.metrics]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.metrics` p
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+friendly_name = "Metrics"
+description = "Metrics Ping"
