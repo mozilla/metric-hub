@@ -12,6 +12,7 @@ jobs:
     - run:
         name: Validate config files
         command: |
+          python3.8 -m venv venv/
           venv/bin/pip install -r .script/requirements.txt
           changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- '*.toml' '*.toml.example')
           echo "Run validation on changed files: "
@@ -23,7 +24,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: "98:ba:de:b1:23:71:8d:0a:c2:98:98:ac:e8:97:ae:0d"
+          fingerprints: "99:23:f9:d0:3b:60:39:4f:75:89:3d:4b:cd:1e:b8:7f"
       - run:
           name: Build and deploy docs
           command: |
