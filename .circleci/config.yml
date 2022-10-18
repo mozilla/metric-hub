@@ -12,11 +12,11 @@ jobs:
     - run:
         name: Validate config files
         command: |
-          venv/bin/pip install -r .scripts/requirements.txt
+          venv/bin/pip install -r .script/requirements.txt
           changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- '*.toml' '*.toml.example')
           echo "Run validation on changed files: "
           echo $changed_files
-          venv/bin/python3 .scripts/validate.py $changed_files
+          venv/bin/python3 .script/validate.py $changed_files
   docs:
     docker:
       - image: python:3.8
@@ -28,8 +28,8 @@ jobs:
           name: Build and deploy docs
           command: |
             python3.8 -m venv venv/
-            venv/bin/pip install -r .scripts/requirements.txt
-            venv/bin/python3 .scripts/generate_docs.py \
+            venv/bin/pip install -r .script/requirements.txt
+            venv/bin/python3 .script/generate_docs.py \
               --output_dir=generated_docs/
             cd generated_docs/
             PATH="../venv/bin:$PATH" mkdocs gh-deploy \
