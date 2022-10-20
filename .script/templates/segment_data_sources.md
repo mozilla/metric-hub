@@ -14,7 +14,7 @@ Window Start: `{{ data_source.window_start }}`
 Window End: `{{ data_source.window_end}}`
 
 {% if data_source.default_dataset %}
-Default Dataset: [`{{ data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ data_source.name }})
+Default Dataset: [`{{ data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ data_source.name }})
 {% endif %}
 
 <details>
@@ -48,7 +48,7 @@ Window Start: `{{ data_source.window_start }}`
 Window End: `{{ data_source.window_end}}`
 
 {% if data_source.default_dataset %}
-Default Dataset: [`{{ data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ data_source.name }})
+Default Dataset: [`{{ data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ data_source.name }})
 {% endif %}
 
 <details>

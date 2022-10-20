@@ -13,7 +13,7 @@ Pre-defined dimensions for `{{ platform }}`. These dimensions are defined in [me
 {{ dimension.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ dimension.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ dimension.data_source.name }})
+Data Source: [`{{ dimension.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ dimension.data_source.name }})
 
 <details>
 <summary>Definition:</summary>
@@ -46,7 +46,7 @@ These dimensions are defined in [{{ repo }}](https://github.com/mozilla/{{ repo 
 {{ dimension.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ dimension.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ dimension.data_source.name }})
+Data Source: [`{{ dimension.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ dimension.data_source.name }})
 
 <details>
 <summary>Definition:</summary>

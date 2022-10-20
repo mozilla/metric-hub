@@ -4,7 +4,7 @@ Metrics and statistics that get computed for every `{{ platform }}` experiment.
 
 ## {{ repo }}
 
-[Source](https://github.com/mozilla/jetstream-config/blob/main/defaults/{{ platform }}.toml)  |  [Edit](https://github.com/mozilla/jetstream-config/edit/main/defaults/{{ platform }}.toml)
+[Source](https://github.com/mozilla/metric-hub/blob/main/defaults/{{ platform }}.toml)  |  [Edit](https://github.com/mozilla/metric-hub/edit/main/defaults/{{ platform }}.toml)
 
 ### Metrics
 

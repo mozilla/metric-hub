@@ -13,7 +13,7 @@ Pre-defined segments for `{{ platform }}`. These segments are defined in [metric
 {{ segment.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ segment.data_source.name }})
+Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ segment.data_source.name }})
 
 <details>
 <summary>Definition:</summary>
@@ -46,7 +46,7 @@ These segments are defined in [{{ repo }}](https://github.com/mozilla/{{ repo }}
 {{ segment.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ segment.data_source.name }})
+Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ segment.data_source.name }})
 
 <details>
 <summary>Definition:</summary>

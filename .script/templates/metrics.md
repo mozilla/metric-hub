@@ -13,7 +13,7 @@ Pre-defined metrics for `{{ platform }}`. These metrics are defined in [metric-h
 {{ metric.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ metric.data_source.name }})
+Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ metric.data_source.name }})
 
 <details>
 <summary>Definition:</summary>
@@ -46,7 +46,7 @@ These metrics are defined in [{{ repo }}](https://github.com/mozilla/{{ repo }}/
 {{ metric.description | trim }}
 {%- endif %}
 
-Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/jetstream-config/data_sources/{{ platform }}/#{{ metric.data_source.name }})
+Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ metric.data_source.name }})
 
 <details>
 <summary>Definition:</summary>
