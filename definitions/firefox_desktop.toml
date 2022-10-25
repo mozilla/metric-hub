@@ -603,14 +603,6 @@ description = "Time in milliseconds from navigationStart to loadEventStart for t
 category = "performance"
 type = "histogram"
 
-[metrics.perf_first_contentful_paint]
-data_source = "main"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.content.histograms.perf_first_contentful_paint_ms) IGNORE NULLS)"
-friendly_name = "Perf First Contentful Paint"
-description = "The time between navigationStart and the first contentful paint of a foreground http or https root content document, in milliseconds. The contentful paint timestamp is taken during display list building and does not include rasterization or compositing of that paint."
-category = "performance"
-type = "histogram"
-
 [metrics.perf_request_animation_callback_non_pageload]
 data_source = "main"
 select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.content.histograms.perf_request_animation_callback_non_pageload_ms) IGNORE NULLS)"
