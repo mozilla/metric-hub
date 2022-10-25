@@ -565,7 +565,7 @@ type = "histogram"
 
 [metrics.mouseup_followed_by_click_present_latency]
 data_source = "main"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.content.histograms.mouseup_followed_by_click_present_latency) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.gpu.histograms.mouseup_followed_by_click_present_latency) IGNORE NULLS)"
 friendly_name = "Mouseup Followed By Click Present Latency"
 description = "Time between receiving a mouseup which follow by a mouseclick on the event loop and compositing its result onto the screen (ms)"
 category = "performance"
