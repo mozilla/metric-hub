@@ -39,6 +39,7 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_ios_klar"
 friendly_name = "Baseline"
 description = "Baseline Ping"
+build_id_column = "client_info.app_build"
 
 [data_sources.events]
 from_expression = """(
@@ -56,6 +57,7 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_ios_klar"
 friendly_name = "Events"
 description = "Events Ping"
+build_id_column = "client_info.app_build"
 
 [data_sources.metrics]
 from_expression = """(
@@ -69,3 +71,4 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_ios_klar"
 friendly_name = "Metrics"
 description = "Metrics Ping"
+build_id_column = "client_info.app_build"
