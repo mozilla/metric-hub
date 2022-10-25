@@ -5,7 +5,7 @@ jobs:
     docker:
     - image: python:3.8
     environment:
-      BASE_COMMIT: << pipeline.git.base_revision >>
+      BASE_COMMIT: <<pipeline.git.base_revision>>
       REVISION_COMMIT: <<pipeline.git.revision>>
     steps:
     - checkout
