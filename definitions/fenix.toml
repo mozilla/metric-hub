@@ -11,7 +11,7 @@ description = "Counts the number of URIs each client visited"
 data_source = "events"
 select_expression = """
     COUNTIF(event.name = 'browser_menu_action' AND 
-    mozfun.map.get_key('event.extra', 'item') = 'report_site_issue')
+    mozfun.map.get_key(event.extra, 'item') = 'report_site_issue')
 """
 friendly_name = "Site issues reported"
 description = "Counts the number of times clients reported an issue with a site."
@@ -21,7 +21,7 @@ description = "Counts the number of times clients reported an issue with a site.
 data_source = "events"
 select_expression = """
     COUNTIF(event.name = 'browser_menu_action' AND 
-    mozfun.map.get_key('event.extra', 'item') = 'reload')
+    mozfun.map.get_key(event.extra, 'item') = 'reload')
 """
 friendly_name = "Pages reloaded"
 description = "Counts the number of times a client reloaded a page."
