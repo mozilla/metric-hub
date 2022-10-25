@@ -51,7 +51,7 @@ description = "The earliest first-run date reported by each client."
 
 [metrics.performance_pageload_load_time]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_load_time) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_load_time IGNORE NULLS)"
 friendly_name = "Pageload Load Time"
 description = "Time in milliseconds from navigationStart to loadEventStart for the foreground http or https root content document."
 category = "performance"
@@ -59,7 +59,7 @@ type = "histogram"
 
 [metrics.performance_pageload_load_time_responsestart]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_load_time_responsestart) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_load_time_responsestart IGNORE NULLS)"
 friendly_name = "Pageload Load Time Response Start"
 description = "Time in milliseconds from responseStart to loadEventStart for the foreground http or https root content document."
 category = "performance"
@@ -67,7 +67,7 @@ type = "histogram"
 
 [metrics.performance_pageload_req_anim_frame_callback]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_req_anim_frame_callback) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_req_anim_frame_callback IGNORE NULLS)"
 friendly_name = "Pageload Load Req Animation Frame Callback"
 description = "Time spent in milliseconds calling all request animation frame callbacks for a document before it has reached readystate complete."
 category = "performance"
@@ -75,7 +75,7 @@ type = "histogram"
 
 [metrics.performance_pageload_dcl]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_dcl) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_dcl IGNORE NULLS)"
 friendly_name = "Pageload DCL"
 description = "Time in milliseconds from navigationStart to domContentLoaded for the foreground http or https root content document."
 category = "performance"
@@ -83,7 +83,7 @@ type = "histogram"
 
 [metrics.performance_pageload_dcl_responsestart]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_dcl_responsestart) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_dcl_responsestart IGNORE NULLS)"
 friendly_name = "Pageload DCL Response Start"
 description = "Time in milliseconds from responseStart to domContentLoaded for the foreground http or https root content document."
 category = "performance"
@@ -91,7 +91,7 @@ type = "histogram"
 
 [metrics.performance_pageload_fcp]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_fcp) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_fcp IGNORE NULLS)"
 friendly_name = "Pageload FCP"
 description = "The time between navigationStart and the first contentful paint of a foreground http or https root content document, in milliseconds. The contentful paint timestamp is taken during display list building and does not include rasterization or compositing of that paint."
 category = "performance"
@@ -99,7 +99,7 @@ type = "histogram"
 
 [metrics.performance_pageload_fcp_responsestart]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.performance_pageload_fcp_responsestart) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_fcp_responsestart IGNORE NULLS)"
 friendly_name = "Pageload FCP Response Start"
 description = "The time between responseStart and the first contentful paint of a foreground http or https root content document, in milliseconds. The contentful paint timestamp is taken during display list building and does not include rasterization or compositing of that paint."
 category = "performance"
@@ -107,7 +107,7 @@ type = "histogram"
 
 [metrics.perf_startup_cold_main_app_to_first_frame]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.perf_startup_cold_main_app_to_first_frame) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.perf_startup_cold_main_app_to_first_frame IGNORE NULLS)"
 friendly_name = "Startup Cold Main App to First Frame"
 description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD MAIN start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
 category = "performance"
@@ -115,7 +115,7 @@ type = "histogram"
 
 [metrics.perf_startup_cold_view_app_to_first_frame]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.timing_distribution.perf_startup_cold_view_app_to_first_frame) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.perf_startup_cold_view_app_to_first_frame IGNORE NULLS)"
 friendly_name = "Startup Cold View App to First Frame"
 description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD VIEW start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
 category = "performance"
@@ -123,7 +123,7 @@ type = "histogram"
 
 [metrics.storage_stats_app_bytes]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.memory_distribution.storage_stats_app_bytes) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.memory_distribution.storage_stats_app_bytes IGNORE NULLS)"
 friendly_name = "App Byte Size"
 description = "The size of the app's APK and related files as installed: this is expected\nto be larger than download size."
 category = "performance"
@@ -131,7 +131,7 @@ type = "histogram"
 
 [metrics.storage_stats_cache_bytes]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.memory_distribution.storage_stats_cache_bytes) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.memory_distribution.storage_stats_cache_bytes IGNORE NULLS)"
 friendly_name = "Cache Byte Size"
 description = "The size of all cached data in the app."
 category = "performance"
@@ -139,7 +139,7 @@ type = "histogram"
 
 [metrics.storage_stats_data_dir_bytes]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(metrics.memory_distribution.storage_stats_data_dir_bytes) IGNORE NULLS)"
+select_expression = "ARRAY_AGG(metrics.memory_distribution.storage_stats_data_dir_bytes IGNORE NULLS)"
 friendly_name = "Data Dir Byte Size"
 description = "The size of all data minus `cache_bytes`."
 category = "performance"
