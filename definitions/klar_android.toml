@@ -37,7 +37,7 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_klar"
 friendly_name = "Baseline"
 description = "Baseline Ping"
-build_id_column = "client_info.app_build"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 [data_sources.events]
 from_expression = """(
@@ -55,7 +55,7 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_klar"
 friendly_name = "Events"
 description = "Events Ping"
-build_id_column = "client_info.app_build"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 
 [data_sources.metrics]
@@ -70,4 +70,4 @@ experiments_column_type = "glean"
 default_dataset = "org_mozilla_klar"
 friendly_name = "Metrics"
 description = "Metrics Ping"
-build_id_column = "client_info.app_build"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
