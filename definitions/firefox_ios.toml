@@ -95,3 +95,7 @@ default_dataset = "org_mozilla_ios_firefox"
 friendly_name = "Metrics"
 description = "Metrics Ping"
 build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
+
+[data_sources.mobile_search_clients_engines_sources_daily]
+from_expression = "mozdata.search.mobile_search_clients_engines_sources_daily"
+experiments_column_type = "simple"
