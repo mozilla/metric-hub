@@ -4,20 +4,19 @@ jobs:
   validate:
     docker:
     - image: python:3.8
-    environment:
-      BASE_COMMIT: <<pipeline.git.base_revision>>
-      REVISION_COMMIT: <<pipeline.git.revision>>
     steps:
     - checkout
     - run:
+        name: Build
+        command: |
+          pip install -r .script/requirements.txt
+    - run:
         name: Validate config files
         command: |
-          python3.8 -m venv venv/
-          venv/bin/pip install -r .script/requirements.txt
-          changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- '*.toml' '*.toml.example')
+          changed_files=$(git diff origin/main... --name-only --diff-filter=d -- '*.toml' '*.toml.example')
           echo "Run validation on changed files: "
           echo $changed_files
-          venv/bin/python3 .script/validate.py $changed_files
+          python3 .script/validate.py $changed_files
   docs:
     docker:
       - image: python:3.8
