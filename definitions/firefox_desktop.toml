@@ -831,14 +831,6 @@ description = "Total number of Organic Ad Click Counts"
 category = "search"
 type = "scalar"
 
-[metrics.search_with_ads_organic]
-data_source = "search_clients_engines_sources_daily"
-select_expression = "SUM(search_with_ads_organic)"
-friendly_name = "Organic Searches with Ads"
-description = "Total number of Organic Searches with Ads"
-category = "search"
-type = "scalar"
-
 
 [dimensions]
 
@@ -878,7 +870,7 @@ from_expression = """(
     FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4
 )"""
 experiments_column_type = "native"
-riendly_name = "Main"
+friendly_name = "Main"
 description = "Main ping table"
 
 [data_sources.crash]
