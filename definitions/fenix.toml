@@ -159,6 +159,13 @@ type = "histogram"
 
 #### search metrics
 
+[metrics.tagged_sap_searches]
+select_expression = "{{agg_sum('tagged_sap')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+friendly_name = "Tagged SAP Searches"
+description = "Total number of tagged SAP searches. This metric is deprecated, use tagged_search_count instead"
+deprecated = true
+
 [metrics.organic_search_count]
 friendly_name = "Organic searches"
 description = """
@@ -171,7 +178,7 @@ select_expression = "{{agg_sum('organic')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.ad_click_organic]
 friendly_name = "Organic Ad Click Count"
@@ -180,7 +187,7 @@ select_expression = "{{agg_sum('ad_click_organic')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.search_count]
 friendly_name = "SAP searches"
@@ -194,7 +201,7 @@ select_expression = "{{agg_sum('search_count')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.searches_with_ads]
 friendly_name = "Search result pages with ads"
@@ -208,7 +215,7 @@ category = "search"
 type = "scalar"
 select_expression = "{{agg_sum('search_with_ads')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.ad_clicks]
 select_expression = "{{agg_sum('ad_click')}}"
@@ -220,7 +227,7 @@ description = """
 """
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.tagged_search_count]
 select_expression = "{{agg_sum('tagged_sap')}}"
@@ -235,7 +242,7 @@ description = """
 """
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 [metrics.tagged_follow_on]
 select_expression = "{{agg_sum('tagged_follow_on')}}"
@@ -250,7 +257,7 @@ description = """
 """
 category = "search"
 type = "scalar"
-owner = “xluo-all@mozilla.com”
+owner = "xluo-all@mozilla.com"
 
 ### Sponsored Tiles metrics
 
@@ -264,6 +271,7 @@ select_expression = """
 data_source = "events"   
 friendly_name = "Sponsored Tiles Impressions"
 description = "Number of times Contile Sponsored Tiles are shown."
+owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_clicks]
 select_expression = """
@@ -275,6 +283,7 @@ select_expression = """
 data_source = "events" 
 friendly_name = "Sponsored Tiles Clicks"
 description = "Number of times user clicked a Contile Sponsored Tile."
+owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_disable_rate]
 select_expression = """   
@@ -287,6 +296,7 @@ data_source = "metrics"
 bigger_is_better = false
 friendly_name = "Sponsored Tiles Disable Rate"
 description = "Fraction of users who disable Contile Sponsored Tiles"
+owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_preference_toggled]
 select_expression = """   
@@ -301,6 +311,7 @@ data_source = "events"
 bigger_is_better = false
 friendly_name = "Sponsored Tiles Preference Toggled"
 description = "Number of times Contile Sponsored Tiles setting is flipped."
+owner = "xluo-all@mozilla.com"
 
 
 [data_sources]
