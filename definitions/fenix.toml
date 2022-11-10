@@ -170,7 +170,7 @@ description = """
 select_expression = "{{agg_sum('organic')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 [metrics.ad_click_organic]
@@ -179,7 +179,7 @@ description = "Total number of Organic Ad Click Counts"
 select_expression = "{{agg_sum('ad_click_organic')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 [metrics.search_count]
@@ -193,7 +193,7 @@ description = """
 select_expression = "{{agg_sum('search_count')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 [metrics.searches_with_ads]
@@ -205,7 +205,7 @@ description = """
     [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
 """
 category = "search"
-type = "scalar
+type = "scalar"
 select_expression = "{{agg_sum('search_with_ads')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 owner = “xluo-all@mozilla.com”
@@ -219,7 +219,7 @@ description = """
     partner tag.
 """
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 [metrics.tagged_search_count]
@@ -234,7 +234,7 @@ description = """
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 [metrics.tagged_follow_on]
@@ -249,7 +249,7 @@ description = """
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
 category = "search"
-type = "scalar
+type = "scalar"
 owner = “xluo-all@mozilla.com”
 
 ### Sponsored Tiles metrics
