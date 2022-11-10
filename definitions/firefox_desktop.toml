@@ -33,7 +33,8 @@ description = """
     Learn more in the
     [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
 """
-
+category = "search"
+type = "scalar"
 
 [metrics.tagged_search_count]
 data_source = "search_clients_engines_sources_daily"
@@ -73,6 +74,8 @@ description = """
     Counts clicks on ads on search engine result pages with a Mozilla
     partner tag.
 """
+category = "search"
+type = "scalar"
 
 
 [metrics.searches_with_ads]
@@ -85,7 +88,8 @@ description = """
     Learn more in the
     [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
 """
-
+category = "search"
+type = "scalar"
 
 [metrics.organic_search_count]
 data_source = "search_clients_engines_sources_daily"
@@ -99,6 +103,31 @@ description = """
 """
 category = "search"
 type = "scalar"
+
+
+[metrics.search_with_ads_organic]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("search_with_ads_organic")}}'
+friendly_name = "Organic searches with ads"
+description = """
+    Counts search result pages from organic searches served with advertising. Organic searches 
+    are _not_ performed through a Firefox SAP and are not monetizable. 
+    Users may not actually see these ads thanks to e.g. ad-blockers.
+    Learn more in the
+    [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
+"""
+category = "search"
+type = "scalar"
+
+
+[metrics.ad_clicks_organic]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("ad_click_organic")}}'
+friendly_name = "Organic ad clicks"
+description = """
+    Counts clicks on ads on search engine result pages organic searches.
+    Organic searches are _not_ performed through a Firefox SAP and are not monetizable. 
+"""
 
 
 [metrics.unenroll]
