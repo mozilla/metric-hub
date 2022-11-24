@@ -14,19 +14,16 @@ data, we proxy the queries through the dry run service endpoint.
 import json
 import logging
 import sys
+from multiprocessing import Pool
 from pathlib import Path
 from typing import Any
 
 import click
 import requests
 import requests.exceptions
-from metric_config_parser.config import (
-    DEFINITIONS_DIR,
-    ConfigCollection,
-    entity_from_path,
-)
+from metric_config_parser.config import (DEFINITIONS_DIR, ConfigCollection,
+                                         entity_from_path)
 from metric_config_parser.function import FunctionsSpec
-
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +95,19 @@ def dry_run_query(sql: str) -> None:
     )
 
 
+def _is_sql_valid(sql):
+    try:
+        dry_run_query(sql)
+    except DryRunFailedError as e:
+        print("Error evaluating SQL:")
+        for i, line in enumerate(e.sql.split("\n")):
+            print(f"{i+1: 4d} {line.rstrip()}")
+        print("")
+        print(str(e))
+        return False
+    return True
+
+
 @cli.command("validate")
 @click.argument("path", type=click.Path(exists=True), nargs=-1)
 @click.option(
@@ -120,6 +130,7 @@ def validate(path, config_repos):
 
     # get updated definition files
     for config_file in path:
+        sql_to_validate = []
         config_file = Path(config_file)
         if not config_file.is_file():
             continue
@@ -137,71 +148,76 @@ def validate(path, config_repos):
                 print(e)
             else:
                 if not isinstance(entity, FunctionsSpec):
-                    try:
-                        validation_template = (
-                            Path(TEMPLATES_DIR) / "validation_query.sql"
-                        ).read_text()
+                    validation_template = (
+                        Path(TEMPLATES_DIR) / "validation_query.sql"
+                    ).read_text()
 
-                        for (
-                            metric_name,
-                            metric,
-                        ) in entity.spec.metrics.definitions.items():
-                            entity.spec.metrics.definitions[
-                                metric_name
-                            ].select_expression = (
-                                config_collection.get_env()
-                                .from_string(metric.select_expression)
-                                .render()
+                    for (
+                        metric_name,
+                        metric,
+                    ) in entity.spec.metrics.definitions.items():
+                        entity.spec.metrics.definitions[
+                            metric_name
+                        ].select_expression = (
+                            config_collection.get_env()
+                            .from_string(metric.select_expression)
+                            .render()
+                        )
+
+                    env = config_collection.get_env().from_string(validation_template)
+
+                    i = 0
+                    progress = 0
+                    metrics = []
+                    for metric in entity.spec.metrics.definitions.values():
+                        i += 1
+                        metrics.append(metric)
+
+                        if i % 10 == 0:
+                            sql = env.render(
+                                metrics=metrics,
+                                dimensions=[],
+                                segments=[],
+                                segment_data_sources=[],
+                                data_sources={
+                                    name: d.resolve(None)
+                                    for name, d in entity.spec.data_sources.definitions.items()
+                                },
                             )
+                            sql_to_validate.append(sql)
+                            i = 0
+                            metrics = []
+                            progress += 1
 
-                        env = config_collection.get_env().from_string(
-                            validation_template
+                    for (
+                        segment_name,
+                        segment,
+                    ) in entity.spec.segments.definitions.items():
+                        entity.spec.segments.definitions[
+                            segment_name
+                        ].select_expression = (
+                            config_collection.get_env()
+                            .from_string(segment.select_expression)
+                            .render()
                         )
 
-                        i = 0
-                        progress = 0
-                        metrics = []
-                        for metric in entity.spec.metrics.definitions.values():
-                            i += 1
-                            metrics.append(metric)
+                    sql = env.render(
+                        metrics=metrics,
+                        dimensions=entity.spec.dimensions.definitions.values(),
+                        segments=entity.spec.segments.definitions.values(),
+                        segment_data_sources=entity.spec.segments.data_sources,
+                        data_sources={
+                            name: d.resolve(None)
+                            for name, d in entity.spec.data_sources.definitions.items()
+                        },
+                    )
+                    sql_to_validate.append(sql)
 
-                            if i % 10 == 0:
-                                print(
-                                    f"Dry running {config_file} ({progress}/{len(entity.spec.metrics.definitions.values()) % 10})"
-                                )
-                                sql = env.render(
-                                    metrics=metrics,
-                                    dimensions=[],
-                                    segments=[],
-                                    data_sources={
-                                        name: d.resolve(None)
-                                        for name, d in entity.spec.data_sources.definitions.items()
-                                    },
-                                )
-                                dry_run_query(sql)
-                                i = 0
-                                metrics = []
-                                progress += 1
-
-                        sql = env.render(
-                            metrics=metrics,
-                            dimensions=entity.spec.dimensions.definitions.values(),
-                            segments=entity.spec.segments.definitions.values(),
-                            data_sources={
-                                name: d.resolve(None)
-                                for name, d in entity.spec.data_sources.definitions.items()
-                            },
-                        )
-                        dry_run_query(sql)
-                    except DryRunFailedError as e:
-                        print("Error evaluating SQL:")
-                        for i, line in enumerate(e.sql.split("\n")):
-                            print(f"{i+1: 4d} {line.rstrip()}")
-                        print("")
-                        print(str(e))
-                        dirty = True
-                    else:
-                        print(f"{config_file} OK")
+                    with Pool(8) as p:
+                        result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
+                    if not all(result):
+                        sys.exit(1)
+                    print(f"{config_file} OK")
 
     sys.exit(1 if dirty else 0)
 
