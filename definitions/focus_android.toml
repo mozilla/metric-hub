@@ -187,4 +187,4 @@ build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_
 from_expression = "mozdata.search.mobile_search_clients_engines_sources_daily"
 experiments_column_type = "simple"
 client_id_column = "client_id"
-submission_date_column = "DATE(submission_date)"
+submission_date_column = "submission_date"
