@@ -933,6 +933,7 @@ description = "Events Ping"
 [data_sources.newtab_interactions]
 from_expression = "mozdata.telemetry.newtab_interactions"
 experiments_column_type = "native"
+submission_date_column = "submission_date"
 description = "New Tab Interactions"
 friendly_name = "New Tab Interactions"
 
