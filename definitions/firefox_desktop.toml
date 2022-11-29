@@ -1023,3 +1023,8 @@ description = """
 from_expression = "mozdata.telemetry.clients_last_seen"
 window_start = 0
 window_end = 0
+
+[segments.data_sources.clients_daily]
+from_expression = "mozdata.telemetry.clients_daily"
+window_start = 0
+window_end = 0
