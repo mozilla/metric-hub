@@ -30,6 +30,7 @@ description = "The number of days in an observation window that clients used the
 select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
 data_source = "baseline"
 
+
 [metrics.ad_clicks]
 select_expression = "{{agg_sum('ad_click')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
@@ -38,13 +39,97 @@ description = """
     Counts clicks on ads on search engine result pages with a Mozilla
     partner tag.
 """
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+
+
+[metrics.ad_clicks_organic]
+friendly_name = "Ad Clicks through organic traffic"
+description = """
+    Counts clicks on ads on search engine result pages that are _not_ tagged with an eligible Mozilla
+    partner code.
+"""
+select_expression = "{{agg_sum('ad_click_organic')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+
 
 [metrics.search_count]
 friendly_name = "SAP search count"
 description = "Number of searches performed through a Search Access Point."
 select_expression = "{{agg_sum('search_count')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
 
+
+[metrics.tagged_search_count]
+friendly_name = "Tagged SAP searches"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points that were submitted with a partner code
+    and were potentially revenue-generating.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+select_expression = "{{agg_sum('tagged_sap')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+
+
+[metrics.tagged_follow_on_search_count]
+friendly_name = "Tagged follow-on searches"
+description = """
+    Counts the number of follow-on searches with a Mozilla partner tag.
+    These are additional searches that users performed from a search engine
+    results page after executing a tagged search through a SAP.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+select_expression = "{{agg_sum('tagged_follow_on')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+
+[metrics.organic_search_count]
+friendly_name = "Organic searches"
+description = """
+    Counts organic searches, which are searches that are _not_ performed
+    through a Firefox SAP and which are not monetizable.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+select_expression = "{{agg_sum('organic')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+
+[metrics.searches_with_ads]
+friendly_name = "Search result pages with ads (a.k.a. Ad Impressions) both tagged and organic"
+description = """
+    Counts search result pages served with advertising.
+    Users may not actually see these ads thanks to e.g. ad-blockers.
+    Learn more in the
+    [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html). 
+"""
+select_expression = '{{agg_sum("search_with_ads")}}'
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
 
 
 [data_sources]
@@ -96,7 +181,11 @@ description = "Metrics Ping"
 build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 [data_sources.mobile_search_clients_engines_sources_daily]
-from_expression = "mozdata.search.mobile_search_clients_engines_sources_daily"
-experiments_column_type = "simple"
+from_expression = """(
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE app_name = 'Klar' and os = 'iOS'
+ )"""
+ experiments_column_type = "simple"
 client_id_column = "client_id"
 submission_date_column = "submission_date"
