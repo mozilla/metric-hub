@@ -1028,3 +1028,8 @@ window_end = 0
 from_expression = "mozdata.telemetry.clients_daily"
 window_start = 0
 window_end = 0
+
+[segments.data_sources.newtab_interactions]
+from_expression = "mozdata.telemetry.newtab_interactions"
+window_start = 0
+window_end = 0
