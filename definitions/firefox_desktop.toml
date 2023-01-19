@@ -1042,6 +1042,29 @@ description = """
     in telemetry (i.e. new, unique profiles).
 """
 
+[segments.pocket_countries]
+data_source = "newtab_interactions"
+select_expression = "LOGICAL_OR(COALESCE(country_code in ('AT', 'BE', 'CA', 'CH', 'DE', 'GB', 'IE', 'IN', 'US'), FALSE))"
+friendly_name = "Pocket Countries"
+description = """
+    Clients in countries with Pocket.
+"""
+
+[segments.sponsored_tile_countries]
+data_source = "newtab_interactions"
+select_expression = "LOGICAL_OR(COALESCE(country_code in ('AU', 'BR', 'CA', 'DE', 'ES', 'FR', 'GB', 'IN', 'IT', 'JA', 'MX', 'US'), FALSE))"
+friendly_name = "Sponsored Tile Countries"
+description = """
+    Clients in countries with AdMarketplace Sponsored Tiles.
+"""
+
+[segments.marketing_tier1_countries]
+data_source = "newtab_interactions"
+select_expression = "LOGICAL_OR(COALESCE(country_code in ('CA', 'DE', 'FR', 'GB', 'US'), FALSE))"
+friendly_name = "Marketing Tier1 Countries"
+description = """
+    Clients in countries considered Tier 1 by Marketing. Other business units may have different definitions of 'Tier 1'.
+"""
 
 [segments.data_sources]
 
