@@ -1,0 +1,15 @@
+[project]
+
+platform = "firefox_desktop"
+xaxis = "submission_date"
+metrics = [
+    'memory_total'
+]
+
+[project.population]
+
+data_source = "main"
+
+
+[metrics.memory_total.statistics]
+percentile = {}

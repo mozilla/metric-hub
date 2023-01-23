@@ -1,9 +1,5 @@
 # OpMon Config
 
-> This is currently a WIP.
-> We are moving [opmon-config](https://github.com/mozilla/opmon-config) into metric-hub. This is to improve the development experience when writing configs that depend on new or existing metrics.
-> For now, keep adding configs to [opmon-config](https://github.com/mozilla/opmon-config)
-
 Custom configs operational monitoring projects run via [opmon](https://github.com/mozilla/opmon).
 
 ## Adding Custom Configurations

@@ -1,0 +1,232 @@
+[metrics]
+
+[metrics.content_shutdown_crashes.statistics]
+sum = {}
+
+[metrics.content_crashes.statistics]
+sum = {}
+
+[metrics.shutdown_hangs.statistics]
+sum = {}
+
+[metrics.oom_crashes.statistics]
+sum = {}
+
+[metrics.main_crashes.statistics]
+sum = {}
+
+[metrics.startup_crashes.statistics]
+sum = {}
+
+[metrics.gmplugin_crashes.statistics]
+sum = {}
+
+[metrics.gpu_crashes.statistics]
+sum = {}
+
+[metrics.plugin_crashes.statistics]
+sum = {}
+
+[metrics.child_process_launch_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.content_process_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.content_process_max.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.checkerboard_severity.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.content_frame_time_vsync.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.fx_new_window_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.fx_tab_switch_composite_e10s_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.keypress_present_latency_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.memory_total.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.cycle_collector_max_pause.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.cycle_collector_max_pause_content.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_max_pause_2.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_max_pause_2_content.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_ms_content.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_slice_during_idle.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_slice_during_idle_content.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_non_incremental.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_reason_2.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_mark_rate_2.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.gc_budget_overrun.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.memory_unique_content_startup.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_first_contentful_paint_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.time_to_first_interaction_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_page_load_time_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.loaded_tab_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.active_ticks.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.subsession_length.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.uri_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tab_pinned_event_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tab_open_event_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tab_unload_to_reload.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tab_reload_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tab_unload_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.concurrent_pinned_tab_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.concurrent_opened_tab_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.opened_tab_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_xdr_encoding_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_protect_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_parse_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_execution_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_delazification_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.js_pageload_baseline_compile_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.input_event_response_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.memory_pressure_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tagged_search_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.tagged_follow_on_search_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.search_with_ads.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.ad_click.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.organic_search_count.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.sap.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.ad_click_organic.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.search_with_ads_organic.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.scroll_present_latency.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.input_event_response_coalesced.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.mouseup_followed_by_click_present_latency.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.fx_page_load_ms_2.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_dom_content_loaded_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_dom_contentperf_dom_content_loaded_time_from_responsestart_ms_loaded_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_page_load_time_from_responsestart.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_request_animation_callback_non_pageload.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_request_animation_callback_pageload.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.timestamps_first_paint_two.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.timestamps_about_home_topsites_first_paint.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.cycle_collector_visited_gced.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.cycle_collector_visited_ref_counted.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[data_sources]
+  
+[data_sources.main]
+from_expression = "mozdata.telemetry.main_1pct"
+submission_date_column = "DATE(submission_timestamp)"

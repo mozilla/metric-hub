@@ -1,0 +1,131 @@
+[project]
+
+name = "Firefox Installation Success Rate"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2021-11-01"
+# We want continuous monitoring of this data
+#end_date =
+skip_default_metrics = true
+
+metrics = [
+    "install_volume_total",
+    "install_volume_win7",
+    "install_volume_win8",
+    "install_volume_win8_1",
+    "install_volume_win10"
+]
+
+alerts = [
+    "install_success_rate_win",
+    "install_success_rate_win8"
+]
+
+[project.population]
+
+data_source = "firefox_installs"
+monitor_entire_population = true
+
+[project.metric_groups.installs_by_os]
+friendly_name = "Installs by OS"
+description = "Breakdown of installs by OS"
+metrics = [
+    "install_volume_win7",
+    "install_volume_win8",
+    "install_volume_win8_1",
+    "install_volume_win10"
+]
+
+
+
+[metrics]
+
+[metrics.install_volume_total]
+data_source = "firefox_installs"
+select_expression = "IF(ANY_VALUE(os) != 'other', IF(LOGICAL_OR(succeeded), 1, 0) * 100, NULL)"
+type = "scalar"
+
+[metrics.install_volume_total.statistics]
+sum = {}
+mean = {}
+
+[metrics.install_volume_win7]
+data_source = "firefox_installs"
+select_expression = "IF(ANY_VALUE(os) = 'Win7', IF(LOGICAL_OR(succeeded), 1, 0) * 100, NULL)"
+type = "scalar"
+
+[metrics.install_volume_win7.statistics]
+sum = {}
+mean = {}
+
+[metrics.install_volume_win8]
+data_source = "firefox_installs"
+select_expression = "IF(ANY_VALUE(os) = 'Win8', IF(LOGICAL_OR(succeeded), 1, 0) * 100, NULL)"
+type = "scalar"
+
+[metrics.install_volume_win8.statistics]
+sum = {}
+mean = {}
+
+[metrics.install_volume_win8_1]
+data_source = "firefox_installs"
+select_expression = "IF(ANY_VALUE(os) = 'Win8.1', IF(LOGICAL_OR(succeeded), 1, 0) * 100, NULL)"
+type = "scalar"
+
+[metrics.install_volume_win8_1.statistics]
+sum = {}
+mean = {}
+
+[metrics.install_volume_win10]
+data_source = "firefox_installs"
+select_expression = "IF(ANY_VALUE(os) = 'Win10', IF(LOGICAL_OR(succeeded), 1, 0) * 100, NULL)"
+type = "scalar"
+
+[metrics.install_volume_win10.statistics]
+sum = {}
+mean = {}
+
+[alerts]
+
+[alerts.install_success_rate_win]
+type = "threshold"
+metrics = [
+    "install_volume_win7",
+    "install_volume_win8_1",
+    "install_volume_win10"
+]
+min = [90]
+
+[alerts.install_success_rate_win8]
+type = "threshold"
+metrics = [
+    "install_volume_win8",
+]
+min = [86]
+
+
+[data_sources]
+
+[data_sources.firefox_installs]
+from_expression = """
+    (
+        SELECT 
+            DATE(submission_timestamp) AS submission_date,
+            document_id,
+            build_channel,
+            succeeded,
+            CASE 
+                WHEN os_version LIKE '6.1%' THEN 'Win7'
+                WHEN os_version LIKE '6.2%' THEN 'Win8'
+                WHEN os_version LIKE '6.3%' THEN 'Win8.1'
+                WHEN os_version LIKE '10%' THEN 'Win10'
+                ELSE "other"
+            END as os,
+        FROM mozdata.firefox_installer.install
+        WHERE 
+            build_channel = "release"
+            AND installer_type = 'stub'
+    )
+"""
+submission_date_column = "submission_date"
+client_id_column = "document_id"

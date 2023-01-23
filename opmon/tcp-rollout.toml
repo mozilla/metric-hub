@@ -1,0 +1,81 @@
+[project]
+
+name = "TCP Rollout"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-03-01"
+end_date = "2022-06-30"
+
+metrics = [
+    "tagged_search_count",
+    "tagged_follow_on_search_count",
+    "search_with_ads",
+    "ad_click",
+    "organic_search_count",
+    "sap",
+    "ad_click_organic",
+    "search_with_ads_organic"
+]
+
+[project.population]
+
+data_source = "tcp_rollout_main"
+branches = [
+    "opt-in",
+    "opt-out",
+    "pref-does-not-exist"
+]
+dimensions = ["os", "country"]
+monitor_entire_population = true
+
+
+[data_sources]
+
+[data_sources.tcp_rollout_main]
+from_expression = """
+    (
+        -- opmon supports boolean prefs, but this rollout uses an integer to encode different branches.
+        -- This query transforms the client population into the right shape that opmon expects by 
+        -- creating different branches and treating the rollout as an experiment.
+        WITH clients_per_branch AS (
+            SELECT 
+                client_id,
+                sample_id,
+                DATE(submission_timestamp) AS submission_date,
+                application.build_id AS build_id,
+                normalized_channel,
+                normalized_os,
+                normalized_country_code,
+                CASE payload.processes.parent.scalars.privacy_dfpi_rollout_enabled_by_default 
+                    WHEN 0 THEN "opt-out"
+                    WHEN 1 THEN "opt-in"
+                    WHEN 2 THEN "pref-does-not-exist"
+                    ELSE NULL
+                END AS branch
+            FROM `moz-fx-data-shared-prod.telemetry.main`
+            WHERE normalized_channel = "release" OR normalized_channel = "beta"
+        )
+        SELECT 
+        client_id,
+        submission_date,
+        build_id,
+        normalized_channel,
+        normalized_os,
+        normalized_country_code,
+        STRUCT (    -- this is the structure opmon expects
+            [
+            STRUCT (
+                "tcp-rollout" AS key,   -- dummy experiment/rollout slug to make opmon happy
+                STRUCT(branch AS branch) AS value
+            )
+            ] AS experiments
+        ) AS environment
+        FROM clients_per_branch 
+        WHERE 
+        -- for the "pref-does-not-exist" we only want to use a 5% sample, the other branches should use 100% of clients
+        -- for the following analyses
+        (branch IS NOT NULL AND (branch != "pref-does-not-exist" OR (branch = "pref-does-not-exist" AND sample_id < 5)))
+    )
+"""
+submission_date_column = "submission_date"
+build_id_column = "build_id"
