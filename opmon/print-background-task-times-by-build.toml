@@ -1,0 +1,291 @@
+[project]
+
+name = "Print Background Task Times By Build ID (1pct sample)"
+platform = "firefox_desktop"
+xaxis = "build_id"
+start_date = "2020-12-01"
+metrics = [
+    "total_printing_errors",
+    "print_failure",
+    "gfx_printer_doc_is_busy",
+    "not_available",
+    "unexpected",
+    "no_printer",
+    "name_not_found",
+    "cannot_open_file",
+    "startdoc",
+    "enddoc",
+    "start_page",
+    "abort",
+    "notimplemented",
+    "oom",
+    "total_printing_errors_new_ui",
+    "total_printing_errors_old_ui"
+]
+skip_default_metrics = true
+
+[project.metric_groups.print_error_breakdown]
+friendly_name = "Print Error Breakdown"
+description = "Breakdown of print errors"
+metrics = [
+    "print_failure",
+    "gfx_printer_doc_is_busy",
+    "not_available",
+    "unexpected",
+    "no_printer",
+    "name_not_found",
+    "cannot_open_file",
+    "startdoc",
+    "enddoc",
+    "start_page",
+    "abort",
+    "notimplemented",
+    "oom"
+]
+
+
+[project.metric_groups.print_error_by_ui]
+friendly_name = "Print Error Breakdown per UI"
+description = "Breakdown of print errors for old and new UI"
+metrics = [
+    "total_printing_errors_new_ui",
+    "total_printing_errors_old_ui"
+]
+
+
+[project.population]
+
+data_source = "main"
+monitor_entire_population = true
+dimensions = ["os", "channel"]
+
+
+[dimensions.os]
+data_source = "main"
+select_expression = "environment.system.os.name"
+friendly_name = "Operating System"
+description = "Operating System"
+
+[dimensions.channel]
+data_source = "main"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Channel"
+
+
+[metrics.total_printing_errors]
+select_expression = "SUM(total_errors)"
+data_source = "print_errors"
+friendly_name = "Total Printing Errors"
+description = "Total number of printing errors"
+
+[metrics.total_printing_errors.statistics]
+sum = {}
+
+
+[metrics.total_printing_errors_new_ui]
+select_expression = "SUM(IF(is_new_ui = 'New UI', total_errors, 0))"
+data_source = "print_errors"
+friendly_name = "Total Printing Errors New UI"
+description = "Total number of printing errors for new UI"
+
+[metrics.total_printing_errors_new_ui.statistics]
+sum = {}
+
+
+[metrics.total_printing_errors_old_ui]
+select_expression = "SUM(IF(is_new_ui = 'Old UI', 0, total_errors))"
+data_source = "print_errors"
+friendly_name = "Total Printing Errors Old UI"
+description = "Total number of printing errors for old UI"
+
+[metrics.total_printing_errors_old_ui.statistics]
+sum = {}
+
+
+
+
+[metrics.print_failure]
+select_expression = "COALESCE(SUM(failure), 0)"
+data_source = "print_errors"
+friendly_name = "Print Failures"
+description = "Total number of print failures"
+
+[metrics.print_failure.statistics]
+sum = {}
+
+[metrics.gfx_printer_doc_is_busy]
+select_expression = "COALESCE(SUM(gfx_printer_doc_is_busy), 0)"
+data_source = "print_errors"
+friendly_name = "GFX Printer doc is busy"
+description = "Total number of gfx printer doc busy failures"
+
+[metrics.gfx_printer_doc_is_busy.statistics]
+sum = {}
+
+[metrics.not_available]
+select_expression = "COALESCE(SUM(not_available), 0)"
+data_source = "print_errors"
+friendly_name = "Not Available"
+description = "Total number of not available failures"
+
+[metrics.not_available.statistics]
+sum = {}
+
+[metrics.unexpected]
+select_expression = "COALESCE(SUM(unexpected), 0)"
+data_source = "print_errors"
+friendly_name = "Unexpected"
+description = "Total number of unexpected failures"
+
+[metrics.unexpected.statistics]
+sum = {}
+
+[metrics.no_printer]
+select_expression = "COALESCE(SUM(no_printer), 0)"
+data_source = "print_errors"
+friendly_name = "No Printer"
+description = "Total number of no printer failures"
+
+[metrics.no_printer.statistics]
+sum = {}
+
+[metrics.name_not_found]
+select_expression = "COALESCE(SUM(name_not_found), 0)"
+data_source = "print_errors"
+friendly_name = "Name not found"
+description = "Total number of name not found failures"
+
+[metrics.name_not_found.statistics]
+sum = {}
+
+[metrics.cannot_open_file]
+select_expression = "COALESCE(SUM(cannot_open_file), 0)"
+data_source = "print_errors"
+friendly_name = "Cannot open file"
+description = "Total number of cannot open file failures"
+
+[metrics.cannot_open_file.statistics]
+sum = {}
+
+[metrics.startdoc]
+select_expression = "COALESCE(SUM(startdoc), 0)"
+data_source = "print_errors"
+friendly_name = "Startdoc"
+description = "Total number of startdoc failures"
+
+[metrics.startdoc.statistics]
+sum = {}
+
+[metrics.enddoc]
+select_expression = "COALESCE(SUM(enddoc), 0)"
+data_source = "print_errors"
+friendly_name = "Enddoc"
+description = "Total number of enddoc failures"
+
+[metrics.enddoc.statistics]
+sum = {}
+
+[metrics.start_page]
+select_expression = "COALESCE(SUM(start_page), 0)"
+data_source = "print_errors"
+friendly_name = "Start Page"
+description = "Total number of start page failures"
+
+[metrics.start_page.statistics]
+sum = {}
+
+[metrics.abort]
+select_expression = "COALESCE(SUM(abort), 0)"
+data_source = "print_errors"
+friendly_name = "Abort"
+description = "Total number of aborts"
+
+[metrics.abort.statistics]
+sum = {}
+
+[metrics.notimplemented]
+select_expression = "COALESCE(SUM(notimplemented), 0)"
+data_source = "print_errors"
+friendly_name = "Not Implemented"
+description = "Total number of not implemented failures"
+
+[metrics.notimplemented.statistics]
+sum = {}
+
+[metrics.oom]
+select_expression = "COALESCE(SUM(oom), 0)"
+data_source = "print_errors"
+friendly_name = "Out of memory"
+description = "Total number of out of memory failures"
+
+[metrics.oom.statistics]
+sum = {}
+
+
+
+# use a 1 percent sample for now
+[data_sources.main]
+from_expression = """(
+    SELECT *
+    FROM `moz-fx-data-shared-prod.telemetry_derived.main_1pct_v1`
+    WHERE environment.system.os.name IN ("Darwin", "Windows_NT", "Linux") AND
+    normalized_channel IN ("release", "beta", "nightly")
+)"""
+submission_date_column = "DATE(submission_timestamp)"
+
+
+[data_sources.print_errors]
+from_expression = """(
+    SELECT
+        build_id,
+        submission_timestamp,
+        client_id,
+        is_new_ui,
+        FAILURE_count AS failure,
+        GFX_PRINTER_DOC_IS_BUSY_count AS gfx_printer_doc_is_busy,
+        NOT_AVAILABLE_count AS not_available,
+        UNEXPECTED_count AS unexpected,
+        NO_PRINTER_count AS no_printer,
+        NAME_NOT_FOUND_count AS name_not_found,
+        CANNOT_OPEN_FILE_count AS cannot_open_file,
+        STARTDOC_count AS startdoc,
+        ENDDOC_count AS enddoc,
+        STARTPAGE_count AS start_page,
+        ABORT_count AS abort,
+        NOTIMPLEMENTED_count AS notimplemented,
+        OOM_count AS oom,
+        COALESCE(FAILURE_count, 0) + COALESCE(GFX_PRINTER_DOC_IS_BUSY_count, 0) + COALESCE(NOT_AVAILABLE_count, 0) + COALESCE(UNEXPECTED_count, 0) + 
+        COALESCE(NO_PRINTER_count, 0) + COALESCE(NAME_NOT_FOUND_count, 0) + COALESCE(CANNOT_OPEN_FILE_count, 0) + COALESCE(STARTDOC_count, 0) + 
+        COALESCE(ENDDOC_count, 0) + COALESCE(STARTPAGE_count, 0) + COALESCE(ABORT_count, 0) + COALESCE(NOTIMPLEMENTED_count, 0) + COALESCE(OOM_count, 0) AS total_errors
+    FROM (
+        SELECT 
+            submission_timestamp,
+            client_id,
+            substr(application.build_id, 0, 10) AS build_id,
+            CASE
+            when `moz-fx-data-shared-prod`.udf.get_key(environment.experiments, 'bug-1683348-rollout-tab-modal-print-ui-roll-out-release-84-85') IS NOT NULL then 'New UI'
+            else 'Old UI'
+            end as is_new_ui,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "FAILURE") AS FAILURE_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_DOC_IS_BUSY") AS GFX_PRINTER_DOC_IS_BUSY_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "NOT_AVAILABLE") AS NOT_AVAILABLE_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "UNEXPECTED") AS UNEXPECTED_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_NO_PRINTER_AVAILABLE") AS NO_PRINTER_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_NAME_NOT_FOUND") AS NAME_NOT_FOUND_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_COULD_NOT_OPEN_FILE") AS CANNOT_OPEN_FILE_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_STARTDOC") AS STARTDOC_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_ENDDOC") AS ENDDOC_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "GFX_PRINTER_STARTPAGE") AS STARTPAGE_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "ABORT") AS ABORT_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "NOT_IMPLEMENTED") AS NOTIMPLEMENTED_count,
+            `moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_error, "OUT_OF_MEMORY") AS OOM_count,
+        FROM `moz-fx-data-shared-prod.telemetry_derived.main_1pct_v1`
+        WHERE DATE(submission_timestamp) >= '2021-01-01' -- data started coming in on 2020-05-05
+            AND normalized_channel IN ("release", "beta", "nightly")
+            AND environment.system.os.name IN ("Darwin", "Windows_NT", "Linux")
+            AND CAST(substr(application.build_id, 1, 4) AS INT64) >= 2020
+    )
+)"""
+submission_date_column = "DATE(submission_timestamp)"
+build_id_column = "build_id"

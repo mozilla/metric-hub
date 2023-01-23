@@ -1,0 +1,194 @@
+[project]
+
+name = "TCP Rollout Phase 2 Demo"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-06-08"
+end_date = "2022-08-30"
+skip_default_metrics = true
+
+metrics = [
+    "tagged_search_count",
+    "search_with_ads",
+    "ad_click",
+    "perf_first_contentful_paint_ms",
+    "daily_active_clients"
+]
+
+[project.population]
+
+data_source = "tcp_rollout_main"
+branches = [
+    "enabled",
+    "disabled"
+]
+dimensions = ["os"]
+monitor_entire_population = true
+
+
+[metrics]
+
+
+[metrics.perf_first_contentful_paint_ms]
+data_source = "tcp_rollout_main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(perf_first_contentful_paint_ms) IGNORE NULLS)"
+type = "histogram"
+
+[metrics.daily_active_clients]
+data_source = "tcp_rollout_main"
+select_expression = "COUNT(DISTINCT client_id)"
+friendly_name = "Daily Active Clients"
+category = "active_clients"
+type = "scalar"
+
+[metrics.daily_active_clients.statistics]
+sum = {}
+
+[metrics.tagged_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(tagged_sap)"
+friendly_name = "Tagged Search Count"
+category = "search"
+type = "scalar"
+
+[metrics.tagged_search_count.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.tagged_follow_on_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(tagged_follow_on)"
+friendly_name = "Tagged Follow On Search Count"
+category = "search"
+type = "scalar"
+
+[metrics.tagged_follow_on_search_count.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.search_with_ads]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(search_with_ads)"
+friendly_name = "Search with Ads"
+category = "search"
+type = "scalar"
+
+[metrics.search_with_ads.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.ad_click]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(ad_click)"
+friendly_name = "Ad Clicks"
+category = "search"
+type = "scalar"
+
+[metrics.ad_click.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.organic_search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(organic)"
+friendly_name = "Organic Search Count"
+category = "search"
+type = "scalar"
+
+[metrics.organic_search_count.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.search_with_ads_organic]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(search_with_ads_organic)"
+friendly_name = "Organic Searches with Ads"
+category = "search"
+type = "scalar"
+
+[metrics.search_with_ads_organic.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.sap]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(sap)"
+friendly_name = "SAP Search Count"
+category = "search"
+type = "scalar"
+
+[metrics.sap.statistics]
+sum = {}
+mean = {}
+
+
+[metrics.ad_click_organic]
+data_source = "search_clients_engines_sources_daily"
+select_expression = "SUM(ad_click_organic)"
+friendly_name = "Organic Ad Click Count"
+category = "search"
+type = "scalar"
+
+[metrics.ad_click_organic.statistics]
+sum = {}
+mean = {}
+
+
+[data_sources]
+
+[data_sources.tcp_rollout_main]
+from_expression = """
+    (
+        WITH clients_per_branch AS (
+            SELECT 
+                client_id,
+                sample_id,
+                DATE(submission_timestamp) AS submission_date,
+                application.build_id AS build_id,
+                normalized_channel,
+                normalized_os,
+                normalized_country_code,
+                payload.processes.content.histograms.perf_page_load_time_ms AS perf_page_load_time_ms,
+                payload.processes.content.histograms.perf_first_contentful_paint_ms AS perf_first_contentful_paint_ms,
+                CASE payload.processes.parent.scalars.privacy_dfpi_rollout_tcp_by_default_feature 
+                    WHEN TRUE THEN "enabled"
+                    ELSE "disabled"
+                END AS branch
+            FROM `moz-fx-data-shared-prod.telemetry.main`,
+                UNNEST(environment.experiments) AS experiment
+            WHERE 
+                (normalized_channel = "beta") AND
+                experiment.key IN (
+                    "total-cookie-protection-beta-roll-out-phase-ii-switch-on-to-new-users", 
+                    "total-cookie-protection-roll-out-to-users-phase-ii-switch-on-by-default"
+                )
+        )
+        SELECT 
+        client_id,
+        submission_date,
+        build_id,
+        normalized_channel,
+        normalized_os,
+        normalized_country_code,
+        perf_page_load_time_ms,
+        perf_first_contentful_paint_ms,
+        STRUCT (    -- this is the structure opmon expects
+            [
+            STRUCT (
+                "tcp-rollout-phase-2-demo" AS key,   -- dummy experiment/rollout slug to make opmon happy
+                STRUCT(branch AS branch) AS value
+            )
+            ] AS experiments
+        ) AS environment
+        FROM clients_per_branch 
+        WHERE branch IS NOT NULL
+    )
+"""
+submission_date_column = "submission_date"
+build_id_column = "build_id"

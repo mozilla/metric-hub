@@ -1,0 +1,50 @@
+[project]
+
+platform = "firefox_desktop"
+xaxis = "submission_date"
+metrics = [
+    "active_hours",
+    "ad_clicks",
+    "days_of_use",
+    "retained",
+    "uri_count",
+    "search_count",
+    "qualified_cumulative_days_of_use"
+]
+
+[project.population]
+
+data_source = "main"
+
+[metrics.active_hours.statistics]
+mean = {}
+
+[metrics.ad_clicks.statistics]
+mean = {}
+
+[metrics.days_of_use.statistics]
+mean = {}
+
+[metrics.retained]
+select_expression = "IF(COALESCE(SUM(pings_aggregated_by_this_row), 0) > 0, 1, 0)"
+data_source = "clients_daily"
+friendly_name = "Retained"
+description = "Records whether a client submitted any pings (i.e. used Firefox)."
+
+[metrics.retained.statistics]
+mean = {}
+
+[metrics.uri_count.statistics]
+mean = {}
+
+[metrics.search_count.statistics]
+mean = {}
+
+[metrics.qualified_cumulative_days_of_use.statistics]
+mean = {}
+
+[data_sources]
+  
+[data_sources.main]
+from_expression = "mozdata.telemetry.main_1pct"
+submission_date_column = "DATE(submission_timestamp)"

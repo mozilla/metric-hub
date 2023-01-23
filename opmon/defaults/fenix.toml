@@ -1,0 +1,44 @@
+[project]
+
+platform = "fenix"
+xaxis = "submission_date"
+metrics = [
+    "retained",
+    "active_hours",
+    "ad_clicks",
+    "days_of_use",
+    "tagged_sap_searches",
+    "uri_count",
+    "search_count"
+]
+
+[project.population]
+
+data_source = "baseline"
+
+[metrics.active_hours.statistics]
+mean = {}
+
+[metrics.retained]
+select_expression = "IF(COALESCE(COUNT(document_id), 0) > 0, 1, 0)"
+data_source = "baseline"
+friendly_name = "Retained"
+description = "Records whether a client submitted any pings (i.e. used Firefox)."
+
+[metrics.retained.statistics]
+mean = {}
+
+[metrics.ad_clicks.statistics]
+mean = {}
+
+[metrics.days_of_use.statistics]
+mean = {}
+
+[metrics.tagged_sap_searches.statistics]
+mean = {}
+
+[metrics.uri_count.statistics]
+mean = {}
+
+[metrics.search_count.statistics]
+mean = {}

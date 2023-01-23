@@ -1,0 +1,56 @@
+[project]
+
+name = "Fission Release Rollout"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+metrics = [
+    'content_process_count',
+    'content_process_max',
+    'checkerboard_severity',
+    'child_process_launch_ms',
+    'content_frame_time_vsync',
+    'fx_new_window_ms',
+    'fx_tab_switch_composite_e10s_ms',
+    'keypress_present_latency_ms',
+    'memory_total',
+    'cycle_collector_max_pause',
+    'cycle_collector_max_pause_content',
+    'gc_max_pause_2',
+    'gc_max_pause_2_content',
+    'gc_ms',
+    'gc_ms_content',
+    'gc_slice_during_idle',
+    'gc_slice_during_idle_content',
+    'memory_unique_content_startup',
+    'perf_first_contentful_paint_ms',
+    'time_to_first_interaction_ms',
+    'perf_page_load_time_ms',
+    'loaded_tab_count',
+    'active_ticks',
+    'subsession_length',
+    'uri_count',
+    'gmplugin_crashes',
+    'gpu_crashes',
+    'plugin_crashes',
+    'content_shutdown_crashes',
+    'content_crashes',
+    'shutdown_hangs',
+    'oom_crashes',
+    'main_crashes',
+    'startup_crashes'
+]
+
+
+[project.population]
+
+data_source = "main"
+dimensions = ["os", "cores_count"]
+channel = "release"
+branches = []
+
+
+[data_sources]
+
+[data_sources.main]
+from_expression = "mozdata.telemetry.main_1pct"
+submission_date_column = "DATE(submission_timestamp)"

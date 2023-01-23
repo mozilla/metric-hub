@@ -1,0 +1,71 @@
+[project]
+
+name = "Tab Unloading V2 Linux"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-02-14"
+metrics = [
+    'tab_unload_count',
+    'tab_reload_count',
+    'tab_unload_to_reload',
+    'checkerboard_severity',
+    'child_process_launch_ms',
+    'content_frame_time_vsync',
+    'content_process_max',
+    'cycle_collector_max_pause',
+    'cycle_collector_max_pause_content',
+    'fx_new_window_ms',
+    'fx_tab_switch_composite_e10s_ms',
+    'gc_budget_overrun',
+    'gc_mark_rate_2',
+    'gc_reason_2',
+    'gc_max_pause_2',
+    'gc_max_pause_2_content',
+    'gc_ms',
+    'gc_ms_content',
+    'gc_non_incremental',
+    'gc_slice_during_idle',
+    'gc_slice_during_idle_content',
+    'js_pageload_baseline_compile_ms',
+    'js_pageload_delazification_ms',
+    'js_pageload_execution_ms',
+    'js_pageload_parse_ms',
+    'js_pageload_protect_ms',
+    'js_pageload_xdr_encoding_ms',
+    'concurrent_opened_tab_count',
+    'concurrent_pinned_tab_count',
+    'opened_tab_count',
+    'memory_total',
+    'memory_unique_content_startup',
+    'perf_first_contentful_paint_ms',
+    'perf_page_load_time_ms',
+    'subsession_length',
+    'tab_open_event_count',
+    'tab_pinned_event_count',
+    'content_crashes',
+    'main_crashes',
+    'shutdown_hangs',
+    'oom_crashes',
+    'memory_pressure_count'
+]
+
+[project.population]
+
+data_source = "main"
+branches = [
+    "tab-unloading-enabled",
+    "tab-unloading-disabled"
+]
+channel = "release"
+
+[data_sources]
+
+[data_sources.main]
+from_expression = """
+(
+    SELECT * 
+    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4`
+    WHERE sample_id = 0 AND normalized_channel = 'release'
+)
+"""
+submission_date_column = "DATE(submission_timestamp)"

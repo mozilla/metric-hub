@@ -1,0 +1,36 @@
+[project]
+
+name = "Win32k Lockdown Experiment V2"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-03-01"
+metrics = [
+    'gmplugin_crashes',
+    'gpu_crashes',
+    'plugin_crashes',
+    'content_process_count',
+    'content_shutdown_crashes',
+    'content_crashes',
+    'shutdown_hangs',
+    'oom_crashes',
+    'main_crashes',
+    'startup_crashes'
+]
+
+[project.population]
+
+data_source = "main"
+branches = ["enabled", "disabled"]
+channel = "beta"
+
+[data_sources]
+
+[data_sources.main]
+from_expression = """
+(
+    SELECT * FROM
+    mozdata.telemetry.main
+    WHERE normalized_channel = "beta"
+)
+"""
+submission_date_column = "DATE(submission_timestamp)"

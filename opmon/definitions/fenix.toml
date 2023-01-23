@@ -1,0 +1,69 @@
+[metrics]
+
+[metrics.uri_count.statistics]
+percentile = {}
+
+
+[metrics.user_reports_site_issue_count.statistics]
+percentile = {}
+sum = {}
+
+
+[metrics.user_reload_count.statistics]
+percentile = {}
+sum = {}
+
+
+[metrics.baseline_ping_count.statistics]
+sum = {}
+
+
+[metrics.metric_ping_count.statistics]
+sum = {}
+
+
+[metrics.performance_pageload_load_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.performance_pageload_load_time_responsestart.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.performance_pageload_req_anim_frame_callback.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.performance_pageload_dcl.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.performance_pageload_dcl_responsestart.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.performance_pageload_fcp.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.performance_pageload_fcp_responsestart.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.perf_startup_cold_main_app_to_first_frame.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.perf_startup_cold_view_app_to_first_frame.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.storage_stats_app_bytes.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.storage_stats_cache_bytes.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+
+[metrics.storage_stats_data_dir_bytes.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
