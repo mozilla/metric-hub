@@ -858,6 +858,163 @@ description = """
 Was Firefox pinned to the Windows Taskbar at any point during the interval?
 """
 
+########################### START OF NEW TAB METRICS ########################### 
+
+[metrics.newtab_searches]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(searches, 0))"
+friendly_name = "Newtab Handoff Searches"
+type = "scalar"
+description = """
+Count of searches performed on the New Tab and handed off to the urlbar
+"""
+
+[metrics.newtab_searches_with_ads]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(tagged_search_ad_impressions, 0))"
+friendly_name = "Newtab Searches with Ads"
+type = "scalar"
+description = """
+Count of searches performed on the New Tab that resulted in an ad impression on the SERP
+"""
+
+[metrics.newtab_ad_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(tagged_search_ad_clicks, 0))"
+friendly_name = "Newtab Ad Clicks"
+type = "scalar"
+description = """
+Count of searches performed on the New Tab that resulted in an ad click
+"""
+
+[metrics.newtab_ad_click_rate]
+data_source = "newtab_interactions"
+select_expression = "SAFE_DIVIDE(SUM(COALESCE(tagged_search_ad_clicks, 0)),  SUM(COALESCE(tagged_search_ad_impressions, 0)))"
+friendly_name = "Newtab Ad Click Rate"
+type = "scalar"
+description = """
+New Tab ad clicks divided by New Tab searches with ads
+"""
+
+[metrics.organic_pocket_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_pocket_clicks, 0))"
+friendly_name = "Organic Pocket Clicks"
+type = "scalar"
+description = """
+Count of clicks on Organic Pocket content.
+"""
+
+[metrics.sponsered_pocket_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(sponsored_pocket_clicks, 0))"
+friendly_name = "Sponsored Pocket Clicks"
+type = "scalar"
+description = """
+Count of clicks on Sponsored Pocket content.
+"""
+
+[metrics.organic_pocket_impressions]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_pocket_impressions, 0))"
+friendly_name = "Organic Pocket Impressions"
+type = "scalar"
+description = """
+Count of impressions on Organic Pocket content.
+"""
+
+[metrics.sponsored_pocket_impressions]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(sponsored_pocket_impressions, 0))"
+friendly_name = "Sponsored Pocket Impressions"
+type = "scalar"
+description = """
+Count of impressions of Sponsored Pocket content.
+"""
+
+[metrics.sponsored_topsites_impressions]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(sponsored_topsite_impressions, 0))"
+friendly_name = "Sponsored Topsites Impressions"
+type = "scalar"
+description = """
+Count of impressions of Sponsored Topsites (aka Sponsored Tiles).
+"""
+
+[metrics.sponsored_topsites_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(sponsored_topsite_clicks, 0))"
+friendly_name = "Sponsored Topsites Clicks"
+type = "scalar"
+description = """
+Count of clicks of Sponsored Topsites (aka Sponsored Tiles).
+"""
+
+[metrics.newtab_newtab_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(IF(newtab_newtab_category = 'enabled', 1, 0)), 0)"
+friendly_name = "Newtab Newtab Enabled"
+type = "boolean"
+description = """
+TBD.
+"""
+
+[metrics.newtab_homepage_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(IF(newtab_homepage_category = 'enabled', 1, 0)), 0)"
+friendly_name = "Newtab Homepage Enabled"
+type = "boolean"
+description = """
+TBD.
+"""
+
+[metrics.newtab_search_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(CAST(newtab_search_enabled AS INT)), 0)"
+friendly_name = "Newtab Search Enabled"
+type = "boolean"
+description = """
+Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
+"""
+
+[metrics.newtab_topsites_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
+friendly_name = "Newtab Topsites Enabled"
+type = "boolean"
+description = """
+Whether or not topsites (aka tiles) are enabled on the New Tab.
+"""
+
+[metrics.newtab_sponsored_topsites_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(CAST(sponsored_topsites_enabled AS INT)), 0)"
+friendly_name = "Newtab Sponsored Topsites Enabled"
+type = "boolean"
+description = """
+Whether or not sponsored topsites (aka tiles) are enabled on the New Tab.
+"""
+
+[metrics.newtab_pocket_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(CAST(pocket_enabled AS INT)), 0)"
+friendly_name = "Newtab Pocket Enabled"
+type = "boolean"
+description = """
+Whether or not Pocket is enabled on the New Tab.
+"""
+
+[metrics.newtab_sponsored_stories_enabled]
+data_source = "newtab_interactions"
+select_expression = "COALESCE(MAX(CAST(pocket_sponsored_stories_enabled AS INT)), 0)"
+friendly_name = "Newtab Sponsored Pocket Enabled"
+type = "boolean"
+description = """
+Whether or not Pocket Sponsored Stories is enabled on the New Tab.
+"""
+
+########################### END OF NEW TAB METRICS ########################### 
+
 [dimensions]
 
 [dimensions.os]
