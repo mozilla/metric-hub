@@ -954,7 +954,7 @@ Count of clicks of Sponsored Topsites (aka Sponsored Tiles).
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(IF(newtab_newtab_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Newtab Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 TBD.
 """
@@ -963,7 +963,7 @@ TBD.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(IF(newtab_homepage_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Homepage Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 TBD.
 """
@@ -972,7 +972,7 @@ TBD.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(newtab_search_enabled AS INT)), 0)"
 friendly_name = "Newtab Search Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
 """
@@ -981,7 +981,7 @@ Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Topsites Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 Whether or not topsites (aka tiles) are enabled on the New Tab.
 """
@@ -990,7 +990,7 @@ Whether or not topsites (aka tiles) are enabled on the New Tab.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(sponsored_topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Sponsored Topsites Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 Whether or not sponsored topsites (aka tiles) are enabled on the New Tab.
 """
@@ -999,7 +999,7 @@ Whether or not sponsored topsites (aka tiles) are enabled on the New Tab.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(pocket_enabled AS INT)), 0)"
 friendly_name = "Newtab Pocket Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 Whether or not Pocket is enabled on the New Tab.
 """
@@ -1008,7 +1008,7 @@ Whether or not Pocket is enabled on the New Tab.
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(pocket_sponsored_stories_enabled AS INT)), 0)"
 friendly_name = "Newtab Sponsored Pocket Enabled"
-type = "boolean"
+type = "scalar"
 description = """
 Whether or not Pocket Sponsored Stories is enabled on the New Tab.
 """
