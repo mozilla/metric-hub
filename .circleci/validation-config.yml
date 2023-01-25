@@ -35,7 +35,7 @@ jobs:
     docker:
     - image: gcr.io/moz-fx-data-experiments/opmon:latest
     environment:
-      BASE_COMMIT: << pipeline.git.base_revision >>
+      BASE_COMMIT: main
       REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
@@ -50,7 +50,7 @@ jobs:
     docker:
     - image: gcr.io/moz-fx-data-experiments/jetstream:latest
     environment:
-      BASE_COMMIT: << pipeline.git.base_revision >>
+      BASE_COMMIT: main
       REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
