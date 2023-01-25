@@ -1,0 +1,20 @@
+[experiment]
+enrollment_period = 8
+end_date = "2022-09-22"
+
+[metrics]
+weekly = ["error_page"]
+overall = ["error_page"]
+
+[metrics.error_page]
+friendly_name = "Error Page"
+description = "A user encountered an error page, excluding NO_INTERNET or UNKNOWN_HOST"
+select_expression = """
+      COALESCE(COUNTIF(
+          event.category = 'error_page'
+          AND event.name = 'visited_error'
+          AND event.extra[SAFE_OFFSET(0)].value NOT IN ('ERROR_NO_INTERNET', 'ERROR_UNKNOWN_HOST')
+      ),0)
+"""
+data_source = "events"   
+statistics = { bootstrap_mean = {}, deciles = {} }
