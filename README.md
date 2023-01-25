@@ -8,3 +8,5 @@ or [opmon](https://github.com/mozilla/opmon).
 
 Jetstream specific configs or defaults can be added in the `jetstream/` directory.
 OpMon specific configs or defaults can be added in the `opmon/` directory.
+
+Tool-specific configs take precedence over the metric definitions in `definitions/` when used in the tooling, in all other contexts `definitions/` is seen as the source of truth.
