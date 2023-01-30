@@ -17,6 +17,8 @@ frienly_name = "Imported Bookmarks"
 description = "Count of clients who imported bookmarks"
 category = "Device Migration"
 
+[metrics.imported_bookmarks.statistics.binomial]
+
 
 ## Imported Logins
 [metrics.imported_logins]
@@ -27,6 +29,7 @@ friendly_name = "Imported Logins"
 description = "Count of clients who imported logins"
 category = "Device Migration"
 
+[metrics.imported_logins.statistics.binomial]
 
 
 ## Imported History
@@ -37,5 +40,5 @@ type = "scalar"
 friendly_name = "Imported History"
 description = "Count of clients who imported history"
 category = "Device Migration"
-
+[metrics.imported_history.statistics.binomial]
 
