@@ -1,0 +1,43 @@
+[experiment]
+start_date = "2022-11-29"
+end_date = "2023-01-03"
+enrollment_period = 15
+
+[metrics]
+weekly = ['days_of_use', 'qualified_cumulative_days_of_use', 'search_count', 'organic_search_count', 'active_hours', 'unenroll',
+    'set_to_default_rate', 'imported_from_any_browser', 'set_theme', 'taskbar_pin_rate', 'taskbar_launch_rate', 'imported_bookmarks', 'imported_logins', 'imported_history']
+
+overall = ['days_of_use', 'qualified_cumulative_days_of_use', 'search_count', 'organic_search_count', 'active_hours', 'unenroll',
+    'set_to_default_rate', 'imported_from_any_browser', 'set_theme', 'taskbar_pin_rate', 'taskbar_launch_rate', 'imported_bookmarks', 'imported_logins', 'imported_history']
+
+## Imported Bookmarks
+[metrics.imported_bookmarks]
+data_source = "main"
+select_expression = "COUNTIF(SUM(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_bookmarks_quantity) x WHERE x.key != "firefox"), 0)) > 0)"
+type = "scalar"
+frienly_name = "Imported Bookmarks"
+description = "Count of clients who imported bookmarks"
+category = "Device Migration"
+
+
+## Imported Logins
+[metrics.imported_logins]
+data_source = "main"
+select_expression = "COUNTIF(SUM(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_logins_quantity) x WHERE x.key != "firefox"), 0)) > 0)"
+type = "scalar"
+friendly_name = "Imported Logins"
+description = "Count of clients who imported logins"
+category = "Device Migration"
+
+
+
+## Imported History
+[metrics.imported_history]
+data_source = "main"
+select_expression = "COUNTIF(SUM(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_history_quantity) x WHERE x.key != "firefox"), 0)) > 0)"
+type = "scalar"
+friendly_name = "Imported History"
+description = "Count of clients who imported history"
+category = "Device Migration"
+
+
