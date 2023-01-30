@@ -4,9 +4,9 @@ end_date = "2023-01-03"
 enrollment_period = 15
 
 [metrics]
-weekly = ['is_default_browser','is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
+weekly = ['is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
 
-overall = ['is_default_browser','is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
+overall = ['is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
 
 ## Imported Bookmarks
 [metrics.imported_bookmarks]
