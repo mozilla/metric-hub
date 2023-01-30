@@ -17,10 +17,10 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 REPOS = {
     "metric-hub": ConfigCollection.from_github_repo(ROOT),
     "opmon-config": ConfigCollection.from_github_repo(
-        "https://github.com/mozilla/opmon-config"
+        "https://github.com/mozilla/metric-hub/tree/main/opmon"
     ),
     "jetstream-config": ConfigCollection.from_github_repo(
-        "https://github.com/mozilla/jetstream-config"
+        "https://github.com/mozilla/metric-hub/tree/main/jetstream"
     ),
 }
 
@@ -35,8 +35,8 @@ parser.add_argument(
 _ConfigCollection = ConfigCollection.from_github_repos(
     [
         ROOT,
-        "https://github.com/mozilla/opmon-config",
-        "https://github.com/mozilla/jetstream-config",
+        "https://github.com/mozilla/metric-hub/tree/main/opmon",
+        "https://github.com/mozilla/metric-hub/tree/main/jetstream",
     ]
 )
 

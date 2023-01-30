@@ -1,0 +1,30 @@
+[project]
+
+name = "Win32k Lockdown Experiment"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-03-01"
+metrics = [
+    'gmplugin_crashes',
+    'gpu_crashes',
+    'plugin_crashes',
+    'content_process_count',
+    'content_shutdown_crashes',
+    'content_crashes',
+    'shutdown_hangs',
+    'oom_crashes',
+    'main_crashes',
+    'startup_crashes'
+]
+
+[project.population]
+
+data_source = "main"
+branches = ["enabled", "disabled"]
+channel = "nightly"
+
+[data_sources]
+
+[data_sources.main]
+from_expression = "mozdata.telemetry.main_nightly"
+submission_date_column = "DATE(submission_timestamp)"

@@ -1,0 +1,52 @@
+[project]
+
+name = "Build over build performance for Fenix (Beta)"
+platform = "fenix"
+xaxis = "build_id"
+start_date = "2022-10-01"
+metrics = [
+    "performance_pageload_load_time",
+    "performance_pageload_load_time_responsestart",
+    "performance_pageload_req_anim_frame_callback",
+    "performance_pageload_dcl",
+    "performance_pageload_dcl_responsestart",
+    "performance_pageload_fcp",
+    "performance_pageload_fcp_responsestart",
+    "perf_startup_cold_main_app_to_first_frame",
+    "perf_startup_cold_view_app_to_first_frame",
+    "storage_stats_app_bytes",
+    "storage_stats_cache_bytes",
+    "storage_stats_data_dir_bytes",
+]
+skip_default_metrics = true
+
+[project.population]
+
+data_source = "baseline"
+channel = "beta"
+monitor_entire_population = true
+
+[data_sources]
+
+# by default the metrics data source is based on org_mozilla_firefox
+# query 1% sample
+[data_sources.metrics]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.metrics` p
+    WHERE sample_id = 0
+)"""
+default_dataset = "org_mozilla_firefox_beta"
+
+
+[data_sources.baseline]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    WHERE sample_id = 0
+)"""
+default_dataset = "org_mozilla_firefox_beta"

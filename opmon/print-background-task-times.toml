@@ -1,0 +1,195 @@
+[project]
+
+name = "Print Background Task Times (1pct sample)"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2020-12-01"
+metrics = [
+    "printing_preview_opened",
+    "printing_dialog_opened_without_preview",
+    "printing_dialog_opened_via_preview",
+    "printing_silent_print",
+    "printing_preview_opened_tm",
+    "printing_dialog_opened_via_preview_tm",
+    "printing_preview_cancelled",
+    "printing_dialog_without_preview_cancelled",
+    "printing_dialog_via_preview_cancelled",
+    "printing_preview_cancelled_tm",
+    "printing_dialog_via_preview_cancelled_tm",
+    "print_count"
+]
+skip_default_metrics = true
+
+[project.metric_groups.print_initiation_counts]
+friendly_name = "Print Initiation Counts"
+description = "Print initiation count related metrics"
+metrics = [
+    "printing_preview_opened",
+    "printing_dialog_opened_without_preview",
+    "printing_dialog_opened_via_preview",
+    "printing_silent_print",
+    "printing_preview_opened_tm",
+    "printing_dialog_opened_via_preview_tm"
+]
+
+[project.metric_groups.print_cancel_ratios]
+friendly_name = "Print Cancel Ratios"
+description = "Print cancel ratio metrics"
+metrics = [
+    "printing_preview_cancelled",
+    "printing_dialog_without_preview_cancelled",
+    "printing_dialog_via_preview_cancelled",
+    "printing_preview_cancelled_tm",
+    "printing_dialog_via_preview_cancelled_tm"
+]
+
+
+[project.population]
+
+data_source = "main"
+monitor_entire_population = true
+dimensions = ["os", "channel"]
+
+
+[dimensions.os]
+data_source = "main"
+select_expression = "environment.system.os.name"
+friendly_name = "Operating System"
+description = "Operating System"
+
+[dimensions.channel]
+data_source = "main"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Channel"
+
+
+[metrics.printing_preview_opened]
+select_expression = "SUM(payload.processes.content.scalars.printing_preview_opened)"
+data_source = "main"
+friendly_name = "Printing Preview Opened"
+description = "Total number of times printing preview has been opened"
+
+[metrics.printing_preview_opened.statistics]
+sum = {}
+
+[metrics.printing_dialog_opened_without_preview]
+select_expression = "SUM(payload.processes.content.scalars.printing_dialog_opened_without_preview)"
+data_source = "main"
+friendly_name = "Printing Dialog Opened without Preview"
+description = "Total number of times printing dialog has been opened without preview"
+
+[metrics.printing_dialog_opened_without_preview.statistics]
+sum = {}
+
+[metrics.printing_dialog_opened_via_preview]
+select_expression = "SUM(payload.processes.content.scalars.printing_dialog_opened_via_preview)"
+data_source = "main"
+friendly_name = "Printing Dialog Opened via Preview"
+description = "Total number of times printing dialog has been opened via preview"
+
+[metrics.printing_dialog_opened_via_preview.statistics]
+sum = {}
+
+[metrics.printing_silent_print]
+select_expression = "SUM(payload.processes.content.scalars.printing_silent_print)"
+data_source = "main"
+friendly_name = "Printing Silent"
+description = "Total number of times silent printing has been done"
+
+[metrics.printing_silent_print.statistics]
+sum = {}
+
+[metrics.printing_preview_opened_tm]
+select_expression = "SUM(payload.processes.parent.scalars.printing_preview_opened_tm)"
+data_source = "main"
+friendly_name = "Tab Modal Preview Opened"
+description = "Total number of times tab modal preview has been opened"
+
+[metrics.printing_preview_opened_tm.statistics]
+sum = {}
+
+[metrics.printing_dialog_opened_via_preview_tm]
+select_expression = "SUM(payload.processes.parent.scalars.printing_dialog_opened_via_preview_tm)"
+data_source = "main"
+friendly_name = "Printing Dialog Opened via Preview Tab Modal"
+description = "Total number of times printing dialog has been opened via preview tab modal"
+
+[metrics.printing_dialog_opened_via_preview_tm.statistics]
+sum = {}
+
+
+
+[metrics.printing_preview_cancelled]
+select_expression = "SUM(payload.processes.content.scalars.printing_preview_cancelled)"
+data_source = "main"
+friendly_name = "Printing Preview Cancelled"
+description = "Total number of times printing preview has been cancelled"
+
+[metrics.printing_preview_cancelled.statistics]
+total_ratio = { denominator_metric = "printing_preview_opened" }
+
+[metrics.printing_dialog_without_preview_cancelled]
+select_expression = "SUM(payload.processes.content.scalars.printing_dialog_without_preview_cancelled)"
+data_source = "main"
+friendly_name = "Printing Dialog Without Preview Cancelled"
+description = "Total number of times printing preview has not been cancelled"
+
+[metrics.printing_dialog_without_preview_cancelled.statistics]
+total_ratio = { denominator_metric = "printing_dialog_opened_without_preview" }
+
+[metrics.printing_dialog_via_preview_cancelled]
+select_expression = "SUM(payload.processes.content.scalars.printing_dialog_via_preview_cancelled)"
+data_source = "main"
+friendly_name = "Printing Dialog via Preview Cancelled"
+description = "Total number of times printing preview has been cancelled via preview"
+
+[metrics.printing_dialog_via_preview_cancelled.statistics]
+total_ratio = { denominator_metric = "printing_dialog_opened_via_preview" }
+
+[metrics.printing_preview_cancelled_tm]
+select_expression = "SUM(payload.processes.parent.scalars.printing_preview_cancelled_tm)"
+data_source = "main"
+friendly_name = "Printing Preview Cancelled Tab Modal"
+description = "Total number of times printing preview has been cancelled in tab modal"
+
+[metrics.printing_preview_cancelled_tm.statistics]
+total_ratio = { denominator_metric = "printing_preview_opened_tm" }
+
+[metrics.printing_dialog_via_preview_cancelled_tm]
+select_expression = "SUM(payload.processes.parent.scalars.printing_dialog_via_preview_cancelled_tm)"
+data_source = "main"
+friendly_name = "Printing Dialog via Preview Cancelled Tab Modal"
+description = "Total number of times printing dialog has been cancelled via preview tab modal"
+
+[metrics.printing_dialog_via_preview_cancelled_tm.statistics]
+total_ratio = { denominator_metric = "printing_dialog_opened_via_preview_tm" }
+
+
+[metrics.print_count]
+select_expression = """NULLIF(SUM(
+    COALESCE(`moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_target_type, "pdf_file"), 0) + 
+    COALESCE(`moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_target_type, "pdf_unknown"), 0) + 
+    COALESCE(`moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_target_type, "xps_file"), 0) +
+    COALESCE(`moz-fx-data-shared-prod`.udf.get_key(payload.processes.parent.keyed_scalars.printing_target_type, "unknown"), 0)
+), 0)"""
+data_source = "main"
+friendly_name = "Print Count"
+description = "Total number of prints"
+
+[metrics.print_count.statistics]
+mean = { }
+percentile = { remove_nulls = true }
+
+
+
+
+# use a 1 percent sample for now
+[data_sources.main]
+from_expression = """(
+    SELECT *
+    FROM `moz-fx-data-shared-prod.telemetry_derived.main_1pct_v1`
+    WHERE environment.system.os.name IN ("Darwin", "Windows_NT", "Linux") AND
+    normalized_channel IN ("release", "beta", "nightly")
+)"""
+submission_date_column = "DATE(submission_timestamp)"

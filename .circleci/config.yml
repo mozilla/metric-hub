@@ -1,45 +1,18 @@
 version: 2.1
 
-jobs:
-  validate:
-    docker:
-    - image: python:3.8
-    steps:
-    - checkout
-    - run:
-        name: Build
-        command: |
-          pip install -r .script/requirements.txt
-    - run:
-        name: Validate config files
-        command: |
-          changed_files=$(git diff origin/main... --name-only --diff-filter=d -- '*.toml' '*.toml.example')
-          echo "Run validation on changed files: "
-          echo $changed_files
-          python3 .script/validate.py $changed_files
-  docs:
-    docker:
-      - image: python:3.8
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints: "95:33:49:57:f9:11:81:75:a4:46:74:19:c6:89:f4:1c"
-      - run:
-          name: Build and deploy docs
-          command: |
-            python3.8 -m venv venv/
-            venv/bin/pip install -r .script/requirements.txt
-            venv/bin/python3 .script/generate_docs.py \
-              --output_dir=generated_docs/
-            cd generated_docs/
-            PATH="../venv/bin:$PATH" mkdocs gh-deploy \
-              -m "[ci skip] Deployed {sha} with MkDocs version: {version}"
+setup: true
+
+orbs:
+  path-filtering: circleci/path-filtering@0.1.3
+
 workflows:
-  version: 2
-  build-and-deploy:
+  setup-workflow:
     jobs:
-      - validate
-      - docs:
-          filters:
-            branches:
-              only: main
+      - path-filtering/filter:
+          base-revision: main
+          config-path: .circleci/validation-config.yml
+          mapping: |
+            opmon/.* validate-opmon true
+            jetstream/.* validate-jetstream true
+            definitions/.* validate-metrics true
+            .* build-docs true

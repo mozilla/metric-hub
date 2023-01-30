@@ -1,0 +1,51 @@
+[project]
+
+name = "Build over build performance for Desktop (Beta)"
+platform = "firefox_desktop"
+xaxis = "build_id"
+start_date = "2022-10-01"
+metrics = [
+    "perf_page_load_time_ms",
+    "perf_first_contentful_paint_ms",
+    "keypress_present_latency_ms",
+    "input_event_response_coalesced",
+    "mouseup_followed_by_click_present_latency",
+    "fx_page_load_ms_2",
+    "scroll_present_latency",
+    "perf_page_load_time_ms",
+    "perf_dom_content_loaded_time",
+    "perf_dom_contentperf_dom_content_loaded_time_from_responsestart_ms_loaded_time",
+    "perf_page_load_time_from_responsestart",
+    "perf_request_animation_callback_non_pageload",
+    "perf_request_animation_callback_pageload",
+    "js_pageload_xdr_encoding_ms",
+    "js_pageload_protect_ms",
+    "js_pageload_parse_ms",
+    "js_pageload_execution_ms",
+    "js_pageload_delazification_ms",
+    "js_pageload_baseline_compile_ms",
+    "time_to_first_interaction_ms",
+    "timestamps_first_paint_two",
+    "timestamps_about_home_topsites_first_paint",
+    "cycle_collector_visited_gced",
+    "cycle_collector_visited_ref_counted"
+]
+skip_default_metrics = true
+
+[project.population]
+
+data_source = "main"
+channel = "beta"
+dimensions = ["os"]
+monitor_entire_population = true
+
+[data_sources]
+
+# use a 1 percent sample for now
+[data_sources.main]
+from_expression = """(
+    SELECT * FROM `moz-fx-data-shared-prod.telemetry_derived.main_1pct_v1`
+    WHERE normalized_channel = "beta"
+)"""
+submission_date_column = "DATE(submission_timestamp)"
+

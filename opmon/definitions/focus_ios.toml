@@ -1,0 +1,9 @@
+[metrics]
+
+[metrics.baseline_ping_count.statistics]
+sum = {}
+
+
+[metrics.metric_ping_count.statistics]
+sum = {}
+

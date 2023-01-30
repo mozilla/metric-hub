@@ -1,0 +1,34 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+end_date = "2022-12-26"
+
+## NEW METRICS (uncomment below)
+[metrics]
+weekly = ["opened_private_window", "days_opening_private_window", "private_uri_count"]
+overall = ["opened_private_window", "days_opening_private_window", "private_uri_count"]
+
+
+[metrics.opened_private_window]
+data_source = "clients_daily"
+select_expression = "MAX(dom_parentprocess_private_window_used)"
+
+[metrics.opened_private_window.statistics.binomial]
+
+
+[metrics.days_opening_private_window] 
+data_source = "clients_daily"
+select_expression = "COALESCE(SUM(CAST(dom_parentprocess_private_window_used AS int)),0)"
+
+[metrics.days_opening_private_window.statistics.bootstrap_mean]
+drop_highest = 0.0
+pre_treatments = ["remove_nulls"]
+
+[metrics.private_uri_count]
+data_source = "clients_daily"
+select_expression = "SUM(scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum) - SUM(scalar_parent_browser_engagement_total_uri_count_sum)"
+
+[metrics.private_uri_count.statistics.bootstrap_mean]
+drop_highest = 0.0005
+pre_treatments = ["remove_nulls"]
+
+## New data sources to support new metrics
