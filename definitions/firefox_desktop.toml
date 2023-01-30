@@ -891,7 +891,7 @@ deprecated = false
 
 [metrics.imported_logins_count]
 data_source = "main"
-select_expression = "AVG(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_logins_quantity) x WHERE x.key != "firefox"), 0))"
+select_expression = "AVG(COALESCE(SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_logins_quantity) x WHERE x.key != "firefox"), 0))"
 type = "scalar"
 friendly_name = "Average Number of Imported Logins"
 description = "Average number of imported logins per client"
