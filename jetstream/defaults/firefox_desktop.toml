@@ -81,3 +81,4 @@ description = "Indicates whether the client configured separate search engines f
 [metrics.qualified_cumulative_days_of_use.statistics.deciles]
 
 [metrics.is_default_browser.statistics.binomial]
+[metrics.is_pinned.statistics.binomial]
