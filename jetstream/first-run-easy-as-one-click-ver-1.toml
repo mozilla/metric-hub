@@ -4,11 +4,9 @@ end_date = "2023-01-03"
 enrollment_period = 15
 
 [metrics]
-weekly = ['days_of_use', 'qualified_cumulative_days_of_use', 'search_count', 'organic_search_count', 'active_hours', 'unenroll',
-    'set_to_default_rate', 'imported_from_any_browser', 'set_theme', 'taskbar_pin_rate', 'taskbar_launch_rate', 'imported_bookmarks', 'imported_logins', 'imported_history']
+weekly = ['is_default_browser','is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
 
-overall = ['days_of_use', 'qualified_cumulative_days_of_use', 'search_count', 'organic_search_count', 'active_hours', 'unenroll',
-    'set_to_default_rate', 'imported_from_any_browser', 'set_theme', 'taskbar_pin_rate', 'taskbar_launch_rate', 'imported_bookmarks', 'imported_logins', 'imported_history']
+overall = ['is_default_browser','is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
 
 ## Imported Bookmarks
 [metrics.imported_bookmarks]
