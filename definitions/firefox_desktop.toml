@@ -859,8 +859,8 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 """
 
 [metrics.imported_bookmarks]
-data_source = "main"
-select_expression = "COUNTIF(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_bookmarks_quantity) x WHERE x.key != 'firefox'), 0) > 0)"
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0)"
 type = "scalar"
 frienly_name = "Imported Bookmarks"
 description = "Count of clients who imported bookmarks"
@@ -870,8 +870,8 @@ deprecated = false
 
 
 [metrics.imported_bookmarks_count]
-data_source = "main"
-select_expression = "AVG(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_bookmarks_quantity) x WHERE x.key != 'firefox'), 0))"
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(bookmark_migrations_quantity), 0)"
 type = "scalar"
 friendly_name = "Average Number of Imported Bookmarks"
 description = "Average number of imported bookmarks per client"
@@ -880,8 +880,8 @@ owner = "nflorez@mozilla.com"
 deprecated = false
 
 [metrics.imported_logins]
-data_source = "main"
-select_expression = "COUNTIF(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_logins_quantity) x WHERE x.key != 'firefox'), 0) > 0)"
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(logins_migrations_quantity_all IS NOT NULL AND logins_migrations_quantity_all != 0)"
 type = "scalar"
 friendly_name = "Imported Logins"
 description = "Count of clients who imported logins"
@@ -890,8 +890,8 @@ owner = "nflorez@mozilla.com"
 deprecated = false
 
 [metrics.imported_logins_count]
-data_source = "main"
-select_expression = "AVG(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_logins_quantity) x WHERE x.key != 'firefox'), 0))"
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(logins_migrations_quantity_all), 0)"
 type = "scalar"
 friendly_name = "Average Number of Imported Logins"
 description = "Average number of imported logins per client"
@@ -900,8 +900,8 @@ owner = "nflorez@mozilla.com"
 deprecated = false
 
 [metrics.imported_history]
-data_source = "main"
-select_expression = "COUNTIF(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_history_quantity) x WHERE x.key != 'firefox'), 0) > 0)"
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(history_migrations_quantity_all IS NOT NULL AND history_migrations_quantity_all != 0)"
 type = "scalar"
 friendly_name = "Imported History"
 description = "Count of clients who imported history"
@@ -911,8 +911,8 @@ deprecated = false
 
 
 [metrics.imported_history_count]
-data_source = "main"
-select_expression = "AVG(COALESCE((SELECT SUM(`mozfun`.hist.extract(x.value).sum) FROM UNNEST(payload.keyed_histograms.fx_migration_history_quantity) x WHERE x.key != 'firefox'), 0))"
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(history_migrations_quantity_all), 0)"
 type = "scalar"
 friendly_name = "Average Number of Imported History Links"
 description = "Average number of imported history links per client"
