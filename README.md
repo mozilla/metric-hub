@@ -6,5 +6,7 @@ For more information on how to add metric definitions please see the [docs on do
 All metric definitions can be referenced in other tooling and their configurations, such as, [jetstream](https://github.com/mozilla/jetstream)
 or [opmon](https://github.com/mozilla/opmon).
 
-For adding jetstream specific configs or defaults, see the [jetstream-config](https://github.com/mozilla/jetstream-config) repo.
-For adding OpMon specific configs or defaults, see the [opmon-config](https://github.com/mozilla/opmon-config) repo.
+Jetstream specific configs or defaults can be added in the `jetstream/` directory.
+OpMon specific configs or defaults can be added in the `opmon/` directory.
+
+Tool-specific configs take precedence over the metric definitions in `definitions/` when used in the tooling, in all other contexts `definitions/` is seen as the source of truth.

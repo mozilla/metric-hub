@@ -1,0 +1,123 @@
+
+
+[experiment]
+start_date = "2023-01-17"
+
+
+[metrics]
+
+weekly = [
+  "search_content_urlbar_persisted_tagged_search",
+  "search_content_urlbar_persisted_tagged_follow_on_search",
+  "persisted_adclicks",
+  "persisted_search_w_ads",
+  "urlbar_persist_navigation_search_enter",
+  "urlbar_persist_navigation_search_formhistory",
+  "urlbar_persist_navigation_search_suggestion"
+]
+
+overall = [
+  "search_content_urlbar_persisted_tagged_search",
+  "search_content_urlbar_persisted_tagged_follow_on_search",
+  "persisted_adclicks",
+  "persisted_search_w_ads",
+  "urlbar_persist_navigation_search_enter",
+  "urlbar_persist_navigation_search_formhistory",
+  "urlbar_persist_navigation_search_suggestion",
+  "showSearchTerms_user_pref"
+]
+
+[metrics.search_content_urlbar_persisted_tagged_search]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(google_tagged_searches) + SUM(bing_tagged_searches) + SUM(ddg_tagged_searches),0)"
+
+[metrics.search_content_urlbar_persisted_tagged_follow_on_search]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(google_tagged_follow_on_searches) + SUM(bing_tagged_follow_on_searches) + SUM(ddg_tagged_follow_on_searches),0)"
+
+
+[metrics.persisted_adclicks]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(google_ad_clicks) + SUM(bing_ad_clicks) + SUM(ddg_ad_clicks),0)"
+
+
+[metrics.persisted_search_w_ads]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(google_search_w_ad) + SUM(bing_search_w_ad) + SUM(ddg_search_w_ad),0)"
+
+[metrics.urlbar_persist_navigation_search_enter]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(urlbar_navigation_search_enter),0)"
+
+
+[metrics.urlbar_persist_navigation_search_formhistory]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(urlbar_navigation_search_formhistory),0)"
+
+[metrics.urlbar_persist_navigation_search_suggestion]
+data_source = "main_search_counts"
+select_expression = "COALESCE(SUM(urlbar_navigation_search_suggestion),0)"
+
+[metrics.showSearchTerms_user_pref]
+data_source = "showSearchTerms_pref"
+select_expression = "COALESCE(SUM(showSearchTerms_user_pref),0)"
+
+[metrics.search_content_urlbar_persisted_tagged_search.statistics.bootstrap_mean]
+[metrics.search_content_urlbar_persisted_tagged_follow_on_search.statistics.bootstrap_mean]
+[metrics.persisted_adclicks.statistics.bootstrap_mean]
+[metrics.persisted_search_w_ads.statistics.bootstrap_mean]
+[metrics.urlbar_persist_navigation_search_enter.statistics.bootstrap_mean]
+[metrics.urlbar_persist_navigation_search_formhistory.statistics.bootstrap_mean]
+[metrics.urlbar_persist_navigation_search_suggestion.statistics.bootstrap_mean]
+[metrics.showSearchTerms_user_pref.statistics.bootstrap_mean]
+
+
+[data_sources]
+
+[data_sources.main_search_counts]
+from_expression = """(
+  SELECT client_id,
+    DATE(submission_timestamp) AS submission_date,
+    environment.experiments,
+    CASE WHEN e.key LIKE 'google:tagged:%' THEN e.value ELSE 0 END AS google_tagged_searches,
+    CASE WHEN e.key LIKE 'bing:tagged:%' THEN e.value ELSE 0 END AS bing_tagged_searches,
+    CASE WHEN e.key LIKE 'duckduckgo:tagged:%' THEN e.value ELSE 0 END AS ddg_tagged_searches, 
+    CASE WHEN e.key LIKE 'google:tagged-fo%' THEN e.value ELSE 0 END AS google_tagged_follow_on_searches,
+    CASE WHEN e.key LIKE 'bing:tagged-fo%' THEN e.value ELSE 0 END AS bing_tagged_follow_on_searches,
+    CASE WHEN e.key LIKE 'duckduckgo:tagged-fo%' THEN e.value ELSE 0 END AS ddg_tagged_follow_on_searches, 
+    CASE WHEN b.key  = 'search_enter' THEN b.value ELSE 0 END AS urlbar_navigation_search_enter,
+    CASE WHEN b.key  = 'search_formhistory' THEN b.value ELSE 0 END AS urlbar_navigation_search_formhistory,
+    CASE WHEN b.key  = 'search_suggestion' THEN b.value ELSE 0 END AS urlbar_navigation_search_suggestion,
+    CASE WHEN a.key LIKE 'google:%' THEN a.value ELSE 0 END AS google_ad_clicks,
+    CASE WHEN a.key LIKE 'bing:%' THEN a.value ELSE 0 END AS bing_ad_clicks,
+    CASE WHEN a.key LIKE 'duckduckgo:%' THEN a.value ELSE 0 END AS ddg_ad_clicks, 
+    CASE WHEN s.key LIKE 'google:%' THEN s.value ELSE 0 END AS google_search_w_ad,
+    CASE WHEN s.key LIKE 'bing:%' THEN s.value ELSE 0 END AS bing_search_w_ad,
+    CASE WHEN s.key LIKE 'duckduckgo:%' THEN s.value ELSE 0 END AS ddg_search_w_ad,
+    CASE WHEN u.key LIKE 'true' THEN 1 ELSE 0 END AS showSearchTerms_userpref,
+  FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
+    CROSS JOIN UNNEST(payload.processes.parent.keyed_scalars.browser_search_content_urlbar_persisted) e,
+    UNNEST(payload.processes.parent.keyed_scalars.browser_engagement_navigation_urlbar_persisted) b,
+    UNNEST(payload.processes.parent.keyed_scalars.browser_search_adclicks_urlbar_persisted) a,
+    UNNEST(payload.processes.parent.keyed_scalars.browser_search_withads_urlbar_persisted) s,
+    UNNEST(environment.settings.user_prefs) u
+  WHERE DATE(submission_timestamp) >= '2023-01-01' AND e.key IS NOT NULL
+)"""
+experiments_column_type = "native"
+friendly_name = "Main Search Counts"
+description = "Search counts from main ping table"
+
+[data_sources.showSearchTerms_pref]
+from_expression = """(
+  SELECT 
+    client_id,
+    DATE(submission_timestamp) AS submission_date,
+    CASE WHEN e.value = 'true' THEN 1 ELSE 0 END AS showSearchTerms_user_pref,
+    environment.experiments
+  FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
+    CROSS JOIN UNNEST(environment.settings.user_prefs) e
+  WHERE DATE(submission_timestamp) >= '2023-01-01' AND e.key LIKE '%showSearchTerms%'
+)"""
+experiments_column_type = "native"
+friendly_name = "Show search term pref"
+description = "Show search term pref counts from main ping table"

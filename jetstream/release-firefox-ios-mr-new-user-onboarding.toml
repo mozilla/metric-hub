@@ -1,0 +1,45 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+segments = ['is_really_new']
+start_date = "2022-10-18"
+enrollment_period = 14
+end_date = "2023-01-02"
+
+## NEW OR CHANGED METRICS (uncomment below)
+[metrics]
+
+[metrics.active_hours.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.days_of_use.statistics.bootstrap_mean]
+# should be a no-op
+drop_highest = 0.0
+
+[metrics.search_count.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.serp_ad_clicks.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+## New data sources to support new metrics
+
+## SEGMENTS
+[segments]
+
+# A segment for users that are actually new. 
+# Filters out non-new users that were erroneously enrolled
+# as a result of technical limitations in the new mobile 
+# first run feature. 
+
+[segments.data_sources.baseline_clients_last_seen]
+from_expression = "`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_last_seen`"
+
+[segments.is_really_new]
+select_expression = """
+COALESCE(CAST(MAX(
+    CASE WHEN first_seen_date >= '2022-10-18'
+        AND mozfun.norm.extract_version(app_display_version, 'major') >= 106
+    THEN 1 ELSE 0 END
+    ) AS BOOL), FALSE)
+"""
+data_source = "baseline_clients_last_seen"

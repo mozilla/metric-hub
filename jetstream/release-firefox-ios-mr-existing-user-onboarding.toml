@@ -1,0 +1,110 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+# override enrollment query to pretend like enrollment happened on release day
+# so that the first analysis period will begin day of release, and not potentially up to a week before
+enrollment_query = """
+SELECT events.client_info.client_id AS client_id,
+    mozfun.map.get_key(e.extra, 'branch') AS branch,
+    DATE("2022-10-17") AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` events,
+UNNEST(events.events) AS e
+WHERE
+    events.client_info.client_id IS NOT NULL AND
+    DATE(events.submission_timestamp)
+    BETWEEN '2022-10-11' AND '2022-10-17'
+    AND e.category = "nimbus_events"
+    AND mozfun.map.get_key(e.extra, "experiment") = 'release-firefox-ios-mr-existing-user-onboarding'
+    AND e.name = 'enrollment'
+GROUP BY client_id, branch
+"""
+start_date = "2022-10-17"
+enrollment_period = 7
+end_date = "2022-12-19"
+
+## NEW OR CHANGED METRICS (uncomment below)
+[metrics]
+
+[metrics.active_hours.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.days_of_use.statistics.bootstrap_mean]
+# this should be a no-op
+drop_highest = 0.0
+
+[metrics.search_count.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.serp_ad_clicks.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+
+
+
+[data_sources]
+
+## MODIFICATIONS TO DEFAULT DATA SOURCES TO ACCOUNT FOR EARLY ENROLLMENT
+# these cover all metrics in defaults/firefox_ios.toml 
+[data_sources.baseline]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    WHERE mozfun.norm.extract_version(p.client_info.app_display_version, 'major') >= 106        
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+
+[data_sources.events]
+from_expression = """(
+    SELECT
+        p.* EXCEPT (events),
+        DATE(p.submission_timestamp) AS submission_date,
+        event
+    FROM
+        `moz-fx-data-shared-prod.{dataset}.events` p
+    CROSS JOIN
+        UNNEST(p.events) AS event
+    WHERE mozfun.norm.extract_version(p.client_info.app_display_version, 'major') >= 106            
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+
+[data_sources.metrics]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.metrics` p
+    WHERE mozfun.norm.extract_version(p.client_info.app_display_version, 'major') >= 106        
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+
+## New data sources to support new metrics
+
+[segments]
+
+[segments.data_sources.baseline]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_ios_firefox"
+
+[segments.was_active_after_update]
+select_expression = """(
+COALESCE(CAST(MAX(
+    CASE WHEN mozfun.norm.extract_version(p.client_info.app_display_version, 'major') >= 106
+    THEN 1 ELSE 0 END
+    ) AS BOOL), FALSE)
+)"""
+data_source = "baseline"

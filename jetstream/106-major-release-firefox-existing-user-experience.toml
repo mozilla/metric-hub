@@ -1,0 +1,95 @@
+## EXPERIMENT SPECIFIC SETTINGS
+[experiment]
+# override enrollment query to pretend like enrollment happened on release day
+# so that the first analysis period will begin day of release, and not potentially up to a week before
+enrollment_query = """
+SELECT
+    e.client_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+    DATE("2022-10-17") AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN '2022-10-11' AND '2022-10-17'
+    AND e.event_string_value = '106-major-release-firefox-existing-user-experience'
+    -- AND e.sample_id < 10
+GROUP BY e.client_id, branch
+"""
+
+start_date = "2022-10-17"
+enrollment_period = 7
+end_date = "2022-12-19"
+
+
+segments = ["was_active_after_update"]
+
+## NEW METRICS (uncomment below)
+[metrics]
+weekly = ["opened_private_window", "days_opening_private_window", "private_uri_count"]
+overall = ["opened_private_window", "days_opening_private_window", "private_uri_count"]
+
+
+[metrics.opened_private_window]
+data_source = "clients_daily"
+select_expression = "COALESCE(MAX(CAST(dom_parentprocess_private_window_used AS int)), 0)"
+
+[metrics.opened_private_window.statistics.binomial]
+
+
+[metrics.days_opening_private_window] 
+data_source = "clients_daily"
+select_expression = "COALESCE(SUM(CAST(dom_parentprocess_private_window_used AS int)), 0)"
+
+[metrics.days_opening_private_window.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+drop_highest = 0.0
+
+[metrics.private_uri_count]
+data_source = "clients_daily"
+select_expression = "COALESCE(SUM(scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum) - SUM(scalar_parent_browser_engagement_total_uri_count_sum), 0)"
+
+[metrics.private_uri_count.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+
+## MODIFICATIONS TO DEFAULT DATA SOURCES TO ACCOUNT FOR EARLY ENROLLMENT
+# these cover all metrics in defaults/firefox_desktop.toml except unenrollment
+# which we do not override, to include unenrollment counts from prior to release
+[data_sources]
+
+[data_sources.clients_daily]
+from_expression = """(
+    SELECT 
+        p.*
+    FROM mozdata.telemetry.clients_daily p
+    WHERE mozfun.norm.extract_version(p.app_display_version, 'major') >= 106
+)"""
+
+[data_sources.search_clients_engines_sources_daily]
+from_expression = """(
+    SELECT 
+        p.*
+    FROM mozdata.search.search_clients_engines_sources_daily p
+    WHERE mozfun.norm.extract_version(p.app_version, 'major') >= 106
+)"""
+experiments_column_type = "none"
+
+## New data sources to support new metrics
+
+[segments]
+
+[segments.data_sources.clients_daily]
+from_expression = "`mozdata.telemetry.clients_daily`"
+
+[segments.was_active_after_update]
+select_expression = """(
+COALESCE(CAST(MAX(
+    CASE WHEN mozfun.norm.extract_version(app_display_version, 'major') >= 106 AND submission_date >= '2022-10-17' AND submission_date <= '2022-10-24'
+    THEN 1 ELSE 0 END
+    ) AS BOOL), FALSE)
+)"""
+data_source = "clients_daily"
