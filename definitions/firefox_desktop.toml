@@ -862,7 +862,7 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 data_source = "clients_daily"
 select_expression = "LOGICAL_OR(bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0)"
 type = "scalar"
-frienly_name = "Imported Bookmarks"
+friendly_name = "Imported Bookmarks"
 description = "Count of clients who imported bookmarks"
 category = "Device Migration"
 owner = "nflorez@mozilla.com"
