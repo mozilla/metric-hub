@@ -72,9 +72,12 @@ drop_highest = 0
 
 [metrics.import_bookmarks.statistics.binomial]
 [metrics.import_bookmarks_count.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 
 [metrics.import_logins.statistics.binomial]
 [metrics.import_logins_count.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 
 [metrics.import_history.statistics.binomial]
 [metrics.import_history_count.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]

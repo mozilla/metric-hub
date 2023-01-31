@@ -871,7 +871,7 @@ deprecated = false
 
 [metrics.imported_bookmarks_count]
 data_source = "clients_daily"
-select_expression = "NULLIF(SUM(bookmark_migrations_quantity), 0)"
+select_expression = "NULLIF(SUM(bookmark_migrations_quantity_all), 0)"
 type = "scalar"
 friendly_name = "Average Number of Imported Bookmarks"
 description = "Average number of imported bookmarks per client"
