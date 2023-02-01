@@ -70,14 +70,14 @@ drop_highest = 0
 
 [metrics.disable_pocket_spocs_clicks.statistics.bootstrap_mean]
 
-[metrics.import_bookmarks.statistics.binomial]
-[metrics.import_bookmarks_count.statistics.bootstrap_mean]
+[metrics.imported_bookmarks.statistics.binomial]
+[metrics.imported_bookmarks_count.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
 
-[metrics.import_logins.statistics.binomial]
-[metrics.import_logins_count.statistics.bootstrap_mean]
+[metrics.imported_logins.statistics.binomial]
+[metrics.imported_logins_count.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
 
-[metrics.import_history.statistics.binomial]
-[metrics.import_history_count.statistics.bootstrap_mean]
+[metrics.imported_history.statistics.binomial]
+[metrics.imported_history_count.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
