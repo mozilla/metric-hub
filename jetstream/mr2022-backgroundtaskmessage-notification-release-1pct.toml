@@ -1,0 +1,211 @@
+## Background messaging tasks present several wrinkles compared to regular
+## Firefox in-product (browsing) experiments.  See [Jetstream support for
+## background tasks Firefox messaging system
+## experiments](https://docs.google.com/document/d/1GeOGUmG8XpitdexW2HESZJbCNhTT-o6qe1MmBsDPDHE/edit)
+## for an overview.
+##
+## This specific analysis uses legacy client IDs as its single unique
+## identifier, answering the main open question of the document linked above.
+##
+## This analysis is complicated by being written to be more general than this
+## single experiment; it tries to accommodate future experiments by referencing
+## the experiment slug indirectly and to handle in-product changes that will
+## apply to future experiments but do not apply to this one.
+##
+## For technical reasons, we take the union of multiple queries to determine
+## enrollment; see the extensive inline comments below.  It is possible to
+## segment by the various sub-queries, but it is awkward and does not provide
+## much value (beyond exposing counts of the various segments, which is valuable
+## during development but not relevant to impact analysis).
+##
+## Note that background update telemetry can be delayed, and that re-engaging
+## with Firefox can delay that telemetry further since the background update
+## task does not run if Firefox itself is running.  Therefore, even though the
+## true enrollment period -- the time when Nimbus is enrolling clients via
+## Remote Settings -- is generally *one* week, we artificially expand the
+## enrollment period to *two* weeks for Jetstream's analysis.
+
+[experiment]
+
+start_date = "2022-11-07"
+end_date = "2022-12-05"
+enrollment_period = 14
+
+enrollment_query = """
+SELECT * FROM
+(
+
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date.  This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    events.metrics.uuid.background_update_client_id AS client_id,
+    mozfun.map.get_key(event.extra, 'branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.background_update` events,
+UNNEST(events.events) AS event
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event.category = 'nimbus_events'
+    AND event.name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND mozfun.map.get_key(event.extra, 'experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND events.metrics.uuid.background_update_client_id IS NOT NULL
+GROUP BY client_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS client_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+GROUP BY client_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS client_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.  For the
+    -- 'mr2022-backgroundtaskmessage-notification-release-1pct' experiment, this
+    -- name is 'mr2022-backgroundtaskmessage-notification-release'.  In that
+    -- case, the sole branch is 'enabled'.
+    CASE
+        WHEN '{{experiment.normandy_slug}}' = 'mr2022-backgroundtaskmessage-notification-release-1pct' THEN 'enabled'
+        ELSE SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)]
+    END AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.  For the
+    -- 'mr2022-backgroundtaskmessage-notification-release-1pct' experiment, this
+    -- name is 'mr2022-backgroundtaskmessage-notification-release'.  Filter
+    -- accordingly.
+    AND CASE
+        WHEN '{{experiment.normandy_slug}}' = 'mr2022-backgroundtaskmessage-notification-release-1pct' THEN mozfun.map.get_key(event_map_values, 'name') = 'mr2022-backgroundtaskmessage-notification-release'
+        -- N.b.: trailing colon (':') is intentional, to avoid matching prefixes.
+        ELSE STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+    END
+GROUP BY
+    client_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY client_id ORDER BY enrollment_date ASC) = 1
+"""
+
+[data_sources.browser_launched_events]
+from_expression = """(
+    SELECT
+        *
+    FROM `mozdata.telemetry.events`
+    WHERE event_category = 'browser.launched_to_handle'
+)"""
+
+# These events will not be paired with an 'experiments' annotation, so don't
+# expect it -- the annotation is on the background update data, not the browsing
+# data queried here.
+experiments_column_type = "none"
+friendly_name = "Browser Launched Events"
+description = "Browser Launched Events"
+
+[metrics]
+# Even though some enrollment telemetry can be quite delayed, the click
+# telemetry should not be delayed, and therefore calculating sums and rates
+# daily will help understand if the experiment is incorrectly configured.
+daily = ["notification_clicks"]
+weekly = ["notification_clicks"]
+overall = ["notification_clicks"]
+
+[metrics.notification_clicks]
+# Exposure events are not yet reliable: see [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).
+analysis_bases = ["enrollments"]
+data_source = "browser_launched_events"
+select_expression = '''{{agg_any(
+    """
+    event_method = 'system_notification'
+    AND event_object = 'toast'
+    AND CASE
+        -- After https://github.com/mozilla/jetstream/issues/1516 is addressed,
+        -- we can handle this generically using the experiment slug; but right
+        -- now, we need to interpolate the specific slug by hand.
+        -- WHEN '{{experiment.normandy_slug}}' = 'mr2022-backgroundtaskmessage-notification-release-1pct' THEN mozfun.map.get_key(event_map_values, 'name') = 'mr2022-backgroundtaskmessage-notification-release'
+        WHEN 'mr2022-backgroundtaskmessage-notification-release-1pct' = 'mr2022-backgroundtaskmessage-notification-release-1pct' THEN mozfun.map.get_key(event_map_values, 'name') = 'mr2022-backgroundtaskmessage-notification-release'
+        -- N.b.: trailing colon (':') is intentional, to avoid matching prefixes.
+        -- Also https://github.com/mozilla/jetstream/issues/1516.
+        -- ELSE STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+        ELSE STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), 'mr2022-backgroundtaskmessage-notification-release-1pct:')
+    END
+    """
+)}}'''
+friendly_name = "Notification Clicks"
+description = """
+    Counts the number of clients that launched Firefox to handle the given notification.
+"""
+
+# Number of enrolled clients.
+[metrics.notification_clicks.statistics.count]
+# Number of clicks.
+[metrics.notification_clicks.statistics.sum]
+# Click through rate.
+[metrics.notification_clicks.statistics.binomial]
