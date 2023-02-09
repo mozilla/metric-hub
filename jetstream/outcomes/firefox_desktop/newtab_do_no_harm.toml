@@ -15,7 +15,7 @@ overall = [
     "newtab_searches", 
     "newtab_ad_clicks",
     "newtab_homepage_enabled",
-    "newtab_engagement",
+    "newtab_engagement"
 ]
 
 [metrics.newtab_searches.statistics.bootstrap_mean]
