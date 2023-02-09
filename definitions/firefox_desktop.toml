@@ -932,22 +932,22 @@ description = """
 Count of impressions of Sponsored Pocket content.
 """
 
-[metrics.sponsored_topsites_impressions]
+[metrics.sponsored_tile_impressions]
 data_source = "newtab_interactions"
 select_expression = "SUM(COALESCE(sponsored_topsite_impressions, 0))"
-friendly_name = "Sponsored Topsites Impressions"
+friendly_name = "Sponsored Tile Impressions"
 type = "scalar"
 description = """
-Count of impressions of Sponsored Topsites (aka Sponsored Tiles).
+Count of impressions of Sponsored Tiles (aka Sponsored Topsites on New Tab).
 """
 
-[metrics.sponsored_topsites_clicks]
+[metrics.sponsored_tile_clicks]
 data_source = "newtab_interactions"
 select_expression = "SUM(COALESCE(sponsored_topsite_clicks, 0))"
-friendly_name = "Sponsored Topsites Clicks"
+friendly_name = "Sponsored Tile Clicks"
 type = "scalar"
 description = """
-Count of clicks of Sponsored Topsites (aka Sponsored Tiles).
+Count of clicks of Sponsored Tiles (aka Sponsored Topsites on New Tab).
 """
 
 [metrics.newtab_newtab_enabled]
@@ -983,7 +983,7 @@ select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Topsites Enabled"
 type = "scalar"
 description = """
-Whether or not topsites (aka tiles) are enabled on the New Tab.
+Whether or not topsites tiles are enabled on the New Tab.
 """
 
 [metrics.newtab_sponsored_topsites_enabled]
@@ -992,7 +992,7 @@ select_expression = "COALESCE(MAX(CAST(sponsored_topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Sponsored Topsites Enabled"
 type = "scalar"
 description = """
-Whether or not sponsored topsites (aka tiles) are enabled on the New Tab.
+Whether or not sponsored topsites tiles are enabled on the New Tab.
 """
 
 [metrics.newtab_pocket_enabled]
