@@ -1015,6 +1015,69 @@ Whether or not Pocket Sponsored Stories is enabled on the New Tab.
 
 ########################### END OF NEW TAB METRICS ########################### 
 
+[metrics.imported_bookmarks]
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0)"
+type = "scalar"
+friendly_name = "Imported Bookmarks"
+description = "Count of clients who imported bookmarks"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+
+[metrics.imported_bookmarks_count]
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(bookmark_migrations_quantity_all), 0)"
+type = "scalar"
+friendly_name = "Total Number of Imported Bookmarks"
+description = "Total number of imported bookmarks per client who imported"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+[metrics.imported_logins]
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(logins_migrations_quantity_all IS NOT NULL AND logins_migrations_quantity_all != 0)"
+type = "scalar"
+friendly_name = "Imported Logins"
+description = "Count of clients who imported logins"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+[metrics.imported_logins_count]
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(logins_migrations_quantity_all), 0)"
+type = "scalar"
+friendly_name = "Total Number of Imported Logins"
+description = "Total number of imported logins per client who imported"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+[metrics.imported_history]
+data_source = "clients_daily"
+select_expression = "LOGICAL_OR(history_migrations_quantity_all IS NOT NULL AND history_migrations_quantity_all != 0)"
+type = "scalar"
+friendly_name = "Imported History"
+description = "Count of clients who imported history"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+
+[metrics.imported_history_count]
+data_source = "clients_daily"
+select_expression = "NULLIF(SUM(history_migrations_quantity_all), 0)"
+type = "scalar"
+friendly_name = "Total Number of Imported History Links"
+description = "Total number of imported history links per client who imported"
+category = "Device Migration"
+owner = "nflorez@mozilla.com"
+deprecated = false
+
+
 [dimensions]
 
 [dimensions.os]
