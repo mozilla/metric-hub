@@ -1004,10 +1004,10 @@ description = """
 Whether or not Pocket is enabled on the New Tab.
 """
 
-[metrics.newtab_sponsored_pocket_enabled]
+[metrics.newtab_sponsored_pocket_stories_enabled]
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(pocket_sponsored_stories_enabled AS INT)), 0)"
-friendly_name = "Newtab Sponsored Pocket Enabled"
+friendly_name = "Newtab Sponsored Pocket Stories Enabled"
 type = "scalar"
 description = """
 Whether or not Pocket Sponsored Stories is enabled on the New Tab.
