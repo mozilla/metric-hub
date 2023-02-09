@@ -956,7 +956,7 @@ select_expression = "COALESCE(MAX(IF(newtab_newtab_category = 'enabled', 1, 0)),
 friendly_name = "Newtab Newtab Enabled"
 type = "scalar"
 description = """
-TBD.
+Whether or not new tabs are set to display the default New Tab page.
 """
 
 [metrics.newtab_homepage_enabled]
@@ -965,7 +965,7 @@ select_expression = "COALESCE(MAX(IF(newtab_homepage_category = 'enabled', 1, 0)
 friendly_name = "Newtab Homepage Enabled"
 type = "scalar"
 description = """
-TBD.
+Whether or not the homepage is set to display the default New Tab page.
 """
 
 [metrics.newtab_search_enabled]
