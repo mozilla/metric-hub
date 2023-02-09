@@ -5,6 +5,50 @@ segments = [
     'mem_lte_2GB', 'mem_gt_2GB_lte_4GB', 'mem_gt_6GB_lte_8GB', 'high_mem',
 ]
 
+enrollment_query = """
+SELECT 
+  client_id,
+  branch,
+  ping_submission_date AS enrollment_date, 
+  num_enrollment_events
+FROM (
+    SELECT 
+    ping.client_id
+    ,ping.profile_subsession_counter
+    ,ping.session_id
+    ,ping.submission_date AS ping_submission_date
+    ,enroll.branch
+    ,enroll.enrollment_date
+    ,enroll.num_enrollment_events
+    ,RANK() OVER (PARTITION BY ping.client_id, ping.session_id ORDER BY profile_subsession_counter) as rank_in_subsession
+    ,RANK() OVER (PARTITION BY ping.client_id ORDER BY profile_subsession_counter) as rank_of_session
+  FROM (
+    SELECT m.client_id, 
+      m.payload.info.profile_subsession_counter as profile_subsession_counter, 
+      m.payload.info.session_id as session_id,
+      DATE(m.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.telemetry.main` m
+    WHERE DATE(m.submission_timestamp) BETWEEN '2022-12-02' AND '2023-01-27'
+  ) ping
+  INNER JOIN (
+    SELECT
+      e.client_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+    FROM `moz-fx-data-shared-prod.telemetry.events` e
+    WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date BETWEEN '2022-12-02' AND '2022-12-09'
+      AND e.event_string_value = 'abouthome-startup-cache-3'
+    GROUP BY e.client_id, branch
+  ) enroll
+  ON enroll.client_id = ping.client_id AND enroll.enrollment_date <= ping.submission_date
+  QUALIFY rank_in_subsession = 1 AND rank_of_session = 3
+)
+"""
+
 ## Data Sources
 
 [data_sources]
