@@ -8,7 +8,7 @@ weekly = [
     "newtab_searches", 
     "newtab_ad_clicks",
     "newtab_homepage_enabled",
-    "newtab_engagement",
+    "newtab_engagement"
 ]
 
 overall = [
