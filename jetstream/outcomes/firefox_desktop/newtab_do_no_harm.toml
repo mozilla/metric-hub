@@ -3,20 +3,6 @@ description = """
 Guardrail metrics for the New Tab. Includes user experience and revenue-related metrics for Search, Pocket and AdMarketplace Sponsored Tiles.
 """
 
-[metrics]
-weekly = [
-    "newtab_searches", 
-    "newtab_ad_clicks",
-    "newtab_homepage_enabled",
-    "newtab_engagement"
-]
-
-overall = [
-    "newtab_searches", 
-    "newtab_ad_clicks",
-    "newtab_homepage_enabled",
-    "newtab_engagement"
-]
 
 [metrics.newtab_searches.statistics.bootstrap_mean]
 [metrics.newtab_searches.statistics.deciles]
