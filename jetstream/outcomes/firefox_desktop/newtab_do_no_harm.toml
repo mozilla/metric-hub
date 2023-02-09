@@ -8,14 +8,14 @@ weekly = [
     "newtab_searches", 
     "newtab_ad_clicks",
     "newtab_homepage_enabled",
-    # TO DO: Add combined engagement metric
+    "newtab_engagement",
 ]
 
 overall = [
     "newtab_searches", 
     "newtab_ad_clicks",
     "newtab_homepage_enabled",
-    # TO DO: Add combined engagement metric
+    "newtab_engagement",
 ]
 
 [metrics.newtab_searches.statistics.bootstrap_mean]
@@ -25,3 +25,4 @@ overall = [
 [metrics.newtab_ad_clicks.statistics.deciles]
 
 [metrics.newtab_homepage_enabled.statistics.binomial]
+[metrics.newtab_engagement.statistics.binomial]
