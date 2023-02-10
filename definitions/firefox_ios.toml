@@ -235,6 +235,5 @@ submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
 from_expression = "`moz-fx-data-shared-prod.firefox_ios.new_profile_activation`"
-experiments_column_type = "simple"
-client_id_column = "client_id"
-submission_date_column = "submission_date"
+experiments_column_type = "none"
+
