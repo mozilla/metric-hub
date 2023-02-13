@@ -1,7 +1,10 @@
 [experiment]
 
 segments = [
-    'one_cpu', 'gt_one_cpu', 'two_cpu', 'two_to_four_cpu', 'gt_four_cpu'
+    'gt_one_cpu',
+    'gt_one_cpu_windows',
+    'gt_one_cpu_linux',
+    'gt_one_cpu_mac'
 ]
 
 ## Data Sources
@@ -578,22 +581,18 @@ daily = [
 ## Segments
 [segments]
 
-[segments.one_cpu]
-select_expression = 'COALESCE(MAX(cpu_count) = 1, FALSE)'
-data_source = "clients_last_seen"
-
 [segments.gt_one_cpu]
 select_expression = 'COALESCE(MAX(cpu_count) > 1, FALSE)'
 data_source = "clients_last_seen"
 
-[segments.two_cpu]
-select_expression = 'COALESCE(MAX(cpu_count) = 2, FALSE)'
+[segments.gt_one_cpu_windows]
+select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Windows_NT'), FALSE)"""
 data_source = "clients_last_seen"
 
-[segments.two_to_four_cpu]
-select_expression = 'COALESCE(MAX(cpu_count) BETWEEN 2 AND 4, FALSE)'
+[segments.gt_one_cpu_linux]
+select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Linux'), FALSE)"""
 data_source = "clients_last_seen"
 
-[segments.gt_four_cpu]
-select_expression = 'COALESCE(MAX(cpu_count) > 4, FALSE)'
+[segments.gt_one_cpu_mac]
+select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Darwin'), FALSE)"""
 data_source = "clients_last_seen"
