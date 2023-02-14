@@ -977,13 +977,13 @@ description = """
 Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
 """
 
-[metrics.newtab_topsites_enabled]
+[metrics.newtab_tiles_enabled]
 data_source = "newtab_interactions"
 select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
-friendly_name = "Newtab Topsites Enabled"
+friendly_name = "Newtab Tiles Enabled"
 type = "scalar"
 description = """
-Whether or not topsites tiles are enabled on the New Tab.
+Whether or not tiles are enabled on the New Tab. Includes both sponsored and nonsponsored tiles.
 """
 
 [metrics.newtab_pocket_enabled]
@@ -1010,7 +1010,7 @@ select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR
 friendly_name = "Newtab Engagement"
 type = "scalar"
 description = """
-Whether or not the client had a newtab search OR a pocket click OR a topsite click.
+Whether or not the client had a newtab search OR a pocket click OR a tile click.
 """
 
 ########################### END OF NEW TAB METRICS ########################### 
