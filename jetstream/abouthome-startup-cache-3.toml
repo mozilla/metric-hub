@@ -51,29 +51,6 @@ FROM (
 
 ## Data Sources
 
-[data_sources]
-
-## crash: removing session corresponding to enrollment
-[data_sources.crash_hour]
-from_expression = """
-(
-  SELECT
-    cr.*,
-    DATE(cr.submission_timestamp) AS submission_date,
-    cr.environment.experiments,
-    COALESCE(m.payload.processes.parent.scalars.browser_engagement_active_ticks, 0)*5 as active_s
-  FROM
-    `moz-fx-data-shared-prod.telemetry_stable.crash_v4` cr
-    INNER JOIN  `moz-fx-data-shared-prod`.telemetry_stable.main_v4 m
-      ON m.client_id = cr.client_id
-      AND DATE(m.submission_timestamp) = DATE(cr.submission_timestamp)
-    WHERE DATE(m.submission_timestamp) >= '2022-12-02'
-    AND DATE(cr.submission_timestamp) >= '2022-12-02'
-    AND m.normalized_channel = 'release'
-    AND cr.normalized_channel = 'release'
-    )
-"""
-experiments_column_type = "native"
 
 ## Metrics
 [metrics]
@@ -88,9 +65,7 @@ overall = [
     'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
+    'gc_slice_during_idle', 'gc_slice_during_idle_content'
 ]
 
 weekly = [
@@ -103,9 +78,7 @@ weekly = [
     'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
+    'gc_slice_during_idle', 'gc_slice_during_idle_content'
 ]
 
 daily = [
@@ -440,21 +413,6 @@ daily = [
 
 
 ## Crashes
-    [metrics.main_crashes_per_hour]
-    select_expression = """
-        SAFE_DIVIDE(
-            COALESCE(SUM(IF(payload.process_type = 'main' OR payload.process_type IS NULL, 1, 0)), 0),
-            SUM(active_s/3600)
-         )
-        """
-    data_source = 'crash_hour'
-    bigger_is_better = false
-
-        [metrics.main_crashes_per_hour.statistics.bootstrap_mean]
-        pre_treatments = ["remove_nulls"]
-
-        [metrics.main_crashes_per_hour.statistics.deciles]
-        pre_treatments = ["remove_nulls"]
 
 #        [metrics.main_crashes_per_hour.statistics.kernel_density_estimate]
 #        pre_treatments = ["remove_nulls"]
@@ -464,23 +422,6 @@ daily = [
 #        pre_treatments = ["remove_nulls"]
 #        log_space = true
 
-    [metrics.content_crashes_per_hour]
-    select_expression = """
-        SAFE_DIVIDE(
-            COALESCE(SUM(IF(REGEXP_CONTAINS(payload.process_type, 'content')
-                AND NOT REGEXP_CONTAINS(COALESCE(payload.metadata.ipc_channel_error, ''), 'ShutDownKill'), 1,0)), 0),
-            SUM(active_s/3600)
-         )
-        """
-    data_source = 'crash_hour'
-    bigger_is_better = false
-
-        [metrics.content_crashes_per_hour.statistics.bootstrap_mean]
-        pre_treatments = ["remove_nulls"]
-
-        [metrics.content_crashes_per_hour.statistics.deciles]
-        pre_treatments = ["remove_nulls"]
-
 #        [metrics.content_crashes_per_hour.statistics.kernel_density_estimate]
 #        pre_treatments = ["remove_nulls"]
 #        log_space = true
@@ -489,22 +430,6 @@ daily = [
 #        pre_treatments = ["remove_nulls"]
 #        log_space = true
 
-    [metrics.oom_crashes_per_hour]
-    select_expression = """
-        SAFE_DIVIDE(
-            COALESCE(SUM(IF(payload.metadata.oom_allocation_size IS NOT NULL, 1, 0)), 0),
-            SUM(active_s/3600)
-         )
-        """
-    data_source = 'crash_hour'
-    bigger_is_better = false
-
-        [metrics.oom_crashes_per_hour.statistics.bootstrap_mean]
-        pre_treatments = ["remove_nulls"]
-
-        [metrics.oom_crashes_per_hour.statistics.deciles]
-        pre_treatments = ["remove_nulls"]
-
 #        [metrics.oom_crashes_per_hour.statistics.kernel_density_estimate]
 #        pre_treatments = ["remove_nulls"]
 #        log_space = true
@@ -512,23 +437,6 @@ daily = [
 #        [metrics.oom_crashes_per_hour.statistics.empirical_cdf]
 #        pre_treatments = ["remove_nulls"]
 #        log_space = true
-
-
-    [metrics.shutdown_hangs_per_hour]
-    select_expression = """
-        SAFE_DIVIDE(
-            COALESCE(SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0)), 0),
-            SUM(active_s/3600)
-         )
-        """
-    data_source = 'crash_hour'
-    bigger_is_better = false
-
-        [metrics.shutdown_hangs_per_hour.statistics.bootstrap_mean]
-        pre_treatments = ["remove_nulls"]
-
-        [metrics.shutdown_hangs_per_hour.statistics.deciles]
-        pre_treatments = ["remove_nulls"]
 
 #        [metrics.shutdown_crashes_per_hour.statistics.kernel_density_estimate]
 #        pre_treatments = ["remove_nulls"]
