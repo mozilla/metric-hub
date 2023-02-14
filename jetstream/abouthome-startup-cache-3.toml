@@ -65,9 +65,7 @@ overall = [
     'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
+    'gc_slice_during_idle', 'gc_slice_during_idle_content'
 ]
 
 weekly = [
@@ -80,9 +78,7 @@ weekly = [
     'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
+    'gc_slice_during_idle', 'gc_slice_during_idle_content'
 ]
 
 daily = [
