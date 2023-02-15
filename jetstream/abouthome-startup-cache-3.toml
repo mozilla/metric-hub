@@ -485,3 +485,5 @@ data_source = "clients_last_seen"
 [segments.high_mem]
 select_expression = 'COALESCE(MAX(memory_mb) >= 8192, FALSE)'
 data_source = "clients_last_seen"
+
+
