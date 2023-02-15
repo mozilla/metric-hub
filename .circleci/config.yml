@@ -6,7 +6,24 @@ orbs:
   path-filtering: circleci/path-filtering@0.1.3
 
 workflows:
-  setup-workflow:
+  filter-paths-main:
+    when:
+      and:
+        - equal: [main, << pipeline.git.branch >>]
+    jobs:
+      - path-filtering/filter:
+          base-revision: << pipeline.git.base_revision >>
+          config-path: .circleci/validation-config.yml
+          mapping: |
+            opmon/.* validate-opmon true
+            jetstream/.* validate-jetstream true
+            definitions/.* validate-metrics true
+            .* build-docs true
+  filter-paths-pr:
+    when:
+      and:
+        - not:
+            equal: [main, << pipeline.git.branch >>]
     jobs:
       - path-filtering/filter:
           base-revision: main
@@ -16,3 +33,4 @@ workflows:
             jetstream/.* validate-jetstream true
             definitions/.* validate-metrics true
             .* build-docs true
+            .* base-revision "main"

@@ -13,11 +13,17 @@ parameters:
   build-docs:
     type: boolean
     default: false
+  base-revision:
+    type: string
+    default: << pipeline.git.base_revision >>
 
 jobs:
   validate-metrics:
     docker:
     - image: python:3.8
+    environment:
+      BASE_COMMIT: << pipeline.parameters.base-revision >>
+      REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
     - run:
@@ -27,7 +33,7 @@ jobs:
     - run:
         name: Validate config files
         command: |
-          changed_files=$(git diff origin/main... --name-only --diff-filter=d -- 'definitions/*.toml' 'definitions/*.example.toml')
+          changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- 'definitions/*.toml' 'definitions/*.example.toml')
           echo "Run validation on changed files: "
           echo $changed_files
           python3 .script/validate.py $changed_files
@@ -35,7 +41,7 @@ jobs:
     docker:
     - image: gcr.io/moz-fx-data-experiments/opmon:latest
     environment:
-      BASE_COMMIT: main
+      BASE_COMMIT: << pipeline.parameters.base-revision >>
       REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
@@ -50,7 +56,7 @@ jobs:
     docker:
     - image: gcr.io/moz-fx-data-experiments/jetstream:latest
     environment:
-      BASE_COMMIT: main
+      BASE_COMMIT: << pipeline.parameters.base-revision >>
       REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
@@ -81,6 +87,9 @@ jobs:
   rerun-jetstream:
     docker:
     - image: google/cloud-sdk
+    environment:
+      BASE_COMMIT: << pipeline.parameters.base-revision >>
+      REVISION_COMMIT: << pipeline.git.revision >>
     steps:
     - checkout
     - &skip_forked_pr
