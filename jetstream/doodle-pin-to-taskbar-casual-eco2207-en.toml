@@ -13,3 +13,5 @@ data_source = "clients_daily"
 select_expression = "CAST(COALESCE(LOGICAL_OR(is_default_browser), FALSE) AS int)"
 
 [metrics.is_default.statistics.binomial]
+
+
