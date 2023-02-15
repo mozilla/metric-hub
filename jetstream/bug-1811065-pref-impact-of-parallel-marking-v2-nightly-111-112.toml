@@ -582,17 +582,17 @@ daily = [
 [segments]
 
 [segments.gt_one_cpu]
-select_expression = 'COALESCE(MAX(cpu_count) > 1, FALSE)'
+select_expression = 'COALESCE(MAX(cpu_cores) > 1, FALSE)'
 data_source = "clients_last_seen"
 
 [segments.gt_one_cpu_windows]
-select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Windows_NT'), FALSE)"""
+select_expression = """COALESCE(MAX(cpu_cores) > 1 AND LOGICAL_OR(os='Windows_NT'), FALSE)"""
 data_source = "clients_last_seen"
 
 [segments.gt_one_cpu_linux]
-select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Linux'), FALSE)"""
+select_expression = """COALESCE(MAX(cpu_cores) > 1 AND LOGICAL_OR(os='Linux'), FALSE)"""
 data_source = "clients_last_seen"
 
 [segments.gt_one_cpu_mac]
-select_expression = """COALESCE(MAX(cpu_count) > 1 AND LOGICAL_OR(os='Darwin'), FALSE)"""
+select_expression = """COALESCE(MAX(cpu_cores) > 1 AND LOGICAL_OR(os='Darwin'), FALSE)"""
 data_source = "clients_last_seen"
