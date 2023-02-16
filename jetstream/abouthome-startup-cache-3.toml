@@ -50,7 +50,24 @@ FROM (
 """
 
 ## Data Sources
+[data_sources]
 
+[data_sources.main]
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4
+    INNER JOIN (
+        SELECT client_id 
+        FROM `moz-fx-data-experiments.mozanalysis.enrollments_abouthome_startup_cache_3`
+    ) enroll 
+    USING (client_id)
+)"""
+experiments_column_type = "native"
+friendly_name = "Main"
+description = "Main ping table"
 
 ## Metrics
 [metrics]
