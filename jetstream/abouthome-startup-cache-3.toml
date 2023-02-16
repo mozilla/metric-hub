@@ -55,19 +55,29 @@ FROM (
 [data_sources.main]
 from_expression = """(
     SELECT
-        *,
+        *, 
         DATE(submission_timestamp) AS submission_date,
         environment.experiments
     FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4
-    INNER JOIN (
-        SELECT client_id 
-        FROM `moz-fx-data-experiments.mozanalysis.enrollments_abouthome_startup_cache_3`
-    ) enroll 
-    USING (client_id)
+    WHERE `mozfun.map.get_key`(
+        environment.experiments, 'abouthome-startup-cache-3'
+    ).branch IS NOT NULL
+
 )"""
 experiments_column_type = "native"
 friendly_name = "Main"
 description = "Main ping table"
+
+[data_sources.clients_daily]
+from_expression = """(
+        SELECT * FROM
+                mozdata.telemetry.clients_daily d
+        WHERE `mozfun.map.get_key`(
+                d.experiments, 'abouthome-startup-cache-3'
+        ) IS NOT NULL
+)"""
+friendly_name = "Clients Daily"
+description = "Clients Daily"
 
 ## Metrics
 [metrics]
