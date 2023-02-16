@@ -50,7 +50,34 @@ FROM (
 """
 
 ## Data Sources
+[data_sources]
 
+[data_sources.main]
+from_expression = """(
+    SELECT
+        *, 
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4
+    WHERE `mozfun.map.get_key`(
+        environment.experiments, 'abouthome-startup-cache-3'
+    ).branch IS NOT NULL
+
+)"""
+experiments_column_type = "native"
+friendly_name = "Main"
+description = "Main ping table"
+
+[data_sources.clients_daily]
+from_expression = """(
+        SELECT * FROM
+                mozdata.telemetry.clients_daily d
+        WHERE `mozfun.map.get_key`(
+                d.experiments, 'abouthome-startup-cache-3'
+        ) IS NOT NULL
+)"""
+friendly_name = "Clients Daily"
+description = "Clients Daily"
 
 ## Metrics
 [metrics]
@@ -96,9 +123,9 @@ daily = [
         [metrics.perf_page_load_time_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.perf_page_load_time_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.perf_page_load_time_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.perf_page_load_time_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -116,9 +143,9 @@ daily = [
         [metrics.js_pageload_execution_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.js_pageload_execution_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.js_pageload_execution_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.js_pageload_execution_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -135,9 +162,9 @@ daily = [
         [metrics.time_to_first_interaction_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.time_to_first_interaction_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.time_to_first_interaction_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.time_to_first_interaction_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -154,9 +181,9 @@ daily = [
         [metrics.input_event_response_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.input_event_response_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.input_event_response_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.input_event_response_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -173,9 +200,9 @@ daily = [
         [metrics.input_event_response_ms_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.input_event_response_ms_parent.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.input_event_response_ms_parent.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.input_event_response_ms_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -192,9 +219,9 @@ daily = [
         [metrics.perf_first_contentful_paint_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.perf_first_contentful_paint_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.perf_first_contentful_paint_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#       log_space = true
 
         [metrics.perf_first_contentful_paint_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -212,9 +239,9 @@ daily = [
         [metrics.gpu_keypress_present_latency.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gpu_keypress_present_latency.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gpu_keypress_present_latency.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gpu_keypress_present_latency.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -232,9 +259,9 @@ daily = [
         [metrics.memory_total.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.memory_total.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.memory_total.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.memory_total.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -251,9 +278,9 @@ daily = [
         [metrics.memory_unique_content_startup.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.memory_unique_content_startup.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.memory_unique_content_startup.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.memory_unique_content_startup.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -270,9 +297,9 @@ daily = [
         [metrics.cycle_collector_max_pause.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.cycle_collector_max_pause.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+ #       [metrics.cycle_collector_max_pause.statistics.kernel_density_estimate]
+ #       pre_treatments = ["remove_nulls"]
+ #       log_space = true
 
         [metrics.cycle_collector_max_pause.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -289,9 +316,9 @@ daily = [
         [metrics.cycle_collector_max_pause_content.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.cycle_collector_max_pause_content.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.cycle_collector_max_pause_content.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.cycle_collector_max_pause_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -308,9 +335,9 @@ daily = [
         [metrics.gc_max_pause_ms_2.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_max_pause_ms_2.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_max_pause_ms_2.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_max_pause_ms_2.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -327,9 +354,9 @@ daily = [
         [metrics.gc_max_pause_ms_2_content.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_max_pause_ms_2_content.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_max_pause_ms_2_content.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_max_pause_ms_2_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -346,9 +373,9 @@ daily = [
         [metrics.gc_ms.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_ms.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_ms.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_ms.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -365,9 +392,9 @@ daily = [
         [metrics.gc_ms_content.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_ms_content.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_ms_content.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_ms_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -384,9 +411,9 @@ daily = [
         [metrics.gc_slice_during_idle.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_slice_during_idle.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_slice_during_idle.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_slice_during_idle.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
@@ -403,9 +430,9 @@ daily = [
         [metrics.gc_slice_during_idle_content.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_slice_during_idle_content.statistics.kernel_density_estimate]
-        pre_treatments = ["remove_nulls"]
-        log_space = true
+#        [metrics.gc_slice_during_idle_content.statistics.kernel_density_estimate]
+#        pre_treatments = ["remove_nulls"]
+#        log_space = true
 
         [metrics.gc_slice_during_idle_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
