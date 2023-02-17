@@ -1,0 +1,431 @@
+INFO:2023-02-17 11:19:14,630:jetstream.analysis:Analysis.run invoked for experiment abouthome-startup-cache-3 at 2023-02-17 19:19:14.627061+00:00
+INFO:2023-02-17 11:19:14,645:jetstream.analysis:Create enrollments_abouthome_startup_cache_3
+/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/dashboard/core.py:20: UserWarning: 
+Dask needs bokeh >= 2.4.2, < 3 for the dashboard.
+You have bokeh==2.4.1.
+Continuing without the dashboard.
+  warnings.warn(
+INFO:2023-02-17 11:20:00,843:distributed.http.proxy:To route to workers diagnostics web server please install jupyter-server-proxy: python -m pip install jupyter-server-proxy
+INFO:2023-02-17 11:20:00,845:distributed.scheduler:State start
+INFO:2023-02-17 11:20:00,848:distributed.scheduler:  Scheduler at:     tcp://127.0.0.1:64730
+INFO:2023-02-17 11:20:00,848:distributed.scheduler:  dashboard at:            127.0.0.1:8782
+INFO:2023-02-17 11:20:00,879:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64733'
+INFO:2023-02-17 11:20:00,895:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64734'
+Delete enrollment table for abouthome-startup-cache-3
+INFO:2023-02-17 11:20:00,896:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64735'
+INFO:2023-02-17 11:20:00,897:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64736'
+INFO:2023-02-17 11:20:00,897:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64737'
+INFO:2023-02-17 11:20:00,898:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64738'
+INFO:2023-02-17 11:20:00,898:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64739'
+INFO:2023-02-17 11:20:00,900:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64740'
+INFO:2023-02-17 11:20:00,901:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64741'
+INFO:2023-02-17 11:20:00,902:distributed.nanny:        Start Nanny at: 'tcp://127.0.0.1:64742'
+INFO:2023-02-17 11:20:03,924:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64763', name: 0, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:03,969:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64763
+INFO:2023-02-17 11:20:03,969:distributed.core:Starting established connection to tcp://127.0.0.1:64766
+INFO:2023-02-17 11:20:04,017:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64767', name: 1, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,017:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64767
+INFO:2023-02-17 11:20:04,017:distributed.core:Starting established connection to tcp://127.0.0.1:64773
+INFO:2023-02-17 11:20:04,018:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64764', name: 2, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,018:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64764
+INFO:2023-02-17 11:20:04,018:distributed.core:Starting established connection to tcp://127.0.0.1:64771
+INFO:2023-02-17 11:20:04,019:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64768', name: 5, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,020:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64768
+INFO:2023-02-17 11:20:04,020:distributed.core:Starting established connection to tcp://127.0.0.1:64775
+INFO:2023-02-17 11:20:04,033:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64769', name: 3, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,033:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64769
+INFO:2023-02-17 11:20:04,033:distributed.core:Starting established connection to tcp://127.0.0.1:64777
+INFO:2023-02-17 11:20:04,094:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64778', name: 4, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,095:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64778
+INFO:2023-02-17 11:20:04,095:distributed.core:Starting established connection to tcp://127.0.0.1:64782
+INFO:2023-02-17 11:20:04,152:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64780', name: 7, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,152:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64780
+INFO:2023-02-17 11:20:04,152:distributed.core:Starting established connection to tcp://127.0.0.1:64787
+INFO:2023-02-17 11:20:04,153:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64779', name: 6, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,154:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64779
+INFO:2023-02-17 11:20:04,154:distributed.core:Starting established connection to tcp://127.0.0.1:64786
+INFO:2023-02-17 11:20:04,196:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64783', name: 8, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,197:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64783
+INFO:2023-02-17 11:20:04,197:distributed.core:Starting established connection to tcp://127.0.0.1:64790
+INFO:2023-02-17 11:20:04,235:distributed.scheduler:Register worker <WorkerState 'tcp://127.0.0.1:64788', name: 9, status: init, memory: 0, processing: 0>
+INFO:2023-02-17 11:20:04,236:distributed.scheduler:Starting worker compute stream, tcp://127.0.0.1:64788
+INFO:2023-02-17 11:20:04,236:distributed.core:Starting established connection to tcp://127.0.0.1:64792
+INFO:2023-02-17 11:20:04,281:distributed.scheduler:Receive client connection: Client-14d1c2a2-aef8-11ed-b090-1e70a2a041f8
+INFO:2023-02-17 11:20:04,281:distributed.core:Starting established connection to tcp://127.0.0.1:64793
+INFO:2023-02-17 11:20:04,308:jetstream.analysis:Skipping abouthome-startup-cache-3 (days28); not ready [START: 2022-12-02, CURRENT: 2023-01-27 00:00:00+00:00]
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (week) into abouthome_startup_cache_3_exposures_week_7
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (overall) into abouthome_startup_cache_3_enrollments_overall_1
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (day) into abouthome_startup_cache_3_enrollments_day_49
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (overall) into abouthome_startup_cache_3_exposures_overall_1
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (week) into abouthome_startup_cache_3_enrollments_week_7
+INFO:2023-02-17 11:20:04,734:jetstream.analysis:Executing query for abouthome-startup-cache-3 (day) into abouthome_startup_cache_3_exposures_day_49
+WARNING:2023-02-17 11:20:39,656:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:20:39,658:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:21:27,911:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,913:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,917:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,920:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,923:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,925:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,928:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,930:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,933:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,936:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,940:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,944:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,947:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,959:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,962:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,965:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,967:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,971:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,975:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,977:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,982:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,985:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,988:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,991:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,994:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:27,997:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:27,999:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:28,002:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,006:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:28,008:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,011:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:28,014:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,017:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:28,020:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,023:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:21:28,025:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,027:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:28,028:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,030:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:28,033:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,034:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:28,038:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:21:28,040:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:28,043:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,044:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:28,047:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,049:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:28,054:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:28,057:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:21:35,154:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:35,157:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:21:35,162:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:21:35,165:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:22:12,527:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:22:12,530:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:22:48,863:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:22:48,866:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,510:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,512:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,517:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,520:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,523:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,525:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,528:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,531:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,534:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,536:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,540:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,544:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,546:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,550:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,554:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,557:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,560:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,564:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,567:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,570:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,574:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,577:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,580:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,583:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,585:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,590:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,592:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,594:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,597:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,601:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,604:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,607:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,612:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,622:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,626:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:23:00,627:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,629:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,630:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,631:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,633:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,636:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,637:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,641:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,642:jetstream.statistics:Branch control not in [] for binomial.
+WARNING:2023-02-17 11:23:00,643:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,647:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,648:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,652:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,653:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,658:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,659:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:00,662:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,664:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,668:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,669:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:00,671:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:00,673:jetstream.statistics:Branch control not in [] for bootstrap_mean.
+WARNING:2023-02-17 11:23:02,318:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:02,321:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:02,324:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:02,327:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:10,197:jetstream.statistics:Branch control not in ['treatment-a'] for empirical_cdf.
+WARNING:2023-02-17 11:23:11,034:jetstream.statistics:Branch control not in [] for deciles.
+WARNING:2023-02-17 11:23:15,162:jetstream.statistics:Branch control not in [] for empirical_cdf.
+WARNING:2023-02-17 11:23:19,657:jetstream.statistics:Branch control not in ['treatment-a'] for deciles.
+/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/numpy/lib/function_base.py:4573: RuntimeWarning: invalid value encountered in subtract
+  diff_b_a = subtract(b, a)
+2023-02-17 11:23:57,573 - distributed.worker - WARNING - Compute Failed
+Key:       save_statistics-80be1400-23ff-4bfc-be34-1b341b41395d
+Function:  save_statistics
+args:      (Analysis(project='moz-fx-data-bq-data-science', dataset='dberry', config=AnalysisConfiguration(experiment=ExperimentConfiguration(experiment_spec=ExperimentSpec(enrollment_query="SELECT\n  client_id,\n  branch,\n  MIN(ping_submission_date) AS enrollment_date, \n  MAX(num_enrollment_events) AS num_enrollment_events\nFROM (\n    SELECT \n    ping.client_id\n    ,ping.profile_subsession_counter\n    ,ping.session_id\n    ,ping.submission_date AS ping_submission_date\n    ,enroll.branch\n    ,enroll.enrollment_date\n    ,enroll.num_enrollment_events\n    ,RANK() OVER (PARTITION BY ping.client_id, ping.session_id ORDER BY profile_subsession_counter) as rank_in_subsession\n    ,RANK() OVER (PARTITION BY ping.client_id ORDER BY profile_subsession_counter) as rank_of_session\n  FROM (\n    SELECT m.client_id, \n      m.payload.info.profile_subsession_counter as profile_subsession_counter, \n      m.payload.info.session_id as session_id,\n      DATE(m.submission_timestamp) AS submission_date\n
+kwargs:    {}
+Exception: "RefreshError('Reauthentication is needed. Please run `gcloud auth application-default login` to reauthenticate.')"
+
+WARNING:2023-02-17 11:23:57,573:distributed.worker:Compute Failed
+Key:       save_statistics-80be1400-23ff-4bfc-be34-1b341b41395d
+Function:  save_statistics
+args:      (Analysis(project='moz-fx-data-bq-data-science', dataset='dberry', config=AnalysisConfiguration(experiment=ExperimentConfiguration(experiment_spec=ExperimentSpec(enrollment_query="SELECT\n  client_id,\n  branch,\n  MIN(ping_submission_date) AS enrollment_date, \n  MAX(num_enrollment_events) AS num_enrollment_events\nFROM (\n    SELECT \n    ping.client_id\n    ,ping.profile_subsession_counter\n    ,ping.session_id\n    ,ping.submission_date AS ping_submission_date\n    ,enroll.branch\n    ,enroll.enrollment_date\n    ,enroll.num_enrollment_events\n    ,RANK() OVER (PARTITION BY ping.client_id, ping.session_id ORDER BY profile_subsession_counter) as rank_in_subsession\n    ,RANK() OVER (PARTITION BY ping.client_id ORDER BY profile_subsession_counter) as rank_of_session\n  FROM (\n    SELECT m.client_id, \n      m.payload.info.profile_subsession_counter as profile_subsession_counter, \n      m.payload.info.session_id as session_id,\n      DATE(m.submission_timestamp) AS submission_date\n
+kwargs:    {}
+Exception: "RefreshError('Reauthentication is needed. Please run `gcloud auth application-default login` to reauthenticate.')"
+
+ERROR:2023-02-17 11:23:57,577:jetstream.cli:Reauthentication is needed. Please run `gcloud auth application-default login` to reauthenticate.
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/cli.py", line 157, in execute
+    analysis.run(date)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/analysis.py", line 633, in run
+    client.gather(result_futures)  # block until futures have finished
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/client.py", line 2313, in gather
+    return self.sync(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils.py", line 338, in sync
+    return sync(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils.py", line 405, in sync
+    raise exc.with_traceback(tb)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils.py", line 378, in f
+    result = yield future
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/tornado/gen.py", line 769, in run
+    value = future.result()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/client.py", line 2176, in _gather
+    raise exception.with_traceback(traceback)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/analysis.py", line 487, in save_statistics
+    self.bigquery.load_table_from_json(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/bigquery_client.py", line 55, in load_table_from_json
+    self.client.load_table_from_json(results, destination_table, job_config=job_config).result()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/client.py", line 2821, in load_table_from_json
+    return self.load_table_from_file(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/client.py", line 2456, in load_table_from_file
+    response = self._do_multipart_upload(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/client.py", line 3026, in _do_multipart_upload
+    response = upload.transmit(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/resumable_media/requests/upload.py", line 153, in transmit
+    return _request_helpers.wait_and_retry(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/resumable_media/requests/_request_helpers.py", line 148, in wait_and_retry
+    response = func()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/resumable_media/requests/upload.py", line 145, in retriable_request
+    result = transport.request(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/auth/transport/requests.py", line 545, in request
+    self.credentials.before_request(auth_request, method, url, request_headers)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/auth/credentials.py", line 135, in before_request
+    self.refresh(request)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/oauth2/credentials.py", line 335, in refresh
+    ) = reauth.refresh_grant(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/oauth2/reauth.py", line 334, in refresh_grant
+    raise exceptions.RefreshError(
+google.auth.exceptions.RefreshError: Reauthentication is needed. Please run `gcloud auth application-default login` to reauthenticate.
+INFO:2023-02-17 11:23:57,582:jetstream.export_json:Retrieving logs from BigQuery: moz-fx-data-experiments.monitoring.logs
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/bin/jetstream", line 8, in <module>
+    sys.exit(cli())
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/core.py", line 1130, in __call__
+    return self.main(*args, **kwargs)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/core.py", line 1055, in main
+    rv = self.invoke(ctx)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/core.py", line 1657, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/core.py", line 1404, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/core.py", line 760, in invoke
+    return __callback(*args, **kwargs)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/click/decorators.py", line 26, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/cli.py", line 574, in run
+    success = analysis_executor.execute(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/cli.py", line 245, in execute
+    return strategy.execute(worklist, self.configuration_map)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/cli.py", line 181, in execute
+    export_experiment_logs(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/export_json.py", line 239, in export_experiment_logs
+    experiment_logs, num_logs = _get_experiment_logs_as_json(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/jetstream/export_json.py", line 172, in _get_experiment_logs_as_json
+    results = client.query(query_text).result()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/client.py", line 3381, in query
+    return _job_helpers.query_jobs_insert(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/_job_helpers.py", line 114, in query_jobs_insert
+    future = do_query()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/_job_helpers.py", line 91, in do_query
+    query_job._begin(retry=retry, timeout=timeout)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/job/query.py", line 1298, in _begin
+    super(QueryJob, self)._begin(client=client, retry=retry, timeout=timeout)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/job/base.py", line 510, in _begin
+    api_response = client._call_api(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/bigquery/client.py", line 789, in _call_api
+    return call()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/api_core/retry.py", line 349, in retry_wrapped_func
+    return retry_target(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/api_core/retry.py", line 191, in retry_target
+    return target()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/_http/__init__.py", line 482, in api_request
+    response = self._make_request(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/_http/__init__.py", line 341, in _make_request
+    return self._do_request(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/cloud/_http/__init__.py", line 379, in _do_request
+    return self.http.request(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/auth/transport/requests.py", line 545, in request
+    self.credentials.before_request(auth_request, method, url, request_headers)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/auth/credentials.py", line 135, in before_request
+    self.refresh(request)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/oauth2/credentials.py", line 335, in refresh
+    ) = reauth.refresh_grant(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/google/oauth2/reauth.py", line 334, in refresh_grant
+    raise exceptions.RefreshError(
+google.auth.exceptions.RefreshError: Reauthentication is needed. Please run `gcloud auth application-default login` to reauthenticate.
+INFO:2023-02-17 11:23:59,033:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64733'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,034:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,034:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64734'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,035:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,035:distributed.worker:Stopping worker at tcp://127.0.0.1:64763. Reason: nanny-close
+INFO:2023-02-17 11:23:59,035:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64735'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,035:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,035:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64736'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,036:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,036:distributed.worker:Stopping worker at tcp://127.0.0.1:64767. Reason: nanny-close
+INFO:2023-02-17 11:23:59,036:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64737'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,036:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,036:distributed.worker:Stopping worker at tcp://127.0.0.1:64764. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64738'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.worker:Stopping worker at tcp://127.0.0.1:64769. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,037:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64739'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,037:distributed.worker:Stopping worker at tcp://127.0.0.1:64778. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64740'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.worker:Stopping worker at tcp://127.0.0.1:64768. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64741'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,038:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,038:distributed.worker:Stopping worker at tcp://127.0.0.1:64779. Reason: nanny-close
+INFO:2023-02-17 11:23:59,039:distributed.nanny:Closing Nanny at 'tcp://127.0.0.1:64742'. Reason: nanny-close
+INFO:2023-02-17 11:23:59,039:distributed.nanny:Nanny asking worker to close. Reason: nanny-close
+INFO:2023-02-17 11:23:59,039:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,039:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,039:distributed.worker:Stopping worker at tcp://127.0.0.1:64780. Reason: nanny-close
+INFO:2023-02-17 11:23:59,040:distributed.worker:Stopping worker at tcp://127.0.0.1:64783. Reason: nanny-close
+INFO:2023-02-17 11:23:59,040:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,040:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,040:distributed.worker:Stopping worker at tcp://127.0.0.1:64788. Reason: nanny-close
+2023-02-17 11:23:59,041 - distributed.worker - ERROR - Failed to communicate with scheduler during heartbeat.
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 225, in read
+    frames_nbytes = await stream.read_bytes(fmt_size)
+tornado.iostream.StreamClosedError: Stream is closed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/worker.py", line 1215, in heartbeat
+    response = await retry_operation(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils_comm.py", line 402, in retry_operation
+    return await retry(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils_comm.py", line 387, in retry
+    return await coro()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/core.py", line 1221, in send_recv_from_rpc
+    return await send_recv(comm=comm, op=key, **kwargs)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/core.py", line 986, in send_recv
+    response = await comm.read(deserializers=deserializers)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 241, in read
+    convert_stream_closed_error(self, e)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 144, in convert_stream_closed_error
+    raise CommClosedError(f"in {obj}: {exc}") from exc
+distributed.comm.core.CommClosedError: in <TCP (closed) ConnectionPool.heartbeat_worker local=tcp://127.0.0.1:64809 remote=tcp://127.0.0.1:64730>: Stream is closed
+ERROR:2023-02-17 11:23:59,041:distributed.worker:Failed to communicate with scheduler during heartbeat.
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 225, in read
+    frames_nbytes = await stream.read_bytes(fmt_size)
+tornado.iostream.StreamClosedError: Stream is closed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/worker.py", line 1215, in heartbeat
+    response = await retry_operation(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils_comm.py", line 402, in retry_operation
+    return await retry(
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/utils_comm.py", line 387, in retry
+    return await coro()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/core.py", line 1221, in send_recv_from_rpc
+    return await send_recv(comm=comm, op=key, **kwargs)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/core.py", line 986, in send_recv
+    response = await comm.read(deserializers=deserializers)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 241, in read
+    convert_stream_closed_error(self, e)
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 144, in convert_stream_closed_error
+    raise CommClosedError(f"in {obj}: {exc}") from exc
+distributed.comm.core.CommClosedError: in <TCP (closed) ConnectionPool.heartbeat_worker local=tcp://127.0.0.1:64809 remote=tcp://127.0.0.1:64730>: Stream is closed
+INFO:2023-02-17 11:23:59,041:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,041:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64766; closing.
+INFO:2023-02-17 11:23:59,042:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64771; closing.
+INFO:2023-02-17 11:23:59,042:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64773; closing.
+INFO:2023-02-17 11:23:59,042:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64777; closing.
+INFO:2023-02-17 11:23:59,042:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64782; closing.
+INFO:2023-02-17 11:23:59,042:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,042:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,043:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64763', name: 0, status: closing, memory: 0, processing: 0>
+INFO:2023-02-17 11:23:59,043:distributed.core:Removing comms to tcp://127.0.0.1:64763
+INFO:2023-02-17 11:23:59,043:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64764', name: 2, status: closing, memory: 1, processing: 0>
+INFO:2023-02-17 11:23:59,043:distributed.core:Removing comms to tcp://127.0.0.1:64764
+INFO:2023-02-17 11:23:59,043:distributed.core:Connection to tcp://127.0.0.1:64730 has been closed.
+INFO:2023-02-17 11:23:59,044:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64767', name: 1, status: closing, memory: 1, processing: 0>
+INFO:2023-02-17 11:23:59,044:distributed.core:Removing comms to tcp://127.0.0.1:64767
+INFO:2023-02-17 11:23:59,049:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64769', name: 3, status: closing, memory: 0, processing: 0>
+INFO:2023-02-17 11:23:59,049:distributed.core:Removing comms to tcp://127.0.0.1:64769
+INFO:2023-02-17 11:23:59,049:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64778', name: 4, status: closing, memory: 0, processing: 0>
+INFO:2023-02-17 11:23:59,049:distributed.core:Removing comms to tcp://127.0.0.1:64778
+INFO:2023-02-17 11:23:59,049:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64775; closing.
+INFO:2023-02-17 11:23:59,050:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64786; closing.
+INFO:2023-02-17 11:23:59,050:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64768', name: 5, status: closing, memory: 0, processing: 0>
+INFO:2023-02-17 11:23:59,050:distributed.core:Removing comms to tcp://127.0.0.1:64768
+INFO:2023-02-17 11:23:59,051:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64779', name: 6, status: closing, memory: 0, processing: 1>
+INFO:2023-02-17 11:23:59,051:distributed.core:Removing comms to tcp://127.0.0.1:64779
+INFO:2023-02-17 11:23:59,051:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64787; closing.
+INFO:2023-02-17 11:23:59,051:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64790; closing.
+INFO:2023-02-17 11:23:59,052:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64780', name: 7, status: closing, memory: 0, processing: 2>
+INFO:2023-02-17 11:23:59,052:distributed.core:Removing comms to tcp://127.0.0.1:64780
+INFO:2023-02-17 11:23:59,052:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64783', name: 8, status: closing, memory: 0, processing: 1>
+INFO:2023-02-17 11:23:59,052:distributed.core:Removing comms to tcp://127.0.0.1:64783
+INFO:2023-02-17 11:23:59,052:distributed.core:Received 'close-stream' from tcp://127.0.0.1:64792; closing.
+INFO:2023-02-17 11:23:59,053:distributed.batched:Batched Comm Closed <TCP (closed) Scheduler connection to worker local=tcp://127.0.0.1:64730 remote=tcp://127.0.0.1:64786>
+Traceback (most recent call last):
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/batched.py", line 115, in _background_send
+    nbytes = yield coro
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/tornado/gen.py", line 769, in run
+    value = future.result()
+  File "/Users/dberry/opt/anaconda3/lib/python3.9/site-packages/distributed/comm/tcp.py", line 269, in write
+    raise CommClosedError()
+distributed.comm.core.CommClosedError
+INFO:2023-02-17 11:23:59,055:distributed.scheduler:Remove worker <WorkerState 'tcp://127.0.0.1:64788', name: 9, status: closing, memory: 0, processing: 2>
+INFO:2023-02-17 11:23:59,055:distributed.core:Removing comms to tcp://127.0.0.1:64788
+INFO:2023-02-17 11:23:59,056:distributed.scheduler:Lost all workers
+INFO:2023-02-17 11:23:59,707:distributed.scheduler:Scheduler closing...
+INFO:2023-02-17 11:23:59,707:distributed.scheduler:Scheduler closing all comms
