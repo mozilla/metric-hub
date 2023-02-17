@@ -9,8 +9,8 @@ enrollment_query = """
 SELECT 
   client_id,
   branch,
-  ping_submission_date AS enrollment_date, 
-  num_enrollment_events
+  MIN(ping_submission_date) AS enrollment_date, 
+  MAX(num_enrollment_events) AS num_enrollment_events
 FROM (
     SELECT 
     ping.client_id
@@ -47,6 +47,7 @@ FROM (
   ON enroll.client_id = ping.client_id AND enroll.enrollment_date <= ping.submission_date
   QUALIFY rank_in_subsession = 1 AND rank_of_session = 3
 )
+GROUP BY client_id, branch
 """
 
 ## Data Sources
