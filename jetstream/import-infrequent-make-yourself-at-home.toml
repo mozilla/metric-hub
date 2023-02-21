@@ -50,10 +50,10 @@ data_source = "clients_daily"
 
 
 [segments.data_sources.clients_daily]
-from_expression = """
+from_expression = """(
   SELECT client_id, locale, submission_date
   FROM `mozdata.telemetry.clients_daily`
   WHERE submission_date >= '2022-11-21' AND submission_date <= '2023-01-27'
-"""
+)"""
 window_start = 0
 window_end = 0
