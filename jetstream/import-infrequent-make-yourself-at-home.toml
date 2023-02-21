@@ -1,0 +1,59 @@
+[experiment]
+
+segments = ["en", "de", "fr", "zhCN", "ru", "esES", "pl", "ptBR", "it", "ja", "other"]
+
+[segments]
+
+[segments.en]
+select_expression = "LOGICAL_OR(locale in ('en-US', 'en-GB', 'en-CA'))"
+data_source = "clients_daily"
+
+[segments.de]
+select_expression = "LOGICAL_OR(locale = 'de')"
+data_source = "clients_daily"
+
+[segments.fr]
+select_expression = "LOGICAL_OR(locale = 'fr')"
+data_source = "clients_daily"
+
+[segments.zhCN]
+select_expression = "LOGICAL_OR(locale = 'zh-CN')"
+data_source = "clients_daily"
+
+[segments.ru]
+select_expression = "LOGICAL_OR(locale = 'ru')"
+data_source = "clients_daily"
+
+[segments.esES]
+select_expression = "LOGICAL_OR(locale = 'es-ES')"
+data_source = "clients_daily"
+
+[segments.pl]
+select_expression = "LOGICAL_OR(locale = 'pl')"
+data_source = "clients_daily"
+
+[segments.ptBR]
+select_expression = "LOGICAL_OR(locale = 'pt-BR')"
+data_source = "clients_daily"
+
+[segments.it]
+select_expression = "LOGICAL_OR(locale = 'it')"
+data_source = "clients_daily"
+
+[segments.ja]
+select_expression = "LOGICAL_OR(locale = 'ja')"
+data_source = "clients_daily"
+
+[segments.other]
+select_expression = "LOGICAL_AND(locale NOT IN ('en-US', 'en-GB', 'en-CA', 'de', 'fr', 'zh-CN', 'ru', 'es-ES', 'pl', 'pt-BR', 'it', 'ja'))"
+data_source = "clients_daily"
+
+
+[segments.data_sources.clients_daily]
+from_expression = """
+  SELECT client_id, locale, submission_date
+  FROM `mozdata.telemetry.clients_daily`
+  WHERE submission_date >= '2022-11-21' AND submission_date <= '2023-01-27'
+"""
+window_start = 0
+window_end = 0
