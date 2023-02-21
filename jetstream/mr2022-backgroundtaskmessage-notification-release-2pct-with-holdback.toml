@@ -176,7 +176,7 @@ description = "Browser Launched Events"
 # Even though some enrollment telemetry can be quite delayed, the click
 # telemetry should not be delayed, and therefore calculating sums and rates
 # daily will help understand if the experiment is incorrectly configured.
-daily = ["notification_clicks"]
+daily = ["notification_clicks", "active_hours", "search_count", "days_of_use", "qualified_cumulative_days_of_use"]
 weekly = ["notification_clicks"]
 overall = ["notification_clicks"]
 
