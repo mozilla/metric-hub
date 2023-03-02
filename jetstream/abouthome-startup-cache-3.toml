@@ -94,6 +94,7 @@ overall = [
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
     'gc_slice_during_idle', 'gc_slice_during_idle_content'
+    'abouthome_cache_shutdownwrite', 'abouthome_cache_construction', 'topsites_first_paint', 'subsession_count'
 ]
 
 weekly = [
@@ -438,6 +439,45 @@ daily = [
         [metrics.gc_slice_during_idle_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
+
+## Cache metrics
+[metrics.abouthome_cache_shutdownwrite]
+select_expression = "COALESCE(AVG(CAST(payload.processes.parent.scalars.browser_startup_abouthome_cache_shutdownwrite AS int)),-1)"
+data_source = "main"
+
+[metrics.abouthome_cache_shutdownwrite.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.abouthome_cache_shutdownwrite.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+[metrics.subsession_count]
+select_expression = "COALESCE(COUNT(DISTINCT payload.info.profile_subsession_counter))"
+data_source = "main"
+
+[metrics.subsession_count.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.abouthome_cache_construction]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.fx_abouthome_cache_construction")}}'
+data_source = "main"
+
+[metrics.abouthome_cache_construction.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.abouthome_cache_construction.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.topsites_first_paint]
+select_expression = "AVG(payload.processes.parent.scalars.timestamps_about_home_topsites_first_paint)"
+data_source = "main"
+
+[metrics.topsites_first_paint.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.topsites_first_paint.statistics.deciles]
+pre_treatments = ["remove_nulls"]
 
 
 ## Crashes
