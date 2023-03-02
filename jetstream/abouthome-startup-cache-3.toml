@@ -475,6 +475,7 @@ data_source = "main"
 
 [metrics.topsites_first_paint.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
+drop_highest = 0
 
 [metrics.topsites_first_paint.statistics.deciles]
 pre_treatments = ["remove_nulls"]
