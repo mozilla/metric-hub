@@ -94,6 +94,7 @@ overall = [
     'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
     'gc_ms', 'gc_ms_content',
     'gc_slice_during_idle', 'gc_slice_during_idle_content'
+    'gc_slice_during_idle', 'gc_slice_during_idle_content',
     'abouthome_cache_shutdownwrite', 'abouthome_cache_construction', 'topsites_first_paint', 'subsession_count'
 ]
 
