@@ -1,0 +1,19 @@
+[experiment]
+enrollment_query = """
+SELECT
+    e.client_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch')
+        AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN '2023-02-23' AND '2023-03-02'
+    AND e.event_string_value = 'pdfjs-feature-callout'
+    AND sample_id < 10
+GROUP BY e.client_id, branch
+"""
