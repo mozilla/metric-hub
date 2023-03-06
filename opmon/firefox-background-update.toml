@@ -1,0 +1,160 @@
+# Monitoring of Firefox background update process.
+
+[project]
+
+name = "Firefox Background Update"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2022-01-01"
+# We want continuous monitoring of this data:
+# end_date =
+skip_default_metrics = true
+
+metrics = [
+    "client_volume",
+    "ping_volume",
+    "success_rate",
+    "exception_rate",
+    # It turns out that the success rate is ~1.0 and the exception rate ~0.0, so
+    # the exception volume is more useful.
+    "exception_volume",
+    "crash_volume",
+    # TODO: "exit_state_rate",
+]
+
+[project.population]
+
+data_source = "background_update"
+monitor_entire_population = true
+dimensions = ["normalized_channel", "windows_version"]
+
+[dimensions.windows_version]
+data_source = "background_update"
+select_expression = "windows_version_info"
+friendly_name = "Windows Version"
+description = "Windows version, like 'Windows 11', 'Windows 10', etc.  See https://github.com/mozilla/bigquery-etl/blob/generated-sql/sql/mozfun/norm/windows_version_info/udf.sql."
+
+[dimensions.normalized_channel]
+data_source = "background_update"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Release channel, like 'release', 'beta', 'nightly', 'esr', 'devedition'."
+
+[data_sources]
+
+[data_sources.background_update]
+from_expression = """
+    ( SELECT * FROM (
+        SELECT
+            DATE(submission_timestamp) AS submission_date,
+            -- We don't care about builds and versions at this point.
+            NULL AS build_id,
+            client_info.client_id AS client_id,
+            metrics.uuid.background_update_client_id AS legacy_client_id,
+            mozfun.norm.windows_version_info(
+              "Windows_NT",
+              CONCAT(SPLIT(normalized_os_version, ".")[SAFE_OFFSET(0)], ".", SPLIT(normalized_os_version, ".")[SAFE_OFFSET(1)]),
+              COALESCE(client_info.windows_build_number, 0)
+              -- SAFE_CAST(SPLIT(normalized_os_version, ".")[SAFE_OFFSET(2)] AS INT64)
+              ) AS windows_version_info,
+            normalized_channel AS normalized_channel,
+
+            -- It's more convenient to always have these defined, and always as integers (0 or 1).
+            CAST(COALESCE(metrics.boolean.background_update_exit_code_success, FALSE) AS INT64) AS exit_code_success,
+            CAST(COALESCE(metrics.boolean.background_update_exit_code_exception, FALSE) AS INT64) AS exit_code_exception,
+        FROM
+            mozdata.firefox_desktop_background_update.background_update
+    )
+        WHERE
+            -- Some clients are badly configured.
+            windows_version_info IS NOT NULL
+            -- Ancient versions of Windows are not relevant.
+            AND windows_version_info NOT IN ('Windows 95', 'Windows 98', 'Windows NT 4.0', 'Windows 2000', 'Windows XP', 'Windows Vista')
+    )
+"""
+submission_date_column = "submission_date"
+build_id_column = "build_id"
+client_id_column = "legacy_client_id"
+
+[data_sources.background_update_crashes]
+from_expression = """
+    ( SELECT * FROM (
+        SELECT
+            DATE(submission_timestamp) AS submission_date,
+            -- We don't care about builds and versions at this point.
+            NULL AS build_id,
+            -- This must match the client ID of the `background_update` data source!
+            client_id,
+            mozfun.norm.windows_version_info(
+              "Windows_NT",
+              environment.system.os.version,
+              SAFE_CAST(environment.system.os.windows_build_number AS INT64)
+              ) AS windows_version_info,
+            normalized_channel AS normalized_channel,
+        FROM
+            mozdata.telemetry.crash
+        WHERE
+            payload.metadata.background_task_name = 'backgroundupdate'
+    )
+        WHERE
+            -- Some clients are badly configured.
+            windows_version_info IS NOT NULL
+            -- Ancient versions of Windows are not relevant.
+            AND windows_version_info NOT IN ('Windows 95', 'Windows 98', 'Windows NT 4.0', 'Windows 2000', 'Windows XP', 'Windows Vista')
+    )
+"""
+submission_date_column = "submission_date"
+build_id_column = "build_id"
+client_id_column = "client_id"
+
+[metrics]
+
+[metrics.ping_volume]
+data_source = "background_update"
+select_expression = "COUNT(*)"
+type = "scalar"
+
+[metrics.ping_volume.statistics]
+sum = {}
+# TODO: one week and one month smoothed?
+
+[metrics.client_volume]
+data_source = "background_update"
+select_expression = "COUNT(DISTINCT legacy_client_id)"
+type = "scalar"
+
+[metrics.client_volume.statistics]
+sum = {}
+# TODO: one week and one month smoothed?
+
+[metrics.success_rate]
+data_source = "background_update"
+select_expression = "AVG(exit_code_success)"
+type = "scalar"
+
+[metrics.success_rate.statistics]
+mean = {}
+
+[metrics.exception_rate]
+data_source = "background_update"
+select_expression = "AVG(exit_code_exception)"
+type = "scalar"
+
+[metrics.exception_rate.statistics]
+mean = {}
+
+[metrics.exception_volume]
+data_source = "background_update"
+select_expression = "SUM(exit_code_exception)"
+type = "scalar"
+
+[metrics.exception_volume.statistics]
+sum = {}
+
+[metrics.crash_volume]
+data_source = "background_update_crashes"
+select_expression = "COUNT(*)"
+type = "scalar"
+
+[metrics.crash_volume.statistics]
+sum = {}
