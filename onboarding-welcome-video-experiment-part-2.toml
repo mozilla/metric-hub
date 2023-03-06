@@ -1,0 +1,5 @@
+
+[metrics]
+weekly = ['is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
+
+overall = ['is_pinned', 'imported_bookmarks', 'imported_logins', 'imported_history']
