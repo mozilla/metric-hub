@@ -1,0 +1,73 @@
+# Monitoring of Firefox uninstall telemetry.
+
+[project]
+
+name = "Firefox Uninstalls"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2020-01-01"
+# We want continuous monitoring of this data:
+# end_date =
+skip_default_metrics = true
+
+metrics = [
+    "client_volume",
+]
+
+[project.population]
+
+data_source = "firefox_uninstalls"
+monitor_entire_population = true
+dimensions = ["normalized_channel", "windows_version"]
+
+[dimensions.windows_version]
+data_source = "firefox_uninstalls"
+select_expression = "windows_version_info"
+friendly_name = "Windows Version"
+description = "Windows version, like 'Windows 11', 'Windows 10', etc.  See https://github.com/mozilla/bigquery-etl/blob/generated-sql/sql/mozfun/norm/windows_version_info/udf.sql."
+
+[dimensions.normalized_channel]
+data_source = "firefox_uninstalls"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Release channel, like 'release', 'beta', 'nightly', 'esr', 'devedition'."
+
+[data_sources]
+
+[data_sources.firefox_uninstalls]
+from_expression = """
+    ( SELECT * FROM (
+        SELECT 
+            DATE(submission_timestamp) AS submission_date,
+            substr(application.build_id, 0, 10) AS build_id,
+            client_id,
+            mozfun.norm.windows_version_info(
+              environment.system.os.name,
+              environment.system.os.version,
+              CAST(environment.system.os.windows_build_number AS INT64)) AS windows_version_info,
+            normalized_channel
+        FROM mozdata.telemetry.uninstall
+    )
+        WHERE
+            -- Some clients are badly configured.
+            windows_version_info IS NOT NULL
+            -- Ancient versions of Windows are not relevant.
+            AND windows_version_info NOT IN ('Windows 95', 'Windows 98', 'Windows NT 4.0', 'Windows 2000', 'Windows XP', 'Windows Vista')
+    )
+"""
+submission_date_column = "submission_date"
+build_id_column = "build_id"
+client_id_column = "client_id"
+
+[metrics]
+
+[metrics.client_volume]
+data_source = "firefox_uninstalls"
+# This counts at most one uninstall per client per day.  We sometimes
+# witness single client IDs corresponding to multiple uninstalls (on
+# the same day, even!), but it should be very rare.
+select_expression = "COUNT(DISTINCT client_id)"
+type = "scalar"
+
+[metrics.client_volume.statistics]
+sum = {}
