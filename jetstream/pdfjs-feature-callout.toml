@@ -17,3 +17,90 @@ WHERE
     AND sample_id < 10
 GROUP BY e.client_id, branch
 """
+
+[metrics]
+
+weekly = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening",
+    "pdf_opening_legacy"
+]
+
+overall = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening",
+    "pdf_opening_legacy"
+]
+
+[metrics.pdf_engagement]
+select_expression = """(
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "freetext")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "ink")) > 0, FALSE)) AND 
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "print")) > 0, FALSE) OR 
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "save")) > 0, FALSE))
+)"""
+data_source = "metrics"
+[metrics.pdf_engagement.statistics.binomial]
+
+[metrics.pdf_freetext]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "freetext")) > 0, FALSE)
+)"""
+data_source = "metrics"
+[metrics.pdf_freetext.statistics.binomial]
+
+[metrics.pdf_ink]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "ink")) > 0, FALSE)
+)"""
+data_source = "metrics"
+[metrics.pdf_ink.statistics.binomial]
+
+[metrics.pdf_print]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "print")) > 0, FALSE)
+)"""
+data_source = "metrics"
+[metrics.pdf_print.statistics.binomial]
+
+[metrics.pdf_save]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "save")) > 0, FALSE)
+)"""
+data_source = "metrics"
+[metrics.pdf_save.statistics.binomial]
+
+[metrics.pdf_opening]
+select_expression = """(
+    COALESCE(SUM(metrics.counter.pdfjs_used) > 0, FALSE)
+)"""
+data_source = "metrics"
+[metrics.pdf_opening.statistics.binomial]
+
+[metrics.pdf_opening_legacy]
+select_expression = """(
+    COALESCE(SUM(scalar_content_pdf_viewer_used) > 0, FALSE)
+)"""
+data_source = "main_summary"
+[metrics.pdf_opening_legacy.statistics.binomial]
+
+
+[data_sources]
+[data_sources.metrics]
+friendly_name = "metrics"
+from_expression = """(
+    SELECT 
+      p.*,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "none"
