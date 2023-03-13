@@ -1084,6 +1084,12 @@ name = "fxa_signed_in"
 friendly_name = "FxA Sign-in Rate"
 description = 'Did the client sign in to Firefox Desktop'
 
+[metrics.retained]
+select_expression = "COALESCE(SUM(pings_aggregated_by_this_row), 0) > 0"
+data_source = "clients_daily"
+friendly_name = "Retained"
+description = "Records whether a client submitted any pings (i.e. used Firefox)."
+
 [dimensions]
 
 [dimensions.os]
