@@ -81,3 +81,5 @@ pre_treatments = ["remove_nulls"]
 [metrics.imported_history.statistics.binomial]
 [metrics.imported_history_count.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
+
+[metrics.fxa_signed_in.statistics.binomial]
