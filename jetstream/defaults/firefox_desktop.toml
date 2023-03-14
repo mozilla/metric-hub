@@ -45,12 +45,6 @@ drop_highest = 0
 [metrics.organic_search_count.statistics.bootstrap_mean]
 [metrics.organic_search_count.statistics.deciles]
 
-[metrics.retained]
-select_expression = "COALESCE(SUM(pings_aggregated_by_this_row), 0) > 0"
-data_source = "clients_daily"
-friendly_name = "Retained"
-description = "Records whether a client submitted any pings (i.e. used Firefox)."
-
 [metrics.retained.statistics.binomial]
 
 [metrics.uri_count.statistics.bootstrap_mean]

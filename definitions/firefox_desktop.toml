@@ -1077,6 +1077,18 @@ category = "Device Migration"
 owner = "nflorez@mozilla.com"
 deprecated = false
 
+[metrics.fxa_signed_in]
+data_source = "clients_daily"
+select_expression = "CAST(COALESCE(SUM(CASE WHEN fxa_configured IS TRUE THEN 1 ELSE 0 END),0) > 0 AS INT)"
+name = "fxa_signed_in"
+friendly_name = "FxA Sign-in Rate"
+description = 'Did the client sign in to Firefox Desktop'
+
+[metrics.retained]
+select_expression = "COALESCE(SUM(pings_aggregated_by_this_row), 0) > 0"
+data_source = "clients_daily"
+friendly_name = "Retained"
+description = "Records whether a client submitted any pings (i.e. used Firefox)."
 
 [dimensions]
 
