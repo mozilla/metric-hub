@@ -7,7 +7,6 @@ description = """
 """
 
 [metrics.is_default_browser.statistics.binomial]
-[metrics.is_default_pdf_handler.statistics.binomial]
 [metrics.is_pinned.statistics.binomial]
 
 [metrics.imported_bookmarks.statistics.binomial]
