@@ -75,7 +75,7 @@ owner = "xluo-all@mozilla.com"
 [metrics.search_count_imputed]
 friendly_name = "SAP search count (legacy to glean)"
 description = "Imputed SAP for converting historical search counts from legacy to glean"
-select_expression = "{{agg_sum('search_count') * 0.45}}"
+select_expression = "SUM(IF(submission_date <= '2023-01-01', 'search_count'* 0.45,'search_count'))"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar" 
@@ -196,3 +196,4 @@ from_expression = "mozdata.search.mobile_search_clients_engines_sources_daily"
 experiments_column_type = "simple"
 client_id_column = "client_id"
 submission_date_column = "submission_date"
+
