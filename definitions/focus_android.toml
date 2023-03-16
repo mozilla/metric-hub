@@ -72,6 +72,14 @@ category = "search"
 type = "scalar" 
 owner = "xluo-all@mozilla.com"
 
+[metrics.search_count_imputed]
+friendly_name = "SAP search count (legacy to glean)"
+description = "Imputed SAP for converting historical search counts from legacy to glean"
+select_expression = "{{agg_sum('search_count') * 0.45}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar" 
+owner = "xluo-all@mozilla.com"
 
 [metrics.tagged_search_count]
 data_source = "mobile_search_clients_engines_sources_daily"
