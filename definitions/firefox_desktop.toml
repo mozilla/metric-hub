@@ -237,6 +237,53 @@ description = """
 """
 
 
+[metrics.daily_active_users]
+data_source = "clients_daily"
+select_expression = """COUNTIF(
+    active_hours_sum > 0 AND
+    COALESCE(
+        scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
+        scalar_parent_browser_engagement_total_uri_count_sum,
+        0
+    ) > 0
+)"""
+type = "scalar"
+friendly_name = "DAU"
+description = """
+    The number of unique clients that we received a main ping from on each `submission_date`,
+    given that the client had >0 active hours and >0 URIs loaded.
+
+    For questions, please contact bochocki@mozilla.com or the Browser Data Science team.
+"""
+category = "KPI"
+owner = "bochocki@mozilla.com"
+deprecated = false
+
+
+[metrics.daily_active_users_28_day_moving_average]
+data_source = "clients_daily"
+select_expression = """AVG(COUNTIF(
+    active_hours_sum > 0 AND
+    COALESCE(
+        scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
+        scalar_parent_browser_engagement_total_uri_count_sum,
+        0
+    ) > 0
+)) OVER (ORDER BY submission_date ROWS BETWEEN 27 PRECEDING AND CURRENT ROW)"""
+type = "scalar"
+friendly_name = "DAU 28MA"
+description = """
+    The number of unique clients that we received a main ping from on each `submission_date`,
+    given that the client had >0 active hours and >0 URIs loaded, averaged over a 28-day
+    period that ends on the `submission_date`.
+
+    For questions, please contact bochocki@mozilla.com or the Browser Data Science team.
+"""
+category = "KPI"
+owner = "bochocki@mozilla.com"
+deprecated = false
+
+
 [metrics.disable_pocket_clicks]
 data_source = "activity_stream_events"
 select_expression = """COUNTIF(
