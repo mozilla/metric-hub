@@ -75,7 +75,7 @@ owner = "xluo-all@mozilla.com"
 [metrics.search_count_imputed]
 friendly_name = "SAP search count (legacy to glean conversion)"
 description = "Imputed SAP for converting historical search counts from legacy to glean"
-select_expression = 'ROUND(SUM(IF(submission_date < '2023-01-01', "search_count"* 0.49,"search_count")))'
+select_expression = "ROUND(SUM(IF(submission_date < '2023-01-01', 'search_count'* 0.49,'search_count'))"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar" 
