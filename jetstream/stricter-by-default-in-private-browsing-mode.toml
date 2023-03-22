@@ -2,9 +2,10 @@
 
 [experiment.exposure_signal]
 name = "opened_pbm"
+friendly_name = "Opened PBM"
+description = "The set of clients that opened PBM"
 select_expression = "COALESCE(LOGICAL_OR(dom_parentprocess_private_window_used), false)"
 data_source = "clients_daily"
-description = "The set of clients that opened PBM"
 
 
 [metrics] 
