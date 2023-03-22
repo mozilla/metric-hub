@@ -5,8 +5,8 @@ name = "opened_pbm"
 friendly_name = "Opened PBM"
 description = "The set of clients that opened PBM"
 select_expression = "COALESCE(dom_parentprocess_private_window_used, false)"
-data_source = "clients_daily"
-window_end = 7
+data_source = "clients_daily_v6"
+window_end = "analysis_window_end"
 
 
 [metrics] 
@@ -54,3 +54,9 @@ from_expression = """(
 experiments_column_type = "native"
 friendly_name = "Events"
 description = "Events Ping"
+
+[data_sources.clients_daily_v6]
+from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6"
+friendly_name = "Clients Daily"
+description = "Clients Daily"
+
