@@ -24,9 +24,13 @@ select_expression = """(
 )"""
 data_source = "events"
 
+[metrics.etp_disablement.statistics.bootstrap_mean]
+
 [metrics.uri_reloads]
 select_expression = 'COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_reload_count), 0)'
 data_source = 'main'
+
+[metrics.uri_reloads.statistics.bootstrap_mean]
 
 
 [data_sources]
