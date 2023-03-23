@@ -1,0 +1,69 @@
+[experiment]
+
+[experiment.exposure_signal]
+name = "opened_pbm"
+friendly_name = "Opened PBM"
+description = "The set of clients that opened PBM"
+select_expression = "COALESCE(dom_parentprocess_private_window_used, false)"
+data_source = "clients_daily_v6"
+window_end = "analysis_window_end"
+
+
+[metrics] 
+
+weekly = ['etp_disablement', 'uri_reloads']
+overall = ['etp_disablement', 'uri_reloads']
+
+[metrics.etp_disablement]
+select_expression = """(
+    COALESCE(COUNTIF(
+        event_category = 'security.ui.protectionspopup' AND 
+        event_method = 'click' AND 
+        event_object = 'etp_toggle_off'        
+    ), 0)
+)"""
+data_source = "events"
+
+[metrics.etp_disablement.statistics.bootstrap_mean]
+
+[metrics.uri_reloads]
+select_expression = 'COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_reload_count), 0)'
+data_source = 'main'
+
+[metrics.uri_reloads.statistics.bootstrap_mean]
+
+
+[data_sources]
+
+[data_sources.main]
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4 ds
+    WHERE `mozfun.map.get_key`(
+        ds.environment.experiments, 'stricter-by-default-in-private-browsing-mode'
+    ).branch IS NOT NULL
+)"""
+experiments_column_type = "native"
+friendly_name = "Main"
+description = "Main ping table"
+
+[data_sources.events]
+from_expression = """(
+    SELECT *
+    FROM `mozdata.telemetry.events` ds
+    WHERE `mozfun.map.get_key`(
+        ds.experiments, 'stricter-by-default-in-private-browsing-mode'
+    ).branch IS NOT NULL    
+)"""
+experiments_column_type = "native"
+friendly_name = "Events"
+description = "Events Ping"
+
+[data_sources.clients_daily_v6]
+from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6"
+friendly_name = "Clients Daily"
+description = "Clients Daily"
+
