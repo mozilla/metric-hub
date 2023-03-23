@@ -267,7 +267,7 @@ description = """
     The average number of unique clients with >0 active hours and >0 URIs loaded that
     we received a main ping from each day in the 28-day period ending on December 15th. 
     To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
-    `EXTRACT(YEAR FROM submission_date)`.
+    `EXTRACT(YEAR FROM submission_date)`.  
 
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
