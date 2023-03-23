@@ -239,48 +239,40 @@ description = """
 
 [metrics.daily_active_users]
 data_source = "clients_daily"
-select_expression = """COUNTIF(
-    active_hours_sum > 0 AND
-    COALESCE(
-        scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
-        scalar_parent_browser_engagement_total_uri_count_sum,
-        0
-    ) > 0
-)"""
+select_expression = "COUNTIF(active_hours_sum > 0 AND total_uri_count > 0)"
 type = "scalar"
 friendly_name = "DAU"
 description = """
-    The number of unique clients that we received a main ping from on each `submission_date`,
-    given that the client had >0 active hours and >0 URIs loaded.
+    The number of unique clients with >0 active hours and >0 URIs loaded that
+    we received a main ping from each day. To be comparable to DAU used for KPI
+    tracking, this metric needs to be aggregated by `submission_date`.  
 
-    For questions, please contact bochocki@mozilla.com or the Browser Data Science team.
+    For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 category = "KPI"
-owner = "bochocki@mozilla.com"
+owner = "bochocki@mozilla.com, firefox-kpi@mozilla.com"
 deprecated = false
 
 
-[metrics.daily_active_users_28_day_moving_average]
+[metrics.desktop_dau_kpi]
 data_source = "clients_daily"
-select_expression = """AVG(COUNTIF(
+select_expression = """COUNTIF(
     active_hours_sum > 0 AND
-    COALESCE(
-        scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
-        scalar_parent_browser_engagement_total_uri_count_sum,
-        0
-    ) > 0
-)) OVER (ORDER BY submission_date ROWS BETWEEN 27 PRECEDING AND CURRENT ROW)"""
+    total_uri_count > 0 AND
+    FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15'
+    ) / 28"""
 type = "scalar"
-friendly_name = "DAU 28MA"
+friendly_name = "Desktop DAU KPI"
 description = """
-    The number of unique clients that we received a main ping from on each `submission_date`,
-    given that the client had >0 active hours and >0 URIs loaded, averaged over a 28-day
-    period that ends on the `submission_date`.
+    The average number of unique clients with >0 active hours and >0 URIs loaded that
+    we received a main ping from each day in the 28-day period ending on December 15th. 
+    To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
+    `EXTRACT(YEAR FROM submission_date)`.
 
-    For questions, please contact bochocki@mozilla.com or the Browser Data Science team.
+    For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 category = "KPI"
-owner = "bochocki@mozilla.com"
+owner = "bochocki@mozilla.com, firefox-kpi@mozilla.com"
 deprecated = false
 
 
