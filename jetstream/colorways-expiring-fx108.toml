@@ -1,6 +1,6 @@
 [metrics]
 weekly = ["fxview_opened", "have_colorways"]
-overall = ["fxview_opened", "have_colorways]
+overall = ["fxview_opened", "have_colorways"]
 
 [metrics.fxview_opened]
 data_source = "events"
