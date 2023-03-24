@@ -1,0 +1,9 @@
+[metrics]
+weekly = ["fxview_opened"]
+overall = ["fxview_opened"]
+
+[metrics.fxview_opened]
+data_source = "events"
+select_expression = "CAST(SUM(CASE WHEN event_category = 'firefoxview' AND event_method = 'entered' THEN 1 ELSE 0 END) > 0 AS INT)"
+
+[metrics.fxview_opened.statistics.binomial]
