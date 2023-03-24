@@ -11,6 +11,6 @@ select_expression = "CAST(SUM(CASE WHEN event_category = 'firefoxview' AND event
 
 [metrics.have_colorways]
 data_source = "main"
-select_expression = "CAST(COALESCE(LOGICAL_OR(environment.addons.theme.id LIKE "%colorway%mozilla.org"), FALSE) AS INT)"
+select_expression = "CAST(COALESCE(LOGICAL_OR(environment.addons.theme.id LIKE '%colorway%mozilla.org'), FALSE) AS INT)"
 
 [metrics.have_colorways.statistics.binomial]
