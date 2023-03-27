@@ -245,7 +245,9 @@ friendly_name = "DAU"
 description = """
     The number of unique clients with >0 active hours and >0 URIs loaded that
     we received a main ping from each day. To be comparable to DAU used for KPI
-    tracking, this metric needs to be aggregated by `submission_date`.  
+    tracking, this metric needs to be aggregated by `submission_date`. If the
+    metric is NOT aggregated by `submission_date`, the metric is similar to a 
+    "days of use" metric.
 
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
