@@ -14,3 +14,33 @@ data_source = "main"
 select_expression = "CAST(COALESCE(LOGICAL_OR(environment.addons.theme.id LIKE '%colorway%mozilla.org'), FALSE) AS INT)"
 
 [metrics.have_colorways.statistics.binomial]
+
+[data_sources]
+
+[data_sources.events]
+from_expression = """(
+    SELECT *
+    FROM `mozdata.telemetry.events` ds
+    WHERE `mozfun.map.get_key`(
+        ds.experiments, 'colorways-expiring-fx108'
+    ).branch IS NOT NULL    
+)"""
+experiments_column_type = "native"
+friendly_name = "Events"
+description = "Events Ping"
+
+
+[data_sources.main]
+from_expression = """(
+    SELECT
+        *,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4 ds
+    WHERE `mozfun.map.get_key`(
+        ds.environment.experiments, 'colorways-expiring-fx108'
+    ).branch IS NOT NULL
+)"""
+experiments_column_type = "native"
+friendly_name = "Main"
+description = "Main ping table"
