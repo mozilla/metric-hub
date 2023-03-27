@@ -1,0 +1,16 @@
+[metrics]
+weekly = ["fxview_opened", "have_colorways"]
+overall = ["fxview_opened", "have_colorways"]
+
+[metrics.fxview_opened]
+data_source = "events"
+select_expression = "CAST(SUM(CASE WHEN event_category = 'firefoxview' AND event_method = 'entered' THEN 1 ELSE 0 END) > 0 AS INT)"
+
+[metrics.fxview_opened.statistics.binomial]
+
+
+[metrics.have_colorways]
+data_source = "main"
+select_expression = "CAST(COALESCE(LOGICAL_OR(environment.addons.theme.id LIKE '%colorway%mozilla.org'), FALSE) AS INT)"
+
+[metrics.have_colorways.statistics.binomial]
