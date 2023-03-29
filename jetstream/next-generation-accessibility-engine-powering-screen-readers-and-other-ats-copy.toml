@@ -1,0 +1,44 @@
+[experiment] 
+
+enrollment_query = """
+  SELECT 
+    e.client_id
+    ,e.branch
+    ,e.num_enrollment_events
+    ,MIN(p.submission_date) AS enrollment_date
+  FROM (
+    SELECT
+      e.client_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+    FROM `moz-fx-data-shared-prod.telemetry.events` e
+    WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date BETWEEN '2023-03-16' AND '2023-03-23'
+      AND e.event_string_value = 'next-generation-accessibility-engine-powering-screen-readers-and-other-ats-copy'
+    GROUP BY e.client_id, branch
+  ) e 
+  INNER JOIN (
+    SELECT
+      client_id,
+      `mozfun.map.get_key`(
+        ds.environment.experiments, 'next-generation-accessibility-engine-powering-screen-readers-and-other-ats-copy'
+      ).branch AS branch,
+      DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod`.telemetry_stable.main_v4 ds
+    WHERE `mozfun.map.get_key`(
+        ds.environment.experiments, 'next-generation-accessibility-engine-powering-screen-readers-and-other-ats-copy'
+    ).branch IS NOT NULL
+    AND DATE(ds.submission_timestamp) BETWEEN '2023-03-16' AND '2023-03-23'
+    AND mozfun.map.get_key(
+      mozfun.hist.extract(payload.histograms.a11y_instantiated_flag).values, 1
+    ) > 0 
+  ) p 
+  ON e.client_id = p.client_id 
+    AND p.submission_date > e.enrollment_date
+    AND e.branch = p.branch
+  GROUP BY client_id, branch, e.num_enrollment_events
+"""
+enrollment_period = 7
