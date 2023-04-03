@@ -18,6 +18,7 @@ enrollment_query = """
       AND e.event_method = 'enroll'
       AND e.submission_date BETWEEN '2023-03-16' AND '2023-03-23'
       AND e.event_string_value = 'next-generation-accessibility-engine-powering-screen-readers-and-other-ats-copy'
+      AND e.sample_id < 50
     GROUP BY e.client_id, branch
   ) e 
   INNER JOIN (
