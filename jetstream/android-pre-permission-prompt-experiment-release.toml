@@ -3,7 +3,7 @@
 overall = ["notification_allowed"]
 
 [metrics.notification_allowed]
-select_expression = "COALESCE(metrics.boolean.notifications_allowed,false)"
+select_expression = "COALESCE(metrics.boolean.metrics_notifications_allowed,false)"
 data_source = "metrics"
 
 [metrics.notification_allowed.statistics.binomial]
