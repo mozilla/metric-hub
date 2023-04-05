@@ -1,0 +1,9 @@
+[metrics]
+
+overall = ["notification_allowed"]
+
+[metrics.notification_allowed]
+select_expression = "COALESCE(metrics.boolean.notifications_allowed,false)"
+data_source = "metrics"
+
+[metrics.notification_allowed.statistics.binomial]
