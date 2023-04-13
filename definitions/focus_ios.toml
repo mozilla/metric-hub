@@ -73,6 +73,17 @@ category = "search"
 type = "scalar"
 owner = "xluo-all@mozilla.com"
 
+# To get more context about how the conversion factors were derived, see
+# https://mozilla-hub.atlassian.net/browse/RS-650
+[metrics.search_count_imputed]
+friendly_name = "SAP search count (legacy to glean conversion)"
+description = "Imputed SAP for converting historical search counts from legacy to glean"
+select_expression = "ROUND(SUM(IF((submission_date >= '2023-01-01') AND (browser_version_info.major_version < 111), search_count - search_count * 0.4, search_count)))"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar" 
+owner = "xluo-all@mozilla.com"
+
 
 [metrics.tagged_search_count]
 friendly_name = "Tagged SAP searches"
