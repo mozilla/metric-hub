@@ -73,6 +73,8 @@ category = "search"
 type = "scalar"
 owner = "xluo-all@mozilla.com"
 
+# To get more context about how the conversion factors were derived, see
+# https://mozilla-hub.atlassian.net/browse/RS-650
 [metrics.search_count_imputed]
 friendly_name = "SAP search count (legacy to glean conversion)"
 description = "Imputed SAP for converting historical search counts from legacy to glean"
