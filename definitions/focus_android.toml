@@ -37,6 +37,26 @@ select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
 data_source = "baseline"
 
 
+[metrics.daily_active_users]
+data_source = "baseline"
+select_expression = "COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)"
+type = "scalar"
+friendly_name = "DAU"
+description = """
+    The number of unique clients that we received a baseline ping from each day, excluding
+    pings originating from BrowserStack. To be comparable to DAU used for KPI tracking,
+    this metric needs to be aggregated by `submission_date`. If the metric is NOT
+    aggregated by `submission_date`, the metric is similar to a "days of use" metric. Note
+    that data retention on `focus_android.baseline` has [historically been only 180 days](https://bugzilla.mozilla.org/show_bug.cgi?id=1828666),
+    which is shorter than other mobile `baseline` tables.
+
+    For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+category = "KPI"
+owner = "bochocki@mozilla.com, firefox-kpi@mozilla.com"
+deprecated = false
+
+
 [metrics.ad_clicks]
 select_expression = "{{agg_sum('ad_click')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
