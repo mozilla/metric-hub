@@ -247,7 +247,8 @@ description = """
     we received a main ping from each day. To be comparable to DAU used for KPI
     tracking, this metric needs to be aggregated by `submission_date`. If the
     metric is NOT aggregated by `submission_date`, the metric is similar to a 
-    "days of use" metric.
+    "days of use" metric. For more details, refer to
+    [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
 
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
