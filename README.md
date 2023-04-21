@@ -1,5 +1,7 @@
 # metric-hub
 
+
+test
 Central hub for metric definitions that are considered the source of truth.
 For more information on how to add metric definitions please see the [docs on docs.telemetry.mozilla.org](https://docs.telemetry.mozilla.org/concepts/metric_hub.html)
 
