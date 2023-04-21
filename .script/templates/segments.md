@@ -23,42 +23,19 @@ Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/metric
 ```
 </details>
 
----
-
-{% endfor %}
-
 {% for repo, segments in segments.items() %}
-{% if repo != "metric-hub" %}
-
-## Overrides from {{ repo }}
-
-Tool-specific configurations that override the defaults.
-These segments are defined in [{{ repo }}](https://github.com/mozilla/{{ repo }}/blob/main/definitions/{{ platform }}.toml)
-
-{% for segment in segments %}
-### {{ segment.name }}
-
-{% if segment.friendly_name %}
-**{{ segment.friendly_name }}**
-{% endif %}
-
-{% if segment.description -%}
-{{ segment.description | trim }}
-{%- endif %}
-
-Data Source: [`{{ segment.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ segment.data_source.name }})
-
+{% if repo != "metric-hub" and segment.name in segments and segments[segment.name].select_expression != segment.select_expression %}
+**This segment has been overidden in {{ repo }}:**
 <details>
 <summary>Definition:</summary>
 
 ```sql
-{{ segment.select_expression | trim }}
+{{ segments[segment.name].select_expression | trim }}
 ```
 </details>
+{% endif %}
+{% endfor %}
 
 ---
 
-{% endfor %}
-
-{% endif %}
 {% endfor %}
