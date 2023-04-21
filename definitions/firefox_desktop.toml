@@ -1233,6 +1233,8 @@ description = "Search Clients Engines Sources Daily"
 
 [data_sources.clients_daily]
 from_expression = "mozdata.telemetry.clients_daily"
+submission_date_column = "submission_date"
+client_id_column = "client_id"
 friendly_name = "Clients Daily"
 description = "Clients Daily"
 
