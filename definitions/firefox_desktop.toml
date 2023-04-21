@@ -253,7 +253,7 @@ description = """
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 category = "KPI"
-owner = "bochocki@mozilla.com, firefox-kpi@mozilla.com"
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
 
@@ -275,7 +275,7 @@ description = """
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 category = "KPI"
-owner = "bochocki@mozilla.com, firefox-kpi@mozilla.com"
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
 
