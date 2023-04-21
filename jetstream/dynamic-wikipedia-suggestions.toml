@@ -1,0 +1,74 @@
+[metrics]
+
+weekly = [
+    "wikipedia_impressions",
+    "wikipedia_clicks",
+    "saw_wikipedia",
+    "clicked_wikipedia",
+]
+
+overall = [
+    "wikipedia_impressions",
+    "wikipedia_clicks",
+    "saw_wikipedia",
+    "clicked_wikipedia",
+]
+
+[metrics.wikipedia_impressions]
+# On the treatment branch, most Wikipedia imptressions will be from Dynamic Wikipedia.
+# If Merino fails to provide a Dynamic result (eg. because of network issues),
+# a user may see an offline expanded result instead.
+# On the control branch, users should only ever see expanded Wikipedia results.
+# Adding the 2 scalars together should count all Wikipedia impressions on both branches.
+select_expression = '''{{agg_sum(
+    """
+    contextual_services_quicksuggest_impression_dynamic_wikipedia_sum
+    + contextual_services_quicksuggest_impression_nonsponsored_sum
+    """
+)}}'''
+data_source = "clients_daily"
+friendly_name = "Wikipedia result impressions"
+description = "Number of Firefox Suggest Wikipedia result impressions (dynamic or expanded)"
+
+[metrics.wikipedia_clicks]
+select_expression = '''{{agg_sum(
+    """
+    contextual_services_quicksuggest_click_dynamic_wikipedia_sum
+    + contextual_services_quicksuggest_click_nonsponsored_sum
+    """
+)}}'''
+data_source = "clients_daily"
+friendly_name = "Wikipedia result clicks"
+description = "Number of Firefox Suggest Wikipedia result clicks (dynamic or expanded)"
+
+[metrics.saw_wikipedia]
+select_expression = '''{{agg_sum(
+    """
+    contextual_services_quicksuggest_impression_dynamic_wikipedia_sum
+    + contextual_services_quicksuggest_impression_nonsponsored_sum
+    """
+)}} > 0'''
+data_source = "clients_daily"
+friendly_name = "Saw a Wikipedia result"
+description = "Proportion of clients that ever saw a Firefox Suggest Wikipedia result (dynamic or expanded)"
+
+[metrics.clicked_wikipedia]
+select_expression = '''{{agg_sum(
+    """
+    contextual_services_quicksuggest_click_dynamic_wikipedia_sum
+    + contextual_services_quicksuggest_click_nonsponsored_sum
+    """
+)}} > 0'''
+data_source = "clients_daily"
+friendly_name = "Clicked a Wikipedia result"
+description = "Proportion of clients that ever clicked a Firefox Suggest Wikipedia result (dynamic or expanded)"
+
+[metrics.wikipedia_impressions.statistics.bootstrap_mean]
+[metrics.wikipedia_impressions.statistics.deciles]
+
+[metrics.wikipedia_clicks.statistics.bootstrap_mean]
+[metrics.wikipedia_clicks.statistics.deciles]
+
+[metrics.saw_wikipedia.statistics.binomial]
+
+[metrics.clicked_wikipedia.statistics.binomial]
