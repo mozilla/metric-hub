@@ -1,0 +1,127 @@
+[metrics]
+
+weekly = [
+    "urlbar_menu_dismiss_clicks",
+    "urlbar_menu_remove_history_clicks",
+    "urlbar_menu_help_clicks",
+    "urlbar_menu_clicked_dismiss",
+    "urlbar_menu_clicked_remove_history",
+    "urlbar_menu_clicked_help",
+]
+
+overall = [
+    "urlbar_menu_dismiss_clicks",
+    "urlbar_menu_remove_history_clicks",
+    "urlbar_menu_help_clicks",
+    "urlbar_menu_clicked_dismiss",
+    "urlbar_menu_clicked_remove_history",
+    "urlbar_menu_clicked_help",
+    "suggest_setting_disabled",
+]
+
+
+[metrics.urlbar_menu_dismiss_clicks]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'dismiss', 1, 0))"
+data_source = "urlbar_glean_events"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "Suggestion dismissals"
+description = "Number of clicks on 'Dismiss' in the result menu"
+
+[metrics.urlbar_menu_remove_history_clicks]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'history_delete', 1, 0))"
+data_source = "urlbar_glean_events"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "History result removals"
+description = "Number of clicks on 'Remove from History' in the result menu"
+
+[metrics.urlbar_menu_help_clicks]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'help', 1, 0))"
+data_source = "urlbar_glean_events"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "Help clicks"
+description = "Number of clicks on 'Help' in the result menu"
+
+[metrics.urlbar_menu_clicked_dismiss]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'dismiss', 1, 0)) > 0"
+data_source = "urlbar_glean_events"
+statistics = { binomial = {} }
+friendly_name = "Clicked to dismiss suggestion"
+description = "Proportion of clients that ever clicked on 'Dismiss' in the result menu"
+
+[metrics.urlbar_menu_clicked_remove_history]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'history_delete', 1, 0)) > 0"
+data_source = "urlbar_glean_events"
+statistics = { binomial = {} }
+friendly_name = "Clicked to remove History result"
+description = "Proportion of clients that ever clicked on 'Remove from History' in the result menu"
+
+[metrics.urlbar_menu_clicked_help]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'engagement_type') = 'help', 1, 0)) > 0"
+data_source = "urlbar_glean_events"
+statistics = { binomial = {} }
+friendly_name = "Clicked on Help"
+description = "Proportion of clients that ever clicked on 'Help' in the result menu"
+
+[metrics.suggest_setting_disabled]
+select_expression = """(
+    LOGICAL_OR(nonsponsored - nonsponsored_initial = -1)
+    OR LOGICAL_OR(sponsored - sponsored_initial = -1)
+    OR LOGICAL_OR(online - online_initial = -1)
+)"""
+data_source = "suggest_settings"
+statistics = { binomial = {} }
+friendly_name = "Disabled Suggest"
+description = "Proportion of clients that disabled any of the Suggest settings"
+
+
+
+[data_sources.urlbar_glean_events]
+from_expr = """(
+    SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        ping_info.experiments AS experiments,
+        date(submission_timestamp) AS submission_date,
+        event.extra AS event_extra
+    FROM mozdata.firefox_desktop.events AS e
+    CROSS JOIN UNNEST(e.events) AS event
+    WHERE
+        event.category = 'urlbar'
+        and event.name = 'engagement'
+)"""
+experiments_column_type = "native"
+
+
+[data_sources.suggest_settings]
+from_expr = """(
+    WITH s AS (
+        SELECT
+            client_id,
+            submission_date,
+            experiments,
+            IF(user_pref_browser_urlbar_suggest_quicksuggest_nonsponsored = 'true', TRUE, FALSE) AS nonsponsored,
+            IF(user_pref_browser_urlbar_suggest_quicksuggest_sponsored = 'true', TRUE, FALSE) AS sponsored,
+            IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE) AS online
+        FROM mozdata.telemetry.clients_daily
+    )
+    SELECT
+        client_id,
+        submission_date,
+        experiments,
+        nonsponsored,
+        sponsored,
+        online,
+        FIRST_VALUE(nonsponsored) OVER (PARTITION BY client_id ORDER BY submission_date ASC) AS nonsponsored_initial,
+        FIRST_VALUE(sponsored) OVER (PARTITION BY client_id ORDER BY submission_date ASC) AS sponsored_initial,
+        FIRST_VALUE(online) OVER (PARTITION BY client_id ORDER BY submission_date ASC) AS online_initial
+    FROM s
+)"""
+experiments_column_type = "native"
+
+
+[segments.suggest_users]
+select_expression = """(
+    LOGICAL_OR(IF(user_pref_browser_urlbar_suggest_quicksuggest_nonsponsored = 'true', TRUE, FALSE))
+    OR LOGICAL_OR(IF(user_pref_browser_urlbar_suggest_quicksuggest_sponsored = 'true', TRUE, FALSE))
+    OR LOGICAL_OR(IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE))
+)"""
+data_source = "clients_last_seen"
