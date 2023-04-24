@@ -1,0 +1,10 @@
+[metrics]
+
+overall = ['dns_trr_lookup_time']
+weekly = ['dns_trr_lookup_time']
+
+[metrics.dns_trr_lookup_time]
+data_source = 'main'
+select_expression = 'COALESCE(AVG(`mozfun`.hist.mean(`mozfun`.hist.extract(value))),0)'
+
+[metrics.dns_trr_lookup_time.statistics.binomial]
