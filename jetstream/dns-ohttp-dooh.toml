@@ -46,8 +46,8 @@ log_space = true
 [metrics.dns_trr_lookup_time3]
 # treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
 select_expression = '''COALESCE(
-    {{agg_histogram_mean("mozfun.map.get_keypayload.processes.content.histograms.perf_first_contentful_paint_ms, 'mozilla.cloudflare-dns.com')")}} + 
-    {{agg_histogram_mean("mozfun.map.get_keypayload.processes.content.histograms.perf_first_contentful_paint_ms, 'dooh.cloudflare-dns.com')")}}
+    {{agg_histogram_mean("mozfun.map.get_key(payload.processes.content.histograms.perf_first_contentful_paint_ms, 'mozilla.cloudflare-dns.com')")}} + 
+    {{agg_histogram_mean("mozfun.map.get_key(payload.processes.content.histograms.perf_first_contentful_paint_ms, 'dooh.cloudflare-dns.com')")}}
     ,0)
 '''
 data_source = 'main'
@@ -72,7 +72,7 @@ log_space = true
 # this metric looks only at the mozilla subdomain 
 # and thus should be completely null in the treatment branch
 select_expression = '''COALESCE(
-    {{agg_histogram_mean("mozfun.map.get_keypayload.processes.content.histograms.perf_first_contentful_paint_ms, 'mozilla.cloudflare-dns.com')")}}
+    {{agg_histogram_mean("mozfun.map.get_key(payload.processes.content.histograms.perf_first_contentful_paint_ms, 'mozilla.cloudflare-dns.com')")}}
     ,0)
 '''
 data_source = 'main'
@@ -86,7 +86,7 @@ pre_treatments = ["remove_nulls"]
 # this metric looks only at the dooh subdomain
 # and thus should be completely null in the control branch
 select_expression = '''COALESCE(
-    {{agg_histogram_mean("mozfun.map.get_keypayload.processes.content.histograms.perf_first_contentful_paint_ms, 'dooh.cloudflare-dns.com')")}}
+    {{agg_histogram_mean("mozfun.map.get_key(payload.processes.content.histograms.perf_first_contentful_paint_ms, 'dooh.cloudflare-dns.com')")}}
     ,0)
 '''
 data_source = 'main'
