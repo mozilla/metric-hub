@@ -23,42 +23,18 @@ Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-
 ```
 </details>
 
----
-
-{% endfor %}
-
 {% for repo, metrics in metrics.items() %}
-{% if repo != "metric-hub" %}
-
-## Overrides from {{ repo }}
-
-Tool-specific configurations that override the defaults.
-These metrics are defined in [{{ repo }}](https://github.com/mozilla/{{ repo }}/blob/main/definitions/{{ platform }}.toml)
-
-{% for metric in metrics %}
-### {{ metric.name }}
-
-{% if metric.friendly_name %}
-**{{ metric.friendly_name }}**
-{% endif %}
-
-{% if metric.description -%}
-{{ metric.description | trim }}
-{%- endif %}
-
-Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ metric.data_source.name }})
-
+{% if repo != "metric-hub" and metric.name in metrics and metrics[metric.name].select_expression != metric.select_expression %}
+**This metric has been overidden in {{ repo }}:**
 <details>
 <summary>Definition:</summary>
 
 ```sql
-{{ metric.select_expression | trim }}
+{{ metrics[metric.name].select_expression | trim }}
 ```
 </details>
-
----
-
+{% endif %}
 {% endfor %}
 
-{% endif %}
+---
 {% endfor %}
