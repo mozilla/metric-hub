@@ -1,7 +1,9 @@
 [metrics]
 
 overall = [
-     'dns_trr_lookup_time3'
+     'dns_trr_lookup_time3',
+     'dns_trr_lookup_time3_moz',
+     'dns_trr_lookup_time3_dooh'
 ]
 
 [metrics.dns_trr_lookup_time3]
