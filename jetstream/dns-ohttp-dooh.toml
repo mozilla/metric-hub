@@ -1,47 +1,8 @@
 [metrics]
 
 overall = [
-    #'perf_page_load_time_ms',
-#     #'perf_first_contentful_paint_ms',
      'dns_trr_lookup_time3'
-#     #'TRR_SKIP_REASON_TRR_FIRST2'
 ]
-
-# [metrics.perf_page_load_time_ms]
-# select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.perf_page_load_time_ms")}}'
-# data_source = 'main'
-
-# [metrics.perf_page_load_time_ms.statistics.bootstrap_mean]
-# pre_treatments = ["remove_nulls"]
-
-# [metrics.perf_page_load_time_ms.statistics.deciles]
-# pre_treatments = ["remove_nulls"]
-
-# [metrics.perf_page_load_time_ms.statistics.kernel_density_estimate]
-# pre_treatments = ["remove_nulls"]
-# log_space = true
-
-# [metrics.perf_page_load_time_ms.statistics.empirical_cdf]
-# pre_treatments = ["remove_nulls"]
-# log_space = true
-
-# [metrics.perf_first_contentful_paint_ms]
-# select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.perf_first_contentful_paint_ms")}}'
-# data_source = 'main'
-
-# [metrics.perf_first_contentful_paint_ms.statistics.bootstrap_mean]
-# pre_treatments = ["remove_nulls"]
-
-# [metrics.perf_first_contentful_paint_ms.statistics.deciles]
-# pre_treatments = ["remove_nulls"]
-
-# [metrics.perf_first_contentful_paint_ms.statistics.kernel_density_estimate]
-# pre_treatments = ["remove_nulls"]
-# log_space = true
-
-# [metrics.perf_first_contentful_paint_ms.statistics.empirical_cdf]
-# pre_treatments = ["remove_nulls"]
-# log_space = true
 
 [metrics.dns_trr_lookup_time3]
 # treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
