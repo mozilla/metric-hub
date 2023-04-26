@@ -3,8 +3,8 @@
 overall = [
     'perf_page_load_time_ms',
     'perf_first_contentful_paint_ms',
-    'dns_trr_lookup_time3',
-    'TRR_SKIP_REASON_TRR_FIRST2'
+    'dns_trr_lookup_time3'
+    #'TRR_SKIP_REASON_TRR_FIRST2'
 ]
 
 [metrics.perf_page_load_time_ms]
