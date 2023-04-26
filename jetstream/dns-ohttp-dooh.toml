@@ -1,0 +1,58 @@
+[metrics]
+
+overall = [
+     'dns_trr_lookup_time3',
+     'dns_trr_lookup_time3_moz',
+     'dns_trr_lookup_time3_dooh'
+]
+
+[metrics.dns_trr_lookup_time3]
+# treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
+select_expression = '''COALESCE(
+    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'mozilla.cloudflare-dns.com')")}} + 
+    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'dooh.cloudflare-dns.com')")}}
+    ,0)
+'''
+data_source = 'main'
+
+[metrics.dns_trr_lookup_time3.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.dns_trr_lookup_time3.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+[metrics.dns_trr_lookup_time3.statistics.kernel_density_estimate]
+pre_treatments = ["remove_nulls"]
+log_space = true
+
+[metrics.dns_trr_lookup_time3.statistics.empirical_cdf]
+pre_treatments = ["remove_nulls"]
+log_space = true
+
+[metrics.dns_trr_lookup_time3_moz]
+# double-check metric
+# treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
+# this metric looks only at the mozilla subdomain 
+# and thus should be completely null in the treatment branch
+select_expression = '''COALESCE(
+    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'mozilla.cloudflare-dns.com')")}}
+    ,0)
+'''
+data_source = 'main'
+
+[metrics.dns_trr_lookup_time3_moz.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[metrics.dns_trr_lookup_time3_dooh]
+# double-check metric
+# treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
+# this metric looks only at the dooh subdomain
+# and thus should be completely null in the control branch
+select_expression = '''COALESCE(
+    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'dooh.cloudflare-dns.com')")}}
+    ,0)
+'''
+data_source = 'main'
+
+[metrics.dns_trr_lookup_time3_dooh.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
