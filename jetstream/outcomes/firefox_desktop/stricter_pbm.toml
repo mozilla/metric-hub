@@ -12,6 +12,8 @@ select_expression = """(
     ), 0)
 )"""
 data_source = "events"
+name = "etp_disablement"
+friendly_name = "ETP Disablement"
 
 [metrics.etp_disablement.statistics.bootstrap_mean]
 
@@ -19,6 +21,8 @@ data_source = "events"
 [metrics.uri_reloads]
 select_expression = 'COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_reload_count), 0)'
 data_source = 'main'
+name = "uri_reloads"
+friendly_name = "URI Reloads"
 
 [metrics.uri_reloads.statistics.bootstrap_mean]
 
@@ -26,5 +30,7 @@ data_source = 'main'
 [metrics.share_of_uri_count_in_pbm]
 select_expression = "sum(total_uri_count_private_mode)/(sum(total_uri_count_private_mode)+sum(total_uri_count_normal_mode))"
 data_source = "clients_daily"
+name = "share_of_uri_count_in_pbm"
+friendly_name = "Proportion of URIs coming from PBM"
 
 [metrics.share_of_uri_count_in_pbm.statistics.bootstrap_mean]
