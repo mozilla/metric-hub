@@ -6,8 +6,6 @@ contains ETP Disablement, URI reloads, and
 Share of URIs opened in PBM
 """
 
-[metrics] 
-
 weekly = ['etp_disablement', 'uri_reloads', 'share_of_uri_count_in_pbm']
 overall = ['etp_disablement', 'uri_reloads', 'share_of_uri_count_in_pbm']
 
