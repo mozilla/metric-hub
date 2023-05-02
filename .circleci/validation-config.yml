@@ -133,12 +133,12 @@ jobs:
           kubectl delete pod -l app=$pod_identifier
 
           commit_message=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
-          if [[ "$commit_message" == *"[ci rerun-skip]"* ] || [ "$commit_message" == *"[ci rerun_skip]"* ]]; then
+          if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
             echo "Skip rerun for files:"
             echo $changed_files
 
             # start a new instance
-            kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun_skip $(echo $params)
+            kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $(echo $params)
           else
             echo "Rerun changed files: "
             echo $changed_files
