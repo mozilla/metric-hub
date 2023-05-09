@@ -18,16 +18,16 @@ WHERE
 GROUP BY e.client_id, branch
 """
 
-[experiment.exposure_signal]
-description = "filters to clients that opened a PDF at all during the observation period"
-name = "opened_pdf"
-friendly_name = "Opened PDF"
-select_expression = """(
-    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
-)"""
-data_source = "metrics"
-window_start = 0
-window_end = 7
+#[experiment.exposure_signal]
+#description = "filters to clients that opened a PDF at all during the observation period"
+#name = "opened_pdf"
+#friendly_name = "Opened PDF"
+#select_expression = """(
+#    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
+#)"""
+#data_source = "metrics"
+#window_start = 0
+#window_end = 7
 
 
 [metrics]
