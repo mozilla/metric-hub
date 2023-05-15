@@ -1,7 +1,9 @@
 
 
 [experiment]
-
+start_date = "2023-05-10"
+enrollment_period = 14
+end_date = "2023-06-09"
 [metrics]
 
 weekly = [
