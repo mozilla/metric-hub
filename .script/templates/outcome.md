@@ -40,7 +40,7 @@ Statistics: {% for statistic in statistics[metric.name] %}`{{ statistic }}`{% if
 
 {% for data_source in data_sources %}
 
-### [`{{ data_source.name }}` {%- if data_source.friendly_name -%}- {{ data_source.friendly_name }}{%- endif -%}](#{{ data_source.name }})
+### [`{{ data_source.name }}` {%- if data_source.friendly_name -%} - {{ data_source.friendly_name }}{%- endif -%}](#{{ data_source.name }})
 
 {% if data_source.description %}
 {{ data_source.description | trim }}
