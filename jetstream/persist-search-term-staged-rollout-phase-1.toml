@@ -13,7 +13,9 @@ weekly = [
   "persisted_search_w_ads",
   "urlbar_persist_navigation_search_enter",
   "urlbar_persist_navigation_search_formhistory",
-  "urlbar_persist_navigation_search_suggestion"
+  "urlbar_persist_navigation_search_suggestion",
+  "urlbar_persistedsearchterms_view_count",
+  "urlbar_persistedsearchterms_revert_by_popup_count"
 ]
 
 overall = [
@@ -24,7 +26,9 @@ overall = [
   "urlbar_persist_navigation_search_enter",
   "urlbar_persist_navigation_search_formhistory",
   "urlbar_persist_navigation_search_suggestion",
-  "showSearchTerms_user_pref"
+  "showSearchTerms_user_pref",
+  "urlbar_persistedsearchterms_view_count",
+  "urlbar_persistedsearchterms_revert_by_popup_count"
 ]
 
 [metrics.search_content_urlbar_persisted_tagged_search]
@@ -62,6 +66,14 @@ select_expression = "COALESCE(SUM(urlbar_navigation_search_suggestion),0)"
 data_source = "showSearchTerms_pref"
 select_expression = "COALESCE(SUM(showSearchTerms_user_pref),0)"
 
+[metrics.urlbar_persistedsearchterms_view_count]
+data_source = "view_popup_count"
+select_expression = "COALESCE(SUM(urlbar_persistedsearchterms_view_count),0)"
+
+[metrics.urlbar_persistedsearchterms_revert_by_popup_count]
+data_source = "view_popup_count"
+select_expression = "COALESCE(SUM(urlbar_persistedsearchterms_revert_by_popup_count),0)"
+
 [metrics.search_content_urlbar_persisted_tagged_search.statistics.bootstrap_mean]
 [metrics.search_content_urlbar_persisted_tagged_follow_on_search.statistics.bootstrap_mean]
 [metrics.persisted_adclicks.statistics.bootstrap_mean]
@@ -70,6 +82,8 @@ select_expression = "COALESCE(SUM(showSearchTerms_user_pref),0)"
 [metrics.urlbar_persist_navigation_search_formhistory.statistics.bootstrap_mean]
 [metrics.urlbar_persist_navigation_search_suggestion.statistics.bootstrap_mean]
 [metrics.showSearchTerms_user_pref.statistics.bootstrap_mean]
+[metrics.urlbar_persistedsearchterms_view_count.statistics.bootstrap_mean]
+[metrics.urlbar_persistedsearchterms_revert_by_popup_count.statistics.bootstrap_mean]
 
 
 [data_sources]
@@ -78,7 +92,6 @@ select_expression = "COALESCE(SUM(showSearchTerms_user_pref),0)"
 from_expression = """(
   SELECT client_id,
     DATE(submission_timestamp) AS submission_date,
-    environment.experiments,
     CASE WHEN e.key LIKE 'google:tagged:%' THEN e.value ELSE 0 END AS google_tagged_searches,
     CASE WHEN e.key LIKE 'bing:tagged:%' THEN e.value ELSE 0 END AS bing_tagged_searches,
     CASE WHEN e.key LIKE 'duckduckgo:tagged:%' THEN e.value ELSE 0 END AS ddg_tagged_searches, 
@@ -121,3 +134,18 @@ from_expression = """(
 experiments_column_type = "native"
 friendly_name = "Show search term pref"
 description = "Show search term pref counts from main ping table"
+
+[data_sources.view_popup_count]
+from_expression = """(
+  SELECT 
+    client_id,
+    DATE(submission_timestamp) AS submission_date,
+    payload.processes.parent.scalars.urlbar_persistedsearchterms_view_count as urlbar_persistedsearchterms_view_count,
+    payload.processes.parent.scalars.urlbar_persistedsearchterms_revert_by_popup_count as urlbar_persistedsearchterms_revert_by_popup_count
+  FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
+  WHERE DATE(submission_timestamp) >= '2023-05-09'
+)"""
+experiments_column_type = "native"
+friendly_name = "Show view and popup count"
+description = "Show view and popup count from main ping table"
+
