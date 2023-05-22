@@ -211,7 +211,7 @@ owner = "xluo-all@mozilla.com"
 
 [data_sources.active_users_aggregates]
 from_expression = """(
-    SELECT *
+    SELECT *, NULL as client_id
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name = 'Focus iOS'
 )"""

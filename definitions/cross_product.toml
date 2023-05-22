@@ -44,7 +44,7 @@ deprecated = false
 
 [data_sources.mobile_active_users_aggregates]
 from_expression = """(
-    SELECT *
+    SELECT *, NULL as client_id
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name IN ('Fenix',  'Firefox iOS', 'Focus Android', 'Focus iOS')
 )"""
