@@ -42,7 +42,7 @@ deprecated = false
 
 [data_sources]
 
-[data_sources.mobile_active_users_aggregates]
+[data_sources.mobile_active_users_aggregates_v1]
 from_expression = """(
     SELECT *, NULL as client_id
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
