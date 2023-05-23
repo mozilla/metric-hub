@@ -125,8 +125,7 @@ from_expression = """(
   SELECT 
     client_id,
     DATE(submission_timestamp) AS submission_date,
-    CASE WHEN e.value = 'true' THEN 1 ELSE 0 END AS showSearchTerms_user_pref,
-    environment.experiments
+    CASE WHEN e.value = 'true' THEN 1 ELSE 0 END AS showSearchTerms_user_pref
   FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
     CROSS JOIN UNNEST(environment.settings.user_prefs) e
   WHERE DATE(submission_timestamp) >= '2023-05-09' AND e.key LIKE '%showSearchTerms%'
