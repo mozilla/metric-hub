@@ -237,13 +237,14 @@ owner = "vsabino@mozilla.com"
 
 [data_sources.active_users_aggregates]
 from_expression = """(
-    SELECT *, NULL as client_id
+    SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name = 'Firefox iOS'
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on Firefox iOS"
 submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
 
 [data_sources.baseline]
 from_expression = """(
