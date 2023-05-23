@@ -92,6 +92,7 @@ select_expression = "COALESCE(SUM(urlbar_persistedsearchterms_revert_by_popup_co
 from_expression = """(
   SELECT client_id,
     DATE(submission_timestamp) AS submission_date,
+    environment.experiments,
     CASE WHEN e.key LIKE 'google:tagged:%' THEN e.value ELSE 0 END AS google_tagged_searches,
     CASE WHEN e.key LIKE 'bing:tagged:%' THEN e.value ELSE 0 END AS bing_tagged_searches,
     CASE WHEN e.key LIKE 'duckduckgo:tagged:%' THEN e.value ELSE 0 END AS ddg_tagged_searches, 
@@ -125,7 +126,8 @@ from_expression = """(
   SELECT 
     client_id,
     DATE(submission_timestamp) AS submission_date,
-    CASE WHEN e.value = 'true' THEN 1 ELSE 0 END AS showSearchTerms_user_pref
+    CASE WHEN e.value = 'true' THEN 1 ELSE 0 END AS showSearchTerms_user_pref,
+    environment.experiments
   FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
     CROSS JOIN UNNEST(environment.settings.user_prefs) e
   WHERE DATE(submission_timestamp) >= '2023-05-09' AND e.key LIKE '%showSearchTerms%'
@@ -140,7 +142,8 @@ from_expression = """(
     client_id,
     DATE(submission_timestamp) AS submission_date,
     payload.processes.parent.scalars.urlbar_persistedsearchterms_view_count as urlbar_persistedsearchterms_view_count,
-    payload.processes.parent.scalars.urlbar_persistedsearchterms_revert_by_popup_count as urlbar_persistedsearchterms_revert_by_popup_count
+    payload.processes.parent.scalars.urlbar_persistedsearchterms_revert_by_popup_count as urlbar_persistedsearchterms_revert_by_popup_count,
+    environment.experiments
   FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
   WHERE DATE(submission_timestamp) >= '2023-05-09'
 )"""
