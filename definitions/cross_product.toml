@@ -19,7 +19,7 @@ description = """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
-[metrics.mobile_dau_kpi]
+[metrics.mobile_dau_kpi_v1]
 data_source = "mobile_active_users_aggregates"
 select_expression = "SUM(IF(FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15', dau, 0)) / 28"
 type = "scalar"
