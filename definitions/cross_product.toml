@@ -1,6 +1,6 @@
 [metrics]
 
-[metrics.mobile_daily_active_users]
+[metrics.mobile_daily_active_users_v1]
 data_source = "mobile_active_users_aggregates"
 select_expression = "SUM(dau)"
 type = "scalar"
