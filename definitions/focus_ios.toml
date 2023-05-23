@@ -55,7 +55,7 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.daily_active_users_v2]
-data_source = "active_users_aggregates"
+data_source = "active_users_aggregates_v1"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Focus iOS DAU"

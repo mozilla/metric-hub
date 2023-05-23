@@ -1,7 +1,7 @@
 [metrics]
 
 [metrics.mobile_daily_active_users_v1]
-data_source = "mobile_active_users_aggregates"
+data_source = "mobile_active_users_aggregates_v1"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Mobile DAU"
@@ -20,7 +20,7 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
 [metrics.mobile_dau_kpi_v1]
-data_source = "mobile_active_users_aggregates"
+data_source = "mobile_active_users_aggregates_v1"
 select_expression = "SUM(IF(FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15', dau, 0)) / 28"
 type = "scalar"
 friendly_name = "Mobile DAU KPI"
