@@ -73,7 +73,7 @@ description = """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
-[metrics.client_level_daily_active_users]
+[metrics.client_level_daily_active_users_v1]
 data_source = "baseline_v2"
 select_expression = "COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)"
 type = "scalar"
@@ -209,15 +209,16 @@ owner = "xluo-all@mozilla.com"
 
 [data_sources]
 
-[data_sources.active_users_aggregates]
+[data_sources.active_users_aggregates_v1]
 from_expression = """(
-    SELECT *, NULL as client_id
+    SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name = 'Focus iOS'
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on Focus iOS"
 submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
 
 [data_sources.baseline]
 from_expression = """(

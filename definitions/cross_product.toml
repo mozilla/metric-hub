@@ -44,10 +44,11 @@ deprecated = false
 
 [data_sources.mobile_active_users_aggregates_v1]
 from_expression = """(
-    SELECT *, NULL as client_id
+    SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name IN ('Fenix',  'Firefox iOS', 'Focus Android', 'Focus iOS')
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on the Mobile product group"
 submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU

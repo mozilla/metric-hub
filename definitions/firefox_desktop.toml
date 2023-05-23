@@ -256,7 +256,7 @@ category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
-[metrics.client_level_daily_active_users]
+[metrics.client_level_daily_active_users_v1]
 data_source = "clients_daily"
 select_expression = "COUNTIF(active_hours_sum > 0 AND total_uri_count > 0)"
 type = "scalar"
@@ -1205,15 +1205,16 @@ description = "Normalized Country Code"
 
 [data_sources]
 
-[data_sources.active_users_aggregates]
+[data_sources.active_users_aggregates_v1]
 from_expression = """(
-    SELECT *, NULL as client_id
+    SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name = 'Firefox Desktop'
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on Firefox Desktop"
 submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
 
 [data_sources.main]
 from_expression = """(
