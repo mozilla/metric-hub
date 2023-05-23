@@ -20,10 +20,8 @@ daily = [
 
 [metrics.dns_trr_lookup_time3]
 # treatment branch _should_ only be `dooh.cloudflare-dns.com` and control branch _should_ only be `mozilla.cloudflare-dns.com`
-select_expression = '''COALESCE(
-    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'mozilla.cloudflare-dns.com')")}} + 
-    {{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'dooh.cloudflare-dns.com')")}}
-    ,0)
+select_expression = '''COALESCE({{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'mozilla.cloudflare-dns.com')")}},0) 
+    + COALESCE({{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.dns_trr_lookup_time3, 'dooh.cloudflare-dns.com')")}}, 0)
 '''
 data_source = 'main'
 
