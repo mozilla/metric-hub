@@ -3,9 +3,9 @@
 [experiment]
 start_date = "2023-05-10"
 enrollment_period = 14
-end_date = "2023-07-10"
-[metrics]
+end_date = "2023-06-10"
 
+[metrics]
 weekly = [
   "search_content_urlbar_persisted_tagged_search",
   "search_content_urlbar_persisted_tagged_follow_on_search",
@@ -15,7 +15,11 @@ weekly = [
   "urlbar_persist_navigation_search_formhistory",
   "urlbar_persist_navigation_search_suggestion",
   "urlbar_persistedsearchterms_view_count",
-  "urlbar_persistedsearchterms_revert_by_popup_count"
+  "urlbar_persistedsearchterms_revert_by_popup_count",
+  "persisted_search_terms_refined",
+  "persisted_search_terms_restarted",
+  "persisted_search_terms"
+  
 ]
 
 overall = [
@@ -28,62 +32,86 @@ overall = [
   "urlbar_persist_navigation_search_suggestion",
   "showSearchTerms_user_pref",
   "urlbar_persistedsearchterms_view_count",
-  "urlbar_persistedsearchterms_revert_by_popup_count"
+  "urlbar_persistedsearchterms_revert_by_popup_count",
+  "persisted_search_terms_refined",
+  "persisted_search_terms_restarted",
+  "persisted_search_terms"
 ]
 
 [metrics.search_content_urlbar_persisted_tagged_search]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(google_tagged_searches) + SUM(bing_tagged_searches) + SUM(ddg_tagged_searches),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.search_content_urlbar_persisted_tagged_follow_on_search]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(google_tagged_follow_on_searches) + SUM(bing_tagged_follow_on_searches) + SUM(ddg_tagged_follow_on_searches),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 
 [metrics.persisted_adclicks]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(google_ad_clicks) + SUM(bing_ad_clicks) + SUM(ddg_ad_clicks),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 
 [metrics.persisted_search_w_ads]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(google_search_w_ad) + SUM(bing_search_w_ad) + SUM(ddg_search_w_ad),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.urlbar_persist_navigation_search_enter]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(urlbar_navigation_search_enter),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 
 [metrics.urlbar_persist_navigation_search_formhistory]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(urlbar_navigation_search_formhistory),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.urlbar_persist_navigation_search_suggestion]
 data_source = "main_search_counts"
 select_expression = "COALESCE(SUM(urlbar_navigation_search_suggestion),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.showSearchTerms_user_pref]
 data_source = "showSearchTerms_pref"
 select_expression = "COALESCE(SUM(showSearchTerms_user_pref),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.urlbar_persistedsearchterms_view_count]
 data_source = "view_popup_count"
 select_expression = "COALESCE(SUM(urlbar_persistedsearchterms_view_count),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.urlbar_persistedsearchterms_revert_by_popup_count]
 data_source = "view_popup_count"
 select_expression = "COALESCE(SUM(urlbar_persistedsearchterms_revert_by_popup_count),0)"
+statistics = { deciles = {}, bootstrap_mean = {} }
 
-[metrics.search_content_urlbar_persisted_tagged_search.statistics.bootstrap_mean]
-[metrics.search_content_urlbar_persisted_tagged_follow_on_search.statistics.bootstrap_mean]
-[metrics.persisted_adclicks.statistics.bootstrap_mean]
-[metrics.persisted_search_w_ads.statistics.bootstrap_mean]
-[metrics.urlbar_persist_navigation_search_enter.statistics.bootstrap_mean]
-[metrics.urlbar_persist_navigation_search_formhistory.statistics.bootstrap_mean]
-[metrics.urlbar_persist_navigation_search_suggestion.statistics.bootstrap_mean]
-[metrics.showSearchTerms_user_pref.statistics.bootstrap_mean]
-[metrics.urlbar_persistedsearchterms_view_count.statistics.bootstrap_mean]
-[metrics.urlbar_persistedsearchterms_revert_by_popup_count.statistics.bootstrap_mean]
+[metrics.persisted_search_terms_refined]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'interaction') = 'persisted_search_terms_refined', 1, 0))"
+data_source = "url_engagement"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "persisted_search_terms_refined"
+description = "Number of persisted_search_terms_refined"
+
+[metrics.persisted_search_terms_restarted]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'interaction') = 'persisted_search_terms_restarted', 1, 0))"
+data_source = "url_engagement"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "persisted_search_terms_restarted"
+description = "Number of persisted_search_terms_restarted"
+
+[metrics.persisted_search_terms]
+select_expression = "SUM(IF(mozfun.map.get_key(event_extra, 'interaction') = 'persisted_search_terms', 1, 0))"
+data_source = "url_engagement"
+statistics = { deciles = {}, bootstrap_mean = {} }
+friendly_name = "persisted_search_terms"
+description = "Number of persisted_search_terms"
+
 
 
 [data_sources]
@@ -141,13 +169,35 @@ from_expression = """(
   SELECT 
     client_id,
     DATE(submission_timestamp) AS submission_date,
+    environment.experiments,
     payload.processes.parent.scalars.urlbar_persistedsearchterms_view_count as urlbar_persistedsearchterms_view_count,
-    payload.processes.parent.scalars.urlbar_persistedsearchterms_revert_by_popup_count as urlbar_persistedsearchterms_revert_by_popup_count,
-    environment.experiments
+    payload.processes.parent.scalars.urlbar_persistedsearchterms_revert_by_popup_count as urlbar_persistedsearchterms_revert_by_popup_count
   FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4` 
   WHERE DATE(submission_timestamp) >= '2023-05-09'
 )"""
 experiments_column_type = "native"
 friendly_name = "Show view and popup count"
 description = "Show view and popup count from main ping table"
+
+
+
+[data_sources.url_engagement]
+from_expression = """(
+  SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        ping_info.experiments AS experiments,
+        date(submission_timestamp) AS submission_date,
+        event.extra AS event_extra
+    FROM mozdata.firefox_desktop.events AS e
+    CROSS JOIN UNNEST(e.events) AS event
+    WHERE
+        event.category = 'urlbar'
+        and (event.name = 'engagement' or event.name = 'abandonment' or event.name = 'impression')
+    AND DATE(submission_timestamp) >= '2023-05-09'
+)"""
+experiments_column_type = "native"
+
+
+
+
 
