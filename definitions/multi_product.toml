@@ -16,6 +16,7 @@ description = """
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
+products = ['Fenix', 'Firefox iOS', 'Focus Android', 'Focus iOS']
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
@@ -35,6 +36,7 @@ description = """
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
+products = ['Fenix', 'Firefox iOS', 'Focus Android', 'Focus iOS']
 category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
@@ -50,5 +52,6 @@ from_expression = """(
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on the Mobile product group"
+products = ['Fenix', 'Firefox iOS', 'Focus Android', 'Focus iOS']
 submission_date_column = "submission_date"
 client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
