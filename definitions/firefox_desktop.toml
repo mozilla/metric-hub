@@ -256,9 +256,28 @@ category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
+[metrics.daily_active_users_v2]
+data_source = "active_users_aggregates_v1"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Firefox Desktop DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/desktop_query.sql)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Desktop.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+    
+    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
 [metrics.client_level_daily_active_users_v1]
 data_source = "clients_daily"
-select_expression = "COUNTIF(active_hours_sum > 0 AND total_uri_count > 0)"
+select_expression = "COUNTIF(active_hours_sum > 0 AND total_uri_count > 0 AND isp_name <> 'BrowserStack')"
 type = "scalar"
 friendly_name = "Firefox Desktop Client-Level DAU"
 description = """
@@ -282,6 +301,23 @@ select_expression = """COUNTIF(
     total_uri_count > 0 AND
     FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15'
     ) / 28"""
+type = "scalar"
+friendly_name = "Desktop DAU KPI"
+description = """
+    The average number of unique clients with >0 active hours and >0 URIs loaded that
+    we received a main ping from each day in the 28-day period ending on December 15th. 
+    To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
+    `EXTRACT(YEAR FROM submission_date)`.  
+
+    For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+category = "KPI"
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = true
+
+[metrics.desktop_dau_kpi_v2]
+data_source = "active_users_aggregates_v1"
+select_expression = "SUM(IF(FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15', dau, 0)) / 28"
 type = "scalar"
 friendly_name = "Firefox Desktop DAU KPI"
 description = """
