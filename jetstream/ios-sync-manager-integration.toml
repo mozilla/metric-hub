@@ -50,6 +50,7 @@ description = "Number of times that history is successfully synced on ios divide
 from_expression = """(
 SELECT 
   tabs.*
+  ,DATE(submission_timestamp) AS submission_date
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_rust_tabs_sync` tabs
 INNER JOIN (
@@ -80,6 +81,7 @@ WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 from_expression = """(
 SELECT 
   tabs.*
+  ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_bookmarks_sync` tabs
 INNER JOIN (
@@ -110,6 +112,7 @@ WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 from_expression = """(
 SELECT 
   tabs.*
+  ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_logins_sync` tabs
 INNER JOIN (
@@ -140,6 +143,7 @@ WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 from_expression = """(
 SELECT 
   tabs.*
+  ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_history_sync` tabs
 INNER JOIN (
