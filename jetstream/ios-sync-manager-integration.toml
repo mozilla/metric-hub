@@ -50,7 +50,6 @@ description = "Number of times that history is successfully synced on ios divide
 from_expression = """(
 SELECT 
   tabs.*
-  ,tabs.ping_info.experiments AS experiments
   ,DATE(submission_timestamp) AS submission_date
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_rust_tabs_sync` tabs
@@ -77,12 +76,12 @@ INNER JOIN (
 ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
 WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 )"""
+experiments_column_type = "glean"
 
 [data_sources.bookmark_table]
 from_expression = """(
 SELECT 
   tabs.*
-  ,tabs.ping_info.experiments AS experiments  
   ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_bookmarks_sync` tabs
@@ -109,12 +108,12 @@ INNER JOIN (
 ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
 WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 )"""
+experiments_column_type = "glean"
 
 [data_sources.login_table]
 from_expression = """(
 SELECT 
   tabs.*
-  ,tabs.ping_info.experiments AS experiments  
   ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_logins_sync` tabs
@@ -141,12 +140,12 @@ INNER JOIN (
 ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
 WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 )"""
+experiments_column_type = "glean"
 
 [data_sources.history_table]
 from_expression = """(
 SELECT 
   tabs.*
-  ,tabs.ping_info.experiments AS experiments  
   ,DATE(submission_timestamp) AS submission_date  
   ,enroll.client_id
 FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_history_sync` tabs
@@ -173,3 +172,4 @@ INNER JOIN (
 ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
 WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
 )"""
+experiments_column_type = "glean"
