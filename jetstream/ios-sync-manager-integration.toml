@@ -39,10 +39,10 @@ data_source = "history_table"
 friendly_name = "History sync success rate"
 description = "Number of times that history is successfully synced on ios divided by total syncs"
 
-[metric.rust_tab_sync_success.statistics.bootstrap_mean]
-[metric.bookmarks_sync_success.statistics.bootstrap_mean]
-[metric.logins_sync_success.statistics.bootstrap_mean]
-[metric.history_sync_success.statistics.bootstrap_mean]
+[metrics.rust_tab_sync_success.statistics.bootstrap_mean]
+[metrics.bookmarks_sync_success.statistics.bootstrap_mean]
+[metrics.logins_sync_success.statistics.bootstrap_mean]
+[metrics.history_sync_success.statistics.bootstrap_mean]
 
 [data_sources]
 
