@@ -1,10 +1,10 @@
 [metrics]
 
-daily = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
+daily = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
-weekly = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
+weekly = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
-overall = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
+overall = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
 [metrics.rust_tab_sync_success]
 select_expression = """COUNTIF(
