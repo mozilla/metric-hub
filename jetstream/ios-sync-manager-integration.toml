@@ -47,13 +47,121 @@ description = "Number of times that history is successfully synced on ios divide
 [data_sources]
 
 [data_sources.rust_table]
-from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_rust_tabs_sync"
+from_expression = """(
+SELECT 
+  tabs.*
+  ,enroll.client_id
+FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_rust_tabs_sync` tabs
+INNER JOIN (
+  SELECT events.client_info.client_id AS client_id,
+      mozfun.map.get_key(
+          e.extra,
+          'branch'
+      ) AS branch,
+      mozfun.map.get_key(e.extra, 'enrollment_id') AS enrollment_id,
+      DATE(MIN(events.submission_timestamp)) AS enrollment_date,
+      COUNT(events.submission_timestamp) AS num_enrollment_events
+  FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` events,
+  UNNEST(events.events) AS e
+  WHERE
+      events.client_info.client_id IS NOT NULL AND
+      DATE(events.submission_timestamp)
+      BETWEEN '2023-05-23' AND '2023-05-30'
+      AND e.category = 'nimbus_events'
+      AND mozfun.map.get_key(e.extra, 'experiment') = 'ios-sync-manager-integration'
+      AND e.name = 'enrollment'
+  GROUP BY client_id, branch, enrollment_id
+) enroll
+ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
+WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
+)"""
 
 [data_sources.bookmark_table]
-from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_bookmarks_sync"
+from_expression = """(
+SELECT 
+  tabs.*
+  ,enroll.client_id
+FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_bookmarks_sync` tabs
+INNER JOIN (
+  SELECT events.client_info.client_id AS client_id,
+      mozfun.map.get_key(
+          e.extra,
+          'branch'
+      ) AS branch,
+      mozfun.map.get_key(e.extra, 'enrollment_id') AS enrollment_id,
+      DATE(MIN(events.submission_timestamp)) AS enrollment_date,
+      COUNT(events.submission_timestamp) AS num_enrollment_events
+  FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` events,
+  UNNEST(events.events) AS e
+  WHERE
+      events.client_info.client_id IS NOT NULL AND
+      DATE(events.submission_timestamp)
+      BETWEEN '2023-05-23' AND '2023-05-30'
+      AND e.category = 'nimbus_events'
+      AND mozfun.map.get_key(e.extra, 'experiment') = 'ios-sync-manager-integration'
+      AND e.name = 'enrollment'
+  GROUP BY client_id, branch, enrollment_id
+) enroll
+ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
+WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
+)"""
 
 [data_sources.login_table]
-from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_logins_sync"
+from_expression = """(
+SELECT 
+  tabs.*
+  ,enroll.client_id
+FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_logins_sync` tabs
+INNER JOIN (
+  SELECT events.client_info.client_id AS client_id,
+      mozfun.map.get_key(
+          e.extra,
+          'branch'
+      ) AS branch,
+      mozfun.map.get_key(e.extra, 'enrollment_id') AS enrollment_id,
+      DATE(MIN(events.submission_timestamp)) AS enrollment_date,
+      COUNT(events.submission_timestamp) AS num_enrollment_events
+  FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` events,
+  UNNEST(events.events) AS e
+  WHERE
+      events.client_info.client_id IS NOT NULL AND
+      DATE(events.submission_timestamp)
+      BETWEEN '2023-05-23' AND '2023-05-30'
+      AND e.category = 'nimbus_events'
+      AND mozfun.map.get_key(e.extra, 'experiment') = 'ios-sync-manager-integration'
+      AND e.name = 'enrollment'
+  GROUP BY client_id, branch, enrollment_id
+) enroll
+ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
+WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
+)"""
 
 [data_sources.history_table]
-from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_history_sync"
+from_expression = """(
+SELECT 
+  tabs.*
+  ,enroll.client_id
+FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_history_sync` tabs
+INNER JOIN (
+  SELECT events.client_info.client_id AS client_id,
+      mozfun.map.get_key(
+          e.extra,
+          'branch'
+      ) AS branch,
+      mozfun.map.get_key(e.extra, 'enrollment_id') AS enrollment_id,
+      DATE(MIN(events.submission_timestamp)) AS enrollment_date,
+      COUNT(events.submission_timestamp) AS num_enrollment_events
+  FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` events,
+  UNNEST(events.events) AS e
+  WHERE
+      events.client_info.client_id IS NOT NULL AND
+      DATE(events.submission_timestamp)
+      BETWEEN '2023-05-23' AND '2023-05-30'
+      AND e.category = 'nimbus_events'
+      AND mozfun.map.get_key(e.extra, 'experiment') = 'ios-sync-manager-integration'
+      AND e.name = 'enrollment'
+  GROUP BY client_id, branch, enrollment_id
+) enroll
+ON mozfun.map.get_key(tabs.ping_info.experiments, 'ios-sync-manager-integration').extra.enrollment_id = enroll.enrollment_id
+WHERE DATE(tabs.submission_timestamp) >= '2023-05-23'
+)"""
