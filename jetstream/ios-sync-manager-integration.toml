@@ -47,13 +47,13 @@ description = "Number of times that history is successfully synced on ios divide
 [data_sources]
 
 [data_sources.rust_table]
-from_expression = "org_mozilla_ios_firefox.temp_rust_tabs_sync"
+from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_rust_tabs_sync"
 
 [data_sources.bookmark_table]
-from_expression = "org_mozilla_ios_firefox.temp_bookmarks_sync"
+from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_bookmarks_sync"
 
 [data_sources.login_table]
-from_expression = "org_mozilla_ios_firefox.temp_logins_sync"
+from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_logins_sync"
 
 [data_sources.history_table]
-from_expression = "org_mozilla_ios_firefox.temp_history_sync"
+from_expression = "moz-fx-data-shared-prod.org_mozilla_ios_firefox.temp_history_sync"
