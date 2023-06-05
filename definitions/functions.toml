@@ -19,3 +19,14 @@ definition = """
 """
 friendly_name = "Histogram Mean"
 description = "Computes the mean of the histogram"
+
+
+[functions.agg_hist_zero_fract]
+definition = """
+SAVE_DIVIDE(
+    SUM(mozfun.map.get_key(mozfun.hist.extract({select_expr}.values,0),
+    SUM(mozfun.map.threshold_count(mozfun.hist.extract({select_expr}.values,1)
+    )
+"""
+friendly_name = "Histogram Zero Fraction"
+description = "Computes the fraction of entries in a Histogram which are zero"
