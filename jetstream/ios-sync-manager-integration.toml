@@ -34,7 +34,7 @@ description = "Number of times that logins successfully sync on ios divided by t
 [metrics.history_sync_success]
 select_expression = """COUNTIF(
             metrics.labeled_counter.history_sync_failure_reason IS NULL 
-            OR ARRAY_LENGTH(metrics.labeled_counter.history_sync_failure_reason) = 0)/COUNT(*) AS count_total"""
+            OR ARRAY_LENGTH(metrics.labeled_counter.history_sync_failure_reason) = 0)/COUNT(*)"""
 data_source = "history_table"
 friendly_name = "History sync success rate"
 description = "Number of times that history is successfully synced on ios divided by total syncs"
