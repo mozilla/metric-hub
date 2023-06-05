@@ -1,25 +1,10 @@
 [metrics]
 
-daily = [
-	"rust_tabs_sync_success"
-	"bookmarks_sync_success"
-	"logins_sync_success"
-	"history_sync_success"
-]
+daily = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
-weekly = [
-	"rust_tabs_sync_success"
-	"bookmarks_sync_success"
-	"logins_sync_success"
-	"history_sync_success"
-]
+weekly = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
-overall = [
-	"rust_tabs_sync_success"
-	"bookmarks_sync_success"
-	"logins_sync_success"
-	"history_sync_success"
-]
+overall = ["rust_tabs_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
 [metrics.rust_tab_sync_success]
 select_expression = """COUNTIF(
@@ -62,13 +47,13 @@ description = "Number of times that history is successfully synced on ios divide
 [data_sources]
 
 [data_sources.rust_table]
-from_expression = “org_mozilla_ios_firefox.temp_rust_tabs_sync”
+from_expression = "org_mozilla_ios_firefox.temp_rust_tabs_sync"
 
 [data_sources.bookmark_table]
-from_expression = “org_mozilla_ios_firefox.temp_bookmarks_sync”
+from_expression = "org_mozilla_ios_firefox.temp_bookmarks_sync"
 
 [data_sources.login_table]
-from_expression = “org_mozilla_ios_firefox.temp_logins_sync”
+from_expression = "org_mozilla_ios_firefox.temp_logins_sync"
 
 [data_sources.history_table]
-from_expression = “org_mozilla_ios_firefox.temp_history_sync”
+from_expression = "org_mozilla_ios_firefox.temp_history_sync"
