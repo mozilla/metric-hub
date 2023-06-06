@@ -23,9 +23,9 @@ description = "Computes the mean of the histogram"
 
 [functions.agg_hist_zero_fract]
 definition = """
-SAVE_DIVIDE(
-    SUM(mozfun.map.get_key(mozfun.hist.extract({select_expr}.values,0),
-    SUM(mozfun.map.threshold_count(mozfun.hist.extract({select_expr}.values,1)
+    SAFE_DIVIDE(
+        SUM(mozfun.map.get_key(mozfun.hist.extract({select_expr}).values,0)),
+        SUM(mozfun.hist.threshold_count({select_expr},1))
     )
 """
 friendly_name = "Histogram Zero Fraction"
