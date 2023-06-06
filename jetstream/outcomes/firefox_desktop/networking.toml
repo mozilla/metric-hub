@@ -186,8 +186,8 @@ pre_treatments = ['remove_nulls']
 
 [metrics.tls_successful_cert_validation_time]
 data_source = "main"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.content.histograms.ssl_succesful_cert_validation_time_mozillapkix) IGNORE NULLS)"
-type = "histogram"
+select_expression = """{{agg_histogram_mean("payload.processes.content.histograms.ssl_initial_successful_cert_validation_time_mozillapkix)"}}"""
+type = "scalar"
 bigger_is_better = false
 
 [metrics.tls_successful_cert_validation_time.statistics.bootstrap_mean]
@@ -209,8 +209,8 @@ log_space = true
 
 [metrics.tls_failed_cert_validation_time]
 data_source = "main"
-select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.processes.content.histograms.ssl_initial_failed_cert_validation_time_mozillapkix) IGNORE NULLS)"
-type = "histogram"
+select_expression = """{{agg_histogram_mean("payload.processes.content.histograms.ssl_initial_failed_cert_validation_time_mozillapkix)"}}"""
+type = "scalar"
 bigger_is_better = false
 
 [metrics.tls_failed_cert_validation_time.statistics.bootstrap_mean]
@@ -322,7 +322,7 @@ pre_treatments = ['remove_nulls']
 
 [metrics.quic_successful_connections_no_ech]
 data_source = "main"
-select_expression = "{{agg_hist_zero_fract(mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'NONE'))}}"
+select_expression = """{{agg_hist_zero_fract("mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'NONE')")}}"""
 type = "scalar"
 
 [metrics.quic_successful_connections_no_ech.statistics.bootstrap_mean]
@@ -340,7 +340,7 @@ pre_treatments = ['remove_nulls']
 
 [metrics.quic_successful_connections_ech_grease]
 data_source = "main"
-select_expression = "{{agg_hist_zero_fract(mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'GREASE'))}}"
+select_expression = """{{agg_hist_zero_fract("mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'GREASE')")}}"""
 type = "scalar"
 
 [metrics.quic_successful_connections_ech_grease.statistics.bootstrap_mean]
@@ -358,7 +358,7 @@ pre_treatments = ['remove_nulls']
 
 [metrics.quic_successful_connections_ech_real]
 data_source = "main"
-select_expression = "{{agg_hist_zero_fract(mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'REAL'))}}"
+select_expression = """{{agg_hist_zero_fract("mozfun.map.get_key(payload.histograms.http3_ech_outcome, 'REAL')")}}"""
 type = "scalar"
 
 [metrics.quic_successful_connections_ech_real.statistics.bootstrap_mean]
