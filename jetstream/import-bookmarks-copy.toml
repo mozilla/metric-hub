@@ -13,7 +13,10 @@ WHEN DATE_DIFF(first_seen_date, last_seen_date, DAY) >= 28 \
      AND activity_segments_v1 = 'casual_user' THEN 'casual' \
 WHEN DATE_DIFF(first_seen_date, last_seen_date, DAY) >= 28 \
      AND activity_segments_v1 = 'infrequent_user' THEN 'infrequent' \
-ELSE 'other')"""
+ELSE 'other' END)"""
 data_source = 'clients_last_seen'
 window_start = 0
 window_end = 0
+
+[experiment]
+segments = ['activity_segments']
