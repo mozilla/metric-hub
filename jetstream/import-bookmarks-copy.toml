@@ -1,3 +1,6 @@
+[experiment]
+segments = ['activity_segments']
+
 [metrics]
 weekly = ['imported_bookmarks', 'imported_logins', 'imported_history', 'is_pinned']
 
