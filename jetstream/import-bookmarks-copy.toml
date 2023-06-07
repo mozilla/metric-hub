@@ -35,6 +35,12 @@ data_source = 'clients_last_seen_with_activity'
 window_start = 0
 window_end = 0
 
+[segments.other_users]
+select_expression = """COALESCE(ANY_VALUE(activity_segment_importbookmarks) = 'other', FALSE)"""
+data_source = 'clients_last_seen_with_activity'
+window_start = 0
+window_end = 0
+
 [segments.data_sources]
 
 [segments.data_sources.clients_last_seen_with_activity]
