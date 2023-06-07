@@ -146,6 +146,39 @@ description = """
 bigger_is_better = false
 
 
+[data_sources.browser_launched_to_handle_events]
+from_expression = """(
+    SELECT
+        *
+    FROM `mozdata.telemetry.events`
+    WHERE event_category = 'browser.launched_to_handle'
+)"""
+
+# These events will not be paired with an 'experiments' annotation, so don't
+# expect it -- the annotation is on the background update data, not the browsing
+# data queried here.
+experiments_column_type = "none"
+friendly_name = "browser.launched_to_handle Events"
+description = "Browser Launched To Handle Events"
+
+
+[metrics.notification_clicks]
+# Exposure events are not yet reliable: see [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).
+analysis_bases = ["enrollments"]
+data_source = "browser_launched_to_handle_events"
+select_expression = '''{{agg_any(
+    """
+    event_method = 'system_notification'
+    AND event_object = 'toast'
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{experiment_slug}:')
+    """
+)}}'''
+friendly_name = "System Notification Clicks"
+description = """
+    Counts the number of clients that launched Firefox to handle the notification corresponding to this experiment.
+"""
+
+
 [metrics.view_about_logins]
 data_source = "events"
 select_expression = '''{{agg_any(
