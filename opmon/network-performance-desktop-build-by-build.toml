@@ -1,0 +1,58 @@
+# Networking performance dashboard
+
+[project]
+
+name = "Build over build Network Performance for Desktop"
+platform = "firefox_desktop"
+xaxis = "build_id"
+start_date = "2023-01-01"
+metrics = [
+    "dns_lookup_time",
+    "http_page_tls_handshake",
+    "http_sub_tls_handshake",
+    "http_page_open_to_first_sent",
+    "time_to_response_start_ms"
+]
+skip_default_metrics = true
+
+[project.population]
+
+data_source = "main"
+channel = "beta"
+dimensions = ["os"]
+monitor_entire_population = true
+
+[metrics.dns_lookup_time]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.dns_lookup_time")}}'
+data_source = 'main'
+bigger_is_better = false
+[metrics.dns_lookup_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.http_page_tls_handshake]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.http_page_tls_handshake")}}'
+data_source = 'main'
+bigger_is_better = false
+[metrics.http_page_tls_handshake.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.http_sub_tls_handshake]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.http_sub_tls_handshake")}}'
+data_source = 'main'
+bigger_is_better = false
+[metrics.http_sub_tls_handshake.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.http_page_open_to_first_sent]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.http_page_open_to_first_sent")}}'
+data_source = 'main'
+bigger_is_better = false
+[metrics.http_page_open_to_first_sent.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.time_to_response_start_ms]
+select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.time_to_response_start_ms")}}'
+data_source = 'main'
+bigger_is_better = false
+[metrics.time_to_response_start_ms.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
