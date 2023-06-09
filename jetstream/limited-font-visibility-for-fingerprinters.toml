@@ -7,7 +7,7 @@ from_expression = """(
         DATE(submission_timestamp) AS submission_date,
         environment.experiments
     FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4`
-    WHERE mozfun.map.get_key(ds.experiments, 'limited-font-visibility-for-fingerprinters') IS NOT NULL
+    WHERE mozfun.map.get_key(environment.experiments, 'limited-font-visibility-for-fingerprinters') IS NOT NULL
 )"""
 experiments_column_type = "native"
 friendly_name = "Main"
