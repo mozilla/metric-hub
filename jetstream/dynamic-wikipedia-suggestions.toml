@@ -5,6 +5,12 @@ weekly = [
     "wikipedia_clicks",
     "saw_wikipedia",
     "clicked_wikipedia",
+    "expanded_impressions",
+    "dynamic_impressions",
+    "sponsored_impressions",
+    "expanded_clicks",
+    "dynamic_clicks",
+    "sponsored_clicks",
 ]
 
 overall = [
@@ -12,56 +18,91 @@ overall = [
     "wikipedia_clicks",
     "saw_wikipedia",
     "clicked_wikipedia",
+    "expanded_impressions",
+    "dynamic_impressions",
+    "sponsored_impressions",
+    "expanded_clicks",
+    "dynamic_clicks",
+    "sponsored_clicks",
 ]
 
 [metrics.wikipedia_impressions]
-# On the treatment branch, most Wikipedia imptressions will be from Dynamic Wikipedia.
+# On the treatment branch, most Wikipedia impressions will be from Dynamic Wikipedia.
 # If Merino fails to provide a Dynamic result (eg. because of network issues),
 # a user may see an offline expanded result instead.
 # On the control branch, users should only ever see expanded Wikipedia results.
 # Adding the 2 scalars together should count all Wikipedia impressions on both branches.
-select_expression = '''{{agg_sum(
-    """
-    contextual_services_quicksuggest_impression_dynamic_wikipedia_sum
-    + contextual_services_quicksuggest_impression_nonsponsored_sum
-    """
-)}}'''
+select_expression = '''
+    {{agg_sum("contextual_services_quicksuggest_impression_dynamic_wikipedia_sum")}}
+    + {{agg_sum("contextual_services_quicksuggest_impression_nonsponsored_sum")}}
+'''
 data_source = "clients_daily"
 friendly_name = "Wikipedia result impressions"
 description = "Number of Firefox Suggest Wikipedia result impressions (dynamic or expanded)"
 
 [metrics.wikipedia_clicks]
-select_expression = '''{{agg_sum(
-    """
-    contextual_services_quicksuggest_click_dynamic_wikipedia_sum
-    + contextual_services_quicksuggest_click_nonsponsored_sum
-    """
-)}}'''
+select_expression = '''
+    {{agg_sum("contextual_services_quicksuggest_click_dynamic_wikipedia_sum")}}
+    + {{agg_sum("contextual_services_quicksuggest_click_nonsponsored_sum")}}
+'''
 data_source = "clients_daily"
 friendly_name = "Wikipedia result clicks"
 description = "Number of Firefox Suggest Wikipedia result clicks (dynamic or expanded)"
 
 [metrics.saw_wikipedia]
-select_expression = '''{{agg_sum(
-    """
-    contextual_services_quicksuggest_impression_dynamic_wikipedia_sum
-    + contextual_services_quicksuggest_impression_nonsponsored_sum
-    """
-)}} > 0'''
+select_expression = '''
+    {{agg_sum("contextual_services_quicksuggest_impression_dynamic_wikipedia_sum")}}
+    + {{agg_sum("contextual_services_quicksuggest_impression_nonsponsored_sum")}} > 0
+'''
 data_source = "clients_daily"
 friendly_name = "Saw a Wikipedia result"
 description = "Proportion of clients that ever saw a Firefox Suggest Wikipedia result (dynamic or expanded)"
 
 [metrics.clicked_wikipedia]
-select_expression = '''{{agg_sum(
-    """
-    contextual_services_quicksuggest_click_dynamic_wikipedia_sum
-    + contextual_services_quicksuggest_click_nonsponsored_sum
-    """
-)}} > 0'''
+select_expression = '''
+    {{agg_sum("contextual_services_quicksuggest_click_dynamic_wikipedia_sum")}}
+    + {{agg_sum("contextual_services_quicksuggest_click_nonsponsored_sum")}} > 0
+'''
 data_source = "clients_daily"
 friendly_name = "Clicked a Wikipedia result"
 description = "Proportion of clients that ever clicked a Firefox Suggest Wikipedia result (dynamic or expanded)"
+
+[metrics.expanded_impressions]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_impression_nonsponsored_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Expanded Wikipedia result impressions"
+description = "Number of Firefox Suggest expanded Wikipedia result impressions"
+
+[metrics.dynamic_impressions]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_impression_dynamic_wikipedia_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Dynamic Wikipedia result impressions"
+description = "Number of Firefox Suggest dynamic Wikipedia result impressions (not available on control)"
+
+[metrics.sponsored_impressions]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_impression_sponsored_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Sponsored result impressions"
+description = "Number of Firefox Suggest sponsored result impressions"
+
+[metrics.expanded_clicks]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_click_nonsponsored_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Expanded Wikipedia result clicks"
+description = "Number of Firefox Suggest expanded Wikipedia result clicks"
+
+[metrics.dynamic_clicks]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_click_dynamic_wikipedia_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Dynamic Wikipedia result clicks"
+description = "Number of Firefox Suggest dynamic Wikipedia result clicks (not available on control)"
+
+[metrics.sponsored_clicks]
+select_expression = '{{agg_sum("contextual_services_quicksuggest_click_sponsored_sum")}}'
+data_source = "clients_daily"
+friendly_name = "Sponsored result clicks"
+description = "Number of Firefox Suggest sponsored result clicks"
+
 
 [metrics.wikipedia_impressions.statistics.bootstrap_mean]
 [metrics.wikipedia_impressions.statistics.deciles]
@@ -72,3 +113,21 @@ description = "Proportion of clients that ever clicked a Firefox Suggest Wikiped
 [metrics.saw_wikipedia.statistics.binomial]
 
 [metrics.clicked_wikipedia.statistics.binomial]
+
+[metrics.expanded_impressions.statistics.bootstrap_mean]
+[metrics.expanded_impressions.statistics.deciles]
+
+[metrics.dynamic_impressions.statistics.bootstrap_mean]
+[metrics.dynamic_impressions.statistics.deciles]
+
+[metrics.sponsored_impressions.statistics.bootstrap_mean]
+[metrics.sponsored_impressions.statistics.deciles]
+
+[metrics.expanded_clicks.statistics.bootstrap_mean]
+[metrics.expanded_clicks.statistics.deciles]
+
+[metrics.dynamic_clicks.statistics.bootstrap_mean]
+[metrics.dynamic_clicks.statistics.deciles]
+
+[metrics.sponsored_clicks.statistics.bootstrap_mean]
+[metrics.sponsored_clicks.statistics.deciles]
