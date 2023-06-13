@@ -14,7 +14,7 @@ overall = [
 select_expression = '''
   COALESCE(SUM(CASE WHEN `moz-fx-data-shared-prod.udf.monetized_search`(engine, country, distribution_id, submission_date) AND LOWER(engine) LIKE "google%" THEN search_count ELSE 0 END), 0) 
 '''
-data_source = "search_engines_clients_sources_daily"
+data_source = "mobile_search_engines_clients_sources_daily"
 friendly_name = "Monetized Google Searches"
 descriptionn = "Number of searches monetized by Google"
 
@@ -23,7 +23,7 @@ descriptionn = "Number of searches monetized by Google"
 select_expression = '''
   COALESCE(SUM(CASE WHEN (NOT `moz-fx-data-shared-prod.udf.monetized_search`(engine, country, distribution_id, submission_date)) AND LOWER(engine) LIKE "google%" THEN search_count ELSE 0 END), 0) 
 '''
-data_source = "search_engines_clients_sources_daily"
+data_source = "mobile_search_engines_clients_sources_daily"
 friendly_name = "Nonmonetized Google Searches"
 descriptionn = "Number of Google searches that are not monetized"
 
