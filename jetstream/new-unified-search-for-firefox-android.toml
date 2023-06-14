@@ -13,6 +13,7 @@ overall = [
 [metrics.monetized_google_searches]
 select_expression = '''
   COALESCE(SUM(CASE WHEN `moz-fx-data-shared-prod.udf.monetized_search`(engine, country, distribution_id, submission_date) AND LOWER(engine) LIKE "google%" THEN tagged_sap ELSE 0 END), 0) 
+
 '''
 data_source = "mobile_search_clients_engines_sources_daily"
 friendly_name = "Monetized Google Searches"
