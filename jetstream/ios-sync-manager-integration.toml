@@ -7,42 +7,46 @@ weekly = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_succes
 overall = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
 
 [metrics.rust_tab_sync_success]
-select_expression = """COUNTIF(
+select_expression = """CASE WHEN COUNT(ds.submission_date) > 0 THEN COUNTIF(
             metrics.labeled_counter.rust_tabs_sync_failure_reason IS NULL 
-            OR ARRAY_LENGTH(metrics.labeled_counter.rust_tabs_sync_failure_reason) = 0)/COUNT(*)"""
+            OR ARRAY_LENGTH(metrics.labeled_counter.rust_tabs_sync_failure_reason) = 0)/COUNT(*) ELSE NULL END"""
 data_source = "rust_table"
 friendly_name = "Rust tab sync success rate"
 description = "Number of times that rust tabs sync successfully on ios divided by total syncs"
 
 [metrics.bookmarks_sync_success]
-select_expression = """COUNTIF(
+select_expression = """CASE WHEN COUNT(ds.submission_date) > 0 THEN COUNTIF(
             metrics.labeled_counter.bookmarks_sync_failure_reason IS NULL 
-            OR ARRAY_LENGTH(metrics.labeled_counter.bookmarks_sync_failure_reason) = 0)/COUNT(*)"""
+            OR ARRAY_LENGTH(metrics.labeled_counter.bookmarks_sync_failure_reason) = 0)/COUNT(*) ELSE NULL END"""
 data_source = "bookmark_table"
 friendly_name = "Bookmarks sync success rate"
 description = "Number of times that bookmarks sync successfully on ios divided by total syncs"
 
 [metrics.logins_sync_success]
-select_expression = """COUNTIF(
+select_expression = """CASE WHEN COUNT(ds.submission_date) > 0 THEN COUNTIF(
             metrics.labeled_counter.logins_sync_failure_reason IS NULL 
             OR ARRAY_LENGTH(metrics.labeled_counter.logins_sync_failure_reason) = 0
-        )/COUNT(*)"""
+        )/COUNT(*) ELSE NULL END"""
 data_source = "login_table"
 friendly_name = "Login sync success rate"
 description = "Number of times that logins successfully sync on ios divided by total syncs"
 
 [metrics.history_sync_success]
-select_expression = """COUNTIF(
+select_expression = """CASE WHEN COUNT(ds.submission_date) > 0 THEN COUNTIF(
             metrics.labeled_counter.history_sync_failure_reason IS NULL 
-            OR ARRAY_LENGTH(metrics.labeled_counter.history_sync_failure_reason) = 0)/COUNT(*)"""
+            OR ARRAY_LENGTH(metrics.labeled_counter.history_sync_failure_reason) = 0)/COUNT(*) ELSE NULL END"""
 data_source = "history_table"
 friendly_name = "History sync success rate"
 description = "Number of times that history is successfully synced on ios divided by total syncs"
 
 [metrics.rust_tab_sync_success.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 [metrics.bookmarks_sync_success.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 [metrics.logins_sync_success.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 [metrics.history_sync_success.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 
 [data_sources]
 
