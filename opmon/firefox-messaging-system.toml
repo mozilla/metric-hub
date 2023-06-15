@@ -1,0 +1,138 @@
+# Monitoring of Firefox Desktop's Messaging System.
+
+[project]
+
+name = "Firefox Desktop Messaging System"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-05-26"
+# We want continuous monitoring of this data:
+# end_date =
+skip_default_metrics = true
+compact_visualization = true
+
+metrics = [
+  "client_volume",
+  "ping_volume",
+  "undesired_events_ping_volume",
+  "whats_new_panel_ping_volume",
+  "moments_ping_volume",
+  "infobar_ping_volume",
+  "spotlight_ping_volume",
+  "cfr_ping_volume",
+  "null_ping_volume",
+  "other_ping_volume",
+]
+
+[project.population]
+data_source = "messaging_system"
+monitor_entire_population = true
+dimensions = ["normalized_channel", "normalized_os"]
+
+[project.metric_groups.ping_volume_by_ping_type]
+friendly_name = "Ping Volume by Ping Type"
+description = """\
+  The volume of 'messaging-system' pings broken down by `messaging_system.ping_type`.\
+  Currently supported: 'undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', NULL, and 'other'.\
+  """
+metrics = [
+  "undesired_events_ping_volume",
+  "whats_new_panel_ping_volume",
+  "moments_ping_volume",
+  "infobar_ping_volume",
+  "spotlight_ping_volume",
+  "cfr_ping_volume",
+  "null_ping_volume",
+  "other_ping_volume",
+]
+
+
+[dimensions.normalized_channel]
+data_source = "messaging_system"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Release channel, like 'release', 'beta', 'nightly', 'esr', 'devedition'."
+
+[dimensions.normalized_os]
+data_source = "messaging_system"
+select_expression = "normalized_os"
+friendly_name = "Operating System"
+description = "OS like 'Windows', 'Mac', 'Linux'"
+
+[data_sources]
+
+[data_sources.messaging_system]
+from_expression = "mozdata.firefox_desktop.messaging_system"
+submission_date_column = "DATE(submission_timestamp)"
+# Not sure that this would be helpful to include
+#build_id_column = "client_info.app_build"
+client_id_column = "document_id"
+
+[metrics]
+
+[metrics.client_volume]
+friendly_name = "Client Volume"
+description = """\
+  Count of distinct messaging_system.client_id.\
+  Might undercount for pings not allowed to send client_id or if the Legacy Telemetry isn't set at the time the ping is submitted.\
+  """
+data_source = "messaging_system"
+select_expression = "COUNT(DISTINCT metrics.uuid.messaging_system_client_id)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.ping_volume]
+friendly_name = "Ping Volume"
+description = "Count of 'messaging-system' pings received."
+data_source = "messaging_system"
+select_expression = "COUNT(*)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.undesired_events_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'undesired-events')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.whats_new_panel_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'whats-new-panel')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.moments_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'moments')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.infobar_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'infobar')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.spotlight_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'spotlight')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.cfr_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'cfr')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.null_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NULL)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.other_ping_volume]
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr'))"
+type = "scalar"
+statistics.sum = {}
