@@ -1,7 +1,6 @@
 # Monitoring of Firefox Desktop's Messaging System.
 
 [project]
-
 name = "Firefox Desktop Messaging System"
 platform = "firefox_desktop"
 xaxis = "submission_date"
@@ -22,6 +21,8 @@ metrics = [
   "cfr_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
+  "unknown_keys_volume",
+  "invalid_nested_data_volume",
 ]
 
 [project.population]
@@ -46,6 +47,17 @@ metrics = [
   "other_ping_volume",
 ]
 
+[project.metric_groups.unexpected_data]
+friendly_name = "Unexpected Data"
+description = """\
+  The volume of unknown and invalid information received by Messaging System.\
+  Further information (like what the unknown/invalid information's names are) are available in the raw ping tables.\
+  The aim is to ensure this remains 0.
+  """
+metrics = [
+  "unknown_keys_volume",
+  "invalid_nested_data_volume",
+]
 
 [dimensions.normalized_channel]
 data_source = "messaging_system"
@@ -134,5 +146,17 @@ statistics.sum = {}
 [metrics.other_ping_volume]
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr'))"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.unknown_keys_volume]
+data_source = "messaging_system"
+select_expression = "SUM(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.messaging_system_unknown_keys))"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.invalid_nested_data_volume]
+data_source = "messaging_system"
+select_expression = "SUM(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.messaging_system_invalid_nested_data))"
 type = "scalar"
 statistics.sum = {}
