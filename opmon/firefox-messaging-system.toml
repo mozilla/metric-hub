@@ -9,7 +9,7 @@ start_date = "2023-05-26"
 # We want continuous monitoring of this data:
 # end_date =
 skip_default_metrics = true
-compact_visualization = true
+compact_visualization = false
 
 metrics = [
   "client_volume",
