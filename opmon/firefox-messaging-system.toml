@@ -25,6 +25,10 @@ metrics = [
   "invalid_nested_data_volume",
 ]
 
+alerts = [
+  "ping_volume_change",
+]
+
 [project.population]
 data_source = "messaging_system"
 monitor_entire_population = true
@@ -160,3 +164,32 @@ data_source = "messaging_system"
 select_expression = "SUM(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.messaging_system_invalid_nested_data))"
 type = "scalar"
 statistics.sum = {}
+
+[alerts]
+
+[alerts.ping_volume_change]
+# This type of alert triggers when the average of the current window deviates
+# from the average of the previous window by a factor of `max_relative_change`.
+type = "avg_diff"
+window_size = 7 # days
+max_relative_change = 0.5 # Value has not been tuned.
+metrics = [
+  "undesired_events_ping_volume",
+  "whats_new_panel_ping_volume",
+  "moments_ping_volume",
+  "infobar_ping_volume",
+  "spotlight_ping_volume",
+  "cfr_ping_volume",
+  "null_ping_volume",
+  "other_ping_volume",
+  "unknown_keys_volume",
+]
+
+[alerts.unexpected_data]
+# We want to know when there's any unexpected data at all
+type = "threshold"
+max = [1]
+metrics = [
+  "unknown_keys_volume",
+  "invalid_nested_data_volume",
+]
