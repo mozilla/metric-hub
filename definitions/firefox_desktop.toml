@@ -1,5 +1,16 @@
 [metrics]
 
+[metrics.ad_click_rate]
+friendly_name = "Ad Click Rate"
+description = """
+    This is a Population Ratio Metric. It is the total number of 
+    ad clicks over all clients in the population divided by the 
+    total number of SAP searches over all clients in the 
+    population.
+"""
+category = "search"
+depends_on = ["metrics.ad_clicks", "metrics.search_count"]
+
 [metrics.active_hours]
 friendly_name = "Active hours"
 description = """
