@@ -9,4 +9,6 @@ friendly_name = "urlbar searches"
 exposure_basis = ["exposures", "enrollments"]
 statistics = { deciles = {}, bootstrap_mean = {} }
 
-[metrics.ad_click_rate.statistics.bootstrap_mean]
+[metrics.ad_click_rate.statistics.population_ratio]
+numerator = "ad_clicks"
+denominator = "search_count"
