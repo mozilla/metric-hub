@@ -9,7 +9,7 @@ description = """
     population.
 """
 category = "search"
-depends_on = '["metrics.ad_clicks", "metrics.search_count"]'
+depends_on = ["ad_clicks", "search_count"]
 
 [metrics.active_hours]
 friendly_name = "Active hours"
