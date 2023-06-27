@@ -156,13 +156,14 @@ def validate(path, config_repos):
                         metric_name,
                         metric,
                     ) in entity.spec.metrics.definitions.items():
-                        entity.spec.metrics.definitions[
-                            metric_name
-                        ].select_expression = (
-                            config_collection.get_env()
-                            .from_string(metric.select_expression)
-                            .render()
-                        )
+                        if metric.select_expression:
+                            entity.spec.metrics.definitions[
+                                metric_name
+                            ].select_expression = (
+                                config_collection.get_env()
+                                .from_string(metric.select_expression)
+                                .render()
+                            )
 
                     env = config_collection.get_env().from_string(validation_template)
 
@@ -171,7 +172,8 @@ def validate(path, config_repos):
                     metrics = []
                     for metric in entity.spec.metrics.definitions.values():
                         i += 1
-                        metrics.append(metric)
+                        if metric.select_expression:
+                            metrics.append(metric)
 
                         if i % 10 == 0:
                             sql = env.render(
