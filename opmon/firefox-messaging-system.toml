@@ -106,60 +106,83 @@ type = "scalar"
 statistics.sum = {}
 
 [metrics.undesired_events_ping_volume]
+friendly_name = "'undesired-events' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'undesired-events'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'undesired-events')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.whats_new_panel_ping_volume]
+friendly_name = "'whats-new-panel' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'whats-new-panel'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'whats-new-panel')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.moments_ping_volume]
+friendly_name = "'moments' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'moments'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'moments')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.infobar_ping_volume]
+friendly_name = "'infobar' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'infobar'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'infobar')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.spotlight_ping_volume]
+friendly_name = "'spotlight' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'spotlight'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'spotlight')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.cfr_ping_volume]
+friendly_name = "'cfr' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'cfr'"
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'cfr')"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.null_ping_volume]
+friendly_name = "NULL pings"
+description = "Count of 'messaging-system' pings with ping_type of NULL. Typical for onboarding pings."
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NULL)"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.other_ping_volume]
+friendly_name = "other pings"
+description = """\
+  Count of 'messaging-system' pings with ping_type that isn't NULL and isn't any of the other handled types.\
+  If there are values in here, you probably should update the opmon config to handle that new ping_type explicitly.\
+"""
 data_source = "messaging_system"
 select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr'))"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.unknown_keys_volume]
+friendly_name = "unknown keys"
+description = "Count of the total number of values recorded to unknown keys. See messaging_system.unknown_keys."
 data_source = "messaging_system"
 select_expression = "SUM(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.messaging_system_unknown_keys))"
 type = "scalar"
 statistics.sum = {}
 
 [metrics.invalid_nested_data_volume]
+friendly_name = "invalid nested data"
+description = "Count of the total number of values recorded to invalidly-nested keys. See messaging_system.invalid_nested_data."
 data_source = "messaging_system"
 select_expression = "SUM(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.messaging_system_invalid_nested_data))"
 type = "scalar"
