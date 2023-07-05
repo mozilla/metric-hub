@@ -49,7 +49,7 @@ description = """
     Whenever possible, this is the preferred DAU reporting definition to use for Fenix.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
     it is similar to a "days of use" metric, and not DAU.
-    
+
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
@@ -68,7 +68,7 @@ description = """
     exists only for cases where reporting `client_id` is required (e.g. for experiments). This metric
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
-    
+
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
@@ -78,7 +78,7 @@ deprecated = false
 [metrics.user_reports_site_issue_count]
 data_source = "events"
 select_expression = """
-    COUNTIF(event.name = 'browser_menu_action' AND 
+    COUNTIF(event.name = 'browser_menu_action' AND
     mozfun.map.get_key(event.extra, 'item') = 'report_site_issue')
 """
 friendly_name = "Site issues reported"
@@ -88,7 +88,7 @@ description = "Counts the number of times clients reported an issue with a site.
 [metrics.user_reload_count]
 data_source = "events"
 select_expression = """
-    COUNTIF(event.name = 'browser_menu_action' AND 
+    COUNTIF(event.name = 'browser_menu_action' AND
     mozfun.map.get_key(event.extra, 'item') = 'reload')
 """
 friendly_name = "Pages reloaded"
@@ -325,7 +325,7 @@ select_expression = """
           AND event.name = 'contile_impression'
       ),0)
 """
-data_source = "events"   
+data_source = "events"
 friendly_name = "Sponsored Tiles Impressions"
 description = "Number of times Contile Sponsored Tiles are shown."
 owner = "xluo-all@mozilla.com"
@@ -337,26 +337,26 @@ select_expression = """
           AND event.name = 'contile_click'
       ),0)
 """
-data_source = "events" 
+data_source = "events"
 friendly_name = "Sponsored Tiles Clicks"
 description = "Number of times user clicked a Contile Sponsored Tile."
 owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_disable_rate]
-select_expression = """   
+select_expression = """
   COALESCE(MAX(
     CAST(
        metrics.boolean.customize_home_contile AS int )
   ),0)
 """
-data_source = "metrics" 
+data_source = "metrics"
 bigger_is_better = false
 friendly_name = "Sponsored Tiles Disable Rate"
 description = "Fraction of users who disable Contile Sponsored Tiles"
 owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_preference_toggled]
-select_expression = """   
+select_expression = """
   COALESCE(SUM(CASE WHEN
           event.category = 'customize_home'
           AND event.name = 'preference_toggled'
@@ -364,7 +364,7 @@ select_expression = """
 	THEN 1 ELSE 0 END
   ),0)
 """
-data_source = "events" 
+data_source = "events"
 bigger_is_better = false
 friendly_name = "Sponsored Tiles Preference Toggled"
 description = "Number of times Contile Sponsored Tiles setting is flipped."
@@ -372,11 +372,22 @@ owner = "xluo-all@mozilla.com"
 
 [metrics.new_profile_activation]
 select_expression = "COALESCE(SUM(activated))"
-data_source = "new_profile_activation" 
+data_source = "new_profile_activation"
 friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
 owner = "vsabino@mozilla.com"
 
+[metrics.fxa_sign_in_rate]
+select_expression = """
+  COALESCE(MAX(
+    CAST(
+       metrics.boolean.preferences_signed_in_sync AS int )
+  ),0)
+"""
+data_source = "metrics"
+friendly_name = "Firefox Accounts Sign In Rate"
+description = "Fraction of users who were signed into FxA at any point in the period"
+owner = "loines@mozilla.com"
 
 [data_sources]
 
@@ -455,7 +466,7 @@ build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_
 [data_sources.mobile_search_clients_engines_sources_daily]
 from_expression = """(
     SELECT *
-    FROM `mozdata.search.mobile_search_clients_engines_sources_daily` 
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
     WHERE normalized_app_name = "Fenix"
 )"""
 experiments_column_type = "simple"
