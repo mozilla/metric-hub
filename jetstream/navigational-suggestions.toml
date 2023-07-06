@@ -9,6 +9,7 @@ weekly = [
     "nav_impression_rate",
     "nav_ctr",
     "search_engine_rate",
+    "search_engine_clicks"
 ]
 
 overall = [
@@ -20,6 +21,7 @@ overall = [
     "nav_impression_rate",
     "nav_ctr",
     "search_engine_rate",
+    "search_engine_clicks"
 ]
 
 
