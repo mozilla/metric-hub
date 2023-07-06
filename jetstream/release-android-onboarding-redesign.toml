@@ -1,6 +1,6 @@
 [experiment]
-start_date = "2203-05-01"
-end_date = "2203-06-22"
+start_date = "2023-05-01"
+end_date = "2023-06-22"
 enrollment_period = 22
 
 [metrics]
