@@ -1,0 +1,9 @@
+[experiment]
+start_date = "2203-05-01"
+end_date = "2203-06-22"
+enrollment_period = 22
+
+[metrics]
+overall = ["fxa_sign_in_rate" "mozilla_default_browser", "default_browser_action"]
+weekly = ["fxa_sign_in_rate" "mozilla_default_browser", "default_browser_action"]
+[metrics.fxa_sign_in_rate.statistics.binomial]
