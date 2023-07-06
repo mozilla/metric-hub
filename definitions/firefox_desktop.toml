@@ -1444,7 +1444,6 @@ description = "Activity Stream Event pings"
 
 [data_sources.sponsored_tiles_clients_daily]
 from_expression = "mozdata.telemetry.sponsored_tiles_clients_daily"
-experiments_column_type = "native"
 submission_date_column = "submission_date"
 description = "Sponsored Tiles Clients Daily"
 friendly_name = "Sponsored Tiles Clients Daily"
