@@ -377,16 +377,11 @@ friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
 owner = "vsabino@mozilla.com"
 
-[metrics.fxa_sign_in_rate]
-select_expression = """
-  COALESCE(MAX(
-    CAST(
-       metrics.boolean.preferences_signed_in_sync AS int )
-  ),0)
-"""
+[metrics.fxa_sign_in]
+select_expression = """MAX(IF(metrics.boolean.preferences_signed_in_sync, 1, 0))"""
 data_source = "metrics"
-friendly_name = "Firefox Accounts Sign In Rate"
-description = "Fraction of users who were signed into FxA at any point in the period"
+friendly_name = "Firefox Accounts Signed In"
+description = "Whether a user was signed into FxA at any point in the period"
 owner = "loines@mozilla.com"
 
 [data_sources]
