@@ -192,7 +192,6 @@ bigger_is_better = false
 
 [metrics.tls_successful_cert_validation_time.statistics.bootstrap_mean]
 pre_treatments = ['remove_nulls']
-log_space = true
 
 [metrics.tls_successful_cert_validation_time.statistics.deciles]
 pre_treatments = ['remove_nulls']
@@ -214,7 +213,6 @@ bigger_is_better = false
 
 [metrics.tls_failed_cert_validation_time.statistics.bootstrap_mean]
 pre_treatments = ['remove_nulls']
-log_space = true
 
 [metrics.tls_failed_cert_validation_time.statistics.deciles]
 pre_treatments = ['remove_nulls']
