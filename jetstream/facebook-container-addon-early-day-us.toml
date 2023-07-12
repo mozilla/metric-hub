@@ -1,0 +1,11 @@
+[metrics]
+overall = ['fbcontainer_addon_install']
+weekly = ['fbcontainer_addon_install']
+
+[metrics.fbcontainer_addon_install]
+select_expression = """CAST(COALESCE(LOGICAL_OR(environment.addons.active_addons[SAFE_OFFSET(0)].value.name IN ("Facebook Container")), FALSE) AS INT)"""
+data_source = 'main'
+friendly_name = 'Facebook container addon install'
+description = 'If Facebook container addon installed'
+
+[metrics.fbcontainer_addon_install.statistics.bootstrap_mean]

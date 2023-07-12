@@ -1,0 +1,13 @@
+[metrics]
+overall = ['dictionary_addon_install']
+weekly = ['dictionary_addon_install']
+
+[metrics.dictionary_addon_install]
+select_expression = """CAST(COALESCE(LOGICAL_OR(environment.addons.active_addons[SAFE_OFFSET(0)].value.name IN ('Dictionary Anywhere')), FALSE) AS INT)"""
+data_source = 'main'
+friendly_name = 'Dictionary Anywhere addon install'
+description = 'If Dictionary Anywhere addon installed'
+
+[metrics.dictionary_addon_install.statistics.bootstrap_mean]
+
+
