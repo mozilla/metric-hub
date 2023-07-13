@@ -25,3 +25,4 @@ GROUP BY e.client_id, branch
 [segments.not_win7]
 select_expression = """COALESCE(LOGICAL_AND(windows_build_number IS NULL OR windows_build_number > 10240), FALSE)"""
 data_source = "clients_daily"
+
