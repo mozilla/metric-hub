@@ -1,7 +1,8 @@
 [experiment]
 segments = ["not_win7"]
-
-analysis_period = 7
+start_date = "2023-06-14"
+end_date = "2023-07-12"
+enrollment_period = 7
 
 enrollments_query = """(
 SELECT
@@ -25,3 +26,4 @@ GROUP BY e.client_id, branch
 [segments.not_win7]
 select_expression = """COALESCE(LOGICAL_AND(windows_build_number IS NULL OR windows_build_number > 10240), FALSE)"""
 data_source = "clients_daily"
+
