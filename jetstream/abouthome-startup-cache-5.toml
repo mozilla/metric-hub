@@ -2,7 +2,7 @@
 segments = ["not_win7"]
 start_date = "2023-06-14"
 end_date = "2023-07-12"
-analysis_period = 7
+enrollment_period = 7
 
 enrollments_query = """(
 SELECT
