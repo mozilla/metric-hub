@@ -1,0 +1,10 @@
+[metrics]
+
+overall = ['is_synced', 'imported_bookmarks', 'imported_logins', 'imported_history']
+weekly = ['is_synced', 'imported_bookmarks', 'imported_logins', 'imported_history',]
+
+[metrics.is_synced]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS int)'
+
+[metrics.is_synced.statistics.binomial]
