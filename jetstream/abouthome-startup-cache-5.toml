@@ -1,6 +1,26 @@
 [experiment]
 segments = ["not_win7"]
-enrollment_period = 7
+
+analysis_period = 7
+
+enrollments_query = """(
+SELECT
+    e.client_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch')
+        AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN '2023-06-14' AND '2023-06-23'
+    AND e.event_string_value = 'abouthome-startup-cache-5'
+    AND e.sample_id < 10
+GROUP BY e.client_id, branch
+)"""
 
 [segments.not_win7]
 select_expression = """COALESCE(LOGICAL_AND(windows_build_number IS NULL OR windows_build_number > 10240), FALSE)"""
