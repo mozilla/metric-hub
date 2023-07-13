@@ -8,3 +8,4 @@ data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS int)'
 
 [metrics.is_synced.statistics.binomial]
+
