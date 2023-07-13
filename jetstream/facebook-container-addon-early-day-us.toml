@@ -13,7 +13,7 @@ data_source = 'main'
 friendly_name = 'Facebook container addon install'
 description = 'If Facebook container addon installed'
 
-[metrics.fbcontainer_addon_install.statistics.bootstrap_mean]
+[metrics.fbcontainer_addon_install.statistics.binomial]
 
 [metrics.addons_count]
 select_expression = """COALESCE(MAX((SELECT ARRAY_LENGTH(ARRAY_AGG(IF(NOT is_system, addon_id, NULL) IGNORE NULLS)) FROM UNNEST(active_addons))), 0)"""

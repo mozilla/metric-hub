@@ -21,7 +21,7 @@ data_source = 'clients_daily'
 friendly_name = 'Count of installed self-installed active addons'
 description = 'The number of self-installed active addons'
 
-[metrics.addons_count.statistics.bootstrap_mean]
+[metrics.addons_count.statistics.binomial]
 
 
 [segments.has_self_installed_addons]
