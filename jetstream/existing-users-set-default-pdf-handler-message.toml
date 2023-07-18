@@ -1,0 +1,6 @@
+[metrics]
+
+overall = ['is_default_pdf_handler']
+weekly = ['is_default_pdf_handler']
+
+[metrics.is_default_pdf_handler.statistics.binomial]
