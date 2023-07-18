@@ -20,7 +20,7 @@ parameters:
 jobs:
   validate-metrics:
     docker:
-    - image: python:3.8
+    - image: python:3.10
     environment:
       BASE_COMMIT: << pipeline.parameters.base-revision >>
       REVISION_COMMIT: << pipeline.git.revision >>
@@ -69,7 +69,7 @@ jobs:
           jetstream validate_config --config_repos='.' --config_repos='jetstream/' $changed_files
   build-docs:
     docker:
-      - image: python:3.8
+      - image: python:3.10
     steps:
       - checkout
       - add_ssh_keys:
