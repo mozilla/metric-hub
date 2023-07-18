@@ -18,7 +18,7 @@ select_expression = """
            AND event_method = 'expose'
            AND event_object = 'nimbus_experiment'
            AND event_string_value = 'google-rich-entities-api-experiment'
-           AND `mozfun.map.get_key`(e.event_map_values,
+           AND `mozfun.map.get_key`(event_map_values,
       'branch') = 'treatment'
          THEN 1
          ELSE 0
