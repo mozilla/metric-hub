@@ -1,3 +1,9 @@
+[experiment]
+# Exclude users that also got enrolled in Google Rich Entities experiment treatment
+# as this conflicts with the Nav Suggestions experiment
+segments = ["not_dual_enrolled_in_rich_entities"]
+
+
 [metrics]
 
 weekly = [
@@ -122,3 +128,30 @@ from_expression = """(
 experiments_column_type = "native"
 friendly_name = "Urlbar engagements"
 description = "Glean urlbar engagement events unnested"
+
+
+[segments]
+
+[segments.not_dual_enrolled_in_rich_entities]
+data_source = "nimbus_events"
+select_expression = '''NOT {{agg_any(
+    """
+    event_string_value = 'google-rich-entities-api-experiment'
+    AND event_method = 'enroll'
+    AND mozfun.map.get_key(event_map_values, 'branch') = 'treatment'
+    """
+)}}'''
+friendly_name = "Not in Rich Entities"
+description = "Clients not dual-enrolled in Rich Entities experiment."
+
+[segments.data_sources.nimbus_events]
+from_expression = """(
+    SELECT
+        *
+    FROM `mozdata.telemetry.events`
+    WHERE
+        event_category = 'normandy'
+        AND event_object = 'nimbus_experiment'
+)"""
+window_start = 0
+window_end = 90
