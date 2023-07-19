@@ -1,0 +1,28 @@
+[experiment]
+segments = ['not_dual_enrolled_in_rich_entities']
+
+[segments.data_sources.events_unnested]
+from_expression = """(
+  SELECT
+    *
+  FROM
+    `moz-fx-data-shared-prod.telemetry.events`
+)"""
+window_start = 0
+window_end = 90 
+
+[segments.not_dual_enrolled_in_rich_entities]
+select_expression = """
+  COALESCE(  NOT  CAST(MAX(
+    CASE WHEN event_category = 'normandy'
+           AND event_method = 'enroll'
+           AND event_object = 'nimbus_experiment'
+           AND event_string_value = 'google-rich-entities-api-experiment'
+           AND `mozfun.map.get_key`(event_map_values,
+      'branch') = 'treatment'
+         THEN 1
+         ELSE 0
+    END
+  ) AS BOOL), FALSE)
+"""
+data_source = "events_unnested"
