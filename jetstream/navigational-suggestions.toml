@@ -89,7 +89,7 @@ description = "Proportion of search sessions where a navigational suggestion was
 
 [metrics.nav_impression_rate.statistics.population_ratio]
 numerator = "nav_impressions"
-denominator = "engaged_search_sessions"
+denominator = "search_sessions"
 
 [metrics.nav_ctr]
 depends_on = ["nav_clicks", "nav_impressions"]
@@ -119,7 +119,7 @@ description = "Proportion of search sessions ending with a search engine result"
 
 [metrics.search_engine_rate.statistics.population_ratio]
 numerator = "search_engine_clicks"
-denominator = "engaged_search_sessions"
+denominator = "search_sessions"
 
 
 [data_sources]
