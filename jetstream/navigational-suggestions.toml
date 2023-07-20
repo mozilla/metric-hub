@@ -43,8 +43,8 @@ description = "Number of Firefox Suggest navigational suggestion impressions (no
 [metrics.nav_clicks]
 select_expression = """COUNTIF(
     event_name = 'engagement'
-    AND mozfun.map.get_key(event_extra, 'selected_result') = 'merino_top_picks')
-    AND mozfun.map.get_key(event_extra, 'engagement_type') in ('click', 'drop_go', 'enter', 'go_button')
+    AND mozfun.map.get_key(event_extra, 'selected_result') = 'merino_top_picks'
+    AND mozfun.map.get_key(event_extra, 'engagement_type') IN ('click', 'drop_go', 'enter', 'go_button')
 )"""
 data_source = "urlbar_events"
 friendly_name = "Navigational suggestion clicks"
@@ -64,8 +64,8 @@ description = "Proportion of clients that saw a Firefox Suggest navigational sug
 [metrics.clicked_nav]
 select_expression = """COUNTIF(
     event_name = 'engagement'
-    AND mozfun.map.get_key(event_extra, 'selected_result') = 'merino_top_picks')
-    AND mozfun.map.get_key(event_extra, 'engagement_type') in ('click', 'drop_go', 'enter', 'go_button')
+    AND mozfun.map.get_key(event_extra, 'selected_result') = 'merino_top_picks'
+    AND mozfun.map.get_key(event_extra, 'engagement_type') IN ('click', 'drop_go', 'enter', 'go_button')
 ) > 0"""
 data_source = "urlbar_events"
 friendly_name = "Clicked a navigational result"
@@ -104,7 +104,7 @@ denominator = "nav_impressions"
 select_expression = """COUNTIF(
     event_name = 'engagement'
     AND mozfun.map.get_key(event_extra, 'selected_result') IN ('search_engine', 'search_history', 'search_suggest', 'search_suggest_rich')
-    AND mozfun.map.get_key(event_extra, 'engagement_type') in ('click', 'drop_go', 'enter', 'go_button')
+    AND mozfun.map.get_key(event_extra, 'engagement_type') IN ('click', 'drop_go', 'enter', 'go_button')
 )"""
 data_source = "urlbar_events"
 friendly_name = "Search engine search sessions"
