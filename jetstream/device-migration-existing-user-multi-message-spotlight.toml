@@ -1,3 +1,62 @@
 [metrics]
 overall = ['fxa_signed_in']
 weekly = ['fxa_signed_in']
+
+[segments]
+
+[segments.lessthan_1mo]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age less than 1 mo', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.one_to_six_mo]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 1 and 6 mo', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.six_to_twelve_mo]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 6 and 12 mo', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.one_to_two_years]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 1 and 2 years', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.two_plus_years]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age more than 2 years', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.data_sources]
+
+[segments.data_sources.clients_last_seen_with_profileage_segments]
+from_expression = """(
+     SELECT 
+          *,
+          CASE WHEN DATE_DIFF(submission_date, first_run_date, DAY) < 28 THEN 'profile age less than 1 mo'
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 28 AND 179 THEN 'profile age between 1 and 6 mo' 
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 180 AND 364 THEN 'profile age between 6 and 12 mo' 
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 365 AND 729 THEN 'profile age between 1 and 2 years'
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) >= 730 THEN 'profile age more than 2 years'
+          END AS profile_age_segment_device_migration
+     FROM mozdata.telemetry.clients_last_seen
+)"""
+window_start = 0
+window_end = 0
+
+[experiment]
+
+segments = [
+     'lessthan_1mo',
+     'one_to_six_mo',
+     'six_to_twelve_mo', 
+     'one_to_two_years',
+     'two_plus_years'
+]
