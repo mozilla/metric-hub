@@ -57,12 +57,20 @@ select_expression = "COALESCE(SUM(metrics.labeled_counter.power_wakeups_per_proc
 [metrics.power_wakeups_per_process_type.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
 
-#muted_play_time_percent
-[metrics.muted_play_time_percent]
+#muted_play_time_percent_A
+[metrics.muted_play_time_percent_A]
 data_source = "main"
-select_expression = "COALESCE(SUM(payload.keyed_histograms.muted_play_time_percent),0)"
+select_expression = "COALESCE(SUM({{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.muted_play_time_percent, 'A')"),0)"
 
-[metrics.muted_play_time_percent.statistics.bootstrap_mean]
+[metrics.muted_play_time_percent_A.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#muted_play_time_percent_AV
+[metrics.muted_play_time_percent_AV]
+data_source = "main"
+select_expression = "COALESCE(SUM({{agg_histogram_mean("mozfun.map.get_key(payload.keyed_histograms.muted_play_time_percent, 'AV')"),0)"
+
+[metrics.muted_play_time_percent_AV.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
 
 [data_sources]
