@@ -1,0 +1,66 @@
+[metrics]
+
+weekly = [
+  'power_total_cpu_time_ms', 
+  'power_total_gpu_time_ms',
+  'power_total_thread_wakeups',
+  'power_cpu_time_per_process_type_ms',
+  'power_wakeups_per_process_type',
+  'muted_play_time_percent',
+]
+overall = [
+  'power_total_cpu_time_ms',
+  'power_total_gpu_time_ms',
+  'power_total_thread_wakeups',
+  'power_cpu_time_per_process_type_ms',
+  'power_wakeups_per_process_type',
+  'muted_play_time_percent',
+]
+
+#power_total_cpu_time_ms
+[metrics.power_total_cpu_time_ms]
+data_source = "main"
+select_expression = "COALESCE(SUM(metrics.counter.power_total_cpu_time_ms),0)"
+
+[metrics.power_total_cpu_time_ms.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#power_total_gpu_time_ms
+[metrics.power_total_gpu_time_ms]
+data_source = "main"
+select_expression = "COALESCE(SUM(metrics.counter.power_total_gpu_time_ms),0)"
+
+[metrics.power_total_gpu_time_ms.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#power_total_thread_wakeups
+[metrics.power_total_thread_wakeups]
+data_source = "main"
+select_expression = "COALESCE(SUM(metrics.counter.power_total_thread_wakeups),0)"
+
+[metrics.power_total_thread_wakeups.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#power_cpu_time_per_process_type_ms
+[metrics.power_cpu_time_per_process_type_ms]
+data_source = "main"
+select_expression = "COALESCE(SUM(metrics.labeled_counter.power_cpu_time_per_process_type_ms),0)"
+
+[metrics.power_cpu_time_per_process_type_ms.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#power_wakeups_per_process_type
+[metrics.power_wakeups_per_process_type]
+data_source = "main"
+select_expression = "COALESCE(SUM(metrics.labeled_counter.power_wakeups_per_process_type),0)"
+
+[metrics.power_wakeups_per_process_type.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+#muted_play_time_percent
+[metrics.muted_play_time_percent]
+data_source = "main"
+select_expression = "COALESCE(SUM(payload.keyed_histograms.muted_play_time_percent),0)"
+
+[metrics.muted_play_time_percent.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
