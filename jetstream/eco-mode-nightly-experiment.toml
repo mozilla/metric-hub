@@ -6,7 +6,8 @@ weekly = [
   'power_total_thread_wakeups',
   #'power_cpu_time_per_process_type_ms',
   #'power_wakeups_per_process_type',
-  'muted_play_time_percent',
+  'muted_play_time_percent_A',
+  'muted_play_time_percent_AV',  
 ]
 overall = [
   'power_total_cpu_time_ms',
@@ -14,7 +15,8 @@ overall = [
   'power_total_thread_wakeups',
   #'power_cpu_time_per_process_type_ms',
   #'power_wakeups_per_process_type',
-  'muted_play_time_percent',
+  'muted_play_time_percent_A',
+  'muted_play_time_percent_AV',  
 ]
 
 #power_total_cpu_time_ms
