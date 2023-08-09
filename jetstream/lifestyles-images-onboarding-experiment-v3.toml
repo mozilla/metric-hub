@@ -1,0 +1,54 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+segments = ['attributed', 'non_attributed']
+
+start_date = "2023-06-14"
+
+end_date = "2023-06-27"
+
+reference_branch = "control"
+
+
+
+## SEGMENTS
+# A segment for users that were acquired through ctd creatives
+# first run feature.
+[segments]
+
+[segments.attributed]
+select_expression = 'max(eligible_segment = TRUE)'
+data_source = "lst"
+
+[segments.non_attributed]
+select_expression = 'max(eligible_segment = FALSE)'
+data_source = "lst"
+
+## Data Sources
+[segments.data_sources.lst]
+from_expression = """
+    (SELECT a.*
+      , CASE WHEN b.adjust_network in ("Google Ads ACI", "Product Marketing (Owned media)") THEN TRUE else FALSE END AS eligible_segment
+    FROM (
+        SELECT
+          DATE(submission_timestamp) as submission_date
+          , client_info.client_id
+        FROM
+           org_mozilla_firefox.first_session AS m
+        CROSS JOIN UNNEST(ping_info.experiments) AS event
+        WHERE
+            DATE(submission_timestamp) >= '2023-06-09'
+          AND event.key = "lifestyles-images-onboarding-experiment-v3"
+       GROUP BY  1, 2)  a
+    LEFT JOIN (
+            SELECT
+                    client_id
+                    , adjust_network
+            FROM moz-fx-data-shared-prod.fenix.firefox_android_clients
+            WHERE first_seen_date >= '2023-06-09'
+            AND metadata.reported_first_session_ping
+                GROUP BY 1, 2
+                ) b
+         ON a.client_id = b.client_id
+    GROUP BY 1, 2, 3
+    )
+    """
