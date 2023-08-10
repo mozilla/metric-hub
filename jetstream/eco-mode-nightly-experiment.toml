@@ -46,7 +46,7 @@ pre_treatments = ["remove_nulls"]
 #power_cpu_time_per_process_type_web_background_ms
 [metrics.power_cpu_time_per_process_type_web_background_ms]
 data_source = "glean_metrics"
-select_expression = '''COALESCE(SUM(mozfun.map.key_key(metrics.labeled_counter.power_cpu_time_per_process_type_ms, "web.background")),0)'''
+select_expression = '''COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.power_cpu_time_per_process_type_ms, "web.background")),0)'''
 
 [metrics.power_cpu_time_per_process_type_web_background_ms.statistics.bootstrap_mean]
 pre_treatments = ["remove_nulls"]
