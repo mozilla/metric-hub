@@ -13,7 +13,7 @@ overall = [
   'power_total_cpu_time_ms',
   'power_total_gpu_time_ms',
   'power_total_thread_wakeups',
-  'power_cpu_time_per_process_type_ms_web_background_ms',
+  'power_cpu_time_per_process_type_web_background_ms',
   'power_wakeups_per_process_type_web_background',
   'muted_play_time_percent_A',
   'muted_play_time_percent_AV',  
