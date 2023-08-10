@@ -1,0 +1,39 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+segments = ['attributed', 'non_attributed']
+
+start_date = "2023-06-14"
+
+enrollment_period = 14
+
+end_date = "2023-07-26"
+
+#reference_branch = "control"
+
+
+
+## SEGMENTS
+# A segment for users that were acquired through ctd creatives
+# first run feature.
+[segments]
+
+[segments.attributed]
+select_expression = 'max(eligible_segment = TRUE)'
+data_source = "lst"
+
+[segments.non_attributed]
+select_expression = 'max(eligible_segment = FALSE)'
+data_source = "lst"
+
+## Data Sources
+[segments.data_sources.lst]
+from_expression = """
+    ( SELECT first_seen_date as submission_date
+            , client_id
+            , adjust_network in ("Google Ads ACI", "Product Marketing (Owned media)") AS eligible_segment
+      FROM moz-fx-data-shared-prod.fenix.firefox_android_clients
+      WHERE first_seen_date >= "2023-06-14"
+         AND metadata.reported_first_session_ping
+      GROUP BY 1, 2, 3
+    )
+    """
