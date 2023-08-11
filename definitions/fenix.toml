@@ -377,6 +377,35 @@ friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
 owner = "vsabino@mozilla.com"
 
+
+[metrics.turn_on_notifications_onboarding]
+select_expression = "COALESCE(SUM(converted_flag))"
+data_source = "turn_on_notifications"
+friendly_name = "Turn on Notification Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.set_to_default_onboarding]
+select_expression = "COALESCE(SUM(converted_flag))"
+data_source = "set_to_default"
+friendly_name = "Set to Default Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.sign_in_onboarding]
+select_expression = "COALESCE(SUM(converted_flag))"
+data_source = "sign_in"
+friendly_name = "Sign in Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.at_least_1_cta_onboarding]
+select_expression = "COALESCE(SUM(converted_flag))"
+data_source = "at_least_1_cta"
+friendly_name = "Completed at least one CTA"
+description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and completed at least one action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
 [metrics.fxa_sign_in]
 select_expression = """MAX(IF(metrics.boolean.preferences_signed_in_sync, 1, 0))"""
 data_source = "metrics"
@@ -470,4 +499,162 @@ submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
 from_expression = "`moz-fx-data-shared-prod.fenix.new_profile_activation`"
+experiments_column_type = "none"
+
+[data_sources.turn_on_notifications]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when conv.client_id is not null then 1 else 0 end as converted_flag
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+      FROM
+        mozdata.org_mozilla_firefox.events tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(ping_info.experiments) AS expr
+      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+        AND event.name = "turn_on_notifications_card"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+  FROM
+    mozdata.org_mozilla_firefox.events tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  CROSS JOIN
+     UNNEST(ping_info.experiments) AS expr
+  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+    AND event.name = "turn_on_notifications"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3
+)
+"""
+experiments_column_type = "none"
+
+[data_sources.set_to_default]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when conv.client_id is not null then 1 else 0 end as converted_flag
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+      FROM
+        mozdata.org_mozilla_firefox.events tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(ping_info.experiments) AS expr
+      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+        AND event.name = "set_to_default_card"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+  FROM
+    mozdata.org_mozilla_firefox.events tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  CROSS JOIN
+     UNNEST(ping_info.experiments) AS expr
+  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+    AND event.name = "set_to_default"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3
+)
+"""
+experiments_column_type = "none"
+
+
+[data_sources.sign_in]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when conv.client_id is not null then 1 else 0 end as converted_flag
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+      FROM
+        mozdata.org_mozilla_firefox.events tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(ping_info.experiments) AS expr
+      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+        AND event.name = "sign_in_card"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+  FROM
+    mozdata.org_mozilla_firefox.events tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  CROSS JOIN
+     UNNEST(ping_info.experiments) AS expr
+  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+    AND event.name = "sign_in"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3
+)
+"""
+experiments_column_type = "none"
+
+
+[data_sources.at_least_1_cta]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when conv.client_id is not null then 1 else 0 end as converted_flag
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+      FROM
+        mozdata.org_mozilla_firefox.events tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(ping_info.experiments) AS expr
+      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+        AND event.name = "set_to_default_card" OR event.name = "turn_on_notifications_card" OR event.name = "sign_in_card"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+  FROM
+    mozdata.org_mozilla_firefox.events tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  CROSS JOIN
+     UNNEST(ping_info.experiments) AS expr
+  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
+    AND event.name = "set_to_default" OR event.name = "turn_on_notifications" OR event.name = "sign_in"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3
+)
+"""
 experiments_column_type = "none"
