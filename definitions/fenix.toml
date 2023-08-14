@@ -515,10 +515,7 @@ FROM (
         mozdata.org_mozilla_firefox.events tm
       CROSS JOIN
         UNNEST(events) AS event
-      CROSS JOIN
-        UNNEST(ping_info.experiments) AS expr
-      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-        AND event.name = "turn_on_notifications_card"
+      WHERE event.name = "turn_on_notifications_card"
       GROUP BY 1
       ) expo
 LEFT JOIN (
@@ -528,10 +525,7 @@ LEFT JOIN (
     mozdata.org_mozilla_firefox.events tm
   CROSS JOIN
      UNNEST(events) AS event
-  CROSS JOIN
-     UNNEST(ping_info.experiments) AS expr
-  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-    AND event.name = "turn_on_notifications"
+  WHERE event.name = "turn_on_notifications"
   GROUP BY 1
 ) conv
 ON expo.client_id = conv.client_id
@@ -554,10 +548,7 @@ FROM (
         mozdata.org_mozilla_firefox.events tm
       CROSS JOIN
         UNNEST(events) AS event
-      CROSS JOIN
-        UNNEST(ping_info.experiments) AS expr
-      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-        AND event.name = "set_to_default_card"
+      WHERE event.name = "set_to_default_card"
       GROUP BY 1
       ) expo
 LEFT JOIN (
@@ -567,10 +558,7 @@ LEFT JOIN (
     mozdata.org_mozilla_firefox.events tm
   CROSS JOIN
      UNNEST(events) AS event
-  CROSS JOIN
-     UNNEST(ping_info.experiments) AS expr
-  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-    AND event.name = "set_to_default"
+  WHERE event.name = "set_to_default"
   GROUP BY 1
 ) conv
 ON expo.client_id = conv.client_id
@@ -594,10 +582,7 @@ FROM (
         mozdata.org_mozilla_firefox.events tm
       CROSS JOIN
         UNNEST(events) AS event
-      CROSS JOIN
-        UNNEST(ping_info.experiments) AS expr
-      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-        AND event.name = "sign_in_card"
+      WHERE event.name = "sign_in_card"
       GROUP BY 1
       ) expo
 LEFT JOIN (
@@ -607,10 +592,7 @@ LEFT JOIN (
     mozdata.org_mozilla_firefox.events tm
   CROSS JOIN
      UNNEST(events) AS event
-  CROSS JOIN
-     UNNEST(ping_info.experiments) AS expr
-  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-    AND event.name = "sign_in"
+  WHERE event.name = "sign_in"
   GROUP BY 1
 ) conv
 ON expo.client_id = conv.client_id
@@ -634,10 +616,7 @@ FROM (
         mozdata.org_mozilla_firefox.events tm
       CROSS JOIN
         UNNEST(events) AS event
-      CROSS JOIN
-        UNNEST(ping_info.experiments) AS expr
-      WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-        AND event.name = "set_to_default_card" OR event.name = "turn_on_notifications_card" OR event.name = "sign_in_card"
+      WHERE event.name = "set_to_default_card" OR event.name = "turn_on_notifications_card" OR event.name = "sign_in_card"
       GROUP BY 1
       ) expo
 LEFT JOIN (
@@ -647,10 +626,7 @@ LEFT JOIN (
     mozdata.org_mozilla_firefox.events tm
   CROSS JOIN
      UNNEST(events) AS event
-  CROSS JOIN
-     UNNEST(ping_info.experiments) AS expr
-  WHERE event.category = "onboarding" AND expr.key = '{experiment_slug}'
-    AND event.name = "set_to_default" OR event.name = "turn_on_notifications" OR event.name = "sign_in"
+  WHERE event.name = "set_to_default" OR event.name = "turn_on_notifications" OR event.name = "sign_in"
   GROUP BY 1
 ) conv
 ON expo.client_id = conv.client_id
