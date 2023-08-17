@@ -1,0 +1,67 @@
+[project]
+
+name = "Desktop DAU"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-08-10"
+skip_default_metrics = true
+
+metrics = [
+  "daily_active_users_v2",
+  "kpi_forecast"
+]
+
+[project.population]
+
+data_source = "active_users_aggregates_v1"
+monitor_entire_population = true
+
+
+[metrics.daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.kpi_forecast]
+friendly_name = "KPI Forecast"
+description = "Total number of clients, observed and predicted"
+data_source = "kpi_forecasts"
+select_expression = "ANY_VALUE(value)"
+type = "scalar"
+statistics.mean = {}
+
+
+[data_sources.active_users_aggregates_v1]
+from_expression = """(
+    SELECT *, "0" AS client_id
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Firefox Desktop'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Firefox Desktop"
+submission_date_column = "submission_date"
+client_id_column = "client_id" # this table doesn't include client_id, and we don't need it for calculating DAU
+
+
+[data_sources.kpi_forecasts]
+from_expression = """
+  (
+    WITH most_recent_forecasts AS (
+        SELECT aggregation_period,
+               metric_alias,
+               metric_hub_app_name,
+               metric_hub_slug,
+               MAX(forecast_predicted_at) AS forecast_predicted_at
+          FROM `moz-fx-data-shared-prod.telemetry_derived.kpi_forecasts_v0`
+         GROUP BY aggregation_period, metric_alias, metric_hub_app_name, metric_hub_slug
+      )
+
+      SELECT 
+        forecasts.* EXCEPT(forecast_parameters), "0" AS client_id
+        FROM `moz-fx-data-shared-prod.telemetry_derived.kpi_forecasts_v0` AS forecasts
+        JOIN most_recent_forecasts
+       USING(aggregation_period, metric_alias, metric_hub_app_name, metric_hub_slug, forecast_predicted_at)
+       WHERE aggregation_period = 'day' AND measure IN ('observed', 'p50') AND metric_alias LIKE 'desktop_dau'
+       ORDER BY submission_date ASC
+  )
+"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
