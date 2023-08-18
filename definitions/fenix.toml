@@ -384,6 +384,34 @@ friendly_name = "Firefox Accounts Signed In"
 description = "Whether a user was signed into FxA at any point in the period"
 owner = "loines@mozilla.com"
 
+[metrics.turn_on_notifications_onboarding]
+select_expression = "COALESCE(SUM(turn_on_notifications_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Turn on Notification Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.set_to_default_onboarding]
+select_expression = "COALESCE(SUM(set_to_default_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Set to Default Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.sign_in_onboarding]
+select_expression = "COALESCE(SUM(sign_in_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Sign in Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and completed the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.at_least_1_cta_onboarding]
+select_expression = "COALESCE(SUM(at_least_1_cta_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Completed at least one CTA"
+description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and completed at least one action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
 [data_sources]
 
 [data_sources.active_users_aggregates_v1]
@@ -470,4 +498,53 @@ submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
 from_expression = "`moz-fx-data-shared-prod.fenix.new_profile_activation`"
+experiments_column_type = "none"
+
+[data_sources.special_onboarding_events]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) then 1
+           when (conv.set_to_default = 0 AND expo.set_to_default_card >= 1) then 0 else null end as set_to_default_flag
+    , case when (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) then 1
+           when (conv.turn_on_notifications = 0 AND expo.turn_on_notifications_card >= 1) then 0 else null end as turn_on_notifications_flag
+    , case when (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
+           when (conv.sign_in = 0 AND expo.sign_in_card >= 1) then 0 else null end as sign_in_flag
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1)then 1
+           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta
+
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+            , count(case when event.name = "set_to_default_card" then DATE(submission_timestamp) END) as set_to_default_card
+            , count(case when event.name = "turn_on_notifications_card" then DATE(submission_timestamp) END) as turn_on_notifications_card
+            , count(case when event.name = "sign_in_card" then DATE(submission_timestamp) END) as sign_in_card
+      FROM
+        `mozdata.org_mozilla_firefox.events` tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      WHERE (event.name = "set_to_default_card" OR event.name = "turn_on_notifications_card" OR event.name = "sign_in_card")
+      AND DATE(submission_timestamp) >= "2023-01-01"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+            , count(case when event.name = "set_to_default" then DATE(submission_timestamp) END) as set_to_default
+            , count(case when event.name = "turn_on_notifications" then DATE(submission_timestamp) END) as turn_on_notifications
+            , count(case when event.name = "sign_in" then DATE(submission_timestamp) END) as sign_in
+  FROM
+    `mozdata.org_mozilla_firefox.events` tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  WHERE (event.name = "set_to_default" OR event.name = "turn_on_notifications" OR event.name = "sign_in")
+  AND DATE(submission_timestamp) >= "2023-01-01"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3, 4, 5, 6
+)
+"""
 experiments_column_type = "none"
