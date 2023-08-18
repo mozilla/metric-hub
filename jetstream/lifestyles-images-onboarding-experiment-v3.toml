@@ -10,7 +10,14 @@ end_date = "2023-07-26"
 
 #reference_branch = "control"
 
+[metrics] 
 
+overall = [
+   'turn_on_notifications_onboarding',
+   'set_to_default_onboarding',
+   'sign_in_onboarding',
+   'at_least_1_cta_onboarding'
+]
 
 ## SEGMENTS
 # A segment for users that were acquired through ctd creatives
