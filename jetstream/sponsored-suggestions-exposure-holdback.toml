@@ -10,23 +10,16 @@ CROSS JOIN
   UNNEST(e.events) AS event
 )"""
 
-[data_sources.urlbar_events]
-from_expression = """(SELECT * FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`)"""
-
 [metrics]
 
 weekly = [
     "ad_clicks_on_serps_from_glean",
     "serps_with_ads_from_glean",
-    "amp_ad_impressions_from_glean",
-    "amp_ad_clicks_from_glean",
 ]
 
 overall = [
     "ad_clicks_on_serps_from_glean",
     "serps_with_ads_from_glean",
-    "amp_ad_impressions_from_glean",
-    "amp_ad_clicks_from_glean",
 ]
 
 [metrics.ad_clicks_on_serps_from_glean]
@@ -56,33 +49,9 @@ data_source = "events_unnested"
 friendly_name = "SERPs with Ads (Glean)"
 description = "Count of SERPs with Ads collected by Glean"
 
-[metrics.amp_ad_impressions_from_glean]
-select_expression = '''
-sum(case when is_terminal is true then num_admarketplace_sponsored_impressions else 0 end)
-'''
-data_source = "urlbar_events"
-friendly_name = "AMP Ad Impressions (Glean)"
-description = "Count of AMP ad impressions collected by Glean"
-
-[metrics.amp_ad_clicks_from_glean]
-select_expression = '''
-sum(case when product_engaged_result_type = 'admarketplace_sponsored' and is_terminal is true then 1 else 0 end)
-'''
-data_source = "urlbar_events"
-friendly_name = "AMP Ad Clicks (Glean)"
-description = "Count of AMP ad clicks collected by Glean"
-
-
 
 [metrics.ad_clicks_on_serps_from_glean.statistics.bootstrap_mean]
 [metrics.ad_clicks_on_serps_from_glean.statistics.deciles]
 
 [metrics.serps_with_ads_from_glean.statistics.bootstrap_mean]
 [metrics.serps_with_ads_from_glean.statistics.deciles]
-
-[metrics.amp_ad_impressions_from_glean.statistics.bootstrap_mean]
-[metrics.amp_ad_impressions_from_glean.statistics.deciles]
-
-[metrics.amp_ad_clicks_from_glean.statistics.bootstrap_mean]
-[metrics.amp_ad_clicks_from_glean.statistics.deciles]
-
