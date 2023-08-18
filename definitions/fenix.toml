@@ -511,8 +511,8 @@ SELECT
            when (conv.turn_on_notifications = 0 AND expo.turn_on_notifications_card >= 1) then 0 else null end as turn_on_notifications_flag
     , case when (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
            when (conv.sign_in = 0 AND expo.sign_in_card >= 1) then 0 else null end as sign_in_flag
-    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1)then 1
-           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
+           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta_flag
 
 FROM (
       SELECT
