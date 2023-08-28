@@ -1,0 +1,33 @@
+[project]
+
+name = "Background Update allowUnelevated Rollout Beta"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-09-01"
+metrics = [
+  "content_shutdown_crashes",
+  "content_crashes",
+  "shutdown_hangs",
+  "oom_crashes",
+  "main_crashes",
+  "startup_crashes"
+]
+
+[project.population]
+
+data_source = "main"
+channel = "beta"
+
+
+[data_sources]
+
+[data_sources.main]
+from_expression = """
+(
+  SELECT * 
+  FROM moz-fx-data-shared-prod.telemetry_stable.main_v4 
+  WHERE normalized_channel = 'beta'
+)
+"""
+submission_date_column = "DATE(submission_timestamp)"
+
