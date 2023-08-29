@@ -18,15 +18,29 @@ description = 'If Dictionary Anywhere addon installed'
 [metrics.addons_count]
 select_expression = """COALESCE(MAX((SELECT ARRAY_LENGTH(ARRAY_AGG(IF(NOT is_system, addon_id, NULL) IGNORE NULLS)) FROM UNNEST(active_addons))), 0)"""
 data_source = 'clients_daily'
-friendly_name = 'Count of installed self-installed active addons'
+friendly_name = 'Count of self-installed active addons'
 description = 'The number of self-installed active addons'
 
 [metrics.addons_count.statistics.bootstrap_mean]
 
+[segments]
 
 [segments.has_self_installed_addons]
 select_expression = """COALESCE(LOGICAL_OR(self_installed_addon), FALSE)"""
 data_source = 'clients_daily_with_addons'
+
+[segments.early_day_users]
+select_expression = """COALESCE(ANY_VALUE(user_category) = 'early_day_user', FALSE)"""
+data_source = 'clients_last_seen_with_profileage'
+window_start = 0
+window_end = 0
+
+
+[segments.existing_users]
+select_expression = """COALESCE(ANY_VALUE(user_category) = 'existing_user', FALSE)"""
+data_source = 'clients_last_seen_with_profileage'
+window_start = 0
+window_end = 0
 
 [segments.data_sources]
 
@@ -37,8 +51,22 @@ from_expression = """(
           CASE WHEN NOT is_system AND addon_id IS NOT NULL THEN TRUE ELSE FALSE END AS self_installed_addon 
           FROM mozdata.telemetry.clients_daily, UNNEST(active_addons))"""
 
+[segments.data_sources.clients_last_seen_with_profileage]
+from_expression = """(
+     SELECT 
+          *,
+          CASE WHEN DATE_DIFF(submission_date, first_run_date, DAY) <= 28 THEN 'early_day_user'
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) > 28 THEN 'existing_user'
+          END as user_category
+     FROM mozdata.telemetry.clients_last_seen
+)"""
+window_start = 0
+window_end = 0
+
 
 [experiment]
 segments = [
-     'has_self_installed_addons'
+     'has_self_installed_addons',
+     'early_day_users',
+     'existing_users'
 ]
