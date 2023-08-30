@@ -18,11 +18,14 @@ weekly = ['new_profile_activation', 'turn_on_notifications_onboarding', 'set_to_
 
 overall = ['new_profile_activation', 'turn_on_notifications_onboarding', 'set_to_default_onboarding', 'sign_in_onboarding', 'at_least_1_cta_onboarding']
 
+[metrics.new_profile_activation.statistics.binomial]
+
 
 
 ## SEGMENTS
 # A segment for users that were acquired through ctd creatives
 # first run feature.
+
 [segments]
 
 [segments.attributed]
