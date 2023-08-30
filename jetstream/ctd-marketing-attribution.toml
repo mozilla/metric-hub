@@ -1,6 +1,5 @@
 ## EXPERIMENT SPECIFIC
 [experiment]
-segments = ['attributed', 'non_attributed']
 
 start_date = "2023-07-17"
 
