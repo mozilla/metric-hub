@@ -1,0 +1,11 @@
+friendly_name = "Onboarding"
+description = """
+Measures interactions with onboarding actions such as 
+enabling notifications, setting to default, and signing
+into an account
+"""
+
+[metrics.turn_on_notifications_onboarding.statistics.binomial]
+[metrics.set_to_default_onboarding.statistics.binomial]
+[metrics.sign_in_onboarding.statistics.binomial]
+[metrics.at_least_1_cta_onboarding.statistics.binomial]
