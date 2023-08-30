@@ -525,6 +525,8 @@ FROM (
         `mozdata.org_mozilla_firefox.events` tm
       CROSS JOIN
         UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(event.extra) AS ext
       WHERE event.category = "onboarding" AND ext.value ="impression" AND event.name in ("set_to_default_card", "turn_on_notifications_card", "sign_in_card")
       AND DATE(submission_timestamp) >= "2023-01-01"
       GROUP BY 1
@@ -540,7 +542,7 @@ LEFT JOIN (
   CROSS JOIN
      UNNEST(events) AS event
   CROSS JOIN
-     UNNEST(event) AS ext
+     UNNEST(event.extra) AS ext
   WHERE event.category = "onboarding" AND ext.key ="action" AND event.name in  ("set_to_default", "turn_on_notifications", "sign_in")
   AND DATE(submission_timestamp) >= "2023-01-01"
   GROUP BY 1

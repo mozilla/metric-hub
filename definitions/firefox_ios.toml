@@ -404,5 +404,5 @@ LEFT JOIN (
 ) conv
 ON expo.client_id = conv.client_id
 GROUP BY 1, 2, 3, 4, 5, 6
-)
+)"""
 experiments_column_type = "none"
