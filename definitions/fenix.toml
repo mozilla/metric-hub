@@ -388,28 +388,28 @@ owner = "loines@mozilla.com"
 select_expression = "COALESCE(SUM(turn_on_notifications_flag))"
 data_source = "special_onboarding_events"
 friendly_name = "Turn on Notification Rate"
-description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and completed the action during on-boarding."
+description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.set_to_default_onboarding]
 select_expression = "COALESCE(SUM(set_to_default_flag))"
 data_source = "special_onboarding_events"
 friendly_name = "Set to Default Rate"
-description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and completed the action during on-boarding."
+description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.sign_in_onboarding]
 select_expression = "COALESCE(SUM(sign_in_flag))"
 data_source = "special_onboarding_events"
 friendly_name = "Sign in Rate"
-description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and completed the action during on-boarding."
+description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.at_least_1_cta_onboarding]
 select_expression = "COALESCE(SUM(at_least_1_cta_flag))"
 data_source = "special_onboarding_events"
 friendly_name = "Completed at least one CTA"
-description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and completed at least one action during on-boarding."
+description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [data_sources]
@@ -511,8 +511,8 @@ SELECT
            when (conv.turn_on_notifications = 0 AND expo.turn_on_notifications_card >= 1) then 0 else null end as turn_on_notifications_flag
     , case when (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
            when (conv.sign_in = 0 AND expo.sign_in_card >= 1) then 0 else null end as sign_in_flag
-    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
-           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta_flag
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1)then 1
+           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta
 
 FROM (
       SELECT
@@ -525,7 +525,7 @@ FROM (
         `mozdata.org_mozilla_firefox.events` tm
       CROSS JOIN
         UNNEST(events) AS event
-      WHERE (event.name = "set_to_default_card" OR event.name = "turn_on_notifications_card" OR event.name = "sign_in_card")
+      WHERE event.category = "onboarding" AND ext.value ="impression" AND event.name in ("set_to_default_card", "turn_on_notifications_card", "sign_in_card")
       AND DATE(submission_timestamp) >= "2023-01-01"
       GROUP BY 1
       ) expo
@@ -539,7 +539,7 @@ LEFT JOIN (
     `mozdata.org_mozilla_firefox.events` tm
   CROSS JOIN
      UNNEST(events) AS event
-  WHERE (event.name = "set_to_default" OR event.name = "turn_on_notifications" OR event.name = "sign_in")
+  WHERE event.category = "onboarding" AND ext.key ="action" AND event.name in  ("set_to_default", "turn_on_notifications", "sign_in")
   AND DATE(submission_timestamp) >= "2023-01-01"
   GROUP BY 1
 ) conv
