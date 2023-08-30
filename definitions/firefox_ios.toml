@@ -254,7 +254,7 @@ description = "This metric looks at proportion of all new profiles that were exp
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.at_least_1_cta_onboarding]
-select_expression = "COALESCE(SUM(at_least_1_cta_flag))"
+select_expression = "COALESCE(SUM(at_least_1_cta))"
 data_source = "special_onboarding_events"
 friendly_name = "Completed at least one CTA"
 description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
