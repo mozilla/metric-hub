@@ -1,8 +1,54 @@
-[metrics] 
+## EXPERIMENT SPECIFIC
+[experiment]
+segments = ['attributed', 'non_attributed']
 
-overall = [
-   'turn_on_notifications_onboarding',
-   'set_to_default_onboarding',
-   'sign_in_onboarding',
-   'at_least_1_cta_onboarding'
-]
+start_date = "2023-07-01"
+
+enrollment_end_date = "2023-08-16"
+
+end_date = "2023-08-30"
+
+#reference_branch = "control"
+
+## Metrics
+
+[metrics]
+
+weekly = ['new_profile_activation', 'turn_on_notifications_onboarding', 'set_to_default_onboarding', 'sign_in_onboarding', 'at_least_1_cta_onboarding']
+
+overall = ['new_profile_activation', 'turn_on_notifications_onboarding', 'set_to_default_onboarding', 'sign_in_onboarding', 'at_least_1_cta_onboarding']
+
+[metrics.new_profile_activation.statistics.binomial]
+
+
+
+## SEGMENTS
+# A segment for users that were acquired through ctd creatives
+# first run feature.
+
+[segments]
+
+[segments.attributed]
+select_expression = 'max(eligible_segment = TRUE)'
+data_source = "attribution_seg"
+
+[segments.non_attributed]
+select_expression = 'max(eligible_segment = FALSE)'
+data_source = "attribution_seg"
+
+## Data Sources
+[segments.data_sources.attribution_seg]
+from_expression = """
+    ( SELECT first_seen_date as submission_date
+            , client_id
+            , CASE WHEN adjust_network = 'Google Ads ACI'
+                        AND first_reported_country = 'DE'
+                        AND Locale = "de-DE"
+                        AND adjust_campaign = "Mozilla_FF_UAC_EU_DE_DE_AllGroups_Event7 (20264249408)"
+                        AND adjust_ad_group <> "DE Ad Group (150957842358)" THEN TRUE ELSE FALSE END AS eligible_segment
+      FROM moz-fx-data-shared-prod.fenix.firefox_android_clients
+      WHERE first_seen_date >= "2023-07-01"
+         AND metadata.reported_first_session_ping
+      GROUP BY 1, 2, 3
+    )
+    """
