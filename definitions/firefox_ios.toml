@@ -62,7 +62,7 @@ description = """
     Whenever possible, this is the preferred DAU reporting definition to use for Firefox iOS.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
     it is similar to a "days of use" metric, and not DAU.
-    
+
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
@@ -81,7 +81,7 @@ description = """
     exists only for cases where reporting `client_id` is required (e.g. for experiments). This metric
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
-    
+
     For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
@@ -193,7 +193,7 @@ select_expression = """
           AND event.name = 'contile_impression'
       ),0)
 """
-data_source = "events"   
+data_source = "events"
 friendly_name = "Sponsored Tiles Impressions"
 description = "Number of times Contile Sponsored Tiles are shown."
 owner = "xluo-all@mozilla.com"
@@ -205,13 +205,13 @@ select_expression = """
           AND event.name = 'contile_click'
       ),0)
 """
-data_source = "events" 
+data_source = "events"
 friendly_name = "Sponsored Tiles Clicks"
 description = "Number of times user clicked a Contile Sponsored Tile."
 owner = "xluo-all@mozilla.com"
 
 [metrics.spoc_tiles_preference_toggled]
-select_expression = """   
+select_expression = """
   COALESCE(SUM(CASE WHEN
           event.category = 'preferences'
           AND event.name = 'changed'
@@ -219,7 +219,7 @@ select_expression = """
 	THEN 1 ELSE 0 END
   ),0)
 """
-data_source = "events" 
+data_source = "events"
 bigger_is_better = false
 friendly_name = "Sponsored Tiles Preference Toggled"
 description = "Number of times Contile Sponsored Tiles setting is flipped."
@@ -227,10 +227,38 @@ owner = "xluo-all@mozilla.com"
 
 [metrics.new_profile_activation]
 select_expression = "COALESCE(SUM(activated))"
-data_source = "new_profile_activation" 
+data_source = "new_profile_activation"
 friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
 owner = "vsabino@mozilla.com"
+
+[metrics.turn_on_notifications_onboarding]
+select_expression = "COALESCE(SUM(turn_on_notifications_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Turn on Notification Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and clicked the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.set_to_default_onboarding]
+select_expression = "COALESCE(SUM(set_to_default_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Set to Default Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and clicked the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.sign_in_onboarding]
+select_expression = "COALESCE(SUM(sign_in_flag))"
+data_source = "special_onboarding_events"
+friendly_name = "Sign in Rate"
+description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and clicked the action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
+
+[metrics.at_least_1_cta_onboarding]
+select_expression = "COALESCE(SUM(at_least_1_cta))"
+data_source = "special_onboarding_events"
+friendly_name = "Completed at least one CTA"
+description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
+owner = "rbaffourawuah@mozilla.com"
 
 
 [data_sources]
@@ -310,7 +338,7 @@ build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_
 [data_sources.mobile_search_clients_engines_sources_daily]
 from_expression = """(
     SELECT *
-    FROM `mozdata.search.mobile_search_clients_engines_sources_daily` 
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
     WHERE os = "iOS" AND normalized_app_name = "Fennec"
 )"""
 experiments_column_type = "simple"
@@ -321,3 +349,60 @@ submission_date_column = "submission_date"
 from_expression = "`moz-fx-data-shared-prod.firefox_ios.new_profile_activation`"
 experiments_column_type = "none"
 
+[data_sources.special_onboarding_events]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) then 1
+           when (conv.set_to_default = 0 AND expo.set_to_default_card >= 1) then 0 else null end as set_to_default_flag
+    , case when (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) then 1
+           when (conv.turn_on_notifications = 0 AND expo.turn_on_notifications_card >= 1) then 0 else null end as turn_on_notifications_flag
+    , case when (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
+           when (conv.sign_in = 0 AND expo.sign_in_card >= 1) then 0 else null end as sign_in_flag
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1)then 1
+           when (conv.set_to_default = 0 AND conv.turn_on_notifications = 0 AND conv.sign_in = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta
+
+FROM (
+      SELECT
+            client_info.client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+            , count(case when ext.value = "default-browser" then DATE(submission_timestamp) END) as set_to_default_card
+            , count(case when ext.value in ( "notification-permissions", "notificationPermission", "notificationPermissions") then DATE(submission_timestamp) END) as turn_on_notifications_card
+            , count(case when ext.value in ("sign-to-sync", "signToSync") then DATE(submission_timestamp) END) as sign_in_card
+      FROM
+        `mozdata.org_mozilla_ios_firefox.events` tm
+      CROSS JOIN
+        UNNEST(events) AS event
+      CROSS JOIN
+        UNNEST(event.extra) AS ext
+      WHERE event.name = "card_view" AND event.category = "onboarding" AND ext.key ="card_type"
+        AND ext.value in ("default-browser", "notification-permissions", "sign-to-sync", "signToSync", "notificationPermission", "notificationPermissions")
+        -- Ask if any of the CTAs we care about are shown on wallpaper, welcome, pin card
+        -- if so that will make the logic a bit complex
+        -- Also ask if the different variation mean the same thing and ask engineers to standardize
+      AND DATE(submission_timestamp) >= "2023-06-01"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_info.client_id as client_id
+            , count(case when ext.value = "set-default-browser" then DATE(submission_timestamp) END) as set_to_default
+            , count(case when ext.value = "request-notifications" then DATE(submission_timestamp) END) as turn_on_notifications
+            , count(case when ext.value = "sync-sign-in" then DATE(submission_timestamp) END) as sign_in
+  FROM
+    `mozdata.org_mozilla_ios_firefox.events` tm
+  CROSS JOIN
+     UNNEST(events) AS event
+  CROSS JOIN
+     UNNEST(event.extra) AS ext
+  WHERE event.category = "onboarding" AND event.name = "primary_button_tap"  AND ext.key ="button_action"
+    AND ext.value in ("set-default-browser", "request-notifications", "open-default-browser-popup", "sync-sign-in")
+    -- "open-default-browser-popup" the same as "set-default-browser"??
+  AND DATE(submission_timestamp) >= "2023-06-01"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3, 4, 5, 6
+)"""
+experiments_column_type = "none"
