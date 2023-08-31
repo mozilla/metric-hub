@@ -13,10 +13,10 @@ end_date = "2023-07-26"
 [metrics] 
 
 overall = [
-   'turn_on_notifications_onboarding',
-   'set_to_default_onboarding',
-   'sign_in_onboarding',
-   'at_least_1_cta_onboarding'
+   'turn_on_notifications_ctr_onboarding',
+   'set_to_default_ctr_onboarding',
+   'sign_in_ctr_onboarding',
+   'at_least_1_cta_ctr_onboarding'
 ]
 
 ## SEGMENTS
