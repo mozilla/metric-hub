@@ -19,6 +19,11 @@ overall = [
    'at_least_1_cta_ctr_onboarding'
 ]
 
+[metrics.turn_on_notifications_ctr_onboarding.statistics.binomial]
+[metrics.set_to_default_ctr_onboarding.statistics.binomial]
+[metrics.sign_in_ctr_onboarding.statistics.binomial]
+[metrics.at_least_1_cta_ctr_onboarding.statistics.binomial]
+
 ## SEGMENTS
 # A segment for users that were acquired through ctd creatives
 # first run feature.
