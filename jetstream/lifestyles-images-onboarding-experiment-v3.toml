@@ -44,3 +44,4 @@ from_expression = """
       GROUP BY 1, 2, 3
     )
     """
+
