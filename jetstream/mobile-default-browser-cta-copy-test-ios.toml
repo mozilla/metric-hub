@@ -4,13 +4,7 @@
 name = "shown_default_browser_message"
 friendly_name = "Shown Default Browser Message"
 description = "Whether or not the client was shown the default-browser message at least once"
-select_expression = """(
-COALESCE(LOGICAL_OR(
-  category = 'messaging' 
-  AND name = 'shown'
-  AND mozfun.map.get_key(extra, 'message_key') = 'default-browser'
-), false)
-)"""
+select_expression = "category = 'messaging' AND name = 'shown' AND mozfun.map.get_key(extra, 'message_key') = 'default-browser'"
 data_source = "events_unnested"
 #window_end = "analysis_window_end"
 
