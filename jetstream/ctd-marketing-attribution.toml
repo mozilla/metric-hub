@@ -218,4 +218,4 @@ from_expression = """(
 )"""
 description = "Onboarding CTAs"
 friendly_name = "Onboarding CTAs CTR base"
-experiments_column_type = "glean"
+experiments_column_type = "none"
