@@ -19,6 +19,10 @@ weekly = ['new_profile_activation', 'turn_on_notifications_ctr_onboarding', 'set
 overall = ['new_profile_activation', 'turn_on_notifications_ctr_onboarding', 'set_to_default_ctr_onboarding', 'sign_in_ctr_onboarding', 'at_least_1_cta_ctr_onboarding']
 
 [metrics.new_profile_activation.statistics.binomial]
+[metrics.turn_on_notifications_ctr_onboarding.statistics.binomial]
+[metrics.set_to_default_ctr_onboarding.statistics.binomial]
+[metrics.sign_in_ctr_onboarding.statistics.binomial]
+[metrics.at_least_1_cta_ctr_onboarding.statistics.binomial]
 
 
 
