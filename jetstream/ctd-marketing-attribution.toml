@@ -40,6 +40,30 @@ data_source = "special_onboarding_events"
 ## Data Sources
 [data_sources.special_onboarding_events]
 from_expression = """(
+  SELECT ctas.*, base.experiment
+  FROM (
+    SELECT base.client_info.client_id
+      , base.ping_info.experiments
+      , DATE(date_seen) AS date_seen
+FROM firefox_desktop.metrics base
+INNER JOIN (
+  SELECT
+   client_info.client_id
+  ,  min(submission_timestamp) date_seen
+  FROM
+    firefox_desktop.metrics
+  WHERE
+    DATE(submission_timestamp) >= '2023-06-27'
+    AND `mozfun.map.get_key`(ping_info.experiments, 'ctd-marketing-attribution') is not null
+    AND metadata.geo. country = "DE"
+  group by 1
+) dt
+ON base.client_info.client_id = dt.client_id
+AND base.submission_timestamp = dt.date_seen
+where  DATE(base.submission_timestamp) >= '2023-06-27'
+AND base.metadata.geo.country = "DE"
+  ) base
+INNER JOIN (
   SELECT
     expo.submission_date,
     expo.client_id,
@@ -214,7 +238,8 @@ from_expression = """(
     3,
     4,
     5,
-    6
+    6) ctas
+ON base.client_id = ctas.client_id
 )"""
 description = "Onboarding CTAs"
 friendly_name = "Onboarding CTAs CTR base"
