@@ -1,0 +1,221 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+
+start_date = "2023-07-17"
+
+enrollment_end_date = "2023-08-02"
+
+end_date = "2023-08-30"
+
+#reference_branch = "control"
+
+## Metrics
+
+[metrics]
+
+weekly = ['pin_onboarding', 'set_to_default_onboarding', 'import_onboarding', 'at_least_1_cta_onboarding']
+
+overall = ['pin_onboarding', 'set_to_default_onboarding', 'import_onboarding', 'at_least_1_cta_onboarding']
+
+[metrics.import_onboarding]
+select_expression = "COALESCE(SUM(import_flag))"
+data_source = "special_onboarding_events"
+[metrics.import_onboarding.statistics.binomial]
+
+[metrics.set_to_default_onboarding]
+select_expression = "COALESCE(SUM(set_to_default_flag))"
+data_source = "special_onboarding_events"
+[metrics.set_to_default_onboarding.statistics.binomial]
+
+[metrics.pin_onboarding]
+select_expression = "COALESCE(SUM(pin_flag))"
+data_source = "special_onboarding_events"
+[metrics.pin_onboarding.statistics.binomial]
+
+[metrics.at_least_1_cta_onboarding]
+select_expression = "COALESCE(SUM(at_least_1_cta))"
+data_source = "special_onboarding_events"
+[metrics.at_least_1_cta_onboarding.statistics.binomial]
+
+## Data Sources
+[data_sources.special_onboarding_events]
+from_expression = """(
+  SELECT
+    expo.submission_date,
+    expo.client_id,
+    case
+      when (
+        conv.set_to_default >= 1
+        AND expo.set_to_default_card >= 1
+      ) then 1
+      when (
+        conv.set_to_default = 0
+        AND expo.set_to_default_card >= 1
+      ) then 0
+      else null
+    end as set_to_default_flag,
+    case
+      when (
+        conv.pin >= 1
+        AND expo.pin_card >= 1
+      ) then 1
+      when (
+        conv.pin = 0
+        AND expo.pin_card >= 1
+      ) then 0
+      else null
+    end as pin_flag,
+    case
+      when (
+        conv.import >= 1
+        AND expo.import_card >= 1
+      ) then 1
+      when (
+        conv.import = 0
+        AND expo.import_card >= 1
+      ) then 0
+      else null
+    end as import_flag,
+    case
+      when (
+        conv.set_to_default >= 1
+        AND expo.set_to_default_card >= 1
+      )
+      OR (
+        conv.pin >= 1
+        AND expo.pin_card >= 1
+      )
+      OR (
+        conv.import >= 1
+        AND expo.import_card >= 1
+      ) then 1
+      when (
+        conv.set_to_default = 0
+        AND conv.pin = 0
+        AND conv.import = 0
+      )
+      AND (
+        set_to_default_card >= 1
+        OR pin_card >= 1
+        OR import_card >= 1
+      ) then 0
+      else null
+    end as at_least_1_cta
+  FROM
+    (
+      SELECT
+        client_id,
+        min(DATE(submission_timestamp)) as submission_date,
+        count(
+          case
+            -- all the different screens with set to default CTAs
+            when (
+              message_id LIKE '%AW_EASY_SETUP%'
+              OR message_id LIKE '%AW_SET_DEFAULT%'
+              OR message_id LIKE '%AW_ONLY_DEFAULT%'
+            ) then DATE(submission_timestamp)
+          END
+        ) as set_to_default_card,
+        count(
+          case
+            when message_id LIKE '%AW_PIN_FIREFOX%' then DATE(submission_timestamp)
+          END
+        ) as pin_card,
+        count(
+          case
+            when (
+              message_id LIKE '%AW_EASY_SETUP%'
+              OR message_id LIKE '%AW_IMPORT_SETTINGS%'
+            ) then DATE(submission_timestamp)
+          END
+        ) as import_card
+      FROM
+        `moz-fx-data-shared-prod.messaging_system.onboarding`
+      WHERE
+        event = "IMPRESSION"
+        AND release_channel = 'release'
+        AND message_id LIKE 'CTD-%'
+        AND DATE(submission_timestamp) >= "2023-07-12"
+      GROUP BY
+        1
+    ) expo
+    LEFT JOIN (
+      SELECT
+        client_id,
+        count(
+          case
+            -- all the different ways of setting to default
+            when (
+              (
+                (
+                  message_id LIKE '%AW_SET_DEFAULT%'
+                  OR message_id LIKE '%AW_ONLY_DEFAULT%'
+                )
+                AND event = 'CLICK_BUTTON'
+                AND event_context LIKE '%primary_button%'
+              )
+              OR (
+                message_id LIKE '%AW_EASY_SETUP%'
+                AND event = 'SELECT_CHECKBOX'
+                AND event_context LIKE '%checkbox-1%'
+              )
+            ) then DATE(submission_timestamp)
+          END
+        ) as set_to_default,
+        count(
+          case
+            when (
+              message_id LIKE '%AW_PIN_FIREFOX%'
+              AND event = 'CLICK_BUTTON'
+              AND event_context LIKE '%primary_button%'
+            ) then DATE(submission_timestamp)
+          END
+        ) as pin,
+        count(
+          case
+            -- all the different ways of opening the import wizard
+            when (
+              (
+                message_id LIKE '%AW_IMPORT_SETTINGS%'
+                AND event = 'CLICK_BUTTON'
+                AND event_context LIKE '%primary_button%'
+              )
+              OR (
+                message_id LIKE '%AW_EASY_SETUP%'
+                AND event = 'SELECT_CHECKBOX'
+                AND event_context LIKE '%checkbox-2%'
+              )
+            ) then DATE(submission_timestamp)
+          END
+        ) as import
+      FROM
+        `moz-fx-data-shared-prod.messaging_system.onboarding`
+      WHERE
+        (
+          message_id LIKE '%AW_SET_DEFAULT%'
+          OR message_id LIKE '%AW_ONLY_DEFAULT%'
+          OR message_id LIKE '%AW_EASY_SETUP%'
+          OR message_id LIKE '%AW_PIN_FIREFOX%'
+          OR message_id LIKE '%AW_IMPORT_SETTINGS%'
+        )
+        AND (
+          event = 'CLICK_BUTTON'
+          OR event = 'SELECT_CHECKBOX'
+        )
+        AND release_channel = 'release'
+        AND message_id LIKE 'CTD-%'
+        AND DATE(submission_timestamp) >= "2023-07-12"
+      GROUP BY
+        1
+    ) conv ON expo.client_id = conv.client_id
+  GROUP BY
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+)"""
+description = "Onboarding CTAs"
+friendly_name = "Onboarding CTAs CTR base"
+experiments_column_type = "none"
