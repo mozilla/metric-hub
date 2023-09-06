@@ -78,7 +78,12 @@ description = "OS like 'Windows', 'Mac', 'Linux'"
 [data_sources]
 
 [data_sources.messaging_system]
-from_expression = "mozdata.firefox_desktop.messaging_system"
+from_expression = """(
+    SELECT *
+    FROM mozdata.firefox_desktop.messaging_system
+    WHERE
+      COALESCE(normalized_channel, "Other") <> "Other"
+    )"""
 submission_date_column = "DATE(submission_timestamp)"
 # Not sure that this would be helpful to include
 #build_id_column = "client_info.app_build"
