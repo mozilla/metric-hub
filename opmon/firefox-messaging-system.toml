@@ -38,10 +38,10 @@ dimensions = ["normalized_channel", "normalized_os"]
 friendly_name = "Ping Volume by Ping Type"
 description = """\
   The volume of 'messaging-system' pings broken down by `messaging_system.ping_type`.\
-  Currently supported: 'undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', NULL, and 'other'.\
+  Currently supported: 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', NULL, and 'other'.\
+  'undesired-event' can be found in its own plot.\
   """
 metrics = [
-  "undesired_events_ping_volume",
   "whats_new_panel_ping_volume",
   "moments_ping_volume",
   "infobar_ping_volume",
