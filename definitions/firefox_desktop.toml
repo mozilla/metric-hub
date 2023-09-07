@@ -1056,6 +1056,75 @@ Whether or not the client had a newtab search OR a pocket click OR a tile click.
 
 ########################### END OF NEW TAB METRICS ########################### 
 
+########################### START OF FRECENCY METRICS ##########################
+
+[metrics.urlbar_autofill_deletion]
+data_source = "main"
+select_expression = "SUM(COALESCE(payload.processes.parent.scalars.urlbar_autofill_deletion, 0))"
+friendly_name = "Urlbar Autofill Deletions"
+type = "scalar"
+description = """
+Count of the number of times the user has backspaced an autofill suggestion. 
+"""
+
+[metrics.autofill_impressions_origin]
+data_source = "main"
+select_expression = "SUM(COALESCE(payload.processes.parent.scalars.urlbar_impression_autofill_origin, 0))"
+friendly_name = "Urlbar Autofill Origin Impressions"
+type = "scalar"
+description = """
+Count of autofill origin impressions of results displayed in the urlbar when the user picks a result.
+"""
+
+[metrics.autofill_impressions_url]
+data_source = "main"
+select_expression = "SUM(COALESCE(payload.processes.parent.scalars.urlbar_impression_autofill_url, 0))"
+friendly_name = "Urlbar Autofill URL Impressions"
+type = "scalar"
+description = """
+Count of autofill url impressions of results displayed in the urlbar when the user picks a result.
+"""
+
+[metrics.autofill_impressions_other]
+data_source = "main"
+select_expression = "SUM(COALESCE(payload.processes.parent.scalars.urlbar_impression_autofill_other, 0))"
+friendly_name = "Urlbar Autofill URL Impressions"
+type = "scalar"
+description = """
+Count of autofill other impressions of results displayed in the urlbar when the user picks a result. This is a fallback that is used when the code is not properly setting a specific autofill type. If it shows up we should investigate.
+"""
+
+[metrics.urlbar_engagement]
+data_source = "main"
+select_expression = "SUM(COALESCE(payload.processes.parent.scalars.urlbar_engagement, 0))"
+friendly_name = "Urlbar Engagement (Legacy)"
+type = "scalar"
+description = """
+Count of the number of times the user has engaged with a suggestion of any kind.
+"""
+
+
+[metrics.urlbar_picked_autofill_origin]
+data_source = "main"
+select_expression = "mozfun.map.get_key(payload.processes.parent.keyed_scalars.urlbar_picked_autofill_origin, '0')"
+friendly_name = "Urlbar Engagement (Legacy)"
+type = "scalar"
+description = """
+Count of the number of times the user has selected an autofill origin result.
+"""
+
+[metrics.urlbar_engagement_glean]
+data_source = "urlbar_events"
+select_expression = "mozfun.map.get_key(payload.processes.parent.keyed_scalars.urlbar_picked_autofill_origin, '0')"
+friendly_name = "Urlbar Engagement (Legacy)"
+type = "scalar"
+description = """
+Count of the number of times the user has selected an autofill origin result.
+"""
+
+########################### END OF FRECENCY METRICS ########################### 
+
+
 [metrics.imported_bookmarks]
 data_source = "clients_daily"
 select_expression = "LOGICAL_OR(bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0)"
@@ -1292,7 +1361,16 @@ experiments_column_type = "native"
 friendly_name = "Activity Stream Events"
 description = "Activity Stream Event pings"
 
-
+[data_sources.urlbar_events]
+from_expression = """(
+    SELECT
+        *
+    FROM mozdata.telemetry.events
+    WHERE event_category = 'urlbar'
+)"""
+experiments_column_type="native"
+friendly_name = "Urlbar Events"
+description = "Urlbar Events"
 
 [segments]
 
