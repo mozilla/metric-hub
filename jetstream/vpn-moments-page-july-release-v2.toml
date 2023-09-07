@@ -15,7 +15,7 @@ WHERE
     AND e.submission_date
         BETWEEN '2023-07-24' AND '2023-08-07'
     AND e.event_string_value = 'vpn-moments-page-july-release-v2'
-    AND e.sample_id <= 10
+    AND e.sample_id < 10
 GROUP BY e.client_id, branch
 '''
 
