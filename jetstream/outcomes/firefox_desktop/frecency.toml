@@ -1,0 +1,26 @@
+friendly_name = "Frecency"
+description = """
+Usage and engagement metrics for the frecency algorithm. 
+"""
+
+
+[metrics.urlbar_autofill_deletion.bootstrap_mean]
+[metrics.urlbar_autofill_deletion.statistics.deciles]
+
+[metrics.autofill_impressions_origin.bootstrap_mean]
+[metrics.autofill_impressions_origin.deciles]
+
+[metrics.autofill_impressions_url.bootstrap_mean]
+[metrics.autofill_impressions_url.deciles]
+
+[metrics.autofill_impressions_other.bootstrap_mean]
+[metrics.autofill_impressions_other.deciles]
+
+[metrics.urlbar_engagement.bootstrap_mean]
+[metrics.urlbar_engagement.deciles]
+
+[metrics.urlbar_picked_autofill_origin.bootstrap_mean]
+[metrics.urlbar_picked_autofill_origin.deciles]
+
+[metrics.urlbar_engagement_glean.bootstrap_mean]
+[metrics.urlbar_engagement_glean.deciles]
