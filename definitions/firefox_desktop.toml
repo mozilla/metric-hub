@@ -1147,11 +1147,29 @@ Whether or not Pocket Sponsored Stories is enabled on the New Tab.
 
 [metrics.newtab_engagement]
 data_source = "newtab_interactions"
-select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR topsite_clicks > 0 then 1 else 0 end), 0)"
+select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR topsite_clicks > 0 OR organic_topsite_clicks > 0 then 1 else 0 end), 0)"
 friendly_name = "Newtab Engagement"
 type = "scalar"
 description = """
 Whether or not the client had a newtab search OR a pocket click OR a tile click.
+"""
+
+[metrics.newtab_organic_topsite_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_topsite_clicks, 0))"
+friendly_name = "Newtab Organic Tile Clicks"
+type = "scalar"
+description = """
+Count of New Tab organic tile clicks.
+"""
+
+[metrics.newtab_organic_topsite_impressions]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_topsite_impressions, 0))"
+friendly_name = "Newtab Organic Tile Impressions"
+type = "scalar"
+description = """
+Count of New Tab organic tile impressions.
 """
 
 ########################### END OF NEW TAB METRICS ########################### 
