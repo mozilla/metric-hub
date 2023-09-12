@@ -1404,6 +1404,7 @@ description = "Events Ping"
 
 [data_sources.newtab_interactions]
 from_expression = "mozdata.telemetry.newtab_interactions"
+client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 submission_date_column = "submission_date"
 description = "New Tab Interactions"
@@ -1540,6 +1541,7 @@ window_end = 0
 
 [segments.data_sources.newtab_interactions]
 from_expression = "mozdata.telemetry.newtab_interactions"
+client_id = "legacy_telemetry_client_id"
 window_start = 0
 window_end = 0
 
