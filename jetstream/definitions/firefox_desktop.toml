@@ -83,3 +83,5 @@ pre_treatments = ["remove_nulls"]
 pre_treatments = ["remove_nulls"]
 
 [metrics.fxa_signed_in.statistics.binomial]
+
+[metrics.separate_search_engine.statistics.binomial]
