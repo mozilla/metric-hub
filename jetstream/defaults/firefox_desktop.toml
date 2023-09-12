@@ -21,7 +21,6 @@ overall = [
   "organic_search_count",
   "search_count",
   "searches_with_ads",
-  "separate_search_engine",
   "tagged_search_count",
   "tagged_follow_on_search_count",
   "uri_count",
