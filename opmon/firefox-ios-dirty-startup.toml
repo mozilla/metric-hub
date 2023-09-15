@@ -11,6 +11,9 @@ data_source = "baseline_v2"
 monitor_entire_population = true
 dimensions = ["channel"]
 
+[metrics.dirty_startup.statistics]
+sum = {}
+
 [dimensions.channel]
 data_source = "baseline_v2"
 select_expression = "client_info.app_channel"
