@@ -1,0 +1,18 @@
+[project]
+
+name = "Firefox iOS Dirty Startup"
+platform = "firefox_ios"
+xaxis = "submission_date"
+start_date = "2022-01-01"
+metrics = ['dirty_startup']
+
+[project.population]
+data_source = "baseline_v2"
+monitor_entire_population = true
+dimensions = ["channel"]
+
+[dimensions.channel]
+data_source = "baseline_v2"
+select_expression = "client_info.app_channel"
+friendly_name = "Channel"
+description = "Release channel, like 'release', 'beta', 'nightly', 'esr', 'devedition'."
