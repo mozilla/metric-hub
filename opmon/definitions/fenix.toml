@@ -29,6 +29,9 @@ percentile = { percentiles = [25, 50, 75, 95] }
 [metrics.performance_pageload_load_time_responsestart.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
+[metrics.performance_page_non_blank_paint.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
 
 [metrics.performance_pageload_req_anim_frame_callback.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
