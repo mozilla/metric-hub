@@ -1,0 +1,15 @@
+[project]
+
+name = "Android Add Ons Extension Process"
+platform = "fenix"
+metrics = [
+  "storage_stats_app_bytes",
+  "storage_stats_cache_bytes",
+  "storage_stats_data_dir_bytes",
+  "performance_page_non_blank_paint"
+]
+
+[project.population]
+
+data_source = "baseline"
+channel = "nightly"
