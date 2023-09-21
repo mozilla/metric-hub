@@ -1,0 +1,15 @@
+friendly_name = "New Tab Search"
+description = """
+    Measures interactions with search on the New Tab.
+"""
+
+[metrics.newtab_searches.statistics.bootstrap_mean]
+[metrics.newtab_searches.statistics.deciles]
+
+[metrics.newtab_searches_with_ads.statistics.bootstrap_mean]
+[metrics.newtab_searches_with_ads.statistics.deciles]
+
+[metrics.newtab_ad_clicks.statistics.bootstrap_mean]
+[metrics.newtab_ad_clicks.statistics.deciles]
+
+[metrics.newtab_ad_click_rate.deciles]

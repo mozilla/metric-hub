@@ -1046,7 +1046,7 @@ description = """
 Count of clicks on Organic Pocket content.
 """
 
-[metrics.sponsered_pocket_clicks]
+[metrics.sponsored_pocket_clicks]
 data_source = "newtab_interactions"
 select_expression = "SUM(COALESCE(sponsored_pocket_clicks, 0))"
 friendly_name = "Sponsored Pocket Clicks"
