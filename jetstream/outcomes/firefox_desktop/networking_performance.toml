@@ -1,5 +1,5 @@
 friendly_name = "Networking Performance"
-description = "Network layer performance metrics"
+description = "Network layer performance metrics (subset of Networking outcome without tls and error metrics)"
 
 [metrics.dns_lookup_time]
 select_expression = '{{agg_histogram_mean("payload.histograms.dns_lookup_time")}}'
