@@ -3,7 +3,7 @@
 name = "Garbage Collection"
 platform = "firefox_desktop"
 xaxis = "submission_date"
-start_date = "2023-10-07"
+start_date = "2023-09-07"
 skip = false
 is_rollout = false
 skip_default_metrics = true
@@ -22,8 +22,7 @@ alerts = [
 [project.population]
 
 data_source = "main"
-# channel = "release"
-channel = "beta"
+channel = "release"
 monitor_entire_population = true
 dimensions = ["os"]
 
