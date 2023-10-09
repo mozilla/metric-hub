@@ -29,3 +29,6 @@ data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS int)'
 
 [metrics.is_synced.statistics.binomial]
+
+[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']
