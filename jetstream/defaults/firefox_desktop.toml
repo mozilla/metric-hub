@@ -1,7 +1,7 @@
 # This defines the default metrics and statistics calculated for each experiment
 
 [metrics]
-daily = ["retained", "unenroll"]
+daily = ["retained", "unenroll", "client_level_daily_active_users_v1"]
 
 weekly = [
   "active_hours",
@@ -12,6 +12,7 @@ weekly = [
   "search_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
+  "client_level_daily_active_users_v1",
 ]
 
 overall = [
@@ -26,6 +27,7 @@ overall = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
+  "client_level_daily_active_users_v1",
 ]
 
 
