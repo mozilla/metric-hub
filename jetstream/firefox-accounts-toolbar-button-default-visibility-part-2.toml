@@ -21,7 +21,7 @@ GROUP BY e.client_id, branch
 
 [metrics]
 
-overall = ['is_synced', 'client_level_daily_active_users_v1']
+overall = ['is_synced']
 weekly = ['is_synced']
 
 [metrics.is_synced]
