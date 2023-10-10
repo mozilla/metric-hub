@@ -260,6 +260,77 @@ friendly_name = "Clicked at least one CTA"
 description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
+[metrics.impressions]
+data_source = "appstore_funnel"
+select_expression = "SUM(impressions)"
+type = "scalar"
+friendly_name = "Firefox iOS appstore impressions"
+description = """
+    This is the number of unique impressions of firefox browser in iOS appstore. The etl of the base table is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/app_store_funnel_v1/query.sql).
+    This metric needs to be aggregated by `first_seen_date` (date column from the data recieved from appstore) for daily aggregation. The underlying table have a lag of 7 days.
+    For questions please contact "rbaffourawuah@mozilla.com".
+"""
+owner = "rbaffourawuah@mozilla.com"
+deprecated = false
+
+[metrics.downloads]
+data_source = "appstore_funnel"
+select_expression = "SUM(total_downloads)"
+type = "scalar"
+friendly_name = "Firefox iOS appstore downloads"
+description = """
+    This is the total number of downloads of firefox browser in iOS appstore. The etl of the base table is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/app_store_funnel_v1/query.sql).
+    This metric needs to be aggregated by `first_seen_date` (date column from the data recieved from appstore) for daily aggregation. The underlying table have a lag of 7 days.
+    For questions please contact "rbaffourawuah@mozilla.com".
+"""
+owner = "rbaffourawuah@mozilla.com"
+deprecated = false
+
+
+[metrics.funnel_new_profiles]
+data_source = "funnel_retention"
+select_expression = "SUM(new_profiles)"
+type = "scalar"
+friendly_name = "Firefox iOS funnel new profiles"
+description = """
+    This is the total number of new profiles created on a given date. We only count new profiles that came via release channel and we also filter out app version 107.2  data that was recieved after February 1st. The etl of the base table is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
+    For questions please contact "rbaffourawuah@mozilla.com".
+"""
+owner = "rbaffourawuah@mozilla.com"
+deprecated = false
+
+[metrics.repeat_users]
+data_source = "funnel_retention"
+select_expression = "SUM(repeat_user)"
+type = "scalar"
+friendly_name = "Firefox iOS funnel repeat users"
+description = """
+    This is the total number of new profiles that visited more than once within their first 28 days. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
+    For questions please contact "rbaffourawuah@mozilla.com".
+"""
+owner = "rbaffourawuah@mozilla.com"
+deprecated = false
+
+[metrics.week_4_retained_users]
+data_source = "funnel_retention"
+select_expression = "SUM(retained_week_4)"
+type = "scalar"
+friendly_name = "Firefox iOS funnel week 4 retained users"
+description = """
+    This is the total number of new profiles that returned between between day 22 to day 28 after first seen. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
+    For questions please contact "rbaffourawuah@mozilla.com".
+"""
+owner = "rbaffourawuah@mozilla.com"
+deprecated = false
+
 
 [data_sources]
 
@@ -406,3 +477,23 @@ ON expo.client_id = conv.client_id
 GROUP BY 1, 2, 3, 4, 5, 6
 )"""
 experiments_column_type = "none"
+
+[data_sources.appstore_funnel]
+from_expression = """(
+    SELECT *
+     FROM `mozdata.firefox_ios.app_store_funnel`
+)"""
+friendly_name = "Appstore Funnel Metrics"
+description = "Top of the funnel metrics pulled from appstore api"
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.funnel_retention]
+from_expression = """(
+    SELECT *
+     FROM `mozdata.firefox_ios.funnel_retention_week_4`
+)"""
+friendly_name = "iOS Funnel Retention Metrics"
+description = "Bottom of the funnel metrics pulled from clients telemetry table"
+submission_date_column = "submission_date"
+client_id_column = "NULL"
