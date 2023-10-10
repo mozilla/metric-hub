@@ -1,0 +1,53 @@
+[project]
+
+name = "Garbage Collection"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-09-07"
+skip = false
+is_rollout = false
+skip_default_metrics = true
+compact_visualization = false
+
+metrics = [
+    "gc_ms",
+    "gc_budget_overrun",
+    "gc_effectiveness"
+]
+
+alerts = [
+    "historical_diff"
+]
+
+[project.population]
+
+data_source = "main"
+channel = "release"
+monitor_entire_population = true
+dimensions = ["os"]
+
+[metrics]
+
+[metrics.gc_effectiveness]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.gc_effectiveness) IGNORE NULLS)"
+friendly_name = "GC Effectiveness"
+description = "GC 'effectiveness', the amount of memory freed divided by main-thread collection time (MB/s)"
+category = "performance"
+type = "histogram"
+
+[metrics.gc_effectiveness.statistics]
+percentile = {}
+
+[alerts]
+
+[alerts.historical_diff]
+type = "avg_diff"
+metrics = [
+    "gc_ms",
+    "gc_budget_overrun",
+    "gc_effectiveness"
+]
+window_size = 7
+max_relative_change = 0.25
+percentiles = [25, 50, 75, 95]
