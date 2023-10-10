@@ -289,7 +289,7 @@ owner = "rbaffourawuah@mozilla.com"
 deprecated = false
 
 
-[metrics.new_profiles]
+[metrics.funnel_new_profiles]
 data_source = "funnel_retention"
 select_expression = "SUM(new_profiles)"
 type = "scalar"
