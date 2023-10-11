@@ -19,6 +19,7 @@ deprecated = false
 [data_sources.monitor_events_v1]
 from_expression = """(
     SELECT
+        DATE(submission_timestamp) AS submission_date,
         e.* EXCEPT (events),
         mozfun.map.get_key(event.extra, 'user_id') as client_id
     FROM
