@@ -21,7 +21,8 @@ from_expression = """(
     SELECT
         DATE(submission_timestamp) AS submission_date,
         e.* EXCEPT (events),
-        mozfun.map.get_key(event.extra, 'user_id') as client_id
+        mozfun.map.get_key(event.extra, 'user_id') as client_id,
+        event
     FROM
         `moz-fx-data-shared-prod.monitor_frontend.events` e
     CROSS JOIN
