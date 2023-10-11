@@ -5,7 +5,7 @@ end_date = "2023-10-10"
 
 [segments]
 [segments.clicked_card]
-select_expression = 'LOGICAL_OR(IF(event.category = "onboarding" AND event.name = "primary_button_tap" AND mozfun.map.get_key(event.extra, "sequence_position") = 1, TRUE, FALSE))'
+select_expression = 'LOGICAL_OR(IF(event.category = "onboarding" AND event.name = "primary_button_tap" AND mozfun.map.get_key(event.extra, "sequence_position") = "1", TRUE, FALSE))'
 data_source = 'events'
 window_start = 0
 window_end = 0
