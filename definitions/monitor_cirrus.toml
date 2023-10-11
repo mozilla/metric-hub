@@ -2,7 +2,9 @@
 
 [metrics.monitor_pageviews_v1]
 data_source = "monitor_events_v1"
-select_expression = "SUM(dau)"
+select_expression = """
+    COUNTIF(event.category = 'page' AND event.name = 'view')
+"""
 type = "scalar"
 friendly_name = "Monitor Page Views"
 description = """
@@ -18,7 +20,7 @@ deprecated = false
 from_expression = """(
     SELECT
         e.* EXCEPT (events),
-        mozfun.map.get_key(event.extras, 'user_id') as client_id
+        mozfun.map.get_key(event.extra, 'user_id') as client_id
     FROM
         `moz-fx-data-shared-prod.monitor_frontend.events` e
     CROSS JOIN
