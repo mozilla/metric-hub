@@ -24,7 +24,7 @@ from_expression = """(
     FROM
         `moz-fx-data-shared-prod.monitor_frontend.events` e
     CROSS JOIN
-    	UNNEST(p.events) AS event
+    	UNNEST(e.events) AS event
 )"""
 experiments_column_type = "glean"
 friendly_name = "Monitor Events"
