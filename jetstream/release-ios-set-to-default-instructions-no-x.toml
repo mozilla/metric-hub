@@ -1,3 +1,25 @@
 [experiment]
+segments = ["clicked_card"]
+end_date = "2023-10-10"
 
-end_date = "2023-08-15"
+
+[segments]
+[segments.clicked_card]
+select_expression = 'LOGICAL_OR(IF(event.category = "onboarding" AND event.name = "primary_button_tap" AND mozfun.map.get_key(event.extra, "sequence_position") = "1", TRUE, FALSE))'
+data_source = 'events'
+window_start = 0
+window_end = 0
+
+[segments.data_sources.events]
+from_expression = """(
+    SELECT
+        p.* EXCEPT (events),
+        DATE(p.submission_timestamp) AS submission_date,
+        event
+    FROM
+        `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` p
+    CROSS JOIN
+        UNNEST(p.events) AS event
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
