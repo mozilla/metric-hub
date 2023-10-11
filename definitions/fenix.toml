@@ -457,6 +457,7 @@ from_expression = """(
 )"""
 client_id_column = "client_info.client_id"
 experiments_column_type = "glean"
+submission_date_column = "submission_date"
 default_dataset = "fenix"
 friendly_name = "Baseline"
 description = "Baseline Ping"
