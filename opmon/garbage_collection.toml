@@ -28,8 +28,14 @@ dimensions = ["os"]
 
 [metrics]
 
+[metrics.gc_ms]
+data_source = "main_client_filtered"
+
+[metrics.gc_budget_overrun]
+data_source = "main_client_filtered"
+
 [metrics.gc_effectiveness]
-data_source = "main"
+data_source = "main_client_filtered"
 select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.gc_effectiveness) IGNORE NULLS)"
 friendly_name = "GC Effectiveness"
 description = "GC 'effectiveness', the amount of memory freed divided by main-thread collection time (MB/s)"
@@ -38,6 +44,23 @@ type = "histogram"
 
 [metrics.gc_effectiveness.statistics]
 percentile = {}
+
+[data_sources]
+
+# filter out clients that spam us with pings
+# otherwise aggregation fails with Cannot query rows larger than 100MB limit
+[data_sources.main_client_filtered]
+from_expression = """(
+    SELECT * FROM mozdata.telemetry.main_1pct 
+    WHERE client_id NOT IN (
+        SELECT client_id 
+        FROM population 
+        GROUP BY client_id 
+        HAVING COUNT(*) > 10000
+    )
+)
+"""
+submission_date_column = "DATE(submission_timestamp)"
 
 [alerts]
 
