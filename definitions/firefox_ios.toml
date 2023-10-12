@@ -367,7 +367,7 @@ from_expression = """(
     FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
 )"""
 client_id_column = "client_info.client_id"
-submission_date_column = "DATE(submission_timestamp)"
+submission_date_column = "submission_date"
 experiments_column_type = "glean"
 default_dataset = "firefox_ios"
 friendly_name = "Baseline"
