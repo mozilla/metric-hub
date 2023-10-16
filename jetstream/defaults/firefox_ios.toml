@@ -1,7 +1,20 @@
 [metrics]
-daily = ["retained"]
-weekly = ["retained", "active_hours", "days_of_use", "search_count", "serp_ad_clicks"]
-overall = ["active_hours", "days_of_use", "search_count", "serp_ad_clicks"]
+daily = ["retained", "client_level_daily_active_users_v1"]
+weekly = [
+    "retained",
+    "active_hours",
+    "days_of_use",
+    "search_count",
+    "serp_ad_clicks",
+    "client_level_daily_active_users_v1",
+]
+overall = [
+    "active_hours",
+    "days_of_use",
+    "search_count",
+    "serp_ad_clicks",
+    "client_level_daily_active_users_v1",
+]
 
 [metrics.retained]
 select_expression = "COALESCE(COUNT(document_id), 0) > 0"
@@ -40,3 +53,6 @@ data_source = "mobile_search_clients_engines_sources_daily"
 [metrics.serp_ad_clicks.statistics]
 deciles = {}
 bootstrap_mean = {}
+
+[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']

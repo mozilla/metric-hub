@@ -1,0 +1,12 @@
+[project]
+
+name = "Android Add Ons Extension Process Release Rollout"
+platform = "fenix"
+metrics = [
+  "performance_page_non_blank_paint"
+]
+
+[project.population]
+
+data_source = "baseline"
+channel = "release"
