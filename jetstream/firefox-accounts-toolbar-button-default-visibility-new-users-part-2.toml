@@ -1,10 +1,16 @@
 [metrics]
 
-overall = ['is_synced']
-weekly = ['is_synced']
+overall = ['is_synced', 'multi_device_signin']
+weekly = ['is_synced', 'multi_device_signin']
 
 [metrics.is_synced]
 data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS int)'
 
 [metrics.is_synced.statistics.binomial]
+
+[metrics.multi_device_signin]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(sync_count_desktop+sync_count_mobile), FALSE) AS int)'
+
+[metrics.multi_device_signin.statistics.binomial]
