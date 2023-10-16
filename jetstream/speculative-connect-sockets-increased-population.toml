@@ -1,0 +1,125 @@
+[experiment]
+
+## Metrics
+[metrics]
+
+overall = [
+    'dns_lookup_time',
+    'http_page_tls_handshake',
+    'http_sub_tls_handshake',
+    'http_page_open_to_first_sent',
+    'time_to_response_start_ms',
+    'perf_page_load_time_ms',
+    'perf_first_contentful_paint_ms',
+    'time_to_first_interaction_ms',
+    'input_event_response_ms',
+    'input_event_response_ms_parent',
+    'memory_total',
+]
+
+weekly = [
+    'dns_lookup_time',
+    'http_page_tls_handshake',
+    'http_sub_tls_handshake',
+    'http_page_open_to_first_sent',
+    'time_to_response_start_ms',
+    'perf_page_load_time_ms',
+    'perf_first_contentful_paint_ms',
+    'time_to_first_interaction_ms',
+    'input_event_response_ms',
+    'input_event_response_ms_parent',
+    'memory_total',
+]
+
+daily = []
+
+
+# Workaround because custom experiment configs do not currently support
+# overriding outcomes. Instead, we list out all of the metrics from the
+# outcomes on the experiment, and set the `select_expression` to a no-op
+# for metrics we don't want to compute.
+
+## Networking Performance (subset of Networking)
+[metrics.dns_lookup_time]
+[metrics.http_page_tls_handshake]
+[metrics.http_sub_tls_handshake]
+[metrics.http_page_open_to_first_sent]
+[metrics.time_to_response_start_ms]
+## the rest of Networking (skip)
+[metrics.cert_error_page_loaded]
+select_expression = 'SUM(0)'
+[metrics.cert_error_page_clicked]
+select_expression = 'SUM(0)'
+[metrics.http_transactions_using_tls]
+select_expression = 'SUM(0)'
+[metrics.http_pageloads_using_tls]
+select_expression = 'SUM(0)'
+[metrics.http_channels_success]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_cert_validation_time]
+select_expression = 'SUM(0)'
+[metrics.tls_failed_cert_validation_time]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_connections_overall]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_connections_with_ech]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_connections_with_ech_grease]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_first_try_connections]
+select_expression = 'SUM(0)'
+[metrics.tls_successful_conservative_connections]
+select_expression = 'SUM(0)'
+[metrics.quic_successful_connections_no_ech]
+select_expression = 'SUM(0)'
+[metrics.quic_successful_connections_ech_grease]
+select_expression = 'SUM(0)'
+[metrics.quic_successful_connections_ech_real]
+select_expression = 'SUM(0)'
+
+## Page Load Performance Minimal
+[metrics.perf_page_load_time_ms]
+[metrics.perf_first_contentful_paint_ms]
+[metrics.time_to_first_interaction_ms]
+[metrics.input_event_response_ms]
+[metrics.input_event_response_ms_parent]
+[metrics.memory_total]
+## the rest of Page Load Performance (skip)
+[metrics.js_pageload_execution_ms]
+select_expression = 'SUM(0)'
+[metrics.js_pageload_delazification_ms]
+select_expression = 'SUM(0)'
+[metrics.js_pageload_parse_ms]
+select_expression = 'SUM(0)'
+[metrics.js_pageload_protect_ms]
+select_expression = 'SUM(0)'
+[metrics.js_pageload_xdr_encoding_ms]
+select_expression = 'SUM(0)'
+[metrics.js_pageload_baseline_compile_ms]
+select_expression = 'SUM(0)'
+[metrics.gpu_keypress_present_latency]
+select_expression = 'SUM(0)'
+[metrics.fx_new_window_ms]
+select_expression = 'SUM(0)'
+[metrics.content_frame_time_vsync]
+select_expression = 'SUM(0)'
+[metrics.child_process_launch_ms]
+select_expression = 'SUM(0)'
+[metrics.checkerboard_severity]
+select_expression = 'SUM(0)'
+[metrics.checkerboard_severity_count_per_hour]
+select_expression = 'SUM(0)'
+[metrics.memory_unique_content_startup]
+select_expression = 'SUM(0)'
+[metrics.cycle_collector_max_pause]
+select_expression = 'SUM(0)'
+[metrics.cycle_collector_max_pause_content]
+select_expression = 'SUM(0)'
+[metrics.gc_ms]
+select_expression = 'SUM(0)'
+[metrics.gc_ms_content]
+select_expression = 'SUM(0)'
+[metrics.gc_slice_during_idle]
+select_expression = 'SUM(0)'
+[metrics.gc_slice_during_idle_content]
+select_expression = 'SUM(0)'
