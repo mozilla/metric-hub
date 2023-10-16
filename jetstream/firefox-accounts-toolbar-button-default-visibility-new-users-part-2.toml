@@ -11,6 +11,6 @@ select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS int)'
 
 [metrics.multi_device_signin]
 data_source = 'clients_daily'
-select_expression = 'CAST(COALESCE(LOGICAL_OR(sync_count_desktop_mean+sync_count_mobile_mean), FALSE) AS int)'
+select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean+sync_count_mobile_mean)>1), FALSE) AS int)'
 
 [metrics.multi_device_signin.statistics.binomial]
