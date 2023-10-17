@@ -1,4 +1,5 @@
 [experiment]
+sample_size = 50
 
 ## Metrics
 [metrics]
