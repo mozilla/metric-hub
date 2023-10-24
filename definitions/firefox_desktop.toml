@@ -1572,6 +1572,47 @@ description = """
     Clients with any sponsors in their newtab blocked sponsors list.
 """
 
+[segments.suggest]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest"
+description = "Clients who are opted into Firefox Suggest"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+), FALSE)"""
+
+[segments.suggest_offline]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest Offline"
+description = "Clients who are opted into the Firefox Suggest Offline experience"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+    AND NOT IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE)
+), FALSE)"""
+
+[segments.suggest_online]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest Online"
+description = "Clients who are opted into the Firefox Suggest Online experience (data sharing)"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+    AND IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE)
+), FALSE)"""
+
 
 [segments.data_sources]
 
