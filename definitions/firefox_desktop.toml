@@ -1319,7 +1319,7 @@ data_source = "clients_first_seen_v2"
 select_expression = "COUNT(*)"
 type = "scalar"
 friendly_name = "New Profiles"
-description = "The number of newly acquired Firefox Desktop clients. A client is newly acquired on the first date they appear in either of new profile, main or first shutdown pings based on submission date."
+description = "The number of newly acquired Firefox Desktop clients. A client is newly acquired on the first date they appear in either of new profile, main or first shutdown pings based on submission date"
 
 [dimensions]
 
