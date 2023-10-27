@@ -1314,6 +1314,13 @@ data_source = "search_clients_engines_sources_daily"
 friendly_name = "Split PBM search engine"
 description = "Indicates whether the client configured separate search engines for regular browsing and private browsing mode."
 
+[metrics.new_profiles_v1]
+data_source = "clients_first_seen_v2"
+select_expression = "COUNT(*)"
+type = "scalar"
+friendly_name = "New Profiles"
+description = "The number of newly acquired Firefox Desktop clients. A client is newly acquired on the first date they appear in either of new profile, main or first shutdown pings based on submission date"
+
 [dimensions]
 
 [dimensions.os]
@@ -1470,6 +1477,12 @@ from_expression = "mozdata.telemetry.sponsored_tiles_clients_daily"
 submission_date_column = "submission_date"
 description = "Sponsored Tiles Clients Daily"
 friendly_name = "Sponsored Tiles Clients Daily"
+
+[data_sources.clients_first_seen_v2]
+from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_first_seen_v2"  # TODO: Replace with view
+submission_date_column = "first_seen_date"
+description = "Clients First Seen V2"
+friendly_name = "Clients First Seen V2"
 
 
 [segments]
