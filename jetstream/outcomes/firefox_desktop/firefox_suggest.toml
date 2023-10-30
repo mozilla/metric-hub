@@ -29,11 +29,14 @@ friendly_name = "urlbar impressions"
 exposure_basis = ["exposures", "enrollments"]
 statistics = { deciles = {}, bootstrap_mean = {} }
 
+[metrics.urlbar_ctr]
+description = "Count of urlbar clicks divided by count of urlbar impressions. This is a `population-ratio` metric, not a client-level metric."
+friendly_name = "urlbar click-through rate (ctr)"
+depends_on = ["urlbar_clicks", "urlbar_impressions"]
+
 [metrics.urlbar_ctr.statistics.population_ratio]
 numerator = "urlbar_clicks"
 denominator = "urlbar_impressions"
-description = "Count of urlbar clicks divided by count of urlbar impressions. This is a `population-ratio` metric, not a client-level metric."
-friendly_name = "urlbar click-through rate (ctr)"
 
 [metrics.urlbar_annoyances]
 select_expression = "COUNT(DISTINCT(CASE WHEN event_action = 'annoyance' THEN event_id ELSE NULL END))"
