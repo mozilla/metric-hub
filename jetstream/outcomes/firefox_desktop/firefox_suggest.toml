@@ -29,7 +29,6 @@ friendly_name = "urlbar impressions"
 exposure_basis = ["exposures", "enrollments"]
 statistics = { deciles = {}, bootstrap_mean = {} }
 
-[metrics.urlbar_ctr]
 [metrics.urlbar_ctr.statistics.population_ratio]
 numerator = "urlbar_clicks"
 denominator = "urlbar_impressions"
