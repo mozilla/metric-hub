@@ -1486,8 +1486,9 @@ friendly_name = "Clients First Seen V2"
 
 [data_sources.urlbar_events]
 from_expression = """(
-    SELECT *
-     FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
+    SELECT * EXCEPT(experiments),
+      ARRAY(SELECT STRUCT(e.key, e.value.branch) FROM UNNEST(experiments) AS e) AS experiments
+    FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
 )"""
 friendly_name = "Urlbar Events"
 description = "Urlbar Events"
