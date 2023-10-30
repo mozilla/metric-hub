@@ -1484,6 +1484,17 @@ submission_date_column = "first_seen_date"
 description = "Clients First Seen V2"
 friendly_name = "Clients First Seen V2"
 
+[data_sources.urlbar_events]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
+)"""
+friendly_name = "Urlbar Events"
+description = "Urlbar Events"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+
+
 
 [segments]
 
