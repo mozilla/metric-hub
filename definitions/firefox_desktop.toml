@@ -1486,14 +1486,13 @@ friendly_name = "Clients First Seen V2"
 
 [data_sources.urlbar_events]
 from_expression = """(
-    SELECT * EXCEPT(experiments),
-      ARRAY(SELECT STRUCT(e.key, e.value.branch AS value) FROM UNNEST(experiments) AS e) AS experiments
-    FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
+    SELECT * FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
 )"""
 friendly_name = "Urlbar Events"
 description = "Urlbar Events"
 submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 
 
