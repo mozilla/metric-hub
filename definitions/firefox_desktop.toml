@@ -1575,7 +1575,7 @@ description = """
 [segments.suggest]
 data_source = "clients_daily"
 friendly_name = "Clients in Firefox Suggest"
-description = "Clients who are opted into Firefox Suggest"
+description = "Clients who are eligible for Firefox Suggest"
 select_expression = """COALESCE(LOGICAL_AND(
     locale LIKE 'en%'
     AND country = 'US'
