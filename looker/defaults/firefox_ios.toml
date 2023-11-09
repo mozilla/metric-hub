@@ -1,0 +1,5 @@
+[metrics.uri_count.statistics.mean]
+[metrics.uri_count.statistics.dau_proportion]
+[metrics.uri_count.statistics.client_count]
+
+[metrics.days_of_use.statistics.sum]

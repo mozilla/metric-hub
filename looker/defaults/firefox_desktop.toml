@@ -1,0 +1,8 @@
+[metrics.uri_count.statistics.mean]
+[metrics.uri_count.statistics.dau_proportion]
+[metrics.uri_count.statistics.client_count]
+
+[metrics.ad_clicks.statistics.binned_users]
+[metrics.ad_clicks.statistics.sum]
+[metrics.ad_clicks.statistics.rolling_average]
+time_frame = 7 days
