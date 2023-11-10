@@ -1494,6 +1494,21 @@ submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
+[data_sources.urlbar_events_unnested_results]
+from_expression = """(
+    SELECT
+        e.* EXCEPT (results),
+        result
+    FROM
+        `moz-fx-data-shared-prod.firefox_desktop.urlbar_events` e
+    CROSS JOIN
+        UNNEST(e.results) AS result
+)"""
+friendly_name = "Urlbar Events with Unnested Results"
+description = "Urlbar Events table with the list of displayed results unnested"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 
 [segments]
