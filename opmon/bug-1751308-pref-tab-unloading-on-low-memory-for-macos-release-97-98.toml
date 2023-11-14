@@ -67,7 +67,7 @@ channel = "release"
 from_expression = """
 (
     SELECT * 
-    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4`
+    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v5`
     WHERE sample_id = 0 AND normalized_channel = 'release'
 )
 """

@@ -1,0 +1,29 @@
+[metrics]
+weekly = ['bookmarks_bar_pinned_on', 'bookmarks_bar_pinned_off', 'bookmarks_bar_bookmark_added', 'bookmarks_bar_bookmark_opened']
+
+overall = ['bookmarks_bar_pinned_on', 'bookmarks_bar_pinned_off', 'bookmarks_bar_bookmark_added', 'bookmarks_bar_bookmark_opened']
+
+
+[metrics.bookmarks_bar_pinned_on]
+select_expression = "CAST(COALESCE(SUM(CASE WHEN(SELECT t.key LIKE 'bookmarks-bar_pinned_on' AND t.value FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t) THEN 1 ELSE 0 END),0) > 0 AS INT)"
+data_source = 'main'
+
+
+[metrics.bookmarks_bar_pinned_off]
+select_expression = "CAST(COALESCE(SUM(CASE WHEN(SELECT t.key LIKE 'bookmarks-bar_pinned_off' AND t.value FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t) THEN 1 ELSE 0 END),0) > 0 AS INT)"
+data_source = 'main'
+
+
+[metrics.bookmarks_bar_bookmark_added]
+select_expression = "CAST(COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_bookmarks_toolbar_bookmark_added), 0) > 0 AS INT)"
+data_source = 'main'
+
+
+[metrics.bookmarks_bar_bookmark_opened]
+select_expression = "CAST(COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_bookmarks_toolbar_bookmark_opened), 0) > 0 AS INT)"
+data_source = 'main'
+
+[metrics.bookmarks_bar_pinned_on.statistics.binomial]
+[metrics.bookmarks_bar_pinned_off.statistics.binomial]
+[metrics.bookmarks_bar_bookmark_added.statistics.binomial]
+[metrics.bookmarks_bar_bookmark_opened.statistics.binomial]
