@@ -1,0 +1,15 @@
+[project]
+
+platform = "monitor_cirrus"
+xaxis = "submission_date"
+metrics = [
+    "monitor_pageviews_v1"
+]
+
+[project.population]
+
+data_source = "monitor_events_v1"
+
+[metrics.monitor_pageviews_v1.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+

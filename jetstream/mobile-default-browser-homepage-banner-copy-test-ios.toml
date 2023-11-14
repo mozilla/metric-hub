@@ -1,0 +1,23 @@
+[experiment]
+end_date = "2023-11-27"
+
+[experiment.exposure_signal]
+name = "shown_default_browser_message"
+friendly_name = "Shown Default Browser Message"
+description = "Whether or not the client was shown the default-browser message at least once"
+select_expression = "category = 'messaging' AND name = 'shown' AND mozfun.map.get_key(extra, 'message_key') = 'default-browser'"
+data_source = "events_unnested"
+
+[data_sources]
+
+[data_sources.events_unnested]
+from_expression = """(
+  SELECT client_info.client_id,
+      DATE(submission_timestamp) AS submission_date,
+      e.*
+    FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.events` event
+    CROSS JOIN UNNEST(events) e
+)"""
+experiments_column_type = "glean"
+friendly_name = "Events Unnested"
+description = "Events with the array of events unnested so one row per event"

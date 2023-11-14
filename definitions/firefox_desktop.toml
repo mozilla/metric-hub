@@ -1147,11 +1147,29 @@ Whether or not Pocket Sponsored Stories is enabled on the New Tab.
 
 [metrics.newtab_engagement]
 data_source = "newtab_interactions"
-select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR topsite_clicks > 0 then 1 else 0 end), 0)"
+select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR topsite_clicks > 0 OR organic_topsite_clicks > 0 then 1 else 0 end), 0)"
 friendly_name = "Newtab Engagement"
 type = "scalar"
 description = """
 Whether or not the client had a newtab search OR a pocket click OR a tile click.
+"""
+
+[metrics.newtab_organic_topsite_clicks]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_topsite_clicks, 0))"
+friendly_name = "Newtab Organic Tile Clicks"
+type = "scalar"
+description = """
+Count of New Tab organic tile clicks.
+"""
+
+[metrics.newtab_organic_topsite_impressions]
+data_source = "newtab_interactions"
+select_expression = "SUM(COALESCE(organic_topsite_impressions, 0))"
+friendly_name = "Newtab Organic Tile Impressions"
+type = "scalar"
+description = """
+Count of New Tab organic tile impressions.
 """
 
 ########################### END OF NEW TAB METRICS ########################### 
@@ -1296,6 +1314,13 @@ data_source = "search_clients_engines_sources_daily"
 friendly_name = "Split PBM search engine"
 description = "Indicates whether the client configured separate search engines for regular browsing and private browsing mode."
 
+[metrics.new_profiles_v1]
+data_source = "clients_first_seen_v2"
+select_expression = "COUNT(*)"
+type = "scalar"
+friendly_name = "New Profiles"
+description = "The number of newly acquired Firefox Desktop clients. A client is newly acquired on the first date they appear in either of new profile, main or first shutdown pings based on submission date"
+
 [dimensions]
 
 [dimensions.os]
@@ -1342,7 +1367,7 @@ from_expression = """(
         *,
         DATE(submission_timestamp) AS submission_date,
         environment.experiments
-    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v4`
+    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v5`
 )"""
 experiments_column_type = "native"
 friendly_name = "Main"
@@ -1409,6 +1434,7 @@ description = "Events Ping"
 
 [data_sources.newtab_interactions]
 from_expression = "mozdata.telemetry.newtab_interactions"
+client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 submission_date_column = "submission_date"
 description = "New Tab Interactions"
@@ -1452,6 +1478,38 @@ from_expression = "mozdata.telemetry.sponsored_tiles_clients_daily"
 submission_date_column = "submission_date"
 description = "Sponsored Tiles Clients Daily"
 friendly_name = "Sponsored Tiles Clients Daily"
+
+[data_sources.clients_first_seen_v2]
+from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_first_seen_v2"  # TODO: Replace with view
+submission_date_column = "first_seen_date"
+description = "Clients First Seen V2"
+friendly_name = "Clients First Seen V2"
+
+[data_sources.urlbar_events]
+from_expression = """(
+    SELECT * FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events`
+)"""
+friendly_name = "Urlbar Events"
+description = "Urlbar Events"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
+
+[data_sources.urlbar_events_unnested_results]
+from_expression = """(
+    SELECT
+        e.* EXCEPT (results),
+        result
+    FROM
+        `moz-fx-data-shared-prod.firefox_desktop.urlbar_events` e
+    CROSS JOIN
+        UNNEST(e.results) AS result
+)"""
+friendly_name = "Urlbar Events with Unnested Results"
+description = "Urlbar Events table with the list of displayed results unnested"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 
 [segments]
@@ -1530,6 +1588,47 @@ description = """
     Clients with any sponsors in their newtab blocked sponsors list.
 """
 
+[segments.suggest]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest"
+description = "Clients who are eligible for Firefox Suggest"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+), FALSE)"""
+
+[segments.suggest_offline]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest Offline"
+description = "Clients who are in the Firefox Suggest Offline experience"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+    AND NOT IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE)
+), FALSE)"""
+
+[segments.suggest_online]
+data_source = "clients_daily"
+friendly_name = "Clients in Firefox Suggest Online"
+description = "Clients who are opted into the Firefox Suggest Online experience (data sharing)"
+select_expression = """COALESCE(LOGICAL_AND(
+    locale LIKE 'en%'
+    AND country = 'US'
+    AND (
+        browser_version_info.major_version > 92 OR
+        (browser_version_info.major_version = 92 AND browser_version_info.patch_revision >= 1)
+    )
+    AND IF(user_pref_browser_urlbar_quicksuggest_data_collection_enabled = 'true', TRUE, FALSE)
+), FALSE)"""
+
 
 [segments.data_sources]
 
@@ -1545,6 +1644,7 @@ window_end = 0
 
 [segments.data_sources.newtab_interactions]
 from_expression = "mozdata.telemetry.newtab_interactions"
+client_id = "legacy_telemetry_client_id"
 window_start = 0
 window_end = 0
 
@@ -1552,7 +1652,7 @@ window_end = 0
 from_expression = """(
     SELECT
         DATE(submission_timestamp) AS submission_date,
-        client_info.client_id AS client_id,
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
         *
     FROM
         mozdata.firefox_desktop.newtab

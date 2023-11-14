@@ -133,6 +133,15 @@ description = "Time in milliseconds from responseStart to loadEventStart for the
 category = "performance"
 type = "histogram"
 
+
+[metrics.performance_page_non_blank_paint]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_page_non_blank_paint IGNORE NULLS)"
+friendly_name = "Page Non Blank Paint"
+description = "The time between navigationStart and the first non-blank paint of a foreground root content document, in milliseconds."
+category = "performance"
+type = "histogram"
+
 [metrics.performance_pageload_req_anim_frame_callback]
 data_source = "metrics"
 select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_req_anim_frame_callback IGNORE NULLS)"
@@ -447,8 +456,8 @@ from_expression = """(
     FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
 )"""
 client_id_column = "client_info.client_id"
-submission_date_column = "DATE(submission_timestamp)"
 experiments_column_type = "glean"
+submission_date_column = "submission_date"
 default_dataset = "fenix"
 friendly_name = "Baseline"
 description = "Baseline Ping"
