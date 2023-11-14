@@ -1,0 +1,32 @@
+[project]
+
+name = "Firefox iOS Health"
+platform = "firefox_ios"
+xaxis = "submission_date"
+start_date = "2023-01-01"
+skip_default_metrics = true
+metrics = ['dirty_startup', 'large_file_write']
+
+[project.population]
+data_source = "baseline_v2"
+monitor_entire_population = true
+channel = "release"
+
+[metrics.dirty_startup.statistics]
+sum = {}
+[metrics.large_file_write.statistics]
+sum = {}
+
+[metrics.dirty_startup]
+select_expression = """COALESCE(COUNTIF(ping_info.reason = "dirty_startup"), 0)"""
+data_source = "baseline_v2"
+friendly_name = "Dirty startup"
+description = "The amount of times baseline ping was sent due to dirty_startup"
+owner = "efilho@mozilla.com"
+
+[metrics.large_file_write]
+select_expression = """COALESCE(COUNTIF(event.name = "large_file_write"), 0)"""
+data_source = "events"
+friendly_name = "Large file write"
+description = "The amount of times a very large file was written to disk"
+owner = "efilho@mozilla.com"
