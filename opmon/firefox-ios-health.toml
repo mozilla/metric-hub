@@ -1,6 +1,6 @@
 [project]
 
-name = "Firefox iOS Health"
+name = "iOS Health Release"
 platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
@@ -14,6 +14,7 @@ channel = "release"
 
 [metrics.dirty_startup.statistics]
 sum = {}
+
 [metrics.large_file_write.statistics]
 sum = {}
 
