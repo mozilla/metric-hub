@@ -1,0 +1,94 @@
+[project]
+
+name = "OKR 2.6 Performance Review Dashboard [Kenya]"
+platform = "fenix"
+xaxis = "build_id" # xaxis = "submission_date"
+start_date = "2023-11-06" # start_date = "2023-01-01"
+skip = false
+is_rollout = false
+skip_default_metrics = true
+compact_visualization = false
+
+metrics = [
+    "storage_stats_app_bytes",
+    "storage_stats_data_dir_bytes",
+    "networking_dns_lookup_time",
+    # TODO: find out how to handle custom_distributions for the http stuff
+    # "networking_http_1_download_throughput",
+    # "networking_http_2_download_throughput",
+    # "networking_http_3_download_throughput",
+    # "networking_http_1_upload_throughput",
+    # "networking_http_2_upload_throughput",
+    # "networking_http_3_upload_throughput",
+    "performance_time_response_start",
+    "performance_pageload_load_time",
+    "perf_startup_cold_main_app_to_first_frame",
+    "perf_startup_cold_view_app_to_first_frame"
+]
+
+
+[project.population]
+
+data_source = "baseline_US_and_KE"
+channel = "beta"
+dimensions = ["country"]
+
+[data_sources]
+
+[data_sources.baseline_US_and_KE]
+
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    WHERE metadata.geo.country in ("US", "KE")
+)"""
+
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_firefox"
+friendly_name = "Baseline"
+description = "Baseline Ping"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
+
+
+[dimensions]
+
+[dimensions.country]
+data_source = "baseline"
+select_expression = "metadata.geo.country"
+
+[metrics]
+
+[metrics.networking_dns_lookup_time]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.networking_dns_lookup_time IGNORE NULLS)"
+friendly_name = "DNS Lookup Time"
+description = "Time for a successful DNS resolution (msec)"
+type = "histogram"
+
+[metrics.networking_dns_lookup_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# [metrics.networking_http_1_download_throughput]
+# data_source = "metrics"
+# select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_1_download_throughput IGNORE NULLS)"
+# friendly_name = "HTTP 1 Download Throughput"
+# description = "The download throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
+# category = "networking"
+# type = "histogram"
+
+# [metrics.networking_http_1_download_throughput.statistics]
+# percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.performance_time_response_start]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_time_response_start IGNORE NULLS)"
+friendly_name = "Time Response Start"
+description = "Time from navigationStart to responseStart as per the W3C Performance Timing API."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_time_response_start.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
