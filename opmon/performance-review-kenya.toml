@@ -30,7 +30,7 @@ metrics = [
 [project.population]
 
 data_source = "baseline_US_and_KE"
-channel = "beta"
+channel = "release" # "beta"
 dimensions = ["country"]
 
 [data_sources]
