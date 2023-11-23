@@ -1046,7 +1046,7 @@ description = """
 Count of clicks on Organic Pocket content.
 """
 
-[metrics.sponsered_pocket_clicks]
+[metrics.sponsored_pocket_clicks]
 data_source = "newtab_interactions"
 select_expression = "SUM(COALESCE(sponsored_pocket_clicks, 0))"
 friendly_name = "Sponsored Pocket Clicks"
@@ -1480,7 +1480,7 @@ description = "Sponsored Tiles Clients Daily"
 friendly_name = "Sponsored Tiles Clients Daily"
 
 [data_sources.clients_first_seen_v2]
-from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_first_seen_v2"  # TODO: Replace with view
+from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_first_seen_v2" # TODO: Replace with view
 submission_date_column = "first_seen_date"
 description = "Clients First Seen V2"
 friendly_name = "Clients First Seen V2"

@@ -1,3 +1,6 @@
+[experiment]
+end_date = "2023-07-08"
+
 [metrics]
 
 daily = ["rust_tab_sync_success", "bookmarks_sync_success", "logins_sync_success", "history_sync_success"]
