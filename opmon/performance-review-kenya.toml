@@ -2,26 +2,39 @@
 
 name = "OKR 2.6 Performance Review Dashboard [Kenya]"
 platform = "fenix"
+xaxis = "build_id" 
 start_date = "2023-11-06" 
 skip = false
 is_rollout = false
 skip_default_metrics = true
 compact_visualization = false
-
 metrics = [
-    "storage_stats_app_bytes",
-    "storage_stats_data_dir_bytes",
-    "networking_dns_lookup_time",
-    "networking_http_1_download_throughput",
-    "networking_http_2_download_throughput",
-    "networking_http_3_download_throughput",
-    "networking_http_1_upload_throughput",
-    "networking_http_2_upload_throughput",
-    "networking_http_3_upload_throughput",
-    "performance_time_response_start",
-    "performance_pageload_load_time",
-    "perf_startup_cold_main_app_to_first_frame",
-    "perf_startup_cold_view_app_to_first_frame",
+    "storage_stats_app_bytes_KE",
+    "storage_stats_app_bytes_US",
+    "storage_stats_data_dir_bytes_KE",
+    "storage_stats_data_dir_bytes_US",
+    "networking_dns_lookup_time_KE",
+    "networking_dns_lookup_time_US",
+    "networking_http_1_download_throughput_KE",
+    "networking_http_1_download_throughput_US",
+    "networking_http_2_download_throughput_KE",
+    "networking_http_2_download_throughput_US",
+    "networking_http_3_download_throughput_KE",
+    "networking_http_3_download_throughput_US",
+    "networking_http_1_upload_throughput_KE",
+    "networking_http_1_upload_throughput_US",
+    "networking_http_2_upload_throughput_KE",
+    "networking_http_2_upload_throughput_US",
+    "networking_http_3_upload_throughput_KE",
+    "networking_http_3_upload_throughput_US",
+    "performance_time_response_start_KE",
+    "performance_time_response_start_US",
+    "performance_pageload_load_time_KE",
+    "performance_pageload_load_time_US",
+    "perf_startup_cold_main_app_to_first_frame_KE",
+    "perf_startup_cold_main_app_to_first_frame_US",
+    "perf_startup_cold_view_app_to_first_frame_KE",
+    "perf_startup_cold_view_app_to_first_frame_US"
 ]
 
 
@@ -29,10 +42,114 @@ metrics = [
 
 data_source = "baseline_US_and_KE"
 channel = "release"
-dimensions = ["country"]
+monitor_entire_population = true
+
+[project.metric_groups.storage_stats_app_bytes]
+friendly_name = "App Byte Size by country"
+description = "The size of the app's APK and related files as installed: this is expected\nto be larger than download size.\nBreakdown by country"
+metrics = [
+    "storage_stats_app_bytes_KE",
+    "storage_stats_app_bytes_US"
+]
+
+[project.metric_groups.storage_stats_data_dir_bytes]
+friendly_name = "Data Dir Byte Size by country"
+description = "The size of all data minus `cache_bytes`.\nBreakdown by country."
+metrics = [
+    "storage_stats_data_dir_bytes_KE",
+    "storage_stats_data_dir_bytes_US"
+]
+
+[project.metric_groups.networking_dns_lookup_time]
+friendly_name = "DNS Lookup Time by country"
+description = "Time for a successful DNS resolution (msec).\nBreakdown by country."
+metrics = [
+    "networking_dns_lookup_time_KE",
+    "networking_dns_lookup_time_US"
+]
+
+[project.metric_groups.networking_http_1_download_throughput]
+friendly_name = "HTTP 1 Download Throughput by country"
+description = "The download throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_1_download_throughput_KE",
+    "networking_http_1_download_throughput_US"
+]
+
+[project.metric_groups.networking_http_2_download_throughput]
+friendly_name = "HTTP 2 Download Throughput by country"
+description = "The download throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_2_download_throughput_KE",
+    "networking_http_2_download_throughput_US"
+]
+
+[project.metric_groups.networking_http_3_download_throughput]
+friendly_name = "HTTP 3 Download Throughput by country"
+description = "The download throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_3_download_throughput_KE",
+    "networking_http_3_download_throughput_US"
+]
+
+[project.metric_groups.networking_http_1_upload_throughput]
+friendly_name = "HTTP 1 Upload Throughput by country"
+description = "The upload throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_1_upload_throughput_KE",
+    "networking_http_1_upload_throughput_US"
+]
+
+[project.metric_groups.networking_http_2_upload_throughput]
+friendly_name = "HTTP 2 Upload Throughput by country"
+description = "The upload throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_2_upload_throughput_KE",
+    "networking_http_2_upload_throughput_US"
+]
+
+[project.metric_groups.networking_http_3_upload_throughput]
+friendly_name = "HTTP 3 Upload Throughput by country"
+description = "The upload throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps.\nBreakdown by country."
+metrics = [
+    "networking_http_3_upload_throughput_KE",
+    "networking_http_3_upload_throughput_US"
+]
+
+[project.metric_groups.performance_time_response_start]
+friendly_name = "Time Response Start by country"
+description = "Time from navigationStart to responseStart as per the W3C Performance Timing API.\nBreakdown by country."
+metrics = [
+    "performance_time_response_start_KE",
+    "performance_time_response_start_US"
+]
+
+[project.metric_groups.performance_pageload_load_time]
+friendly_name = "Pageload Load Time by country"
+description = "Time in milliseconds from navigationStart to loadEventStart for the foreground http or https root content document.\nBreakdown by country."
+metrics = [
+    "performance_pageload_load_time_KE",
+    "performance_pageload_load_time_US"
+]
+
+[project.metric_groups.perf_startup_cold_main_app_to_first_frame]
+friendly_name = "Startup Cold Main App to First Frame by country"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD MAIN start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary).\nBreakdown by country."
+metrics = [
+    "perf_startup_cold_main_app_to_first_frame_KE",
+    "perf_startup_cold_main_app_to_first_frame_US"
+]
+
+[project.metric_groups.perf_startup_cold_view_app_to_first_frame]
+friendly_name = "Startup Cold View App to First Frame by country"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD VIEW start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary).\nBreakdown by country."
+metrics = [
+    "perf_startup_cold_view_app_to_first_frame_KE",
+    "perf_startup_cold_view_app_to_first_frame_US"
+]
+
 
 [data_sources]
-
 
 [data_sources.baseline_US_and_KE]
 
@@ -52,98 +169,301 @@ description = "Baseline Ping"
 build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 
-[dimensions]
-
-[dimensions.country]
-data_source = "baseline_US_and_KE"
-select_expression = "metadata.geo.country"
-
-
 [metrics]
 
-[metrics.networking_dns_lookup_time]
+# Storage Stats App Bytes
+[metrics.storage_stats_app_bytes_KE]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.timing_distribution.networking_dns_lookup_time IGNORE NULLS)"
-friendly_name = "DNS Lookup Time"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE',metrics.memory_distribution.storage_stats_app_bytes, NULL) IGNORE NULLS)"
+friendly_name = "App Byte Size Kenya"
+description = "The size of the app's APK and related files as installed: this is expected\nto be larger than download size."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_app_bytes_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.storage_stats_app_bytes_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US',metrics.memory_distribution.storage_stats_app_bytes, NULL) IGNORE NULLS)"
+friendly_name = "App Byte Size US"
+description = "The size of the app's APK and related files as installed: this is expected\nto be larger than download size."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_app_bytes_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Storage Stats Data Dir Bytes
+[metrics.storage_stats_data_dir_bytes_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.memory_distribution.storage_stats_data_dir_bytes, NULL) IGNORE NULLS)"
+friendly_name = "Data Dir Byte Size Kenya"
+description = "The size of all data minus `cache_bytes`."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_data_dir_bytes_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.storage_stats_data_dir_bytes_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.memory_distribution.storage_stats_data_dir_bytes, NULL) IGNORE NULLS)"
+friendly_name = "Data Dir Byte Size US"
+description = "The size of all data minus `cache_bytes`."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_data_dir_bytes_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking DNS Lookup Time 
+[metrics.networking_dns_lookup_time_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.timing_distribution.networking_dns_lookup_time, NULL) IGNORE NULLS)"
+friendly_name = "DNS Lookup Time Kenya"
 description = "Time for a successful DNS resolution (msec)"
 type = "histogram"
 
-[metrics.networking_dns_lookup_time.statistics]
+[metrics.networking_dns_lookup_time_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_1_download_throughput]
+[metrics.networking_dns_lookup_time_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_1_download_throughput IGNORE NULLS)"
-friendly_name = "HTTP 1 Download Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.timing_distribution.networking_dns_lookup_time, NULL) IGNORE NULLS)"
+friendly_name = "DNS Lookup Time US"
+description = "Time for a successful DNS resolution (msec)"
+type = "histogram"
+
+[metrics.networking_dns_lookup_time_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 1 Download Throughput
+[metrics.networking_http_1_download_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_1_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 1 Download Throughput Kenya"
 description = "The download throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_1_download_throughput.statistics]
+[metrics.networking_http_1_download_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_2_download_throughput]
+[metrics.networking_http_1_download_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_2_download_throughput IGNORE NULLS)"
-friendly_name = "HTTP 2 Download Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_1_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 1 Download Throughput US"
+description = "The download throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_1_download_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 2 Download Throughput
+[metrics.networking_http_2_download_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_2_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 2 Download Throughput Kenya"
 description = "The download throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_2_download_throughput.statistics]
+[metrics.networking_http_2_download_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_3_download_throughput]
+[metrics.networking_http_2_download_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_3_download_throughput IGNORE NULLS)"
-friendly_name = "HTTP 3 Download Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_2_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 2 Download Throughput US"
+description = "The download throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_2_download_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 3 Download Throughput 
+[metrics.networking_http_3_download_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_3_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 3 Download Throughput Kenya"
 description = "The download throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_3_download_throughput.statistics]
+[metrics.networking_http_3_download_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_1_upload_throughput]
+[metrics.networking_http_3_download_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_1_upload_throughput IGNORE NULLS)"
-friendly_name = "HTTP 1 Upload Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_3_download_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 3 Download Throughput US"
+description = "The download throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_3_download_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 1 Upload Throuput
+[metrics.networking_http_1_upload_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_1_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 1 Upload Throughput Kenya"
 description = "The upload throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_1_upload_throughput.statistics]
+[metrics.networking_http_1_upload_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_2_upload_throughput]
+[metrics.networking_http_1_upload_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_2_upload_throughput IGNORE NULLS)"
-friendly_name = "HTTP 2 Upload Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_1_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 1 Upload Throughput US"
+description = "The upload throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_1_upload_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 2 Upload Throughput 
+[metrics.networking_http_2_upload_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_2_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 2 Upload Throughput Kenya"
 description = "The upload throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_2_upload_throughput.statistics]
+[metrics.networking_http_2_upload_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.networking_http_3_upload_throughput]
+[metrics.networking_http_2_upload_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_3_upload_throughput IGNORE NULLS)"
-friendly_name = "HTTP 3 Upload Throughput"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_2_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 2 Upload Throughput US"
+description = "The upload throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_2_upload_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 3 Upload Throughput 
+[metrics.networking_http_3_upload_throughput_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.custom_distribution.networking_http_3_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 3 Upload Throughput Kenya"
 description = "The upload throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
 category = "networking"
 type = "histogram"
 
-[metrics.networking_http_3_upload_throughput.statistics]
+[metrics.networking_http_3_upload_throughput_KE.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
 
-[metrics.performance_time_response_start]
+[metrics.networking_http_3_upload_throughput_US]
 data_source = "metrics"
-select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_time_response_start IGNORE NULLS)"
-friendly_name = "Time Response Start"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.custom_distribution.networking_http_3_upload_throughput, NULL) IGNORE NULLS)"
+friendly_name = "HTTP 3 Upload Throughput US"
+description = "The upload throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_3_upload_throughput_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Performance Time Response Start 
+[metrics.performance_time_response_start_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.timing_distribution.performance_time_response_start, NULL) IGNORE NULLS)"
+friendly_name = "Time Response Start Kenya"
 description = "Time from navigationStart to responseStart as per the W3C Performance Timing API."
 category = "performance"
 type = "histogram"
 
-[metrics.performance_time_response_start.statistics]
+[metrics.performance_time_response_start_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.performance_time_response_start_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.timing_distribution.performance_time_response_start, NULL) IGNORE NULLS)"
+friendly_name = "Time Response Start US"
+description = "Time from navigationStart to responseStart as per the W3C Performance Timing API."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_time_response_start_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Performance Pageload Load Time 
+[metrics.performance_pageload_load_time_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.timing_distribution.performance_pageload_load_time, NULL) IGNORE NULLS)"
+friendly_name = "Pageload Load Time Kenya"
+description = "Time in milliseconds from navigationStart to loadEventStart for the foreground http or https root content document."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_pageload_load_time_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.performance_pageload_load_time_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.timing_distribution.performance_pageload_load_time, NULL) IGNORE NULLS)"
+friendly_name = "Pageload Load Time US"
+description = "Time in milliseconds from navigationStart to loadEventStart for the foreground http or https root content document."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_pageload_load_time_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Perf Startup Cold Main App To First Frame 
+[metrics.perf_startup_cold_main_app_to_first_frame_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.timing_distribution.perf_startup_cold_main_app_to_first_frame, NULL) IGNORE NULLS)"
+friendly_name = "Startup Cold Main App to First Frame Kenya"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD MAIN start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_main_app_to_first_frame_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_startup_cold_main_app_to_first_frame_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.timing_distribution.perf_startup_cold_main_app_to_first_frame, NULL) IGNORE NULLS)"
+friendly_name = "Startup Cold Main App to First Frame US"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD MAIN start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_main_app_to_first_frame_US.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Perf Startup Cold View App To First Frame 
+[metrics.perf_startup_cold_view_app_to_first_frame_KE]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'KE', metrics.timing_distribution.perf_startup_cold_view_app_to_first_frame, NULL) IGNORE NULLS)"
+friendly_name = "Startup Cold View App to First Frame Kenya"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD VIEW start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_view_app_to_first_frame_KE.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+[metrics.perf_startup_cold_view_app_to_first_frame_US]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(IF(metadata.geo.country = 'US', metrics.timing_distribution.perf_startup_cold_view_app_to_first_frame, NULL) IGNORE NULLS)"
+friendly_name = "Startup Cold View App to First Frame US"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD VIEW start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_view_app_to_first_frame_US.statistics]
 percentile = { percentiles = [25, 50, 75, 95] }
