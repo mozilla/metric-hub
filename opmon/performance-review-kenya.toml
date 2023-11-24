@@ -158,7 +158,9 @@ from_expression = """(
         p.*,
         DATE(p.submission_timestamp) AS submission_date
     FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
-    WHERE metadata.geo.country in ("US", "KE")
+    WHERE 
+        metadata.geo.country in ("US", "KE")
+        AND sample_id = 37
 )"""
 
 client_id_column = "client_info.client_id"
