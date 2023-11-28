@@ -31,14 +31,14 @@ statistics.mean = {}
 
 [data_sources.active_users_aggregates_v1]
 from_expression = """(
-    SELECT *, "0" AS client_id
+    SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
     WHERE app_name = 'Firefox Desktop'
 )"""
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on Firefox Desktop"
 submission_date_column = "submission_date"
-client_id_column = "client_id" # this table doesn't include client_id, and we don't need it for calculating DAU
+client_id_column = "NULL" # this table doesn't include client_id, and we don't need it for calculating DAU
 
 
 [data_sources.kpi_forecasts]
@@ -55,7 +55,7 @@ from_expression = """
       )
 
       SELECT 
-        forecasts.* EXCEPT(forecast_parameters), "0" AS client_id
+        forecasts.* EXCEPT(forecast_parameters)
         FROM `moz-fx-data-shared-prod.telemetry_derived.kpi_forecasts_v0` AS forecasts
         JOIN most_recent_forecasts
        USING(aggregation_period, metric_alias, metric_hub_app_name, metric_hub_slug, forecast_predicted_at)
@@ -64,4 +64,4 @@ from_expression = """
   )
 """
 submission_date_column = "submission_date"
-client_id_column = "client_id"
+client_id_column = "NULL"
