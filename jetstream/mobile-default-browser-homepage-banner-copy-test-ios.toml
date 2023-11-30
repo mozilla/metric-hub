@@ -5,7 +5,7 @@ end_date = "2023-11-27"
 name = "shown_default_browser_message"
 friendly_name = "Shown Default Browser Message"
 description = "Whether or not the client was shown the default-browser message at least once"
-select_expression = "category = 'messaging' AND name = 'shown' AND mozfun.map.get_key(extra, 'message_key') = 'default-browser'"
+select_expression = "category = 'messaging' AND name = 'shown' AND mozfun.map.get_key(extra, 'message_key') = 'default-browser-eco-copy'"
 data_source = "events_unnested"
 
 [data_sources]
