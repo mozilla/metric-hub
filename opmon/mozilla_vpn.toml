@@ -1,0 +1,26 @@
+[project]
+
+name = "Mozilla VPN Dashboard"
+
+metrics = [
+    "vpn_sessions"
+]
+
+[data_sources.vpn]
+
+from_expression = """
+(
+    SELECT 
+        p.*,
+        DATE(p.submission_timestamp)
+)
+"""
+
+[metrics.vpn_sessions]
+data_source = "vpn_desktop"
+select_expression = "COUNT(DISTINCT )"
+friendly_name = "VPN Sessions"
+description = ""
+category = ""
+type = ""
+statistics.sum = {}
