@@ -10,7 +10,7 @@ overall = ["total_widget_searches"]
 
 [metrics.total_widget_searches]
 data_source = "metrics"
-select_expression = "COALESCE(SUM(metrics.m_quick_action_search + metrics.s_quick_action_search),0)"
+select_expression = "COALESCE(SUM(metrics.counter.m_quick_action_search + metrics.counter.s_quick_action_search),0)"
 friendly_name = "Widget Searches"
 description = "Counts the number of searches originated from the widget"
 
