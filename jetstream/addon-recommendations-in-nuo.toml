@@ -1,0 +1,38 @@
+[metrics]
+overall = ['addons_count', 'staffpicks_addon_install', 'privacy_addon_install']
+weekly = ['addons_count', 'staffpicks_addon_install', 'privacy_addon_install']
+
+[metrics.addons_count]
+select_expression = """COALESCE(MAX((SELECT ARRAY_LENGTH(ARRAY_AGG(IF(NOT is_system, addon_id, NULL) IGNORE NULLS)) FROM UNNEST(active_addons))), 0)"""
+data_source = 'clients_daily'
+friendly_name = 'Count of installed self-installed active addons'
+description = 'The number of self-installed active addons'
+
+[metrics.addons_count.statistics.bootstrap_mean]
+
+[metrics.staffpicks_addon_install]
+select_expression = """CAST(COALESCE(
+  LOGICAL_OR(
+    (SELECT ARRAY_LENGTH(
+      ARRAY_AGG(IF(value.name IN 
+('Enhancer for YouTube™', 'Privacy Badger', 'Grammar \u0026 Spell Checker — LanguageTool'), value.name, NULL) IGNORE NULLS))  
+FROM UNNEST(environment.addons.active_addons)) >= 1), FALSE) AS INT)"""
+data_source = 'main'
+friendly_name = 'Staff Pick addon install'
+description = 'If Staff Pick addon installed'
+
+[metrics.staffpicks_addon_install.statistics.binomial]
+
+[metrics.privacy_addon_install]
+select_expression = """CAST(COALESCE(
+  LOGICAL_OR(
+    (SELECT ARRAY_LENGTH(
+      ARRAY_AGG(IF(value.name IN 
+('Cookie AutoDelete', 'Privacy Badger', 'Facebook Container'), value.name, NULL) IGNORE NULLS))  
+FROM UNNEST(environment.addons.active_addons)) >= 1), FALSE) AS INT)"""
+data_source = 'main'
+friendly_name = 'Privacy addon install' 
+description = 'If Privacy addon installed'
+
+[metrics.privacy_addon_install.statistics.binomial]
+
