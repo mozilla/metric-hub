@@ -5,6 +5,8 @@ enrollment_period = 14
 end_date = "2023-10-24"
 
 [metrics]
+weekly = ["total_widget_searches"]
+overall = ["total_widget_searches"]
 
 [metrics.total_widget_searches]
 data_source = "metrics"
