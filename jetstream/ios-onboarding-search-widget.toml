@@ -3,3 +3,23 @@
 start_date = "2023-09-12"
 enrollment_period = 14
 end_date = "2023-10-24"
+
+[metrics]
+
+[metrics.total_widget_searches]
+data_source = "metrics"
+select_expression = "COALESCE(SUM(metrics.m_quick_action_search + metrics.s_quick_action_search),0)"
+friendly_name = "Widget Searches"
+description = "Counts the number of searches originated from the widget"
+
+[metrics.total_widget_searches.statistics.bootstrap_mean]
+
+# Currently unable to create a derived metric like "total widget searches plus total other searches" 
+# as "total other searches" comes from a view derived from the metrics ping, but not the metrics ping itself
+# [metrics.searches_plus_widget_search]
+# data_source = "metrics"
+# select_expression = "COALESCE(SUM(metrics.m_quick_action_search + metrics.s_quick_action_search),0)"
+# friendly_name = "Widget Searches"
+# description = "Counts the number of searches originated from the widget"
+
+# [metrics.total_widget_searches.statistics.bootstrap_mean]
