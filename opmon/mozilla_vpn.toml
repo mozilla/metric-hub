@@ -1,26 +1,42 @@
 [project]
 
 name = "Mozilla VPN Dashboard"
+platform = "VPN"
+is_rollout = false
+skip_default_metrics = true
+compact_visualization = false
+xaxis = "build_id"
+start_date = "2023-11-30"
+skip = false 
+
 
 metrics = [
     "vpn_sessions"
 ]
 
-[data_sources.vpn]
+[project.population]
+data_source = "vpn_android_session"
+monitor_entire_population = true 
+
+[data_sources.vpn_android_session]
 
 from_expression = """
 (
     SELECT 
         p.*,
         DATE(p.submission_timestamp)
+    FROM `moz-fx-data-shared-prod.org_mozilla_firefox_vpn.vpnsession` p
 )
 """
+client_id_column = "metrics.uuid.session_installation_id"
+build_id_column = "client_info.app_display_version"
+
 
 [metrics.vpn_sessions]
-data_source = "vpn_desktop"
-select_expression = "COUNT(DISTINCT )"
+data_source = "vpn_android_session"
+select_expression = "COUNT(DISTINCT metrics.uuid.session_installation_id)"
 friendly_name = "VPN Sessions"
 description = ""
 category = ""
-type = ""
+type = "scalar"
 statistics.sum = {}
