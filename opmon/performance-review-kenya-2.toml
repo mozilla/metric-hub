@@ -1,0 +1,225 @@
+[project]
+
+name = "OKR 2.6 Performance Review Dashboard [Kenya]"
+platform = "fenix"
+xaxis = "build_id" 
+start_date = "2023-11-06" 
+skip = false
+is_rollout = false
+skip_default_metrics = true
+compact_visualization = false
+metrics = [
+    "storage_stats_app_bytes",
+    "storage_stats_data_dir_bytes",
+    "networking_dns_lookup_time",
+    "networking_http_1_download_throughput",
+    "networking_http_2_download_throughput",
+    "networking_http_3_download_throughput",
+    "networking_http_1_upload_throughput",
+    "networking_http_2_upload_throughput",
+    "networking_http_3_upload_throughput",
+    "performance_time_response_start",
+    "performance_pageload_load_time",
+    "perf_startup_cold_main_app_to_first_frame",
+    "perf_startup_cold_view_app_to_first_frame"
+]
+
+
+[project.population]
+
+data_source = "baseline_US_and_KE"
+channel = "release"
+monitor_entire_population = true
+dimensions = ["country"]
+group_by_dimension = "country"
+
+[data_sources]
+
+[data_sources.baseline_US_and_KE]
+
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    WHERE 
+        ( 
+            metadata.geo.country = "US"
+            AND sample_id = 0
+        )
+        OR 
+        (
+            metadata.geo.country = "KE"
+            AND sample_id BETWEEN 30 AND 80
+        )
+)"""
+
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_firefox"
+friendly_name = "Baseline"
+description = "Baseline Ping"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
+
+[dimensions.country]
+data_source = "baseline_US_and_KE"
+select_expression = "metadata.geo.country"
+friendly_name = "country"
+description = "KE for Kenya or US for USA"
+
+[metrics]
+
+# Storage Stats App Bytes
+[metrics.storage_stats_app_bytes]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.memory_distribution.storage_stats_app_bytes IGNORE NULLS)"
+friendly_name = "App Byte Size"
+description = "The size of the app's APK and related files as installed: this is expected\nto be larger than download size."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_app_bytes.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Storage Stats Data Dir Bytes
+[metrics.storage_stats_data_dir_bytes]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.memory_distribution.storage_stats_data_dir_bytes IGNORE NULLS)"
+friendly_name = "Data Dir Byte Size"
+description = "The size of all data minus `cache_bytes`."
+category = "performance"
+type = "histogram"
+
+[metrics.storage_stats_data_dir_bytes.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking DNS Lookup Time 
+[metrics.networking_dns_lookup_time]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.networking_dns_lookup_time IGNORE NULLS)"
+friendly_name = "DNS Lookup Time"
+description = "Time for a successful DNS resolution (msec)"
+type = "histogram"
+
+[metrics.networking_dns_lookup_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 1 Download Throughput
+[metrics.networking_http_1_download_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_1_download_throughput IGNORE NULLS)"
+friendly_name = "HTTP 1 Download Throughput"
+description = "The download throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_1_download_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 2 Download Throughput
+[metrics.networking_http_2_download_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_2_download_throughput IGNORE NULLS)"
+friendly_name = "HTTP 2 Download Throughput"
+description = "The download throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_2_download_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 3 Download Throughput 
+[metrics.networking_http_3_download_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_3_download_throughput IGNORE NULLS)"
+friendly_name = "HTTP 3 Download Throughput"
+description = "The download throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_3_download_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 1 Upload Throuput
+[metrics.networking_http_1_upload_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_1_upload_throughput IGNORE NULLS)"
+friendly_name = "HTTP 1 Upload Throughput"
+description = "The upload throughput for http/1.0, http/1.1 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_1_upload_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 2 Upload Throughput 
+[metrics.networking_http_2_upload_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_2_upload_throughput IGNORE NULLS)"
+friendly_name = "HTTP 2 Upload Throughput"
+description = "The upload throughput for http/2 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_2_upload_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Networking HTTP 3 Upload Throughput 
+[metrics.networking_http_3_upload_throughput]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.custom_distribution.networking_http_3_upload_throughput IGNORE NULLS)"
+friendly_name = "HTTP 3 Upload Throughput"
+description = "The upload throughput for http/3 requests larger than 10MB. Measured in megabits per second, Mbps."
+category = "networking"
+type = "histogram"
+
+[metrics.networking_http_3_upload_throughput.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Performance Time Response Start 
+[metrics.performance_time_response_start]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_time_response_start IGNORE NULLS)"
+friendly_name = "Time Response Start"
+description = "Time from navigationStart to responseStart as per the W3C Performance Timing API."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_time_response_start.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Performance Pageload Load Time 
+[metrics.performance_pageload_load_time]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.performance_pageload_load_time IGNORE NULLS)"
+friendly_name = "Pageload Load Time"
+description = "Time in milliseconds from navigationStart to loadEventStart for the foreground http or https root content document."
+category = "performance"
+type = "histogram"
+
+[metrics.performance_pageload_load_time.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Perf Startup Cold Main App To First Frame 
+[metrics.perf_startup_cold_main_app_to_first_frame]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.perf_startup_cold_main_app_to_first_frame IGNORE NULLS)"
+friendly_name = "Startup Cold Main App to First Frame"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD MAIN start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_main_app_to_first_frame.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
+
+# Perf Startup Cold View App To First Frame 
+[metrics.perf_startup_cold_view_app_to_first_frame]
+data_source = "metrics"
+select_expression = "ARRAY_AGG(metrics.timing_distribution.perf_startup_cold_view_app_to_first_frame IGNORE NULLS)"
+friendly_name = "Startup Cold View App to First Frame"
+description = "The duration from `*Application`'s initializer to the first Android frame\nbeing drawn in a [COLD VIEW start\nup](https://wiki.mozilla.org/index.php?title=Performance/Fenix/Glossary)."
+category = "performance"
+type = "histogram"
+
+[metrics.perf_startup_cold_view_app_to_first_frame.statistics]
+percentile = { percentiles = [25, 50, 75, 95] }
