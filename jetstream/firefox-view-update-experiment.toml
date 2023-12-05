@@ -2,6 +2,16 @@
 start_date = "2023-10-24"
 end_date = "2023-11-29"
 enrollment_period = 7
+sample_size = 50
+
+[experiment.exposure_signal]
+name = "entered_fx_view"
+friendly_name = "Entered Firefox View"
+description = "Clients who entered Firefox View"
+select_expression = '''COALESCE(event_method = 'entered' AND event_category = 'firefoxview_next', FALSE)'''
+data_source = "events"
+window_start = 0
+window_end = 7
 
 [metrics]
 weekly = [
