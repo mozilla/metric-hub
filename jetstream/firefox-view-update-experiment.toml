@@ -2,6 +2,16 @@
 start_date = "2023-10-24"
 end_date = "2023-11-29"
 enrollment_period = 7
+sample_size = 50
+
+[experiment.exposure_signal]
+name = "entered_fx_view"
+friendly_name = "Entered Firefox View"
+description = "Clients who entered Firefox View"
+select_expression = '''COALESCE(event_method = 'entered' AND event_category = 'firefoxview_next', FALSE)'''
+data_source = "events"
+window_start = 0
+window_end = 7
 
 [metrics]
 weekly = [
@@ -16,21 +26,7 @@ weekly = [
     'fxview_next_recentlyclosed_item_click', 
     'fxview_next_recentlyclosed_item_dismiss', 
     'fxview_next_opentabs_item_click', 
-    'fxview_next_syncedtabs_item_click',
-    'fxview_next_navigate_recentbrowsing',
-    'fxview_next_navigate_opentabs',
-    'fxview_next_navigate_recentlyclosed',
-    'fxview_next_navigate_syncedtabs',
-    'fxview_next_navigate_history',
-    'fxview_next_history_item_click',
-    'fxview_next_sort_history_by_site',
-    'fxview_next_sort_history_by_date',
-    'fxview_next_history_show_all',
-    'fxview_next_history_contextmenu',
-    'fxview_next_opentabs_expanded',
-    'fxview_next_opentabs_collapsed',
-    'fxview_next_opentabs_contextmenu',
-    'fxview_next_syncedtabs_contextmenu']
+    'fxview_next_syncedtabs_item_click']
 
 overall = [
     'fxview_next_tab_selected', 
@@ -44,21 +40,7 @@ overall = [
     'fxview_next_recentlyclosed_item_click', 
     'fxview_next_recentlyclosed_item_dismiss', 
     'fxview_next_opentabs_item_click', 
-    'fxview_next_syncedtabs_item_click',
-    'fxview_next_navigate_recentbrowsing',
-    'fxview_next_navigate_opentabs',
-    'fxview_next_navigate_recentlyclosed',
-    'fxview_next_navigate_syncedtabs',
-    'fxview_next_navigate_history',
-    'fxview_next_history_item_click',
-    'fxview_next_sort_history_by_site',
-    'fxview_next_sort_history_by_date',
-    'fxview_next_history_show_all',
-    'fxview_next_history_contextmenu',
-    'fxview_next_opentabs_expanded',
-    'fxview_next_opentabs_collapsed',
-    'fxview_next_opentabs_contextmenu',
-    'fxview_next_syncedtabs_contextmenu']
+    'fxview_next_syncedtabs_item_click']
 
 
 [metrics.fxview_next_tab_selected]
@@ -220,200 +202,6 @@ description = """
     Counts the number of clients that took action to click on an item from open tabs on FxView Next.
 """
 
-[metrics.fxview_next_navigate_recentbrowsing]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'change_page'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'recentbrowsing') > 0
-        """
-)}}'''
-friendly_name = "Navigate to Recent Browsing section on FxView Next"
-description = """
-    Counts the number of clients that navigated to Recent Browsing section on FxView Next.
-"""
-
-[metrics.fxview_next_navigate_opentabs]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'change_page'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'opentabs') > 0
-        """
-)}}'''
-friendly_name = "Navigate to Open Tabs section on FxView Next"
-description = """
-    Counts the number of clients that navigated to Open Tabs section on FxView Next.
-"""
-
-[metrics.fxview_next_navigate_recentlyclosed]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'change_page'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'recentlyclosed') > 0
-        """
-)}}'''
-friendly_name = "Navigate to Recently Closed section on FxView Next"
-description = """
-    Counts the number of clients that navigated to Recently Closed section on FxView Next.
-"""
-
-[metrics.fxview_next_navigate_syncedtabs]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'change_page'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'syncedtabs') > 0
-        """
-)}}'''
-friendly_name = "Navigate to Tabs from Other Devices section on FxView Next"
-description = """
-    Counts the number of clients that navigated to Tabs from Other Devices section on FxView Next.
-"""
-
-[metrics.fxview_next_navigate_history]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'change_page'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'history') > 0
-        """
-)}}'''
-friendly_name = "Navigate to History section on FxView Next"
-description = """
-    Counts the number of clients that navigated to History section on FxView Next.
-"""
-
-[metrics.fxview_next_history_item_click]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'history'
-            AND event_category = 'firefoxview_next'
-        """
-)}}'''
-friendly_name = "History item clicked on FxView Next"
-description = """
-    Counts the number of clients that took action to click on an item from History on FxView Next.
-"""
-
-[metrics.fxview_next_sort_history_by_site]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'sort_history'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'site') > 0
-        """
-)}}'''
-friendly_name = "Click on Sort by Site in History section on FxView Next"
-description = """
-    Counts the number of clients that clicked on Sort by Site radio button in History section on FxView Next.
-"""
-
-[metrics.fxview_next_sort_history_by_date]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'sort_history'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'date') > 0
-        """
-)}}'''
-friendly_name = "Click on Sort by Recently Visited in History section on FxView Next"
-description = """
-    Counts the number of clients that clicked on Sort by Recently Visited radio button in History section on FxView Next.
-"""
-
-[metrics.fxview_next_history_show_all]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'show_all_history'
-            AND event_category = 'firefoxview_next'
-        """
-)}}'''
-friendly_name = "Show All History clicked on FxView Next"
-description = """
-    Counts the number of clients that took action to click on Show All History on FxView Next.
-"""
-
-[metrics.fxview_next_history_contextmenu]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'context_menu'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'history') > 0
-        """
-)}}'''
-friendly_name = "Click on three dot menu in History section on FxView Next"
-description = """
-    Counts the number of clients that clicked three dot menu in History section on FxView Next.
-"""
-
-[metrics.fxview_next_opentabs_expanded]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'card_expanded'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'opentabs') > 0
-        """
-)}}'''
-friendly_name = "Open Tabs expanded on FxView Next"
-description = """
-    Counts the number of clients that took action to expand Open Tabs on FxView Next.
-"""
-
-[metrics.fxview_next_opentabs_collapsed]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'card_collapsed'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'opentabs') > 0
-        """
-)}}'''
-friendly_name = "Open Tabs collapsed on FxView Next"
-description = """
-    Counts the number of clients that took action to collapse Open Tabs on FxView Next.
-"""
-
-[metrics.fxview_next_opentabs_contextmenu]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'context_menu'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'opentabs') > 0
-        """
-)}}'''
-friendly_name = "Click on three dot menu in Open Tabs section on FxView Next"
-description = """
-    Counts the number of clients that clicked three dot menu in Open Tabs section on FxView Next.
-"""
-
-[metrics.fxview_next_syncedtabs_contextmenu]
-data_source = "events"
-select_expression = '''{{agg_any(
-    """
-            event_method = 'context_menu'
-            AND event_category = 'firefoxview_next'
-            AND (SELECT COUNT(*) FROM UNNEST(event_map_values) AS key_value WHERE key_value.value = 'syncedtabs') > 0
-        """
-)}}'''
-friendly_name = "Click on three dot menu in Tabs from Other Devices section on FxView Next"
-description = """
-    Counts the number of clients that clicked three dot menu in Tabs from Other Devices section on FxView Next.
-"""
-
 [metrics.fxview_next_tab_selected.statistics.binomial]
 [metrics.fxview_next_entered.statistics.binomial]
 [metrics.fxview_next_fxa_continue.statistics.binomial]
@@ -426,18 +214,3 @@ description = """
 [metrics.fxview_next_recentlyclosed_item_dismiss.statistics.binomial]
 [metrics.fxview_next_opentabs_item_click.statistics.binomial]
 [metrics.fxview_next_syncedtabs_item_click.statistics.binomial]
-
-[metrics.fxview_next_navigate_recentbrowsing.statistics.binomial]
-[metrics.fxview_next_navigate_opentabs.statistics.binomial]
-[metrics.fxview_next_navigate_recentlyclosed.statistics.binomial]
-[metrics.fxview_next_navigate_syncedtabs.statistics.binomial]
-[metrics.fxview_next_navigate_history.statistics.binomial]
-[metrics.fxview_next_history_item_click.statistics.binomial]
-[metrics.fxview_next_sort_history_by_site.statistics.binomial]
-[metrics.fxview_next_sort_history_by_date.statistics.binomial]
-[metrics.fxview_next_history_show_all.statistics.binomial]
-[metrics.fxview_next_history_contextmenu.statistics.binomial]
-[metrics.fxview_next_opentabs_expanded.statistics.binomial]
-[metrics.fxview_next_opentabs_collapsed.statistics.binomial]
-[metrics.fxview_next_opentabs_contextmenu.statistics.binomial]
-[metrics.fxview_next_syncedtabs_contextmenu.statistics.binomial]
