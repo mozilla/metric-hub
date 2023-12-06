@@ -72,9 +72,9 @@ category = "search"
 type = "scalar"
 
 # note: this metric needs to be counted daily then aggregated monthly
-[metrics.daily_active_searchers_w_google_mobile]
+[metrics.search_forecasting_daily_active_searchers_w_google_mobile]
 data_source = "mobile_search_clients_engines_sources_daily"
-from_expression = 'WITH
+from_expression = "WITH
 -- Grab Mobile Eligible DAU
 mobile_dau_data AS (
   SELECT
@@ -88,7 +88,7 @@ mobile_dau_data AS (
   FROM
     `moz-fx-data-shared-prod.telemetry.active_users_aggregates_device`
   WHERE
-    ((submission_date between "2023-09-01" and "2023-10-31") OR (submission_date between "2022-10-01" and "2022-10-31"))
+    ((submission_date >= '2021-01-01'))
     AND app_name IN ('Fenix', 'Firefox iOS', 'Focus Android', 'Focus iOS')
   GROUP BY
     submission_date
@@ -130,7 +130,7 @@ mobile_data_google AS (
   USING
     (submission_date)
   WHERE
-    ((submission_date between "2023-09-01" and "2023-10-31") OR (submission_date between "2022-10-01" and "2022-10-31"))
+    ((submission_date >= '2021-01-01'))
     AND country NOT IN ('RU', 'UA', 'BY', 'TR', 'KZ', 'CN')
     AND (
       app_name IN ('Fenix', 'Firefox Preview', 'Focus', 'Focus Android Glean', 'Focus iOS Glean')
@@ -209,7 +209,7 @@ mobile_data_bing_ddg AS (
   USING
     (submission_date)
   WHERE
-    ((submission_date between "2023-09-01" and "2023-10-31") OR (submission_date between "2022-10-01" and "2022-10-31"))
+    ((submission_date >= '2021-01-01'))
     AND (
       app_name IN ('Fenix', 'Firefox Preview', 'Focus', 'Focus Android Glean', 'Focus iOS Glean')
       OR (app_name = 'Fennec' AND os = 'iOS')
@@ -284,7 +284,7 @@ SELECT
   ddg_monetizable_sap,
   -- ddg_dau_w_engine_as_default AS dau_w_engine_as_default
 FROM
-  mobile_data_bing_ddg'
+  mobile_data_bing_ddg"
 select_expression= '{{agg_sum("dau_engaged_w_sap")}}'
 friendly_name = "Daily Active Users who Search with Google on Mobile"
 description = """
