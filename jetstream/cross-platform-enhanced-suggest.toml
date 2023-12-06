@@ -1,0 +1,119 @@
+[metrics]
+
+weekly = [
+    "adm_impressions",
+    "wikipedia_impressions",
+    "addon_impressions",
+    "pocket_impressions",
+    "rs_rust_clicks",
+    "engagement_adm_impressions",
+    "engagement_wikipedia_impressions",
+    "adm_clicks",
+    "wikipedia_clicks"
+]
+
+overall = [
+    "adm_impressions",
+    "wikipedia_impressions",
+    "addon_impressions",
+    "pocket_impressions",
+    "rs_rust_clicks",
+    "engagement_adm_impressions",
+    "engagement_wikipedia_impressions",
+    "adm_clicks",
+    "wikipedia_clicks"
+]
+
+
+[metrics.adm_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Sponsored suggestion impressions"
+description = "Number of sponsored suggestion impressions (Rust on treatment, RS on control)"
+
+[metrics.adm_impressions.statistics.bootstrap_mean]
+[metrics.adm_impressions.statistics.deciles]
+
+[metrics.wikipedia_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'wikipedia_enhanced', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Wikipedia suggestion impressions"
+description = "Number of enhanced Wikipedia suggestion impressions (Rust on treatment, RS on control)"
+
+[metrics.wikipedia_impressions.statistics.bootstrap_mean]
+[metrics.wikipedia_impressions.statistics.deciles]
+
+[metrics.addon_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'suggest_add_on', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Add-on suggestion impressions"
+description = "Number of add-on suggestion impressions (Rust on treatment, RS on control)"
+
+[metrics.addon_impressions.statistics.bootstrap_mean]
+[metrics.addon_impressions.statistics.deciles]
+
+[metrics.pocket_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'pocket_collection', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Pocket suggestion impressions"
+description = "Number of Pocket suggestion impressions (Rust on treatment, RS on control)"
+
+[metrics.pocket_impressions.statistics.bootstrap_mean]
+[metrics.pocket_impressions.statistics.deciles]
+
+[metrics.rs_rust_clicks]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result IN ('admarketplace_sponsored', 'wikipedia_enhanced', 'suggest_add_on', 'pocket_collection')
+)"""
+data_source = "urlbar_events"
+friendly_name = "Clicks on affected result types"
+description = "Number of clicks on result types affected by the backend change (Rust on treatment, RS on control)"
+
+[metrics.rs_rust_clicks.statistics.bootstrap_mean]
+[metrics.rs_rust_clicks.statistics.deciles]
+
+[metrics.engagement_adm_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND event_action = 'engaged' AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Sponsored suggestion impressions that had an engagement"
+description = "Number of sponsored suggestion impressions that ended with an engagement of any type (baseline for mobile)"
+
+[metrics.engagement_adm_impressions.statistics.bootstrap_mean]
+[metrics.engagement_adm_impressions.statistics.deciles]
+
+[metrics.engagement_wikipedia_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND event_action = 'engaged' AND result.product_result_type = 'wikipedia_enhanced', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Wikipedia suggestion impressions that had an engagement"
+description = "Number of enhanced Wikipedia suggestion impressions that ended with an engagement of any type (baseline for mobile)"
+
+[metrics.engagement_wikipedia_impressions.statistics.bootstrap_mean]
+[metrics.engagement_wikipedia_impressions.statistics.deciles]
+
+[metrics.adm_clicks]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result = 'admarketplace_sponsored'
+)"""
+data_source = "urlbar_events"
+friendly_name = "Sponsored suggestion clicks"
+description = "Number of clicks on sponsored suggestion results (baseline for mobile)"
+
+[metrics.adm_clicks.statistics.bootstrap_mean]
+[metrics.adm_clicks.statistics.deciles]
+
+[metrics.wikipedia_clicks]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result = 'wikipedia_enhanced'
+)"""
+data_source = "urlbar_events"
+friendly_name = "Wikipedia suggestion clicks"
+description = "Number of clicks on enhanced Wikipedia suggestion results (baseline for mobile)"
+
+[metrics.wikipedia_clicks.statistics.bootstrap_mean]
+[metrics.wikipedia_clicks.statistics.deciles]
