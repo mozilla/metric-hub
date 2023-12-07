@@ -1,5 +1,8 @@
 [experiment]
 
+enrollment_period = 6
+end_date = "2023-12-06"
+
 [experiment.exposure_signal]
 name = "opened_product_page"
 friendly_name = "Opened at least one product page"
