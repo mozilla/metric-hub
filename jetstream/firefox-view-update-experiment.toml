@@ -8,8 +8,8 @@ sample_size = 30
 name = "entered_fx_view"
 friendly_name = "Entered Firefox View"
 description = "Clients who entered Firefox View"
-select_expression = '''COALESCE(event_method = 'entered' AND event_category = 'firefoxview_next', FALSE)'''
-data_source = "events"
+select_expression = '''COALESCE(event_method = 'entered', FALSE)'''
+data_source = "events_fx_view"
 window_start = 0
 window_end = 7
 
@@ -36,11 +36,10 @@ overall = [
 
 
 [metrics.fxview_next_tab_selected]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'tab_selected'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Selected tab for FxView Next"
@@ -49,11 +48,10 @@ description = """
 """
 
 [metrics.fxview_next_entered]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'entered'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Entered FxView Next"
@@ -62,11 +60,10 @@ description = """
 """
 
 [metrics.fxview_next_fxa_continue]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'fxa_continue'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Sign up to FxA from FxView Next"
@@ -75,11 +72,10 @@ description = """
 """
 
 [metrics.fxview_next_fxa_mobile]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'fxa_mobile'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Try Firefox on Mobile from FxView Next"
@@ -88,11 +84,10 @@ description = """
 """
 
 [metrics.fxview_next_recentlyclosed_item_click]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'recently_closed'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Recently Closed item clicked on FxView Next"
@@ -101,11 +96,10 @@ description = """
 """
 
 [metrics.fxview_next_recentlyclosed_item_dismiss]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'dismiss_closed_tab'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Recently Closed item clicked on FxView Next"
@@ -114,11 +108,10 @@ description = """
 """
 
 [metrics.fxview_next_opentabs_item_click]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'open_tab'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Open Tabs item clicked on FxView Next"
@@ -127,11 +120,10 @@ description = """
 """
 
 [metrics.fxview_next_syncedtabs_item_click]
-data_source = "events"
+data_source = "events_fx_view"
 select_expression = '''{{agg_any(
     """
             event_method = 'synced_tabs'
-            AND event_category = 'firefoxview_next'
         """
 )}}'''
 friendly_name = "Synced Tabs item clicked on FxView Next"
@@ -151,3 +143,11 @@ description = """
 [metrics.fxview_next_recentlyclosed_item_dismiss.statistics.binomial]
 [metrics.fxview_next_opentabs_item_click.statistics.binomial]
 [metrics.fxview_next_syncedtabs_item_click.statistics.binomial]
+
+[data_sources]
+
+[data_sources.events_fx_view]
+from_expression = "(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'firefoxview_next')"
+experiments_column_type = "native"
+friendly_name = "Firefox View Events"
+description = "Events Ping filtered to only include Firefox View event category"
