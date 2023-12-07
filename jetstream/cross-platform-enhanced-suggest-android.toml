@@ -1,0 +1,240 @@
+[metrics]
+
+weekly = [
+    "urlbar_sessions",
+    "engaged_urlbar_sessions",
+    "search_engine_clicks",
+    "urlbar_engagement_rate",
+    "search_engine_rate",
+    "adm_impressions",
+    "wikipedia_impressions",
+    "adm_clicks",
+    "wikipedia_clicks",
+    "adm_impression_rate",
+    "adm_ctr",
+    "wikipedia_impression_rate",
+    "wikipedia_ctr",
+    "saw_adm",
+    "clicked_adm",
+    "saw_wikipedia",
+    "clicked_wikipedia"
+]
+
+overall = [
+    "urlbar_sessions",
+    "engaged_urlbar_sessions",
+    "search_engine_clicks",
+    "urlbar_engagement_rate",
+    "search_engine_rate",
+    "adm_impressions",
+    "wikipedia_impressions",
+    "adm_clicks",
+    "wikipedia_clicks",
+    "adm_impression_rate",
+    "adm_ctr",
+    "wikipedia_impression_rate",
+    "wikipedia_ctr",
+    "saw_adm",
+    "clicked_adm",
+    "saw_wikipedia",
+    "clicked_wikipedia"
+]
+
+# Urlbar metrics - available for all clients
+
+[metrics.urlbar_sessions]
+select_expression = "COUNTIF(event.category = 'events' AND event.name = 'search_bar_tapped')"
+data_source = "events"
+description = "Number of times the urlbar gains focus and a urlbar session is initiated"
+friendly_name = "Urlbar sessions"
+
+[metrics.urlbar_sessions.statistics.bootstrap_mean]
+[metrics.urlbar_sessions.statistics.deciles]
+
+[metrics.engaged_urlbar_sessions]
+select_expression = """COUNTIF(
+    event.category = 'events' AND event.name = 'entered_url'
+    OR event.category = 'events' AND event.name = 'performed_search'
+    OR event.category = 'awesomebar' AND event.name = 'opened_tab_suggestion_clicked'
+)"""
+data_source = "events"
+description = "Number of urlbar sessions where a result is selected"
+friendly_name = "Engaged urlbar sessions"
+
+[metrics.engaged_urlbar_sessions.statistics.bootstrap_mean]
+[metrics.engaged_urlbar_sessions.statistics.deciles]
+
+[metrics.search_engine_clicks]
+select_expression = "COUNTIF(event.category = 'events' AND event.name = 'performed_search')"
+data_source = "events"
+description = "Number of urlbar sessions where a result is selected leading to a SERP"
+friendly_name = "Urlbar SERP clicks"
+
+[metrics.search_engine_clicks.statistics.bootstrap_mean]
+[metrics.search_engine_clicks.statistics.deciles]
+
+[metrics.urlbar_engagement_rate]
+depends_on = ["engaged_urlbar_sessions", "urlbar_sessions"]
+description = "Proportion of urlbar sessions ending with an engagement"
+friendly_name = "Urlbar engagement rate"
+
+[metrics.urlbar_engagement_rate.statistics.population_ratio]
+numerator = "engaged_urlbar_sessions"
+denominator = "urlbar_sessions"
+
+[metrics.search_engine_rate]
+depends_on = ["search_engine_clicks", "urlbar_sessions"]
+friendly_name = "SERP engagement rate"
+description = "Proportion of urlbar sessions ending with an engagement leading to a SERP"
+
+[metrics.search_engine_rate.statistics.population_ratio]
+numerator = "search_engine_clicks"
+denominator = "urlbar_sessions"
+
+
+#--------------------------
+# Result type metrics - only available on treatment branch
+
+[metrics.adm_impressions]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser != 'wikipedia')"
+data_source = "fx_suggest_impressions"
+friendly_name = "Sponsored impressions (engaged sessions)"
+description = "Number of engaged urlbar sessions where a sponsored suggestion was shown (not available on control)"
+
+[metrics.adm_impressions.statistics.bootstrap_mean]
+[metrics.adm_impressions.statistics.deciles]
+
+[metrics.wikipedia_impressions]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser = 'wikipedia')"
+data_source = "fx_suggest_impressions"
+friendly_name = "Wikipedia impressions (engaged sessions)"
+description = "Number of engaged urlbar sessions where a Wikipedia suggestion was shown (not available on control)"
+
+[metrics.wikipedia_impressions.statistics.bootstrap_mean]
+[metrics.wikipedia_impressions.statistics.deciles]
+
+[metrics.adm_clicks]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser != 'wikipedia' AND metrics.boolean.fx_suggest_is_clicked)"
+data_source = "fx_suggest_impressions"
+friendly_name = "Sponsored clicks"
+description = "Number of urlbar sessions where a sponsored suggestion was clicked (not available on control)"
+
+[metrics.adm_clicks.statistics.bootstrap_mean]
+[metrics.adm_clicks.statistics.deciles]
+
+[metrics.wikipedia_clicks]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser = 'wikipedia' AND metrics.boolean.fx_suggest_is_clicked)"
+data_source = "fx_suggest_impressions"
+friendly_name = "Wikipedia clicks"
+description = "Number of urlbar sessions where a Wikipedia suggestion was clicked (not available on control)"
+
+[metrics.wikipedia_clicks.statistics.bootstrap_mean]
+[metrics.wikipedia_clicks.statistics.deciles]
+
+[metrics.adm_impression_rate]
+depends_on = ["adm_impressions", "engaged_urlbar_sessions"]
+friendly_name = "Sponsored impression rate"
+description = "Proportion of engaged urlbar sessions where a sponsored suggestion was shown (not available on control)"
+
+[metrics.adm_impression_rate.statistics.population_ratio]
+numerator = "adm_impressions"
+denominator = "engaged_urlbar_sessions"
+
+[metrics.adm_ctr]
+depends_on = ["adm_clicks", "adm_impressions"]
+friendly_name = "Sponsored CTR"
+description = "Proportion of urlbar sessions where a sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+
+[metrics.adm_ctr.statistics.population_ratio]
+numerator = "adm_clicks"
+denominator = "adm_impressions"
+
+[metrics.wikipedia_impression_rate]
+depends_on = ["wikipedia_impressions", "engaged_urlbar_sessions"]
+friendly_name = "Wikipedia impression rate"
+description = "Proportion of engaged urlbar sessions where a Wikipedia suggestion was shown (not available on control)"
+
+[metrics.wikipedia_impression_rate.statistics.population_ratio]
+numerator = "wikipedia_impressions"
+denominator = "engaged_urlbar_sessions"
+
+[metrics.wikipedia_ctr]
+depends_on = ["wikipedia_clicks", "wikipedia_impressions"]
+friendly_name = "Wikipedia CTR"
+description = "Proportion of urlbar sessions where a Wikipedia suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+
+[metrics.wikipedia_ctr.statistics.population_ratio]
+numerator = "wikipedia_clicks"
+denominator = "wikipedia_impressions"
+
+[metrics.saw_adm]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser != 'wikipedia') > 0"
+data_source = "fx_suggest_impressions"
+friendly_name = "Saw sponsored"
+description = "Proportion of clients that saw a sponsored suggestion (not available on control)"
+
+[metrics.saw_adm.statistics.binomial]
+
+[metrics.clicked_adm]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser != 'wikipedia' AND metrics.boolean.fx_suggest_is_clicked) > 0"
+data_source = "fx_suggest_impressions"
+friendly_name = "Clicked sponsored"
+description = "Proportion of clients that clicked a sponsored suggestion (not available on control)"
+
+[metrics.clicked_adm.statistics.binomial]
+
+[metrics.saw_wikipedia]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser = 'wikipedia') > 0"
+data_source = "fx_suggest_impressions"
+friendly_name = "Saw Wikipedia"
+description = "Proportion of clients that saw a Wikipedia suggestion (not available on control)"
+
+[metrics.saw_wikipedia.statistics.binomial]
+
+[metrics.clicked_wikipedia]
+select_expression = "COUNTIF(metrics.string.fx_suggest_advertiser = 'wikipedia' AND metrics.boolean.fx_suggest_is_clicked) > 0"
+data_source = "fx_suggest_impressions"
+friendly_name = "Clicked Wikipedia"
+description = "Proportion of clients that clicked a Wikipedia suggestion (not available on control)"
+
+[metrics.clicked_wikipedia.statistics.binomial]
+
+
+[data_sources]
+
+[data_sources.fx_suggest_impressions]
+# No client ID in fx_suggest metrics ping
+# Join on enrollment table to recover it through enrollment_id
+from_expression="""(
+SELECT
+  e.client_id,
+  f.*,
+  f.ping_info.experiments,
+  DATE(f.submission_timestamp) AS submission_date
+FROM
+  `mozdata.org_mozilla_firefox.fx_suggest` f
+INNER JOIN (
+  SELECT
+    events.client_info.client_id AS client_id,
+    ANY_VALUE(mozfun.map.get_key(e.extra, 'enrollment_id')) AS enrollment_id
+  FROM
+    `moz-fx-data-shared-prod.org_mozilla_firefox.events` events,
+    UNNEST(events.events) AS e
+  WHERE
+    events.client_info.client_id IS NOT NULL
+    AND DATE(events.submission_timestamp) BETWEEN '2023-11-28'
+    AND '2023-12-06'
+    AND e.category = "nimbus_events"
+    AND mozfun.map.get_key(e.extra, "experiment") = 'cross-platform-enhanced-suggest-android'
+    AND e.name = 'enrollment'
+  GROUP BY
+    client_id 
+) e
+ON
+  mozfun.map.get_key(f.ping_info.experiments, 'cross-platform-enhanced-suggest-android').extra.enrollment_id = e.enrollment_id
+WHERE
+  metrics.string.fx_suggest_ping_type = 'fxsuggest-impression'
+)"""
+friendly_name = "Android Firefox Suggest events"
+description = "Metrics ping capturing Firefox Suggest impressions and clicks, 1 row per impression"
+experiments_column_type = "glean"
