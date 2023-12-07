@@ -47,7 +47,11 @@ from_expression = """(
             metadata.geo.country = "US"
             AND sample_id = 0
         )
-        OR metadata.geo.country = "KE"
+        OR 
+        (
+            metadata.geo.country = "KE"
+            AND sample_id BETWEEN 30 AND 80
+        )
 )"""
 
 client_id_column = "client_info.client_id"
