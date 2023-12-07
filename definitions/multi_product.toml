@@ -42,8 +42,8 @@ deprecated = false
 ##### search revenue forecasting metrics
 
 [metrics.search_forecasting_daily_active_users]
+select_expression = '{{agg_sum("dau")}}'
 data_source = "search_revenue_levers_daily"
-select_expression = ''{{agg_sum("dau")}}''
 friendly_name = "Daily Active Users"
 description = """
     Counts the number of daily active users (DAU) for search revenue forecasting purposes. 
@@ -52,8 +52,8 @@ category = "search"
 type = "scalar"
 
 [metrics.search_forecasting_daily_active_users_w_google_default]
+select_expression = '{{agg_sum("dau_w_engine_as_default")}}'
 data_source = "search_revenue_levers_daily"
-select_expression = ''{{agg_sum("dau_w_engine_as_default")}}''
 friendly_name = "Daily Active Users with Google as Default"
 description = """
     Counts the number of daily active users (DAU) with Google as default search engine for search revenue forecasting purposes. 
@@ -67,228 +67,6 @@ select_expression = '{{agg_sum("dau_engaged_w_sap")}}'
 friendly_name = "Daily Active Users who Search with Google as Default"
 description = """
     Counts the number of daily active users (DAU) with Google as default search engine who also conduct a search for search revenue forecasting purposes. 
-"""
-category = "search"
-type = "scalar"
-
-# note: this metric needs to be counted daily then aggregated monthly
-[metrics.search_forecasting_daily_active_searchers_w_google_mobile]
-data_source = "mobile_search_clients_engines_sources_daily"
-from_expression = "WITH
--- Grab Mobile Eligible DAU
-mobile_dau_data AS (
-  SELECT
-    submission_date,
-    SUM(
-      IF(country NOT IN ('US', 'RU', 'UA', 'BY', 'TR', 'KZ', 'CN'), dau, 0)
-    ) AS row_dau_eligible_google,
-    SUM(IF(country = 'US', dau, 0)) AS us_dau,
-    SUM(IF(country != 'US', dau, 0)) AS row_dau,
-    SUM(dau) AS dau
-  FROM
-    `moz-fx-data-shared-prod.telemetry.active_users_aggregates_device`
-  WHERE
-    ((submission_date >= '2021-01-01'))
-    AND app_name IN ('Fenix', 'Firefox iOS', 'Focus Android', 'Focus iOS')
-  GROUP BY
-    submission_date
-),
--- Google Mobile (search only - as mobile search metrics is based on metrics
--- ping, while DAU should be based on main ping on Mobile, see also
--- https://mozilla-hub.atlassian.net/browse/RS-575)
-mobile_data_google AS (
-  SELECT
-    submission_date,
-    IF(country = 'US', 'US', 'RoW') AS country,
-    IF(country = 'US', dau.us_dau, dau.row_dau_eligible_google) AS dau,
-    -- COUNT(
-    --   DISTINCT IF(default_search_engine LIKE '%google%', client_id, NULL)
-    -- ) AS dau_w_engine_as_default,
-    COUNT(
-      DISTINCT IF(
-        sap > 0
-        AND normalized_engine = 'Google',
-        -- AND default_search_engine LIKE '%google%',
-        client_id,
-        NULL
-      )
-    ) AS dau_engaged_w_sap,
-    SUM(IF(normalized_engine = 'Google', sap, 0)) AS sap,
-    SUM(IF(normalized_engine = 'Google', tagged_sap, 0)) AS tagged_sap,
-    SUM(IF(normalized_engine = 'Google', tagged_follow_on, 0)) AS tagged_follow_on,
-    SUM(IF(normalized_engine = 'Google', search_with_ads, 0)) AS search_with_ads,
-    SUM(IF(normalized_engine = 'Google', ad_click, 0)) AS ad_click,
-    SUM(IF(normalized_engine = 'Google', organic, 0)) AS organic,
-    SUM(IF(normalized_engine = 'Google', ad_click_organic, 0)) AS ad_click_organic,
-    -- metrics do not exist for mobile
-    0 AS search_with_ads_organic,
-    0 AS monetizable_sap
-  FROM
-    `moz-fx-data-shared-prod.search.mobile_search_clients_engines_sources_daily`
-  INNER JOIN
-    mobile_dau_data dau
-  USING
-    (submission_date)
-  WHERE
-    ((submission_date >= '2021-01-01'))
-    AND country NOT IN ('RU', 'UA', 'BY', 'TR', 'KZ', 'CN')
-    AND (
-      app_name IN ('Fenix', 'Firefox Preview', 'Focus', 'Focus Android Glean', 'Focus iOS Glean')
-      OR (app_name = 'Fennec' AND os = 'iOS')
-    )
-  GROUP BY
-    submission_date,
-    country,
-    dau
-  ORDER BY
-    submission_date,
-    country,
-    dau
-),
--- Bing & DDG Mobile (search only - as mobile search metrics is based on
--- metrics ping, while DAU should be based on main ping on Mobile, see also
--- https://mozilla-hub.atlassian.net/browse/RS-575)
-mobile_data_bing_ddg AS (
-  SELECT
-    submission_date,
-    IF(country = 'US', 'US', 'RoW') AS country,
-    IF(country = 'US', dau.us_dau, dau.row_dau) AS dau,
-    -- COUNT(
-    --   DISTINCT IF(default_search_engine LIKE '%bing%', client_id, NULL)
-    -- ) AS bing_dau_w_engine_as_default,
-    COUNT(
-      DISTINCT IF(
-        sap > 0
-        AND normalized_engine = 'Bing',
-        -- AND default_search_engine LIKE '%bing%',
-        client_id,
-        NULL
-      )
-    ) AS bing_dau_engaged_w_sap,
-    -- COUNT(
-    --   DISTINCT IF(
-    --     default_search_engine LIKE('%ddg%')
-    --     OR default_search_engine LIKE('%duckduckgo%'),
-    --     client_id,
-    --     NULL
-    --   )
-    -- ) AS ddg_dau_w_engine_as_default,
-    COUNT(
-      DISTINCT IF(
-        (engine) IN ('ddg', 'duckduckgo')
-        AND sap > 0,
-        -- AND (default_search_engine LIKE('%ddg%') OR default_search_engine LIKE('%duckduckgo%')),
-        client_id,
-        NULL
-      )
-    ) AS ddg_dau_engaged_w_sap,
-    SUM(IF(normalized_engine = 'Bing', sap, 0)) AS bing_sap,
-    SUM(IF(normalized_engine = 'Bing', tagged_sap, 0)) AS bing_tagged_sap,
-    SUM(IF(normalized_engine = 'Bing', tagged_follow_on, 0)) AS bing_tagged_follow_on,
-    SUM(IF(normalized_engine = 'Bing', search_with_ads, 0)) AS bing_search_with_ads,
-    SUM(IF(normalized_engine = 'Bing', ad_click, 0)) AS bing_ad_click,
-    SUM(IF(normalized_engine = 'Bing', organic, 0)) AS bing_organic,
-    SUM(IF(normalized_engine = 'Bing', ad_click_organic, 0)) AS bing_ad_click_organic,
-    -- metrics do not exist for mobile
-    0 AS bing_search_with_ads_organic,
-    0 AS bing_monetizable_sap,
-    SUM(IF(normalized_engine = 'DuckDuckGo', sap, 0)) AS ddg_sap,
-    SUM(IF(normalized_engine = 'DuckDuckGo', tagged_sap, 0)) AS ddg_tagged_sap,
-    SUM(IF(normalized_engine = 'DuckDuckGo', tagged_follow_on, 0)) AS ddg_tagged_follow_on,
-    SUM(IF(normalized_engine = 'DuckDuckGo', search_with_ads, 0)) AS ddg_search_with_ads,
-    SUM(IF(normalized_engine = 'DuckDuckGo', ad_click, 0)) AS ddg_ad_click,
-    SUM(IF(normalized_engine = 'DuckDuckGo', organic, 0)) AS ddg_organic,
-    SUM(IF(normalized_engine = 'DuckDuckGo', ad_click_organic, 0)) AS ddg_ad_click_organic,
-    -- metrics do not exist for mobile
-    0 AS ddg_search_with_ads_organic,
-    0 AS ddg_monetizable_sap
-  FROM
-    `moz-fx-data-shared-prod.search.mobile_search_clients_engines_sources_daily`
-  INNER JOIN
-    mobile_dau_data dau
-  USING
-    (submission_date)
-  WHERE
-    ((submission_date >= '2021-01-01'))
-    AND (
-      app_name IN ('Fenix', 'Firefox Preview', 'Focus', 'Focus Android Glean', 'Focus iOS Glean')
-      OR (app_name = 'Fennec' AND os = 'iOS')
-    )
-  GROUP BY
-    submission_date,
-    country,
-    dau
-  ORDER BY
-    submission_date,
-    country,
-    dau
-)
-SELECT
-  submission_date,
-  'Google' AS partner,
-  'mobile' AS device,
-  NULL AS channel,
-  country,
-  dau,
-  dau_engaged_w_sap,
-  sap,
-  tagged_sap,
-  tagged_follow_on,
-  search_with_ads,
-  ad_click,
-  organic,
-  ad_click_organic,
-  search_with_ads_organic,
-  monetizable_sap,
-  -- dau_w_engine_as_default
-FROM
-  mobile_data_google
-UNION ALL
-SELECT
-  submission_date,
-  'Bing' AS partner,
-  'mobile' AS device,
-  NULL AS channel,
-  country,
-  dau,
-  bing_dau_engaged_w_sap,
-  bing_sap,
-  bing_tagged_sap,
-  bing_tagged_follow_on,
-  bing_search_with_ads,
-  bing_ad_click,
-  bing_organic,
-  bing_ad_click_organic,
-  bing_search_with_ads_organic,
-  bing_monetizable_sap,
-  -- bing_dau_w_engine_as_default AS dau_w_engine_as_default
-FROM
-  mobile_data_bing_ddg
-UNION ALL
-SELECT
-  submission_date,
-  'DuckDuckGo' AS partner,
-  'mobile' AS device,
-  NULL AS channel,
-  country,
-  dau,
-  ddg_dau_engaged_w_sap,
-  ddg_sap,
-  ddg_tagged_sap,
-  ddg_tagged_follow_on,
-  ddg_search_with_ads,
-  ddg_ad_click,
-  ddg_organic,
-  ddg_ad_click_organic,
-  ddg_search_with_ads_organic,
-  ddg_monetizable_sap,
-  -- ddg_dau_w_engine_as_default AS dau_w_engine_as_default
-FROM
-  mobile_data_bing_ddg"
-select_expression= '{{agg_sum("dau_engaged_w_sap")}}'
-friendly_name = "Daily Active Users who Search with Google on Mobile"
-description = """
-    Counts the number of daily active users (DAU) who used Google to search on mobile. This is measured for search revenue forecasting purposes while a mobile bug fix is being deployed. 
 """
 category = "search"
 type = "scalar"
@@ -317,7 +95,6 @@ description = """
 category = "search"
 type = "scalar"
 
-
 ######
 
 [data_sources]
@@ -331,21 +108,11 @@ from_expression = """(
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on the Mobile product group"
 submission_date_column = "submission_date"
-client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+client_id_column = "NULL" # this table doesn't include client_id, and we don't need it for calculating DAU
 
 [data_sources.search_revenue_levers_daily]
 from_expression = "mozdata.search.search_revenue_levers_daily"
 submission_date_column = "submission_date"
 friendly_name = "Search Clients Engines Sources Daily"
 description = "Search Clients Engines Sources Daily"
-client_id_column = "NULL" # aggregated by submission_date, partner, device, channel, country
-
-[data_sources.mobile_search_clients_engines_sources_daily]
-from_expression = """(
-    SELECT *
-    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
-    WHERE os = "iOS" AND normalized_app_name = "Fennec"
-)"""
-experiments_column_type = "simple"
-client_id_column = "client_id"
-submission_date_column = "submission_date"
+client_id_column = "NULL"                                      # aggregated by submission_date, partner, device, channel, country
