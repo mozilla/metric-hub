@@ -7,8 +7,8 @@ sample_size = 30
 [experiment.exposure_signal]
 name = "entered_fx_view"
 friendly_name = "Entered Firefox View"
-description = "Clients who entered Firefox View"
-select_expression = '''COALESCE(event_method = 'entered', FALSE)'''
+description = "Clients who selected the Firefox View tab"
+select_expression = '''COALESCE(event_method = 'tab_selected', FALSE)'''
 data_source = "events_fx_view"
 window_start = 0
 window_end = 7
@@ -130,7 +130,7 @@ select_expression = '''{{agg_any(
 )}}'''
 friendly_name = "Synced Tabs item clicked on FxView"
 description = """
-    Counts the number of clients that took action to click on an item from open tabs on FxView.
+    Counts the number of clients that took action to click on an item from synced tabs on FxView.
 """
 
 [metrics.fxview_next_tab_selected.statistics.binomial]
