@@ -11,20 +11,20 @@ skip_default_metrics = true
 compact_visualization = false
 metrics = [
     "session_count",
-    #"session_duration",
+    "avg_session_duration",
     "active_subscribers"
 ]
 
 [project.population]
 
-data_source = "vpn_sessions"
+data_source = "base_table"
 monitor_entire_population = true
 dimensions = ["app"]
 group_by_dimension = "app"
 
 
 [data_sources]
-[data_sources.vpn_sessions]
+[data_sources.base_table]
 from_expression = """
     (
         SELECT
@@ -36,8 +36,10 @@ from_expression = """
                 WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
                 WHEN "mozillavpn" THEN "Desktop - vpnsession"
             END AS app,
-            v.client_info.client_id,
-            v.metrics.uuid.session_installation_id,
+            CASE v.normalized_app_id
+                WHEN "mozillavpn" then v.client_info.client_id
+                ELSE v.metrics.uuid.session_installation_id
+            END AS client_id,
             v.metrics.uuid.session_session_id AS session_id,
             v.metrics.datetime.session_session_start as session_start,
             v.metrics.datetime.session_session_end as session_end,
@@ -51,40 +53,86 @@ from_expression = """
                 WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
                 WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
             END as app,
-            d.client_info.client_id,
-            d.metrics.uuid.session_installation_id,
+            d.metrics.uuid.session_installation_id AS session_id,
             d.metrics.uuid.session_daemon_session_id as session_id,
             d.metrics.datetime.session_daemon_session_start as session_start,
             d.metrics.datetime.session_daemon_session_end as session_end,
         FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` d
-
-        
     )
 """
-
 client_id_column = "client_id"
 
+[data_sources.session_duration_table]
+from_expression = """
+    (
+        SELECT 
+            submission_date,
+            app,
+            client_id,
+            session_id,
+            TIMESTAMP_DIFF(MAX(session_end), MIN(session_start), MINUTE) AS session_duration
+
+        FROM (
+            SELECT
+                DATE(v.submission_timestamp) AS submission_date,
+                CASE v.normalized_app_id
+                    WHEN "org_mozilla_ios_firefoxvpn" THEN "iPhone - vpnsession"
+                    WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
+                    WHEN "mozillavpn" THEN "Desktop - vpnsession"
+                END AS app,
+                CASE v.normalized_app_id
+                    WHEN "mozillavpn" then v.client_info.client_id
+                    ELSE v.metrics.uuid.session_installation_id
+                END AS client_id,
+                v.metrics.uuid.session_session_id AS session_id,
+                v.metrics.datetime.session_session_start as session_start,
+                v.metrics.datetime.session_session_end as session_end,
+            FROM `moz-fx-data-shared-prod.mozilla_vpn.vpnsession` v
+
+            UNION ALL
+            SELECT 
+                DATE(d.submission_timestamp) AS submission_date,
+                CASE d.normalized_app_id
+                    WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
+                    WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
+                END as app,
+                d.metrics.uuid.session_installation_id AS session_id,
+                d.metrics.uuid.session_daemon_session_id as session_id,
+                d.metrics.datetime.session_daemon_session_start as session_start,
+                d.metrics.datetime.session_daemon_session_end as session_end,
+            FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` d
+        )
+
+        GROUP BY 
+            submission_date,
+            app,
+            client_id,
+            session_id
+    )
+"""
+client_id_column = "client_id"
 
 [dimensions]
 [dimensions.app]
-data_source = "vpn_sessions"
+data_source = "base_table"
 select_expression = "app"
 
 [metrics]
 [metrics.session_count]
-data_source = "vpn_sessions"
+data_source = "base_table"
 select_expression = "COUNT(DISTINCT session_id)"
 type = "scalar"
 statistics.sum = {}
 
-# [metrics.session_duration]
-# data_soure = "vpn_sessions"
-# select_expression = "DATE_DIFF(MAX(metrics.datetime.session_session_end), MIN(metrics.datetime.session_session_start), minute)"
-# type = "scalar"
-# statistics.mean = {}
+[metrics.avg_session_duration]
+data_source = "session_duration_table"
+select_expression = "AVG(session_duration)"
+type = "scalar"
+statistics.mean = {}
+statistics.percentile = {}
 
 [metrics.active_subscribers]
-data_source = "vpn_sessions"
-select_expression = "COUNT(DISTINCT(IF(app = \"Desktop - vpnsession\", client_id, session_installation_id)))"
+data_source = "base_table"
+select_expression = "COUNT(DISTINCT client_id)"
 type = "scalar"
 statistics.sum = {}
