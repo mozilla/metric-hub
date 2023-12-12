@@ -39,6 +39,63 @@ category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
+##### search revenue forecasting metrics
+
+[metrics.search_forecasting_daily_active_users]
+select_expression = '{{agg_sum("dau")}}'
+data_source = "search_revenue_levers_daily"
+friendly_name = "Daily Active Users"
+description = """
+    Counts the number of daily active users (DAU) for search revenue forecasting purposes. 
+"""
+category = "search"
+type = "scalar"
+
+[metrics.search_forecasting_daily_active_users_w_google_default]
+select_expression = '{{agg_sum("dau_w_engine_as_default")}}'
+data_source = "search_revenue_levers_daily"
+friendly_name = "Daily Active Users with Google as Default"
+description = """
+    Counts the number of daily active users (DAU) with Google as default search engine for search revenue forecasting purposes. 
+"""
+category = "search"
+type = "scalar"
+
+[metrics.search_forecasting_daily_active_searchers_w_google_default]
+data_source = "search_revenue_levers_daily"
+select_expression = '{{agg_sum("dau_engaged_w_sap")}}'
+friendly_name = "Daily Active Users who Search with Google as Default"
+description = """
+    Counts the number of daily active users (DAU) with Google as default search engine who also conduct a search for search revenue forecasting purposes. 
+"""
+category = "search"
+type = "scalar"
+
+[metrics.search_forecasting_search_count]
+data_source = "search_revenue_levers_daily"
+select_expression = '{{agg_sum("sap")}}'
+friendly_name = "SAP search volume"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
+
+[metrics.search_forecasting_ad_clicks]
+data_source = "search_revenue_levers_daily"
+select_expression = '{{agg_sum("ad_click")}}'
+friendly_name = "Ad click volume"
+description = """
+    Counts clicks on ads on search engine result pages with a Mozilla
+    partner tag.
+"""
+category = "search"
+type = "scalar"
+
+######
 
 [data_sources]
 
@@ -51,4 +108,11 @@ from_expression = """(
 friendly_name = "Active Users Aggregates"
 description = "Active Users Aggregates, filtered on the Mobile product group"
 submission_date_column = "submission_date"
-client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+client_id_column = "NULL" # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.search_revenue_levers_daily]
+from_expression = "mozdata.search.search_revenue_levers_daily"
+submission_date_column = "submission_date"
+friendly_name = "Search Clients Engines Sources Daily"
+description = "Search Clients Engines Sources Daily"
+client_id_column = "NULL"                                      # aggregated by submission_date, partner, device, channel, country
