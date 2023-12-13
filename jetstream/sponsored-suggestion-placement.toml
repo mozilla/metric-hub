@@ -1,0 +1,412 @@
+[experiment.exposure_signal]
+name = "saw_sponsored"
+friendly_name = "Saw sponsored suggestion"
+description = "Clients that saw at least 1 sponsored suggestion"
+data_source = "urlbar_exposures"
+select_expression = "TRUE"
+window_start = 0
+window_end = "analysis_window_end"
+
+[metrics]
+
+overall = [
+    "adm_impressions",
+    "adm_clicks",
+    "adm_impression_rate",
+    "adm_ctr",
+    "serp_impressions",
+    "serp_impressions_with_ads",
+    "serp_has_ad_click",
+    "serp_ad_clicks",
+    "serp_ad_impression_rate",
+    "serp_ad_ctr",
+    "serp_ad_click_rate",
+    "exposed_urlbar_sessions",
+    "exposed_search_engine_clicks",
+    "exposed_search_engine_rate",
+    "exposed_serp_impressions",
+    "exposed_serp_impressions_with_ads",
+    "exposed_serp_has_ad_click",
+    "exposed_serp_ad_clicks",
+    "exposed_serp_ad_impression_rate",
+    "exposed_serp_ad_ctr",
+    "exposed_serp_ad_click_rate",
+]
+
+
+[metrics.adm_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "Sponsored suggestion impressions"
+description = "Number of sponsored suggestion impressions"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.adm_impressions.statistics.bootstrap_mean]
+[metrics.adm_impressions.statistics.deciles]
+
+[metrics.adm_clicks]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result = 'admarketplace_sponsored'
+)"""
+data_source = "urlbar_events"
+friendly_name = "Sponsored suggestion clicks"
+description = "Number of clicks on sponsored suggestion results"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.adm_clicks.statistics.bootstrap_mean]
+[metrics.adm_clicks.statistics.deciles]
+
+[metrics.adm_impression_rate]
+depends_on = ["adm_impressions", "urlbar_impressions"]
+friendly_name = "Sponsored suggestion impression rate"
+description = "Proportion of urlbar sessions with a sponsored suggestion impression"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.adm_impression_rate.statistics.population_ratio]
+numerator = "adm_impressions"
+denominator = "urlbar_impressions"
+
+[metrics.adm_ctr]
+depends_on = ["adm_clicks", "adm_impressions"]
+friendly_name = "Sponsored suggestion CTR"
+description = "Proportion of urlbar sessions with a sponsored suggestion impression where a sponsored suggestion was clicked"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.adm_ctr.statistics.population_ratio]
+numerator = "adm_clicks"
+denominator = "adm_impressions"
+
+[metrics.serp_impressions]
+select_expression = "COUNT(DISTINCT impression_id)"
+data_source = "tagged_google_serp_events"
+friendly_name = "SERP loads"
+description = "Number of tagged Google SERP page loads"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_impressions.statistics.bootstrap_mean]
+[metrics.serp_impressions.statistics.deciles]
+
+[metrics.serp_impressions_with_ads]
+select_expression = "COUNT(DISTINCT IF(ad_component AND num_ads_showing > 0, impression_id, NULL))"
+data_source = "tagged_google_serp_events"
+friendly_name = "SERPs with ads"
+description = "Number of tagged Google SERP page loads with visible ads"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_impressions_with_ads.statistics.bootstrap_mean]
+[metrics.serp_impressions_with_ads.statistics.deciles]
+
+[metrics.serp_has_ad_click]
+select_expression = "COUNT(DISTINCT IF(ad_component AND num_ads_showing > 0 AND num_clicks > 0, impression_id, NULL))"
+data_source = "tagged_google_serp_events"
+friendly_name = "SERPs with ad clicks"
+description = "Number of tagged Google SERP page loads where an ad was clicked"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_has_ad_click.statistics.bootstrap_mean]
+[metrics.serp_has_ad_click.statistics.deciles]
+
+[metrics.serp_ad_clicks]
+select_expression = "SUM(IF(ad_component and num_ads_showing > 0, num_clicks, 0))"
+data_source = "tagged_google_serp_events"
+friendly_name = "SERP ad clicks"
+description = "Number of ad clicks on tagged Google SERPs"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_ad_clicks.statistics.bootstrap_mean]
+[metrics.serp_ad_clicks.statistics.deciles]
+
+[metrics.serp_ad_impression_rate]
+depends_on = ["serp_impressions_with_ads", "serp_impressions"]
+friendly_name = "SERP ad impression rate"
+description = "Proportion of tagged Google SERP page loads with visible ads"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_ad_impression_rate.statistics.population_ratio]
+numerator = "serp_impressions_with_ads"
+denominator = "serp_impressions"
+
+[metrics.serp_ad_ctr]
+depends_on = ["serp_has_ad_click", "serp_impressions_with_ads"]
+friendly_name = "SERP ad CTR"
+description = "Proportion of tagged Google SERP page loads with visible ads that had an ad click"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_ad_ctr.statistics.population_ratio]
+numerator = "serp_has_ad_click"
+denominator = "serp_impressions_with_ads"
+
+[metrics.serp_ad_click_rate]
+depends_on = ["serp_ad_clicks", "serp_impressions"]
+friendly_name = "SERP ad click rate"
+description = "Number of ad clicks per tagged Google SERP page load"
+exposure_basis = ["enrollments"]
+
+[metrics.serp_ad_click_rate.statistics.population_ratio]
+numerator = "serp_ad_clicks"
+denominator = "serp_impressions"
+
+
+#------
+# Exposed metrics
+
+[metrics.exposed_urlbar_sessions]
+select_expression = "COUNTIF(NOT is_serp)"
+data_source = "exposed_urlbar_serp"
+friendly_name = "Exposed urlbar sessions"
+description = "Number of urlbar sessions exposed to sponsored suggestions"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_urlbar_sessions.statistics.bootstrap_mean]
+[metrics.exposed_urlbar_sessions.statistics.deciles]
+
+[metrics.exposed_search_engine_clicks]
+select_expression = """COUNTIF(
+  NOT is_serp
+  AND event_action = 'engaged'
+  AND (
+    SELECT LOGICAL_OR( 
+      product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
+    )
+    FROM UNNEST(results)
+  )
+)"""
+data_source = "exposed_urlbar_serp"
+description = "Number of exposed urlbar sessions ending with a click leading to a SERP"
+friendly_name = "Exposed urlbar sessions ending on a SERP"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_search_engine_clicks.statistics.bootstrap_mean]
+[metrics.exposed_search_engine_clicks.statistics.deciles]
+
+[metrics.exposed_search_engine_rate]
+depends_on = ["exposed_search_engine_clicks", "exposed_urlbar_sessions"]
+friendly_name = "Exposed SERP engagement rate"
+description = "Proportion of exposed urlbar sessions ending with a click leading to a SERP"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_search_engine_rate.statistics.population_ratio]
+numerator = "exposed_search_engine_clicks"
+denominator = "exposed_urlbar_sessions"
+
+[metrics.exposed_serp_impressions]
+select_expression = "COUNTIF(is_serp)"
+data_source = "exposed_urlbar_serp"
+friendly_name = "Exposed SERP loads"
+description = "Number of tagged Google SERP page loads coming following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_impressions.statistics.bootstrap_mean]
+[metrics.exposed_serp_impressions.statistics.deciles]
+
+[metrics.exposed_serp_impressions_with_ads]
+select_expression = "COUNTIF(is_serp AND had_ad_impression)"
+data_source = "exposed_urlbar_serp"
+friendly_name = "Exposed SERPs with ads"
+description = "Number of tagged Google SERP page loads with visible ads following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_impressions_with_ads.statistics.bootstrap_mean]
+[metrics.exposed_serp_impressions_with_ads.statistics.deciles]
+
+[metrics.exposed_serp_has_ad_click]
+select_expression = "COUNTIF(is_serp AND had_ad_click)"
+data_source = "exposed_urlbar_serp"
+friendly_name = "Exposed SERPs with ad clicks"
+description = "Number of tagged Google SERP page loads where an ad was clicked following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_has_ad_click.statistics.bootstrap_mean]
+[metrics.exposed_serp_has_ad_click.statistics.deciles]
+
+[metrics.exposed_serp_ad_clicks]
+select_expression = "SUM(IF(is_serp, num_ad_clicks, 0))"
+data_source = "exposed_urlbar_serp"
+friendly_name = "Exposed SERP ad clicks"
+description = "Number of ad clicks on tagged Google SERPs following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_ad_clicks.statistics.bootstrap_mean]
+[metrics.exposed_serp_ad_clicks.statistics.deciles]
+
+[metrics.exposed_serp_ad_impression_rate]
+depends_on = ["exposed_serp_impressions_with_ads", "exposed_serp_impressions"]
+friendly_name = "Exposed SERP ad impression rate"
+description = "Proportion of tagged Google SERP page loads with visible ads following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_ad_impression_rate.statistics.population_ratio]
+numerator = "exposed_serp_impressions_with_ads"
+denominator = "exposed_serp_impressions"
+
+[metrics.exposed_serp_ad_ctr]
+depends_on = ["exposed_serp_has_ad_click", "exposed_serp_impressions_with_ads"]
+friendly_name = "Exposed SERP ad CTR"
+description = "Proportion of tagged Google SERP page loads with visible ads that had an ad click following an exposure"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_ad_ctr.statistics.population_ratio]
+numerator = "exposed_serp_has_ad_click"
+denominator = "exposed_serp_impressions_with_ads"
+
+[metrics.exposed_serp_ad_click_rate]
+depends_on = ["exposed_serp_ad_clicks", "exposed_serp_impressions"]
+friendly_name = "Exposed SERP ad click rate"
+description = "Number of ad clicks per exposed tagged Google SERP page load"
+exposure_basis = ["exposures"]
+
+[metrics.exposed_serp_ad_click_rate.statistics.population_ratio]
+numerator = "exposed_serp_ad_clicks"
+denominator = "exposed_serp_impressions"
+
+
+[data_sources]
+
+[data_sources.urlbar_exposures]
+from_expression = """(
+    SELECT 
+      metrics.uuid.legacy_telemetry_client_id AS client_id,
+      DATE(submission_timestamp) AS submission_date,
+      ping_info.experiments AS experiments,
+    FROM `mozdata.firefox_desktop.events`
+      CROSS JOIN UNNEST(events) AS event
+    WHERE event.category = 'urlbar' AND event.name = 'exposure'
+)"""
+experiments_column_type = "native"
+friendly_name = "Urlbar exposures"
+description = "Glean urlbar exposure events"
+
+[data_sources.tagged_google_serp_events]
+from_expression = """(
+    SELECT
+        * EXCEPT (is_ad_component),
+        component IN ('ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar',
+        'ad_sitelink') AS ad_component
+    FROM `mozdata.firefox_desktop.serp_events`
+    WHERE search_engine = 'google' AND is_tagged
+)"""
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
+submission_date_column = "submission_date"
+friendly_name = "Glean Google tagged SERP events"
+description = "Glean SERP events aggregated by impression for tagged Google search"
+
+[data_sources.exposed_urlbar_serp]
+friendly_name = "Exposde urlbar & SERP sessions"
+description = "Exposed Glean urlbar & SERP sessions"
+client_id_column = "legacy_telemetry_client_id"
+submission_date_column = "submission_date"
+experiments_column_type = "native"
+from_expression = """(
+    WITH exposures AS (
+      -- urlbar.exposure events sequence info
+      SELECT
+        client_info.client_id AS glean_client_id,
+        ping_info.seq,
+        event_timestamp,
+        TRUE AS exposed,
+      FROM
+        `mozdata.firefox_desktop.events_unnested`
+      WHERE
+        event_category = 'urlbar' AND event_name = 'exposure'
+        AND DATE(submission_timestamp) BETWEEN '2023-11-02' AND '2023-12-01'
+    ),
+    urlbar AS (
+      -- terminal urlbar events (urlbar sessions)
+      SELECT
+        *
+      FROM
+        `mozdata.firefox_desktop.urlbar_events`
+      WHERE
+        is_terminal
+        AND submission_date BETWEEN '2023-11-02' AND '2023-12-01'
+    ),
+    urlbar_joined AS (
+      -- interleave exposure events with main urlbar events
+      -- most exposure events have the same event_timestamp as the corresponding urlbar event
+      -- some have an earlier timestamp - these will have a row with ue fields null and exposed = true
+      SELECT
+        glean_client_id,
+        seq,
+        event_timestamp,
+        exposures.exposed,
+        urlbar.* EXCEPT (glean_client_id, seq, event_timestamp),
+        LAG(STRUCT(exposed, event_name)) OVER (PARTITION BY glean_client_id ORDER BY seq, event_timestamp) AS prev
+      FROM
+        urlbar
+      FULL OUTER JOIN
+        exposures
+      USING
+        (glean_client_id, seq, event_timestamp)
+    ),
+    urlbar_with_exposed AS (
+      -- tag exposed urlbar events and drop exposure events
+      SELECT
+        * EXCEPT (prev, exposed),
+        -- exposed if urlbar event has exposed = true (exposure event had same timestamp)
+        -- or the previous event was an exposure
+        -- otherwise both of these will be null
+        COALESCE(exposed, prev.exposed AND prev.event_name IS NULL, FALSE) AS exposed
+      FROM
+        urlbar_joined
+      WHERE
+        -- drop exposure events
+        event_name IS NOT NULL
+    ),
+    serp AS (
+      -- serp events, aggregated to 1 row per impression_id
+      -- only keep tagged Google searches initiated from urlbar and follow-on
+      SELECT
+        TRUE AS is_serp,
+        impression_id,
+        glean_client_id,
+        ping_seq AS seq,
+        event_timestamp,
+        sap_source,
+        LOGICAL_OR(ad_component AND num_ads_showing > 0) AS had_ad_impression,
+        LOGICAL_OR(ad_component AND num_ads_showing > 0 AND num_clicks > 0) AS had_ad_click,
+        SUM(IF(ad_component AND num_ads_showing > 0, num_clicks, 0)) AS num_ad_clicks,
+      FROM (
+        SELECT
+          * EXCEPT (is_ad_component),
+          component IN ('ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar', 'ad_sitelink') AS ad_component
+        FROM
+          `mozdata.firefox_desktop.serp_events`
+        WHERE
+          submission_date BETWEEN '2023-11-02' AND '2023-12-01'
+      )
+      WHERE
+        search_engine = 'google'
+        AND is_tagged
+        AND sap_source NOT IN ('searchbar', 'contextmenu', 'webextension', 'system', 'unknown')
+      GROUP BY 1, 2, 3, 4, 5, 6
+    ),
+    serp_joined AS (
+      -- interleave serp events with urlbar events
+      -- tag serp events coming from exposed urlbar events
+      SELECT
+        * EXCEPT (is_serp),
+        COALESCE(is_serp, FALSE) AS is_serp,
+        -- propagate exposed value from last urlbar event
+        -- serp events will have null for exposed
+        LAST_VALUE(exposed IGNORE NULLS) OVER (
+          PARTITION BY glean_client_id
+          ORDER BY seq, event_timestamp
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS urlbar_exposed
+      FROM
+        urlbar_with_exposed
+      FULL OUTER JOIN
+        serp
+      USING
+        (glean_client_id, seq, event_timestamp)
+    )
+    SELECT
+      *
+    FROM
+      serp_joined
+    WHERE
+      urlbar_exposed IS TRUE
+)"""
