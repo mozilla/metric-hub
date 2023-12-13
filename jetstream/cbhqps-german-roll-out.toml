@@ -6,7 +6,7 @@ friendly_name = "Opened PBM"
 description = "The set of clients that opened PBM"
 select_expression = "COALESCE(dom_parentprocess_private_window_used, false)"
 data_source = "clients_daily_v6"
-window_end = "7
+window_end = 7
 
 [data_sources]
 
