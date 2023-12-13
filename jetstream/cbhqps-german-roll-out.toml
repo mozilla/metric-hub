@@ -13,4 +13,4 @@ window_end = "7
 [data_sources.clients_daily_v6]
 from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6"
 friendly_name = "Clients Daily"
-description = "Clients Daily""
+description = "Clients Daily"
