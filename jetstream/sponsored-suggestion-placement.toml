@@ -22,6 +22,7 @@ overall = [
     "serp_ad_ctr",
     "serp_ad_click_rate",
     "exposed_urlbar_sessions",
+    "exposure_rate",
     "exposed_search_engine_clicks",
     "exposed_search_engine_rate",
     "exposed_serp_impressions",
@@ -38,7 +39,7 @@ overall = [
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 friendly_name = "Sponsored suggestion impressions"
-description = "Number of sponsored suggestion impressions"
+description = "Number of sponsored suggestion impressions at engagement time"
 exposure_basis = ["exposures", "enrollments"]
 
 [metrics.adm_impressions.statistics.bootstrap_mean]
@@ -162,16 +163,21 @@ exposure_basis = ["exposures"]
 [metrics.exposed_urlbar_sessions.statistics.bootstrap_mean]
 [metrics.exposed_urlbar_sessions.statistics.deciles]
 
+[metrics.exposure_rate]
+depends_on = ["exposed_urlbar_sessions", "urlbar_impressions"]
+friendly_name = "Urlbar session exposure rate"
+description = "Proportion of urlbar impressions exposed to sponsored suggestions"
+exposure_basis = ["exposures"]
+
+[metrics.exposure_rate.statistics.population_ratio]
+numerator = "exposed_urlbar_sessions"
+denominator = "urlbar_impressions"
+
 [metrics.exposed_search_engine_clicks]
 select_expression = """COUNTIF(
   NOT is_serp
   AND event_action = 'engaged'
-  AND (
-    SELECT LOGICAL_OR( 
-      product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
-    )
-    FROM UNNEST(results)
-  )
+  AND product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
 )"""
 data_source = "exposed_urlbar_serp"
 description = "Number of exposed urlbar sessions ending with a click leading to a SERP"
@@ -312,6 +318,9 @@ from_expression = """(
       WHERE
         event_category = 'urlbar' AND event_name = 'exposure'
         AND DATE(submission_timestamp) BETWEEN '2023-11-02' AND '2023-12-01'
+        AND mozfun.map.get_key(ping_info.experiments, 'sponsored-suggestion-placement') IS NOT NULL
+      -- deduplicate exposure events
+      GROUP BY 1, 2, 3, 4
     ),
     urlbar AS (
       -- terminal urlbar events (urlbar sessions)
@@ -322,11 +331,12 @@ from_expression = """(
       WHERE
         is_terminal
         AND submission_date BETWEEN '2023-11-02' AND '2023-12-01'
+        AND mozfun.map.get_key(experiments, 'sponsored-suggestion-placement') IS NOT NULL
     ),
     urlbar_joined AS (
       -- interleave exposure events with main urlbar events
       -- most exposure events have the same event_timestamp as the corresponding urlbar event
-      -- some have an earlier timestamp - these will have a row with ue fields null and exposed = true
+      -- some have an earlier timestamp - these will have a row with urlbar fields null and exposed = true
       SELECT
         glean_client_id,
         seq,
@@ -376,6 +386,7 @@ from_expression = """(
           `mozdata.firefox_desktop.serp_events`
         WHERE
           submission_date BETWEEN '2023-11-02' AND '2023-12-01'
+          AND mozfun.map.get_key(experiments, 'sponsored-suggestion-placement') IS NOT NULL
       )
       WHERE
         search_engine = 'google'
@@ -387,15 +398,33 @@ from_expression = """(
       -- interleave serp events with urlbar events
       -- tag serp events coming from exposed urlbar events
       SELECT
-        * EXCEPT (is_serp),
-        COALESCE(is_serp, FALSE) AS is_serp,
-        -- propagate exposed value from last urlbar event
-        -- serp events will have null for exposed
+        glean_client_id,
+        seq,
+        event_timestamp,
+        urlbar_with_exposed.* EXCEPT (glean_client_id, seq, event_timestamp),
+        serp.* EXCEPT (glean_client_id, seq, event_timestamp),
+        -- propagate fields from last urlbar event
+        -- serp events will have these fields as null
         LAST_VALUE(exposed IGNORE NULLS) OVER (
           PARTITION BY glean_client_id
           ORDER BY seq, event_timestamp
           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-        ) AS urlbar_exposed
+        ) AS urlbar_exposed,
+        LAST_VALUE(legacy_telemetry_client_id IGNORE NULLS) OVER (
+          PARTITION BY glean_client_id
+          ORDER BY seq, event_timestamp
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS urlbar_legacy_telemetry_client_id,
+        LAST_VALUE(submission_date IGNORE NULLS) OVER (
+          PARTITION BY glean_client_id
+          ORDER BY seq, event_timestamp
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS urlbar_submission_date,
+        LAST_VALUE(experiments IGNORE NULLS) OVER (
+          PARTITION BY glean_client_id
+          ORDER BY seq, event_timestamp
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS urlbar_experiments
       FROM
         urlbar_with_exposed
       FULL OUTER JOIN
@@ -404,9 +433,22 @@ from_expression = """(
         (glean_client_id, seq, event_timestamp)
     )
     SELECT
-      *
+      * EXCEPT(
+        is_serp,
+        experiments,
+        legacy_telemetry_client_id,
+        submission_date,
+        urlbar_legacy_telemetry_client_id,
+        urlbar_submission_date,
+        urlbar_experiments
+      ),
+      COALESCE(is_serp, FALSE) AS is_serp,
+      urlbar_legacy_telemetry_client_id AS legacy_telemetry_client_id,
+      urlbar_submission_date AS submission_date,
+      urlbar_experiments AS experiments
     FROM
       serp_joined
     WHERE
+      -- keep only exposed events
       urlbar_exposed IS TRUE
 )"""
