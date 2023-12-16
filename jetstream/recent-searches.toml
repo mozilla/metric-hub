@@ -1,0 +1,11 @@
+[experiment]
+segments = ["google_default"]
+
+
+[segments]
+
+[segments.google_default]
+data_source = "clients_last_seen"
+select_expression = "COALESCE(LOGICAL_OR(`moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Google'), FALSE)"
+friendly_name = "Google search default"
+description = "Clients with Google as their default search engine"
