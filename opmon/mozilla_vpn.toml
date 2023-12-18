@@ -12,7 +12,8 @@ compact_visualization = false
 metrics = [
     "session_count",
     "avg_session_duration",
-    "active_subscribers"
+    "active_subscribers",
+    "avg_sum_session_duration"
 ]
 
 [project.population]
@@ -136,3 +137,10 @@ data_source = "base_table"
 select_expression = "COUNT(DISTINCT client_id)"
 type = "scalar"
 statistics.sum = {}
+
+[metrics.avg_sum_session_duration]
+data_source = "session_duration_table"
+select_expression = "SUM(session_duration)"
+type = "scalar"
+statistics.mean = {}
+statistics.percentile = {}
