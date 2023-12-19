@@ -1,0 +1,23 @@
+[experiment]
+end_date = "2024-01-19"
+
+[experiment.exposure_signal]
+name = "opened_pbm"
+friendly_name = "Opened PBM"
+description = "The set of clients that opened PBM"
+select_expression = "MAX(COALESCE(metrics.counter.metrics_private_tabs_open_count, 0)) > 0"
+data_source = "metrics"
+window_end = "analysis_window_end"
+
+[metrics] 
+
+weekly = ['pbm_tabs']
+overall = ['pbm_tabs']
+
+[metrics.pbm_tabs]
+select_expression = "SUM(COALESCE(metrics.counter.metrics_private_tabs_open_count, 0))"
+data_source = "metrics"
+friendly_name = "Number of private tabs open"
+description = "Total number of private tabs open during the period"
+
+[metrics.pbm_tabs.statistics.bootstrap_mean]
