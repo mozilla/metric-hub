@@ -5,7 +5,7 @@ end_date = "2024-01-19"
 name = "opened_pbm"
 friendly_name = "Opened PBM"
 description = "The set of clients that opened PBM"
-select_expression = "MAX(COALESCE(metrics.counter.metrics_private_tabs_open_count, 0)) > 0"
+select_expression = "COALESCE(metrics.counter.metrics_private_tabs_open_count, 0) > 0"
 data_source = "metrics"
 window_end = "analysis_window_end"
 
