@@ -1,0 +1,21 @@
+[experiment]
+
+[metrics]
+weekly = ["add_on_enabled", "add_on_count"]
+overall = ["add_on_enabled", "add_on_count"]
+
+[metrics.add_on_enabled]
+select_expression = "MAX(COALESCE(ARRAY_LENGTH(metrics.string_list.addons_enabled_addons), 0)) > 0"
+data_source = "metrics"
+friendly_name = "Add-On Usage"
+description = "Percentage of users that enable at least one add-on"
+
+[metrics.add_on_enabled.statistics.binomial]
+
+[metrics.add_on_count]
+select_expression = "MAX(COALESCE(ARRAY_LENGTH(metrics.string_list.addons_enabled_addons), 0))"
+data_source = "metrics"
+friendly_name = "Average Add-Ons per User"
+description = "Average number of add-ons that an user has enabled"
+
+[metrics.add_on_count.statistics.bootstrap_mean]
