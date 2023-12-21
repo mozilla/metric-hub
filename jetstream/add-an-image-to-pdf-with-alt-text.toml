@@ -10,3 +10,11 @@ select_expression = """(
 data_source = "metrics"
 window_start = 0
 window_end = 7
+
+[metrics]
+[metrics.pdf_engagement.statistics.binomial]
+[metrics.pdf_freetext.statistics.binomial]
+[metrics.pdf_ink.statistics.binomial]
+[metrics.pdf_print.statistics.binomial]
+[metrics.pdf_save.statistics.binomial]
+[metrics.pdf_opening.statistics.binomial]
