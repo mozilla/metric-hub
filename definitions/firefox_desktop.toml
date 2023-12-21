@@ -1550,6 +1550,19 @@ submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
+[data_sources]
+[data_sources.metrics]
+friendly_name = "Glean Metrics"
+description = "The Glean metrics ping"
+from_expression = """(
+    SELECT 
+      p.*,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
+
 
 [segments]
 
