@@ -12,6 +12,25 @@ window_start = 0
 window_end = 7
 
 [metrics]
+
+weekly = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening"
+]
+
+overall = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening"
+]
+
 [metrics.pdf_engagement.statistics.binomial]
 [metrics.pdf_freetext.statistics.binomial]
 [metrics.pdf_ink.statistics.binomial]
