@@ -1550,7 +1550,6 @@ submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
-[data_sources]
 [data_sources.metrics]
 friendly_name = "Glean Metrics"
 description = "The Glean metrics ping"
