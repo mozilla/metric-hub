@@ -1,0 +1,11 @@
+[metrics]
+overall = ['fxa_signed_in', 'sync_morethan1_desktop']
+weekly = ['fxa_signed_in', 'sync_morethan1_desktop']
+
+[metrics.sync_morethan1_desktop]
+data_source = "clients_daily"
+select_expression = "CAST(COALESCE(LOGICAL_OR(sync_count_desktop_mean > 1), FALSE) AS INT)"
+friendly_name = "Syncing with more than one desktop"
+description = "If user is syncing across more than 1 desktop devices"
+
+[metrics.sync_morethan1_desktop.statistics.binomial]
