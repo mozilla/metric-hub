@@ -14,3 +14,35 @@ window_end = 7
 from_expression = "moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6"
 friendly_name = "Clients Daily"
 description = "Clients Daily"
+
+[data_sources.pbm_search_events]
+from_expression = """(
+    SELECT 
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        ping_info.experiments AS experiments,
+        event.name AS event_name,
+        event.extra AS event_extra
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'serp'
+        AND event.name = 'impression'
+        AND mozfun.map.get_key(event.extra, 'is_private') IS NOT NULL
+)"""
+experiments_column_type = "native"
+friendly_name = "PBM search events"
+description = "Glean events unnested, filtered to PBM search impressions"
+
+[metrics]
+
+weekly = ['pbm_searches']
+overall = ['pbm_searches']
+
+[metrics.pbm_searches]
+select_expression = "COUNT(*)"
+data_source = "pbm_search_events"
+
+[metrics.pbm_searches.statistics.bootstrap_mean]
+
+
