@@ -35,6 +35,10 @@ friendly_name = "PBM search events"
 description = "Glean events unnested, filtered to PBM search impressions"
 
 [metrics]
+
+weekly = ['pbm_searches']
+overall = ['pbm_searches']
+
 [metrics.pbm_searches]
 select_expression = "COUNT(*)"
 data_source = "pbm_search_events"
