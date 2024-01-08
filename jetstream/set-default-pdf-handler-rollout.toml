@@ -1,0 +1,47 @@
+[experiment]
+segments = ['saved_pdfs']
+
+[metrics]
+weekly = ['launched_or_invoked_pdf_count']
+overall = ['launched_or_invoked_pdf_count']
+
+[metrics.launched_or_invoked_pdf_count]
+select_expression = """(
+  SUM(
+    COALESCE(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf'),0) + 
+    COALESCE(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf'),0)
+  )
+)"""
+data_source = "main"
+friendly_name = "PDF Invoke Rate"
+description = """
+    Counts the number of times Firefox was launched 
+    (not running but launched to open) or invoked 
+    (already running and asked to open) to open
+    local PDF files. 
+"""
+
+[metrics.launched_or_invoked_pdf_count.statistics.bootstrap_mean]
+
+[segments]
+[segments.saved_pdfs]
+data_source = "metrics"
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "save")) > 0, FALSE)
+)"""
+friendly_name = "Saved a PDF"
+description = """
+    Clients who saved at least one PDF through pdf.js
+"""
+
+[segments.data_sources.metrics]
+friendly_name = "Glean Metrics"
+description = "The Glean metrics ping"
+from_expression = """(
+    SELECT 
+      p.*,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
