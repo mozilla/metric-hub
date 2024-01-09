@@ -1279,14 +1279,14 @@ friendly_name = "Sponsored Tiles Disabled Event"
 description = "Boolean that identifies clients that disabled sponsored tiles during experiment"
 
 [metrics.sponsored_tiles_dismissals]
-select_expression = "COALESCE(SUM(sponsored_topsite_tile_dismissals), 0)"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.sponsored_topsite_tile_dismissals), 0)"
 data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Sponsored Tiles Dismissals Count"
 description = "Count of sponsored tiles dismissals in all positions"
 
 [metrics.any_sponsored_tiles_dismissals]
 select_expression = """COALESCE(LOGICAL_OR(
-        sponsored_topsite_tile_dismissals > 0
+        topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0
       ), FALSE)"""
 data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Any Sponsored Tiles Dismissed"
@@ -1294,7 +1294,7 @@ description = "Clients that dismissed any sponsored tiles"
 
 [metrics.sponsored_tiles_dismissals_pos1_2]
 select_expression = """COALESCE(
-        SUM(CASE WHEN sponsored_topsite_tile_dismissals > 0 AND topsite_tile_position < 3 THEN sponsored_topsite_tile_dismissals ELSE 0 END),
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position < 3 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
@@ -1303,7 +1303,7 @@ description = "Count of sponsored tiles dismissals in the first two positions"
 
 [metrics.sponsored_tiles_dismissals_pos3_more]
 select_expression = """COALESCE(
-        SUM(CASE WHEN sponsored_topsite_tile_dismissals > 0 AND topsite_tile_position >= 3 THEN sponsored_topsite_tile_dismissals ELSE 0 END),
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position >= 3 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
@@ -1311,14 +1311,14 @@ friendly_name = "Sponsored Tiles Dismissals Count (Position 3 or greater)"
 description = "Count of sponsored tiles dismissals in the third and greater positions"
 
 [metrics.organic_tiles_dismissals]
-select_expression = "COALESCE(SUM(organic_topsite_tile_dismissals),0)"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_dismissals),0)"
 data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Organic Tiles Dismissals Count"
 description = "Count of organic tiles dismissals in all positions"
 
 [metrics.any_organic_tiles_dismissals]
 select_expression = """COALESCE(LOGICAL_OR(
-        organic_topsite_tile_dismissals > 0
+        topsite_tile_interactions.organic_topsite_tile_dismissals > 0
       ), FALSE)"""
 data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Any Organic Tiles Dismissed"
