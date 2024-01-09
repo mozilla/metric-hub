@@ -45,4 +45,15 @@ data_source = "pbm_search_events"
 
 [metrics.pbm_searches.statistics.bootstrap_mean]
 
+[metrics.pbm_uri_count]
+select_expression = '''(
+COALESCE(
+    SUM(scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum) - 
+    SUM(scalar_parent_browser_engagement_total_uri_count_sum)
+    ,0)
+)'''
+data_source = "clients_daily_v6"
+
+[metrics.pbm_uri_count.statistics.bootstrap_mean]
+
 
