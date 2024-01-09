@@ -1172,15 +1172,6 @@ description = """
 Count of New Tab organic tile impressions.
 """
 
-[metrics.newtab_organic_topsite_impressions]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(organic_topsite_impressions, 0))"
-friendly_name = "Newtab Organic Tile Impressions"
-type = "scalar"
-description = """
-Count of New Tab organic tile impressions.
-"""
-
 
 ########################### END OF NEW TAB METRICS ###########################
 
