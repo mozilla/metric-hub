@@ -38,6 +38,7 @@ description = "Glean events unnested, filtered to PBM search impressions"
 from_expression = """(
     SELECT 
       legacy_telemetry_client_id AS client_id,
+      submission_date,
       IF(is_core_ad_component and num_ads_showing > 0, num_clicks, 0) AS num_ad_clicks
     FROM (
         SELECT *,
