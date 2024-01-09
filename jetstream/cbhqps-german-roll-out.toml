@@ -34,16 +34,59 @@ experiments_column_type = "native"
 friendly_name = "PBM search events"
 description = "Glean events unnested, filtered to PBM search impressions"
 
+[data_sources.pbm_ad_click_events]
+from_expression = """(
+    SELECT 
+      legacy_telemetry_client_id AS client_id,
+      IF(is_core_ad_component and num_ads_showing > 0, num_clicks, 0) AS num_ad_clicks
+    FROM (
+        SELECT *,
+        COALESCE(
+                  component IN (
+                    'ad_carousel',
+                    'ad_image_row',
+                    'ad_link',
+                    'ad_sidebar',
+                    'ad_sitelink'
+                  ),
+                  FALSE
+                ) AS is_core_ad_component
+      FROM `moz-fx-data-shared-prod.firefox_desktop.serp_events` 
+      INNER JOIN (
+          SELECT
+            mozfun.map.get_key(event.extra, 'impression_id') AS impression_id,
+          FROM
+            `moz-fx-data-shared-prod.firefox_desktop.events`,
+            UNNEST(events) AS event
+          WHERE
+            event.category = 'serp'
+            AND mozfun.map.get_key(event.extra, 'is_private') = 'true'
+            AND DATE(submission_timestamp) >= '2023-11-27'  
+      ) -- impression_ids of private mode ad clicks
+      USING (impression_id)
+      WHERE submission_date >= '2023-11-27'  
+    )
+)"""
+experiments_column_type = "none"
+friendly_name = "PBM ad clicks"
+description = "PBM search impressions enriched with ad clicks. One row per PBM SERP impression, with a column containing the number of ad clicks"
+
 [metrics]
 
-weekly = ['pbm_searches','pbm_uri_count']
-overall = ['pbm_searches','pbm_uri_count']
+weekly = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks']
+overall = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks']
 
 [metrics.pbm_searches]
 select_expression = "COUNT(*)"
 data_source = "pbm_search_events"
 
 [metrics.pbm_searches.statistics.bootstrap_mean]
+
+[metrics.pbm_ad_clicks]
+select_expression = "COALESCE(SUM(num_ad_clicks),0)"
+data_source = "pbm_ad_click_events"
+
+[metrics.pbm_ad_clicks.statistics.bootstrap_mean]
 
 [metrics.pbm_uri_count]
 select_expression = '''(
