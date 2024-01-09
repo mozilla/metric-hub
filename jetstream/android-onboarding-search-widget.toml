@@ -1,0 +1,19 @@
+[segments]
+
+[segments.new_users]
+data_source = "firefox_android_clients"
+select_expression = """(
+    COALESCE(MIN(first_seen_date) >= "2023-09-26",FALSE)
+)"""
+friendly_name = "New Users"
+description = """
+    Clients with a first seen date on or after 9/26
+"""
+
+[segments.data_sources.firefox_android_clients]
+friendly_name = "Firefox Android Clients"
+from_expression = "mozdata.fenix.firefox_android_clients"
+experiments_column_type = "none"
+
+[experiment]
+segments = ["new_users"]
