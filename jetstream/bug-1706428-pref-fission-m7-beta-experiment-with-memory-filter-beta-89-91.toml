@@ -670,12 +670,12 @@ daily = [
 #        log_space = true
 
     [metrics.shutdown_hangs_per_hour]
-    select_expression = """
+    select_expression = '''
         SAFE_DIVIDE(
-            SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0)),
+            SUM(IF(payload.metadata.moz_crash_reason LIKE r'MOZ\_CRASH%', 1, 0)),
             SUM(active_s/3600)
          )
-        """
+        '''
     data_source = 'crash_cleaned'
     bigger_is_better = false
 
