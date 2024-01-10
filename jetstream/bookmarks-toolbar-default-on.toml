@@ -5,12 +5,12 @@ overall = ['bookmarks_bar_pinned_on', 'bookmarks_bar_pinned_off', 'bookmarks_bar
 
 
 [metrics.bookmarks_bar_pinned_on]
-select_expression = "CAST(COALESCE(SUM(CASE WHEN(SELECT CAST(COUNT(t) AS BOOL) FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t WHERE t.key LIKE 'bookmarks-bar_pinned_on' AND t.value) THEN 1 ELSE 0 END),0) > 0 AS INT)"
+select_expression = '''CAST(COALESCE(SUM(CASE WHEN(SELECT CAST(COUNT(t) AS BOOL) FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t WHERE t.key LIKE r'bookmarks-bar\_pinned\_on' AND t.value) THEN 1 ELSE 0 END),0) > 0 AS INT)'''
 data_source = 'main'
 
 
 [metrics.bookmarks_bar_pinned_off]
-select_expression = "CAST(COALESCE(SUM(CASE WHEN(SELECT CAST(COUNT(t) AS BOOL) FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t WHERE t.key LIKE 'bookmarks-bar_pinned_off' AND t.value) THEN 1 ELSE 0 END),0) > 0 AS INT)"
+select_expression = '''CAST(COALESCE(SUM(CASE WHEN(SELECT CAST(COUNT(t) AS BOOL) FROM UNNEST(payload.processes.parent.keyed_scalars.browser_ui_toolbar_widgets) t WHERE t.key LIKE r'bookmarks-bar\_pinned\_off' AND t.value) THEN 1 ELSE 0 END),0) > 0 AS INT)'''
 data_source = 'main'
 
 
