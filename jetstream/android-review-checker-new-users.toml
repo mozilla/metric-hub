@@ -21,7 +21,7 @@ window_end = 7
 friendly_name = "Glean's Metrics Ping"
 from_expression = """(
     SELECT 
-        m.ping_info.client_id,
+        m.client_info.client_id,
         DATE(m.submission_timestamp) AS submission_date,
         m.metrics.counter.shopping_product_page_visits AS product_page_visits, 
         m.ping_info
