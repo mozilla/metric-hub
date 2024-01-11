@@ -424,7 +424,7 @@ type = "scalar"
 
 [metrics.shutdown_hangs]
 data_source = "crash"
-select_expression = "SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0))"
+select_expression = '''SUM(IF(payload.metadata.moz_crash_reason LIKE r'MOZ\_CRASH%', 1, 0))'''
 friendly_name = "Shutdown Hangs"
 description = "Number of Shutdown Hangs"
 category = "stability"
