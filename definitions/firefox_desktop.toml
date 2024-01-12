@@ -1591,6 +1591,7 @@ from_expression = """(
 submission_date_column = "submission_date"
 description = "Topsite Tiles Visit Activity Daily"
 friendly_name = "Topsite Tiles Visit Activity Daily"
+client_id_column = "legacy_telemetry_client_id"
 
 
 [segments]
