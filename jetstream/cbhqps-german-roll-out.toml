@@ -39,6 +39,7 @@ from_expression = """(
     SELECT 
       legacy_telemetry_client_id AS client_id,
       submission_date,
+      num_ads_showing,
       IF(is_core_ad_component and num_ads_showing > 0, num_clicks, 0) AS num_ad_clicks
     FROM (
         SELECT *,
@@ -74,14 +75,26 @@ description = "PBM search impressions enriched with ad clicks. One row per PBM S
 
 [metrics]
 
-weekly = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks']
-overall = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks']
+weekly = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
+overall = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
 
 [metrics.pbm_searches]
 select_expression = "COUNT(*)"
 data_source = "pbm_search_events"
 
 [metrics.pbm_searches.statistics.bootstrap_mean]
+
+[metrics.pbm_searches_with_ads]
+select_expression = "COUNTIF(num_ads_showing > 0)"
+data_source = "pbm_search_events"
+
+[metrics.pbm_searches_with_ads.statistics.bootstrap_mean]
+
+[metrics.pbm_ads_seen]
+select_expression = "SUM(num_ads_showing)"
+data_source = "pbm_search_events"
+
+[metrics.pbm_ads_seen.statistics.bootstrap_mean]
 
 [metrics.pbm_ad_clicks]
 select_expression = "COALESCE(SUM(num_ad_clicks),0)"
