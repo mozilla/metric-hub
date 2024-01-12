@@ -2,8 +2,10 @@
 segments = ['saved_pdfs']
 
 [metrics]
-weekly = ['launched_or_invoked_pdf_count']
-overall = ['launched_or_invoked_pdf_count']
+weekly = ['launched_or_invoked_pdf_count', 'is_default_pdf_handler']
+overall = ['launched_or_invoked_pdf_count', 'is_default_pdf_handler']
+
+[metrics.is_default_pdf_handler.statistics.binomial]
 
 [metrics.launched_or_invoked_pdf_count]
 select_expression = """(
@@ -45,3 +47,4 @@ from_expression = """(
     )"""
 client_id_column = "metrics.uuid.legacy_telemetry_client_id"
 experiments_column_type = "glean"
+

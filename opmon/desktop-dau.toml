@@ -42,7 +42,7 @@ client_id_column = "NULL" # this table doesn't include client_id, and we don't n
 
 
 [data_sources.kpi_forecasts]
-from_expression = """
+from_expression = '''
   (
     WITH most_recent_forecasts AS (
         SELECT aggregation_period,
@@ -59,9 +59,9 @@ from_expression = """
         FROM `moz-fx-data-shared-prod.telemetry_derived.kpi_forecasts_v0` AS forecasts
         JOIN most_recent_forecasts
        USING(aggregation_period, metric_alias, metric_hub_app_name, metric_hub_slug, forecast_predicted_at)
-       WHERE aggregation_period = 'day' AND measure IN ('observed', 'p50') AND metric_alias LIKE 'desktop_dau'
+       WHERE aggregation_period = 'day' AND measure IN ('observed', 'p50') AND metric_alias LIKE r'desktop\_dau'
        ORDER BY submission_date ASC
   )
-"""
+'''
 submission_date_column = "submission_date"
 client_id_column = "NULL"
