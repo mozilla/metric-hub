@@ -1294,7 +1294,7 @@ description = "Clients that dismissed any sponsored tiles"
 
 [metrics.sponsored_tiles_dismissals_pos1_2]
 select_expression = """COALESCE(
-        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position < 3 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position < 2 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
@@ -1303,7 +1303,7 @@ description = "Count of sponsored tiles dismissals in the first two positions"
 
 [metrics.sponsored_tiles_dismissals_pos3_more]
 select_expression = """COALESCE(
-        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position >= 3 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position >= 2 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
