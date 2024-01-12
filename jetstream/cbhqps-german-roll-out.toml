@@ -86,13 +86,13 @@ data_source = "pbm_search_events"
 
 [metrics.pbm_searches_with_ads]
 select_expression = "COUNTIF(num_ads_showing > 0)"
-data_source = "pbm_search_events"
+data_source = "pbm_ad_click_events"
 
 [metrics.pbm_searches_with_ads.statistics.bootstrap_mean]
 
 [metrics.pbm_ads_seen]
 select_expression = "SUM(num_ads_showing)"
-data_source = "pbm_search_events"
+data_source = "pbm_ad_click_events"
 
 [metrics.pbm_ads_seen.statistics.bootstrap_mean]
 
