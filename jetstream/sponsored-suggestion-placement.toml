@@ -1,3 +1,8 @@
+[experiment]
+
+segments = ["exposed", "not_exposed"]
+
+
 [metrics]
 
 overall = [
@@ -463,7 +468,7 @@ friendly_name = "Exposed clients"
 description = "Clients that saw a sponsored suggestion"
 
 [segments.not_exposed]
-select_expression = """NOT '{{agg_any("is_exposure")}}'"""
+select_expression = 'NOT {{agg_any("is_exposure")}}'
 data_source = "urlbar_exposures"
 friendly_name = "Non-exposed clients"
 description = "Clients that never saw a sponsored suggestion"
@@ -478,7 +483,6 @@ from_expression = """(
       CROSS JOIN UNNEST(events) AS event
     WHERE event.category = 'urlbar'
 )"""
-experiments_column_type = "native"
 friendly_name = "Urlbar exposures"
 description = "Glean urlbar exposure events"
 window_start = 0
