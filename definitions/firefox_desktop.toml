@@ -1220,13 +1220,13 @@ select_expression = """COALESCE(
           END),
         0
       )"""
-friendly_name = "All Tiles Clicks Count (Position 1 and 2)"
+friendly_name = "Sponsored Tiles Clicks Count (Position 1 and 2)"
 type = "scalar"
 description = """
-Count of Clicks of All Tiles (sponsored and organic) in the first and second positions.
+Count of Clicks of Sponsored Tiles in the first and second positions.
 """
 
-[metrics.all_tile_clicks_pos3_more]
+[metrics.sponsored_tile_clicks_pos3_more]
 data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = """COALESCE(
         SUM(CASE
@@ -1237,10 +1237,10 @@ select_expression = """COALESCE(
           END),
         0
       )"""
-friendly_name = "All Tiles Clicks Count (Position 3 or greater)"
+friendly_name = "Sponsored Tiles Clicks Count (Position 3 or greater)"
 type = "scalar"
 description = """
-Count of Clicks of All Tiles (sponsored and organic) in the third and greater positions.
+Count of Clicks of Sponsored Tiles in the third and greater positions.
 """
 
 [metrics.newtab_newtab_enabled]
