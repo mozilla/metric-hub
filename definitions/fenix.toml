@@ -421,6 +421,22 @@ friendly_name = "Clicked at least one CTA"
 description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
+[metrics.is_default_browser_v1]
+data_source = "metrics"
+select_expression = "COALESCE(SUM(CASE WHEN metrics.boolean.metrics_default_browser THEN 1 ELSE 0 END)) > 0"
+friendly_name = "Is Default Browser"
+description = """
+Was Firefox the default browser at any point during the interval?
+"""
+
+[metrics.default_browser_changed_v1]
+data_source = "events"
+select_expression = "SUM(CASE WHEN event_category = 'events' AND event_name = 'default_browser_changed' THEN 1 ELSE 0)"
+friendly_name = "Default Browser Changed"
+description = """
+Number of times the default browser been changed.
+"""
+
 [data_sources]
 
 [data_sources.active_users_aggregates_v1]

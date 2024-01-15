@@ -1,0 +1,7 @@
+[metrics.is_default_browser_v1.statistics.client_count]
+[metrics.is_default_browser_v1.statistics.sum]
+
+[metrics.default_browser_changed_v1.statistics.client_count]
+[metrics.default_browser_changed_v1.statistics.sum]
+
+[metrics.daily_active_users_v2.statistics.sum]
