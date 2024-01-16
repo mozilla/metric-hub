@@ -19,7 +19,8 @@ weekly = [
     "pdf_print", 
     "pdf_save", 
     "pdf_opening",
-    "pdf_opening_legacy"
+    "pdf_opening_legacy",
+    "is_default_pdf_handler"
 ]
 
 overall = [
@@ -29,8 +30,11 @@ overall = [
     "pdf_print", 
     "pdf_save", 
     "pdf_opening",
-    "pdf_opening_legacy"
+    "pdf_opening_legacy",
+    "is_default_pdf_handler"
 ]
+
+[metrics.is_default_pdf_handler.statistics.binomial]
 
 [metrics.pdf_engagement]
 select_expression = """(
