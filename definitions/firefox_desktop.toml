@@ -1077,15 +1077,9 @@ Count of impressions of Sponsored Pocket content.
 data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = """COALESCE(
         SUM(CASE
-          WHEN (
-            topsite_tile_interactions.sponsored_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position < 2
-            )
-            OR (
-            topsite_tile_interactions.organic_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position < 2
-            )
-            THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
-          ELSE 0
-          END),
+          WHEN topsite_tile_interactions.topsite_tile_position < 2 THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
+          ELSE 0 END
+        ),
         0
       )"""
 friendly_name = "All Tiles Impressions Count (Position 1 and 2)"
@@ -1097,15 +1091,9 @@ Count of Impressions of All Tiles (sponsored and organic) in the first and secon
 [metrics.all_tile_impressions_pos3_more]
 select_expression = """COALESCE(
         SUM(CASE
-          WHEN (
-            topsite_tile_interactions.sponsored_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
-            )
-            OR (
-            topsite_tile_interactions.organic_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
-            )
-            THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
-          ELSE 0
-          END),
+          WHEN topsite_tile_interactions.topsite_tile_position >= 2 THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
+          ELSE 0 END
+        ),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
@@ -1119,15 +1107,10 @@ Count of Impressions of All Tiles (sponsored and organic) in the third and great
 data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = """COALESCE(
         SUM(CASE
-          WHEN (
-            topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position < 2
-            )
-            OR (
-            topsite_tile_interactions.organic_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position < 2
-            )
-            THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
-          ELSE 0
-          END),
+          WHEN (topsite_tile_interactions.topsite_tile_position < 2 AND (topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 OR  topsite_tile_interactions.organic_topsite_tile_clicks > 0))
+          THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
+          ELSE 0 END
+        ),
         0
       )"""
 friendly_name = "All Tiles Clicks Count (Position 1 and 2)"
@@ -1139,15 +1122,10 @@ Count of Clicks of All Tiles (sponsored and organic) in the first and second pos
 [metrics.all_tile_clicks_pos3_more]
 select_expression = """COALESCE(
         SUM(CASE
-          WHEN (
-            topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
-            )
-            OR (
-            topsite_tile_interactions.organic_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
-            )
-            THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
-          ELSE 0
-          END),
+          WHEN (topsite_tile_interactions.topsite_tile_position >= 2 AND (topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 OR  topsite_tile_interactions.organic_topsite_tile_clicks > 0))
+          THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
+          ELSE 0 END
+        ),
         0
       )"""
 data_source = "newtab_visits_topsite_tile_interactions"
