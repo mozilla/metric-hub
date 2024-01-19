@@ -184,7 +184,7 @@ build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_
 from_expression = """(
     SELECT *
     FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
-    WHERE app_name = 'Klar' and os = 'iOS'
+    WHERE normalized_app_name_os = 'Klar iOS'
  )"""
  experiments_column_type = "simple"
 client_id_column = "client_id"

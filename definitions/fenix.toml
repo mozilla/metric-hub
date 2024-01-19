@@ -2,7 +2,7 @@
 
 [metrics.uri_count]
 data_source = "baseline"
-select_expression = '{{agg_sum("metrics.counter.events_total_uri_count")}}'
+select_expression = '{{agg_sum("metrics.counter.events_normal_and_private_uri_count")}}'
 friendly_name = "URIs visited"
 description = "Counts the number of URIs each client visited"
 
@@ -499,7 +499,7 @@ build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_
 from_expression = """(
     SELECT *
     FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
-    WHERE normalized_app_name = "Fenix"
+    WHERE normalized_app_name_os = 'Firefox Android'
 )"""
 experiments_column_type = "simple"
 client_id_column = "client_id"
