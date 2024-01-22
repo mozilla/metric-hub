@@ -1,3 +1,8 @@
+[experiment]
+start_date = "2023-12-14"
+end_date = "2024-01-18"
+enrollment_period = 7
+
 [metrics]
 overall = ['fxa_signed_in', 'sync_morethan1_desktop']
 weekly = ['fxa_signed_in', 'sync_morethan1_desktop']
