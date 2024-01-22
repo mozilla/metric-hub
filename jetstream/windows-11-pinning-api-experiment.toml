@@ -1,0 +1,4 @@
+[metrics]
+weekly = ['is_pinned']
+
+overall = ['is_pinned']
