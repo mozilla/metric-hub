@@ -97,7 +97,7 @@ bootstrap_mean = {}
 ##
 
 [metrics.total_uri_count]
-select_expression = "{{agg_sum('metrics.counter.events_total_uri_count')}}"
+select_expression = "{{agg_sum('metrics.counter.events_normal_and_private_uri_count")}}'
 data_source = "metrics"
 
 [metrics.total_uri_count.statistics]
