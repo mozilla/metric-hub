@@ -104,5 +104,5 @@ data_source = "metrics"
 deciles = {}
 bootstrap_mean = {}
 
-[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
