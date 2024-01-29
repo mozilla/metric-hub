@@ -1,11 +1,5 @@
 [metrics]
 
-[metrics.days_of_use_v2]
-friendly_name = "Days of use"
-description = "The number of days in an observation window that clients used the browser."
-select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
-data_source = "baseline"
-
 [metrics.baseline_ping_count]
 data_source = "baseline"
 select_expression = "COUNT(document_id)"
@@ -32,7 +26,7 @@ friendly_name = "Active Hours"
 description = "Total time Firefox was active"
 
 [metrics.days_of_use]
-friendly_name = "Days of use"
+friendly_name = "Days of uses"
 description = "The number of days in an observation window that clients used the browser."
 select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
 data_source = "baseline"
