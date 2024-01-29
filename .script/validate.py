@@ -203,23 +203,23 @@ def validate(path, config_repos):
                             .render()
                         )
 
-                    sql = env.render(
-                        metrics=metrics,
-                        dimensions=entity.spec.dimensions.definitions.values(),
-                        segments=entity.spec.segments.definitions.values(),
-                        segment_data_sources=entity.spec.segments.data_sources,
-                        data_sources={
-                            name: d.resolve(None)
-                            for name, d in entity.spec.data_sources.definitions.items()
-                        },
-                    )
-                    sql_to_validate.append(sql)
+                        sql = env.render(
+                            metrics=metrics,
+                            dimensions=entity.spec.dimensions.definitions.values(),
+                            segments=entity.spec.segments.definitions.values(),
+                            segment_data_sources=entity.spec.segments.data_sources,
+                            data_sources={
+                                name: d.resolve(None)
+                                for name, d in entity.spec.data_sources.definitions.items()
+                            },
+                        )
+                        sql_to_validate.append(sql)
 
-                    with Pool(8) as p:
-                        result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
-                    if not all(result):
-                        sys.exit(1)
-                    print(f"{config_file} OK")
+    with Pool(8) as p:
+        result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
+    if not all(result):
+        sys.exit(1)
+    print(f"{config_file} OK")
 
     sys.exit(1 if dirty else 0)
 
