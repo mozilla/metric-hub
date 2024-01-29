@@ -30,7 +30,18 @@ friendly_name = "Days of use"
 description = "The number of days in an observation window that clients used the browser."
 select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
 data_source = "baseline"
+deprecated = true
 
+[metrics.days_of_use_v2]
+friendly_name = "Days of use"
+description = "The number of days in an observation window that clients used the browser."
+select_expression = """(
+    COUNT(DISTINCT CASE WHEN metrics.timespan.glean_baseline_duration.value > 0
+                         AND LOWER(metadata.isp.name) != 'browserstack'
+                        THEN DATE(submission_timestamp)
+                        ELSE NULL END)
+)"""
+data_source = "baseline"
 
 [metrics.daily_active_users]
 data_source = "baseline_v2"
