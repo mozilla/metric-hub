@@ -33,7 +33,7 @@ from_expression = """
             "vpnsession" as source_table,
             DATE(v.submission_timestamp) AS submission_date,
             CASE v.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn" THEN "iPhone - vpnsession"
+                WHEN "org_mozilla_ios_firefoxvpn" THEN "iOS - vpnsession"
                 WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
                 WHEN "mozillavpn" THEN "Desktop - vpnsession"
             END AS app,
@@ -51,7 +51,7 @@ from_expression = """
             "daemonsession" as source_table,
             DATE(d.submission_timestamp) AS submission_date,
             CASE d.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
+                WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iOS - daemon"
                 WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
             END as app,
             d.metrics.uuid.session_installation_id AS session_id,
@@ -77,7 +77,7 @@ from_expression = """
             SELECT
                 DATE(v.submission_timestamp) AS submission_date,
                 CASE v.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn" THEN "iPhone - vpnsession"
+                    WHEN "org_mozilla_ios_firefoxvpn" THEN "iOS - vpnsession"
                     WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
                     WHEN "mozillavpn" THEN "Desktop - vpnsession"
                 END AS app,
@@ -94,7 +94,7 @@ from_expression = """
             SELECT 
                 DATE(d.submission_timestamp) AS submission_date,
                 CASE d.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
+                    WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iOS - daemon"
                     WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
                 END as app,
                 d.metrics.uuid.session_installation_id AS session_id,
