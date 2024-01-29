@@ -22,3 +22,6 @@ bootstrap_mean = {}
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
+
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']
