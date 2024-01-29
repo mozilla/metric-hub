@@ -7,7 +7,7 @@ weekly = [
     "serp_ad_clicks",
     "tagged_sap_searches",
     "total_uri_count",
-    "days_of_use",
+    "days_of_use_v2",
     "client_level_daily_active_users_v2",
 ]
 overall = [
@@ -18,7 +18,7 @@ overall = [
     "searches_with_ads",
     "tagged_follow_on_searches",
     "total_uri_count",
-    "days_of_use",
+    "days_of_use_v2",
     "client_level_daily_active_users_v2",
 ]
 
@@ -31,7 +31,7 @@ binomial = {}
 
 ##
 
-[metrics.days_of_use.statistics]
+[metrics.days_of_use_v2.statistics]
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
