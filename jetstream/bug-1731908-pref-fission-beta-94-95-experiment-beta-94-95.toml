@@ -40,7 +40,7 @@ experiments_column_type = "native"
 
 ## crash: removing session corresponding to enrollment
 [data_sources.crash_cleaned]
-from_expression = """
+from_expression = '''
 (
   SELECT
     cr.*,
@@ -50,7 +50,7 @@ from_expression = """
     (SELECT
         DATE(submission_timestamp) AS submission_date,
         client_id,
-        COALESCE(SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0)), 0) AS sum_shutdown_hangs,
+        COALESCE(SUM(IF(payload.metadata.moz_crash_reason LIKE r'MOZ\_CRASH%', 1, 0)), 0) AS sum_shutdown_hangs,
         COALESCE(SUM(IF(payload.process_type = 'main' OR payload.process_type IS NULL, 1, 0)), 0) AS sum_main_crashes,
         COALESCE(SUM(IF(payload.metadata.oom_allocation_size IS NOT NULL, 1, 0)), 0) AS sum_oom_allocation_size,
         COALESCE(SUM(IF(REGEXP_CONTAINS(payload.process_type, 'content')
@@ -98,7 +98,7 @@ from_expression = """
     ON m.client_id = cr.client_id
     AND m.submission_date = cr.submission_date
 )
-"""
+'''
 experiments_column_type = "native"
 
 

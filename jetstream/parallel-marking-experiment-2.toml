@@ -22,11 +22,11 @@ from_expression = """
     COALESCE(m.payload.processes.parent.scalars.browser_engagement_active_ticks, 0)*5 as active_s
   FROM
     `moz-fx-data-shared-prod.telemetry_stable.crash_v4` cr
-    INNER JOIN  `moz-fx-data-shared-prod`.telemetry_stable.main_v4 m
+    INNER JOIN  `moz-fx-data-shared-prod`.telemetry_stable.main_v5 m
       ON m.client_id = cr.client_id
       AND DATE(m.submission_timestamp) = DATE(cr.submission_timestamp)
-    WHERE DATE(m.submission_timestamp) >= '2023-01-18'
-    AND DATE(cr.submission_timestamp) >= '2023-01-18'
+    WHERE DATE(m.submission_timestamp) >= '2023-12-15'
+    AND DATE(cr.submission_timestamp) >= '2023-12-15'
     AND m.normalized_channel = 'nightly'
     AND cr.normalized_channel = 'nightly'
     )
@@ -37,37 +37,36 @@ experiments_column_type = "native"
 [metrics]
 
 overall = [
-    'perf_page_load_time_ms', 'time_to_first_interaction_ms',
-    'input_event_response_ms', 'input_event_response_ms_parent',
+    'perf_page_load_time_ms', 
+    'time_to_first_interaction_ms',
     'perf_first_contentful_paint_ms',
     'js_pageload_execution_ms',
     'gpu_keypress_present_latency',
-    'memory_total', 'memory_unique_content_startup',
-    'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
-    'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
-    'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'gc_mark_ms', 'gc_mark_ms_content',
-    'gc_mark_rate_2', 'gc_mark_rate_2_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
+    'memory_total', 
+    'memory_unique_content_startup',
+    'input_event_response_ms_parent', 'input_event_response_ms_content',
+    'cycle_collector_max_pause_parent', 'cycle_collector_max_pause_content',
+    'gc_max_pause_ms_2_parent', 'gc_max_pause_ms_2_content',
+    'gc_ms_parent', 'gc_ms_content',
+    'gc_slice_during_idle_parent', 'gc_slice_during_idle_content',
+    'gc_mark_ms_parent', 'gc_mark_ms_content',
+    'gc_mark_rate_2_parent', 'gc_mark_rate_2_content',
+    'gc_sweep_ms_parent', 'gc_sweep_ms_content',
+    'gc_slice_count_parent', 'gc_slice_count_content',
+    'gc_slice_was_long_parent', 'gc_slice_was_long_content',
+    'gc_budget_overrun_parent', 'gc_budget_overrun_content',
+    'gc_budget_was_increased_parent', 'gc_budget_was_increased_content',
+    'gc_parallel_mark_speedup_parent', 'gc_parallel_mark_speedup_content',
+    'gc_parallel_mark_utilization_parent', 'gc_parallel_mark_utilization_content',
+    'gc_parallel_mark_interruptions_parent', 'gc_parallel_mark_interruptions_content',
+    'gc_task_start_delay_us_parent', 'gc_task_start_delay_us_content',
+    'main_crashes_per_hour', 
+    'content_crashes_per_hour',
+    'oom_crashes_per_hour', 
+    'shutdown_hangs_per_hour'
 ]
 
 weekly = [
-    'perf_page_load_time_ms', 'time_to_first_interaction_ms',
-    'input_event_response_ms', 'input_event_response_ms_parent',
-    'perf_first_contentful_paint_ms',
-    'js_pageload_execution_ms',
-    'gpu_keypress_present_latency',
-    'memory_total', 'memory_unique_content_startup',
-    'cycle_collector_max_pause', 'cycle_collector_max_pause_content',
-    'gc_max_pause_ms_2', 'gc_max_pause_ms_2_content',
-    'gc_ms', 'gc_ms_content',
-    'gc_slice_during_idle', 'gc_slice_during_idle_content',
-    'gc_mark_ms', 'gc_mark_ms_content',
-    'gc_mark_rate_2', 'gc_mark_rate_2_content',
-    'main_crashes_per_hour', 'content_crashes_per_hour',
-    'oom_crashes_per_hour', 'shutdown_hangs_per_hour'
 ]
 
 daily = [
@@ -133,7 +132,7 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-    [metrics.input_event_response_ms]
+    [metrics.input_event_response_ms_content]
     select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.input_event_response_ms")}}'
     data_source = 'main'
     bigger_is_better = false
@@ -141,14 +140,14 @@ daily = [
 #        [metrics.input_event_response_ms.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.input_event_response_ms.statistics.deciles]
+        [metrics.input_event_response_ms_content.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.input_event_response_ms.statistics.kernel_density_estimate]
+        [metrics.input_event_response_ms_content.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.input_event_response_ms.statistics.empirical_cdf]
+        [metrics.input_event_response_ms_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -250,22 +249,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-    [metrics.cycle_collector_max_pause]
+    [metrics.cycle_collector_max_pause_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.cycle_collector_max_pause")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.cycle_collector_max_pause.statistics.bootstrap_mean]
+#        [metrics.cycle_collector_max_pause_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.cycle_collector_max_pause.statistics.deciles]
+        [metrics.cycle_collector_max_pause_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.cycle_collector_max_pause.statistics.kernel_density_estimate]
+        [metrics.cycle_collector_max_pause_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.cycle_collector_max_pause.statistics.empirical_cdf]
+        [metrics.cycle_collector_max_pause_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -288,22 +287,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-   [metrics.gc_max_pause_ms_2]
+   [metrics.gc_max_pause_ms_2_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.gc_max_pause_ms_2")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.gc_max_pause_ms_2.statistics.bootstrap_mean]
+#        [metrics.gc_max_pause_ms_2_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_max_pause_ms_2.statistics.deciles]
+        [metrics.gc_max_pause_ms_2_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_max_pause_ms_2.statistics.kernel_density_estimate]
+        [metrics.gc_max_pause_ms_2_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.gc_max_pause_ms_2.statistics.empirical_cdf]
+        [metrics.gc_max_pause_ms_2_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -326,22 +325,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-   [metrics.gc_ms]
+   [metrics.gc_ms_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.gc_ms")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.gc_ms.statistics.bootstrap_mean]
+#        [metrics.gc_ms_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_ms.statistics.deciles]
+        [metrics.gc_ms_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_ms.statistics.kernel_density_estimate]
+        [metrics.gc_ms_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.gc_ms.statistics.empirical_cdf]
+        [metrics.gc_ms_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -364,22 +363,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-    [metrics.gc_slice_during_idle]
+    [metrics.gc_slice_during_idle_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.gc_slice_during_idle")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.gc_slice_during_idle.statistics.bootstrap_mean]
+#        [metrics.gc_slice_during_idle_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_slice_during_idle.statistics.deciles]
+        [metrics.gc_slice_during_idle_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_slice_during_idle.statistics.kernel_density_estimate]
+        [metrics.gc_slice_during_idle_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.gc_slice_during_idle.statistics.empirical_cdf]
+        [metrics.gc_slice_during_idle_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -402,22 +401,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-    [metrics.gc_mark_ms]
+    [metrics.gc_mark_ms_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.gc_mark_ms")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.gc_mark_ms.statistics.bootstrap_mean]
+#        [metrics.gc_mark_ms_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_mark_ms.statistics.deciles]
+        [metrics.gc_mark_ms_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_mark_ms.statistics.kernel_density_estimate]
+        [metrics.gc_mark_ms_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.gc_mark_ms.statistics.empirical_cdf]
+        [metrics.gc_mark_ms_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -440,22 +439,22 @@ daily = [
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-    [metrics.gc_mark_rate_2]
+    [metrics.gc_mark_rate_2_parent]
     select_expression = '{{agg_histogram_mean("payload.histograms.gc_mark_rate_2")}}'
     data_source = 'main'
     bigger_is_better = false
 
-#        [metrics.gc_mark_rate_2.statistics.bootstrap_mean]
+#        [metrics.gc_mark_rate_2_parent.statistics.bootstrap_mean]
 #        pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_mark_rate_2.statistics.deciles]
+        [metrics.gc_mark_rate_2_parent.statistics.deciles]
         pre_treatments = ["remove_nulls"]
 
-        [metrics.gc_mark_rate_2.statistics.kernel_density_estimate]
+        [metrics.gc_mark_rate_2_parent.statistics.kernel_density_estimate]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
-        [metrics.gc_mark_rate_2.statistics.empirical_cdf]
+        [metrics.gc_mark_rate_2_parent.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
 
@@ -477,6 +476,349 @@ daily = [
         [metrics.gc_mark_rate_2_content.statistics.empirical_cdf]
         pre_treatments = ["remove_nulls"]
         log_space = true
+
+    [metrics.gc_sweep_ms_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_sweep_ms")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_sweep_ms_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_sweep_ms_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_sweep_ms_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_sweep_ms_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_sweep_ms_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_sweep_ms")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_sweep_ms_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_sweep_ms_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_sweep_ms_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_sweep_ms_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_slice_count_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_slice_count")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_slice_count_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_count_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_count_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_slice_count_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_slice_count_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_slice_count")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_slice_count_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_count_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_count_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_slice_count_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_slice_was_long_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_slice_was_long")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_slice_was_long_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_was_long_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_was_long_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_slice_was_long_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_slice_was_long_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_slice_was_long")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_slice_was_long_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_was_long_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_slice_was_long_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_slice_was_long_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_budget_overrun_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_budget_overrun")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_budget_overrun_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_overrun_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_overrun_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_budget_overrun_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_budget_overrun_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_budget_overrun")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_budget_overrun_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_overrun_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_overrun_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_budget_overrun_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_budget_was_increased_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_budget_was_increased")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_budget_was_increased_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_was_increased_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_was_increased_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_budget_was_increased_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_budget_was_increased_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_budget_was_increased")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_budget_was_increased_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_was_increased_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_budget_was_increased_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_budget_was_increased_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_speedup_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_parallel_mark_speedup")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_speedup_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_speedup_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_speedup_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_speedup_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_speedup_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_parallel_mark_speedup")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_speedup_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_speedup_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_speedup_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_speedup_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_utilization_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_parallel_mark_utilization")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_utilization_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_utilization_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_utilization_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_utilization_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_utilization_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_parallel_mark_utilization")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_utilization_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_utilization_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_utilization_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_utilization_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_interruptions_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_parallel_mark_interruptions")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_interruptions_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_interruptions_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_interruptions_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_interruptions_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_parallel_mark_interruptions_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_parallel_mark_interruptions")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_parallel_mark_interruptions_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_interruptions_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_parallel_mark_interruptions_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_parallel_mark_interruptions_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_task_start_delay_us_parent]
+    select_expression = '{{agg_histogram_mean("payload.histograms.gc_task_start_delay_us")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_task_start_delay_us_parent.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_task_start_delay_us_parent.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_task_start_delay_us_parent.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_task_start_delay_us_parent.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+    [metrics.gc_task_start_delay_us_content]
+    select_expression = '{{agg_histogram_mean("payload.processes.content.histograms.gc_task_start_delay_us")}}'
+    data_source = 'main'
+    bigger_is_better = false
+
+#        [metrics.gc_task_start_delay_us_content.statistics.bootstrap_mean]
+#        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_task_start_delay_us_content.statistics.deciles]
+        pre_treatments = ["remove_nulls"]
+
+        [metrics.gc_task_start_delay_us_content.statistics.kernel_density_estimate]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
+        [metrics.gc_task_start_delay_us_content.statistics.empirical_cdf]
+        pre_treatments = ["remove_nulls"]
+        log_space = true
+
 
 ## Crashes
     [metrics.main_crashes_per_hour]
@@ -554,12 +896,12 @@ daily = [
 
 
     [metrics.shutdown_hangs_per_hour]
-    select_expression = '''
+    select_expression = """
         SAFE_DIVIDE(
-            COALESCE(SUM(IF(payload.metadata.moz_crash_reason LIKE r'MOZ\_CRASH%', 1, 0)), 0),
+            COALESCE(SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0)), 0),
             SUM(active_s/3600)
          )
-        '''
+        """
     data_source = 'crash_hour'
     bigger_is_better = false
 

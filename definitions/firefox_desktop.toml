@@ -3,9 +3,9 @@
 [metrics.ad_click_rate]
 friendly_name = "Ad Click Rate"
 description = """
-    This is a Population Ratio Metric. It is the total number of 
-    ad clicks over all clients in the population divided by the 
-    total number of SAP searches over all clients in the 
+    This is a Population Ratio Metric. It is the total number of
+    ad clicks over all clients in the population divided by the
+    total number of SAP searches over all clients in the
     population.
 """
 category = "search"
@@ -121,8 +121,8 @@ data_source = "search_clients_engines_sources_daily"
 select_expression = '{{agg_sum("search_with_ads_organic")}}'
 friendly_name = "Organic searches with ads"
 description = """
-    Counts search result pages from organic searches served with advertising. Organic searches 
-    are _not_ performed through a Firefox SAP and are not monetizable. 
+    Counts search result pages from organic searches served with advertising. Organic searches
+    are _not_ performed through a Firefox SAP and are not monetizable.
     Users may not actually see these ads thanks to e.g. ad-blockers.
     Learn more in the
     [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
@@ -137,7 +137,7 @@ select_expression = '{{agg_sum("ad_click_organic")}}'
 friendly_name = "Organic ad clicks"
 description = """
     Counts clicks on ads on search engine result pages organic searches.
-    Organic searches are _not_ performed through a Firefox SAP and are not monetizable. 
+    Organic searches are _not_ performed through a Firefox SAP and are not monetizable.
 """
 
 
@@ -289,7 +289,7 @@ description = """
     The number of unique clients with >0 active hours and >0 URIs loaded that
     we received a main ping from each day. To be comparable to DAU used for KPI
     tracking, this metric needs to be aggregated by `submission_date`. If the
-    metric is NOT aggregated by `submission_date`, the metric is similar to a 
+    metric is NOT aggregated by `submission_date`, the metric is similar to a
     "days of use" metric. For more details, refer to
     [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
 
@@ -311,8 +311,8 @@ description = """
     Whenever possible, this is the preferred DAU reporting definition to use for Desktop.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
     it is similar to a "days of use" metric, and not DAU.
-    
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
@@ -330,8 +330,8 @@ description = """
     exists only for cases where reporting `client_id` is required (e.g. for experiments). This metric
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
-    
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
@@ -348,9 +348,9 @@ type = "scalar"
 friendly_name = "Desktop DAU KPI"
 description = """
     The average number of unique clients with >0 active hours and >0 URIs loaded that
-    we received a main ping from each day in the 28-day period ending on December 15th. 
+    we received a main ping from each day in the 28-day period ending on December 15th.
     To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
-    `EXTRACT(YEAR FROM submission_date)`.  
+    `EXTRACT(YEAR FROM submission_date)`.
 
     For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
@@ -369,9 +369,9 @@ description = """
     [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/desktop_query.sql)
     and is automatically cross-checked, actively monitored, and change controlled.
     To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
-    `EXTRACT(YEAR FROM submission_date)`.  
+    `EXTRACT(YEAR FROM submission_date)`.
 
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 category = "KPI"
@@ -424,7 +424,7 @@ type = "scalar"
 
 [metrics.shutdown_hangs]
 data_source = "crash"
-select_expression = "SUM(IF(payload.metadata.moz_crash_reason LIKE 'MOZ_CRASH%', 1, 0))"
+select_expression = '''SUM(IF(payload.metadata.moz_crash_reason LIKE r'MOZ\_CRASH%', 1, 0))'''
 friendly_name = "Shutdown Hangs"
 description = "Number of Shutdown Hangs"
 category = "stability"
@@ -999,7 +999,7 @@ description = """
 Was Firefox pinned to the Windows Taskbar at any point during the interval?
 """
 
-########################### START OF NEW TAB METRICS ########################### 
+########################### START OF NEW TAB METRICS ###########################
 
 [metrics.newtab_searches]
 data_source = "newtab_interactions"
@@ -1073,26 +1073,156 @@ description = """
 Count of impressions of Sponsored Pocket content.
 """
 
+[metrics.all_tile_impressions_pos1_2]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN topsite_tile_interactions.topsite_tile_position < 2 THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
+          ELSE 0 END
+        ),
+        0
+      )"""
+friendly_name = "All Tiles Impressions Count (Position 1 and 2)"
+type = "scalar"
+description = """
+Count of Impressions of All Tiles (sponsored and organic) in the first and second positions.
+"""
+
+[metrics.all_tile_impressions_pos3_more]
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN topsite_tile_interactions.topsite_tile_position >= 2 THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0)
+          ELSE 0 END
+        ),
+        0
+      )"""
+data_source = "newtab_visits_topsite_tile_interactions"
+friendly_name = "All Tiles Impressions Count (Position 3 or greater)"
+type = "scalar"
+description = """
+Count of Impressions of All Tiles (sponsored and organic) in the third and greater positions.
+"""
+
+[metrics.all_tile_clicks_pos1_2]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN (topsite_tile_interactions.topsite_tile_position < 2 AND (topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 OR  topsite_tile_interactions.organic_topsite_tile_clicks > 0))
+          THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
+          ELSE 0 END
+        ),
+        0
+      )"""
+friendly_name = "All Tiles Clicks Count (Position 1 and 2)"
+type = "scalar"
+description = """
+Count of Clicks of All Tiles (sponsored and organic) in the first and second positions.
+"""
+
+[metrics.all_tile_clicks_pos3_more]
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN (topsite_tile_interactions.topsite_tile_position >= 2 AND (topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 OR  topsite_tile_interactions.organic_topsite_tile_clicks > 0))
+          THEN COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0) +  COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0)
+          ELSE 0 END
+        ),
+        0
+      )"""
+data_source = "newtab_visits_topsite_tile_interactions"
+friendly_name = "All Tiles Clicks Count (Position 3 or greater)"
+type = "scalar"
+description = """
+Count of Clicks of All Tiles (sponsored and organic) in the third and greater positions.
+"""
+
 [metrics.sponsored_tile_impressions]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(sponsored_topsite_impressions, 0))"
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = "SUM(COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0))"
 friendly_name = "Sponsored Tile Impressions"
 type = "scalar"
 description = """
-Count of impressions of Sponsored Tiles (aka Sponsored Topsites on New Tab).
+Count of impressions of Sponsored Tiles (aka Sponsored Topsites on New Tab) across all positions.
+"""
+
+[metrics.sponsored_tile_impressions_pos1_2]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN
+            topsite_tile_interactions.sponsored_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position < 2
+            THEN topsite_tile_interactions.sponsored_topsite_tile_impressions
+          ELSE 0
+          END),
+        0
+      )"""
+friendly_name = "All Tiles Impressions Count (Position 1 and 2)"
+type = "scalar"
+description = """
+Count of Impressions of All Tiles (sponsored and organic) in the first and second positions.
+"""
+
+[metrics.sponsored_tile_impressions_pos3_more]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN
+            topsite_tile_interactions.sponsored_topsite_tile_impressions > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
+            THEN topsite_tile_interactions.sponsored_topsite_tile_impressions
+          ELSE 0
+          END),
+        0
+      )"""
+friendly_name = "All Tiles Impressions Count (Position 3 or greater)"
+type = "scalar"
+description = """
+Count of Impressions of All Tiles (sponsored and organic) in the third and greater positions.
 """
 
 [metrics.sponsored_tile_clicks]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(sponsored_topsite_clicks, 0))"
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = "SUM(COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0))"
 friendly_name = "Sponsored Tile Clicks"
 type = "scalar"
 description = """
-Count of clicks of Sponsored Tiles (aka Sponsored Topsites on New Tab).
+Count of clicks of Sponsored Tiles (aka Sponsored Topsites on New Tab) across all positions.
+"""
+
+[metrics.sponsored_tile_clicks_pos1_2]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN
+            topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position < 2
+            THEN topsite_tile_interactions.sponsored_topsite_tile_clicks
+          ELSE 0
+          END),
+        0
+      )"""
+friendly_name = "Sponsored Tiles Clicks Count (Position 1 and 2)"
+type = "scalar"
+description = """
+Count of Clicks of Sponsored Tiles in the first and second positions.
+"""
+
+[metrics.sponsored_tile_clicks_pos3_more]
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = """COALESCE(
+        SUM(CASE
+          WHEN
+            topsite_tile_interactions.sponsored_topsite_tile_clicks > 0 AND topsite_tile_interactions.topsite_tile_position >= 2
+            THEN topsite_tile_interactions.sponsored_topsite_tile_clicks
+          ELSE 0
+          END),
+        0
+      )"""
+friendly_name = "Sponsored Tiles Clicks Count (Position 3 or greater)"
+type = "scalar"
+description = """
+Count of Clicks of Sponsored Tiles in the third and greater positions.
 """
 
 [metrics.newtab_newtab_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(IF(newtab_newtab_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Newtab Enabled"
 type = "scalar"
@@ -1101,7 +1231,7 @@ Whether or not new tabs are set to display the default New Tab page.
 """
 
 [metrics.newtab_homepage_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(IF(newtab_homepage_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Homepage Enabled"
 type = "scalar"
@@ -1110,7 +1240,7 @@ Whether or not the homepage is set to display the default New Tab page.
 """
 
 [metrics.newtab_search_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(CAST(newtab_search_enabled AS INT)), 0)"
 friendly_name = "Newtab Search Enabled"
 type = "scalar"
@@ -1119,7 +1249,7 @@ Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
 """
 
 [metrics.newtab_tiles_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Tiles Enabled"
 type = "scalar"
@@ -1128,7 +1258,7 @@ Whether or not tiles are enabled on the New Tab. Includes both sponsored and non
 """
 
 [metrics.newtab_pocket_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(CAST(pocket_enabled AS INT)), 0)"
 friendly_name = "Newtab Pocket Enabled"
 type = "scalar"
@@ -1137,7 +1267,7 @@ Whether or not Pocket is enabled on the New Tab.
 """
 
 [metrics.newtab_sponsored_pocket_stories_enabled]
-data_source = "newtab_interactions"
+data_source = "newtab_visits_topsite_tile_interactions"
 select_expression = "COALESCE(MAX(CAST(pocket_sponsored_stories_enabled AS INT)), 0)"
 friendly_name = "Newtab Sponsored Pocket Stories Enabled"
 type = "scalar"
@@ -1155,24 +1285,25 @@ Whether or not the client had a newtab search OR a pocket click OR a tile click.
 """
 
 [metrics.newtab_organic_topsite_clicks]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(organic_topsite_clicks, 0))"
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = "SUM(COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0))"
 friendly_name = "Newtab Organic Tile Clicks"
 type = "scalar"
 description = """
-Count of New Tab organic tile clicks.
+Count of New Tab organic tile clicks across all positions.
 """
 
 [metrics.newtab_organic_topsite_impressions]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(organic_topsite_impressions, 0))"
+data_source = "newtab_visits_topsite_tile_interactions"
+select_expression = "SUM(COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0))"
 friendly_name = "Newtab Organic Tile Impressions"
 type = "scalar"
 description = """
-Count of New Tab organic tile impressions.
+Count of New Tab organic tile impressions across all positions.
 """
 
-########################### END OF NEW TAB METRICS ########################### 
+
+########################### END OF NEW TAB METRICS ###########################
 
 [metrics.imported_bookmarks]
 data_source = "clients_daily"
@@ -1278,35 +1409,50 @@ friendly_name = "Sponsored Tiles Disabled Event"
 description = "Boolean that identifies clients that disabled sponsored tiles during experiment"
 
 [metrics.sponsored_tiles_dismissals]
-select_expression = """COUNTIF(
-        event = 'BLOCK'
-        AND value LIKE '%spoc%'
-        AND SOURCE = 'TOP_SITES'
-      )"""
-data_source = "activity_stream_events"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.sponsored_topsite_tile_dismissals), 0)"
+data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Sponsored Tiles Dismissals Count"
 description = "Count of sponsored tiles dismissals in all positions"
 
 [metrics.any_sponsored_tiles_dismissals]
 select_expression = """COALESCE(LOGICAL_OR(
-        event = 'BLOCK'
-        AND value LIKE '%spoc%'
-        AND SOURCE = 'TOP_SITES'
+        topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0
       ), FALSE)"""
-data_source = "activity_stream_events"
+data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Any Sponsored Tiles Dismissed"
 description = "Clients that dismissed any sponsored tiles"
 
 [metrics.sponsored_tiles_dismissals_pos1_2]
-select_expression = """COUNTIF(
-        event = 'BLOCK'
-        AND value LIKE '%spoc%'
-        AND SOURCE = 'TOP_SITES'
-        AND action_position <= 1
+select_expression = """COALESCE(
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position < 2 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
+        0
       )"""
-data_source = "activity_stream_events"
+data_source = "newtab_visits_topsite_tile_interactions"
 friendly_name = "Sponsored Tiles Dismissals Count (Positions 1 and 2)"
 description = "Count of sponsored tiles dismissals in the first two positions"
+
+[metrics.sponsored_tiles_dismissals_pos3_more]
+select_expression = """COALESCE(
+        SUM(CASE WHEN topsite_tile_interactions.sponsored_topsite_tile_dismissals > 0 AND topsite_tile_interactions.topsite_tile_position >= 2 THEN topsite_tile_interactions.sponsored_topsite_tile_dismissals ELSE 0 END),
+        0
+      )"""
+data_source = "newtab_visits_topsite_tile_interactions"
+friendly_name = "Sponsored Tiles Dismissals Count (Position 3 or greater)"
+description = "Count of sponsored tiles dismissals in the third and greater positions"
+
+[metrics.organic_tiles_dismissals]
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_dismissals),0)"
+data_source = "newtab_visits_topsite_tile_interactions"
+friendly_name = "Organic Tiles Dismissals Count"
+description = "Count of organic tiles dismissals in all positions"
+
+[metrics.any_organic_tiles_dismissals]
+select_expression = """COALESCE(LOGICAL_OR(
+        topsite_tile_interactions.organic_topsite_tile_dismissals > 0
+      ), FALSE)"""
+data_source = "newtab_visits_topsite_tile_interactions"
+friendly_name = "Any Organic Tiles Dismissed"
+description = "Clients that dismissed any organic tiles"
 
 [metrics.separate_search_engine]
 select_expression = "COALESCE(ANY_VALUE(default_search_engine != default_private_search_engine), false)"
@@ -1320,6 +1466,45 @@ select_expression = "COUNT(*)"
 type = "scalar"
 friendly_name = "New Profiles"
 description = "The number of newly acquired Firefox Desktop clients. A client is newly acquired on the first date they appear in either of new profile, main or first shutdown pings based on submission date"
+
+[metrics.pdf_engagement]
+select_expression = """(
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "freetext")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "ink")) > 0, FALSE)) AND
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "print")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "save")) > 0, FALSE))
+)"""
+data_source = "metrics"
+
+[metrics.pdf_freetext]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "freetext")) > 0, FALSE)
+)"""
+data_source = "metrics"
+
+[metrics.pdf_ink]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "ink")) > 0, FALSE)
+)"""
+data_source = "metrics"
+
+[metrics.pdf_print]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "print")) > 0, FALSE)
+)"""
+data_source = "metrics"
+
+[metrics.pdf_save]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, "save")) > 0, FALSE)
+)"""
+data_source = "metrics"
+
+[metrics.pdf_opening]
+select_expression = """(
+    COALESCE(SUM(metrics.counter.pdfjs_used) > 0, FALSE)
+)"""
+data_source = "metrics"
 
 [dimensions]
 
@@ -1391,7 +1576,7 @@ from_expression = """
         SELECT
             *
         FROM `moz-fx-data-shared-prod.telemetry.events`
-        WHERE 
+        WHERE
             event_category = 'memory_watcher'
             AND event_method = 'on_high_memory'
             AND event_object = 'stats'
@@ -1510,6 +1695,63 @@ description = "Urlbar Events table with the list of displayed results unnested"
 submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
+
+[data_sources.metrics]
+friendly_name = "Glean Metrics"
+description = "The Glean metrics ping"
+from_expression = """(
+    SELECT
+      p.*,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
+
+[data_sources.newtab_visits_topsite_tile_interactions]
+from_expression = """(
+    SELECT
+        e.* EXCEPT (topsite_tile_interactions),
+        topsite_tile_interactions
+    FROM
+        `moz-fx-data-shared-prod.telemetry.newtab_visits` e
+    CROSS JOIN
+        UNNEST(e.topsite_tile_interactions) AS topsite_tile_interactions
+)"""
+submission_date_column = "submission_date"
+description = "Topsite Tiles Visit Activity Daily"
+friendly_name = "Topsite Tiles Visit Activity Daily"
+client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.newtab_visits_search_interactions]
+from_expression = """(
+    SELECT
+        e.* EXCEPT (search_interactions),
+        search_interactions
+    FROM
+        `moz-fx-data-shared-prod.telemetry.newtab_visits` e
+    CROSS JOIN
+        UNNEST(e.search_interactions) AS search_interactions
+)"""
+submission_date_column = "submission_date"
+description = "Search Tiles Visit Activity Daily"
+friendly_name = "Search Tiles Visit Activity Daily"
+client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.newtab_visits_pocket_interactions]
+from_expression = """(
+    SELECT
+        e.* EXCEPT (pocket_interactions),
+        pocket_interactions
+    FROM
+        `moz-fx-data-shared-prod.telemetry.newtab_visits` e
+    CROSS JOIN
+        UNNEST(e.pocket_interactions) AS pocket_interactions
+)"""
+submission_date_column = "submission_date"
+description = "Pocket Tiles Visit Activity Daily"
+friendly_name = "Pocket Tiles Visit Activity Daily"
+client_id_column = "legacy_telemetry_client_id"
 
 
 [segments]

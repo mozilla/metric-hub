@@ -1,0 +1,17 @@
+[segments.fr_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "fr%"), FALSE)"""
+data_source = 'clients_daily'
+
+[segments.de_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "de%"), FALSE)"""
+data_source = 'clients_daily'
+
+[segments.it_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "it%"), FALSE)"""
+data_source = 'clients_daily'
+
+[experiment]
+segments = [
+     'fr_locale',
+     'de_locale',
+     'it_locale']

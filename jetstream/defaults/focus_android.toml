@@ -42,6 +42,9 @@ deciles = {}
 bootstrap_mean = {}
 ##
 
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']
+
 [data_sources.mobile_search_clients_engines_sources_daily]
 from_expression = """(
   SELECT

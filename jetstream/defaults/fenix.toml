@@ -1,5 +1,5 @@
 [metrics]
-daily = ["retained", "client_level_daily_active_users_v1"]
+daily = ["retained", "client_level_daily_active_users_v2"]
 weekly = [
     "retained",
     "active_hours",
@@ -8,7 +8,7 @@ weekly = [
     "tagged_sap_searches",
     "total_uri_count",
     "days_of_use",
-    "client_level_daily_active_users_v1",
+    "client_level_daily_active_users_v2",
 ]
 overall = [
     "active_hours",
@@ -19,7 +19,7 @@ overall = [
     "tagged_follow_on_searches",
     "total_uri_count",
     "days_of_use",
-    "client_level_daily_active_users_v1",
+    "client_level_daily_active_users_v2",
 ]
 
 [metrics.retained]
@@ -97,12 +97,12 @@ bootstrap_mean = {}
 ##
 
 [metrics.total_uri_count]
-select_expression = "{{agg_sum('metrics.counter.events_total_uri_count')}}"
+select_expression = "{{agg_sum('metrics.counter.events_normal_and_private_uri_count')}}"
 data_source = "metrics"
 
 [metrics.total_uri_count.statistics]
 deciles = {}
 bootstrap_mean = {}
 
-[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']

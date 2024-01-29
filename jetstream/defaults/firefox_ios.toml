@@ -1,19 +1,19 @@
 [metrics]
-daily = ["retained", "client_level_daily_active_users_v1"]
+daily = ["retained", "client_level_daily_active_users_v2"]
 weekly = [
     "retained",
     "active_hours",
     "days_of_use",
     "search_count",
     "serp_ad_clicks",
-    "client_level_daily_active_users_v1",
+    "client_level_daily_active_users_v2",
 ]
 overall = [
     "active_hours",
     "days_of_use",
     "search_count",
     "serp_ad_clicks",
-    "client_level_daily_active_users_v1",
+    "client_level_daily_active_users_v2",
 ]
 
 [metrics.retained]
@@ -54,5 +54,5 @@ data_source = "mobile_search_clients_engines_sources_daily"
 deciles = {}
 bootstrap_mean = {}
 
-[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']

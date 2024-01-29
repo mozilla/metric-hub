@@ -39,7 +39,7 @@ data_source = "special_onboarding_events"
 
 ## Data Sources
 [data_sources.special_onboarding_events]
-from_expression = """(
+from_expression = '''(
   SELECT
     expo.submission_date,
     expo.client_id,
@@ -110,22 +110,22 @@ from_expression = """(
           case
             -- all the different screens with set to default CTAs
             when (
-              message_id LIKE '%AW_EASY_SETUP%'
-              OR message_id LIKE '%AW_SET_DEFAULT%'
-              OR message_id LIKE '%AW_ONLY_DEFAULT%'
+              message_id LIKE r'%AW\_EASY\_SETUP%'
+              OR message_id LIKE r'%AW\_SET\_DEFAULT%'
+              OR message_id LIKE r'%AW\_ONLY\_DEFAULT%'
             ) then DATE(submission_timestamp)
           END
         ) as set_to_default_card,
         count(
           case
-            when message_id LIKE '%AW_PIN_FIREFOX%' then DATE(submission_timestamp)
+            when message_id LIKE r'%AW\_PIN\_FIREFOX%' then DATE(submission_timestamp)
           END
         ) as pin_card,
         count(
           case
             when (
-              message_id LIKE '%AW_EASY_SETUP%'
-              OR message_id LIKE '%AW_IMPORT_SETTINGS%'
+              message_id LIKE r'%AW\_EASY\_SETUP%'
+              OR message_id LIKE r'%AW\_IMPORT\_SETTINGS%'
             ) then DATE(submission_timestamp)
           END
         ) as import_card
@@ -148,14 +148,14 @@ from_expression = """(
             when (
               (
                 (
-                  message_id LIKE '%AW_SET_DEFAULT%'
-                  OR message_id LIKE '%AW_ONLY_DEFAULT%'
+                  message_id LIKE r'%AW\_SET\_DEFAULT%'
+                  OR message_id LIKE r'%AW\_ONLY\_DEFAULT%'
                 )
                 AND event = 'CLICK_BUTTON'
-                AND event_context LIKE '%primary_button%'
+                AND event_context LIKE r'%primary\_button%'
               )
               OR (
-                message_id LIKE '%AW_EASY_SETUP%'
+                message_id LIKE r'%AW\_EASY\_SETUP%'
                 AND event = 'SELECT_CHECKBOX'
                 AND event_context LIKE '%checkbox-1%'
               )
@@ -165,9 +165,9 @@ from_expression = """(
         count(
           case
             when (
-              message_id LIKE '%AW_PIN_FIREFOX%'
+              message_id LIKE r'%AW\_PIN\_FIREFOX%'
               AND event = 'CLICK_BUTTON'
-              AND event_context LIKE '%primary_button%'
+              AND event_context LIKE r'%primary\_button%'
             ) then DATE(submission_timestamp)
           END
         ) as pin,
@@ -176,12 +176,12 @@ from_expression = """(
             -- all the different ways of opening the import wizard
             when (
               (
-                message_id LIKE '%AW_IMPORT_SETTINGS%'
+                message_id LIKE r'%AW\_IMPORT\_SETTINGS%'
                 AND event = 'CLICK_BUTTON'
-                AND event_context LIKE '%primary_button%'
+                AND event_context LIKE r'%primary\_button%'
               )
               OR (
-                message_id LIKE '%AW_EASY_SETUP%'
+                message_id LIKE r'%AW\_EASY\_SETUP%'
                 AND event = 'SELECT_CHECKBOX'
                 AND event_context LIKE '%checkbox-2%'
               )
@@ -192,11 +192,11 @@ from_expression = """(
         `moz-fx-data-shared-prod.messaging_system.onboarding`
       WHERE
         (
-          message_id LIKE '%AW_SET_DEFAULT%'
-          OR message_id LIKE '%AW_ONLY_DEFAULT%'
-          OR message_id LIKE '%AW_EASY_SETUP%'
-          OR message_id LIKE '%AW_PIN_FIREFOX%'
-          OR message_id LIKE '%AW_IMPORT_SETTINGS%'
+          message_id LIKE r'%AW\_SET\_DEFAULT%'
+          OR message_id LIKE r'%AW\_ONLY\_DEFAULT%'
+          OR message_id LIKE r'%AW\_EASY\_SETUP%'
+          OR message_id LIKE r'%AW\_PIN\_FIREFOX%'
+          OR message_id LIKE r'%AW\_IMPORT\_SETTINGS%'
         )
         AND (
           event = 'CLICK_BUTTON'
@@ -215,7 +215,7 @@ from_expression = """(
     4,
     5,
     6
-)"""
+)'''
 description = "Onboarding CTAs"
 friendly_name = "Onboarding CTAs CTR base"
 experiments_column_type = "none"
