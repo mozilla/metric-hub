@@ -66,6 +66,7 @@ jobs:
           changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- 'jetstream/*.toml' 'jetstream/*.toml.example')
           echo "Run validation on changed files: "
           echo $changed_files
+          cat $changed_files
           jetstream validate_config --config_repos='.' --config_repos='jetstream/' $changed_files
   build-docs:
     docker:

@@ -31,7 +31,7 @@ binomial = {}
 
 ##
 
-[metrics.days_of_use.statistics]
+[metrics.days_of_use_v2.statistics]
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
