@@ -1,5 +1,5 @@
 [metrics]
-daily = ["retained", "client_level_daily_active_users_v2"]
+daily = ["retained", "client_level_daily_active_users_v1"]
 weekly = [
     "retained",
     "active_hours",
@@ -8,7 +8,7 @@ weekly = [
     "tagged_sap_searches",
     "total_uri_count",
     "days_of_use",
-    "client_level_daily_active_users_v2",
+    "client_level_daily_active_users_v1",
 ]
 overall = [
     "active_hours",
@@ -19,7 +19,7 @@ overall = [
     "tagged_follow_on_searches",
     "total_uri_count",
     "days_of_use",
-    "client_level_daily_active_users_v2",
+    "client_level_daily_active_users_v1",
 ]
 
 [metrics.retained]
