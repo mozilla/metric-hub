@@ -32,6 +32,8 @@ select_expression = "COUNT(DISTINCT DATE(submission_timestamp))"
 data_source = "baseline"
 
 
+
+
 [metrics.daily_active_users]
 data_source = "baseline_v2"
 select_expression = "COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)"
