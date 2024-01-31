@@ -15,7 +15,7 @@ select_expression = """(
   )
 )"""
 data_source = "main"
-friendly_name = "PDF Invoke Rate"
+friendly_name = "PDF Invocations (invocations per user)"
 description = """
     Counts the number of times Firefox was launched 
     (not running but launched to open) or invoked 
@@ -35,6 +35,21 @@ friendly_name = "Saved a PDF"
 description = """
     Clients who saved at least one PDF through pdf.js
 """
+window_start = 0
+window_end = 28
+
+[segments.non_default_at_enrollment]
+data_source = "clients_daily"
+select_expression = 'COALESCE(LOGICAL_AND(is_default_browser), FALSE)'
+friendly_name = "Non-default browser users"
+description = """
+    Clients who did not have firefox set as their 
+    default browser on the day of enrollment
+"""
+window_start = 0
+window_end = 0
+
+
 
 [segments.data_sources.metrics]
 friendly_name = "Glean Metrics"
