@@ -1,5 +1,5 @@
 [experiment]
-segments = ['saved_pdfs']
+segments = ['saved_pdfs', 'non_default_at_enrollment']
 
 [metrics]
 weekly = ['launched_or_invoked_pdf_count', 'is_default_pdf_handler']
