@@ -34,11 +34,7 @@ from_expression = """
         SELECT
             "vpnsession" as source_table,
             DATE(v.submission_timestamp) AS submission_date,
-            CASE v.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn" THEN "iOS - vpnsession"
-                WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
-                WHEN "mozillavpn" THEN "Desktop - vpnsession"
-            END AS app,
+            CONCAT(client_info.os, " - vpn") as app,
             CASE v.normalized_app_id
                 WHEN "mozillavpn" THEN v.client_info.client_id
                 ELSE v.metrics.uuid.session_installation_id
@@ -52,10 +48,7 @@ from_expression = """
         SELECT 
             "daemonsession" AS source_table,
             DATE(d.submission_timestamp) AS submission_date,
-            CASE d.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iOS - daemon"
-                WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
-            END AS app,
+            CONCAT(client_info.os, " - daemon") AS app,
             d.metrics.uuid.session_installation_id AS client_id,
             d.metrics.uuid.session_daemon_session_id AS session_id,
             d.metrics.datetime.session_daemon_session_start AS session_start,
@@ -80,11 +73,7 @@ from_expression = """
         FROM (
             SELECT
                 DATE(v.submission_timestamp) AS submission_date,
-                CASE v.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn" THEN "iOS - vpnsession"
-                    WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
-                    WHEN "mozillavpn" THEN "Desktop - vpnsession"
-                END AS app,
+                CONCAT(client_info.os, " - vpn") as app,
                 CASE v.normalized_app_id
                     WHEN "mozillavpn" then v.client_info.client_id
                     ELSE v.metrics.uuid.session_installation_id
@@ -97,10 +86,7 @@ from_expression = """
             UNION ALL
             SELECT 
                 DATE(d.submission_timestamp) AS submission_date,
-                CASE d.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iOS - daemon"
-                    WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
-                END as app,
+                CONCAT(client_info.os, " - daemon") AS app,
                 d.metrics.uuid.session_installation_id AS client_id,
                 d.metrics.uuid.session_daemon_session_id as session_id,
                 d.metrics.datetime.session_daemon_session_start as session_start,
