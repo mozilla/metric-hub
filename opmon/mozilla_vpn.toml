@@ -13,7 +13,10 @@ metrics = [
     "session_count",
     "avg_session_duration",
     "active_subscribers",
-    "avg_sum_session_duration"
+    "avg_sum_session_duration",
+    # "cnt_session_starts",
+    # "cnt_session_ends",
+    # "cnt_sessions_start_and_end",
 ]
 
 [project.population]
@@ -29,36 +32,28 @@ group_by_dimension = "app"
 from_expression = """
     (
         SELECT
-            --v.*,
             "vpnsession" as source_table,
             DATE(v.submission_timestamp) AS submission_date,
+            CONCAT(client_info.os, " - vpn") as app,
             CASE v.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn" THEN "iPhone - vpnsession"
-                WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
-                WHEN "mozillavpn" THEN "Desktop - vpnsession"
-            END AS app,
-            CASE v.normalized_app_id
-                WHEN "mozillavpn" then v.client_info.client_id
+                WHEN "mozillavpn" THEN v.client_info.client_id
                 ELSE v.metrics.uuid.session_installation_id
             END AS client_id,
             v.metrics.uuid.session_session_id AS session_id,
-            v.metrics.datetime.session_session_start as session_start,
-            v.metrics.datetime.session_session_end as session_end,
-        FROM `moz-fx-data-shared-prod.mozilla_vpn.vpnsession` v
+            v.metrics.datetime.session_session_start AS session_start,
+            v.metrics.datetime.session_session_end AS session_end,
+        FROM `moz-fx-data-shared-prod.mozilla_vpn.vpnsession` AS v
 
         UNION ALL
         SELECT 
-            "daemonsession" as source_table,
+            "daemonsession" AS source_table,
             DATE(d.submission_timestamp) AS submission_date,
-            CASE d.normalized_app_id
-                WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
-                WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
-            END as app,
-            d.metrics.uuid.session_installation_id AS session_id,
-            d.metrics.uuid.session_daemon_session_id as session_id,
-            d.metrics.datetime.session_daemon_session_start as session_start,
-            d.metrics.datetime.session_daemon_session_end as session_end,
-        FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` d
+            CONCAT(client_info.os, " - daemon") AS app,
+            d.metrics.uuid.session_installation_id AS client_id,
+            d.metrics.uuid.session_daemon_session_id AS session_id,
+            d.metrics.datetime.session_daemon_session_start AS session_start,
+            d.metrics.datetime.session_daemon_session_end AS session_end,
+        FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` AS d
     )
 """
 client_id_column = "client_id"
@@ -71,16 +66,14 @@ from_expression = """
             app,
             client_id,
             session_id,
-            TIMESTAMP_DIFF(MAX(session_end), MIN(session_start), MINUTE) AS session_duration
+            TIMESTAMP_DIFF(MAX(session_end), MIN(session_start), MINUTE) AS session_duration,
+            COUNT(session_start) AS cnt_session_starts,
+            COUNT(session_end) as cnt_session_ends
 
         FROM (
             SELECT
                 DATE(v.submission_timestamp) AS submission_date,
-                CASE v.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn" THEN "iPhone - vpnsession"
-                    WHEN "org_mozilla_firefox_vpn" THEN "Android - vpnsession"
-                    WHEN "mozillavpn" THEN "Desktop - vpnsession"
-                END AS app,
+                CONCAT(client_info.os, " - vpn") as app,
                 CASE v.normalized_app_id
                     WHEN "mozillavpn" then v.client_info.client_id
                     ELSE v.metrics.uuid.session_installation_id
@@ -93,11 +86,8 @@ from_expression = """
             UNION ALL
             SELECT 
                 DATE(d.submission_timestamp) AS submission_date,
-                CASE d.normalized_app_id
-                    WHEN "org_mozilla_ios_firefoxvpn_network_extension" THEN "iPhone - daemon"
-                    WHEN "org_mozilla_firefox_vpn" THEN "Android - daemon"
-                END as app,
-                d.metrics.uuid.session_installation_id AS session_id,
+                CONCAT(client_info.os, " - daemon") AS app,
+                d.metrics.uuid.session_installation_id AS client_id,
                 d.metrics.uuid.session_daemon_session_id as session_id,
                 d.metrics.datetime.session_daemon_session_start as session_start,
                 d.metrics.datetime.session_daemon_session_end as session_end,
@@ -144,3 +134,10 @@ select_expression = "SUM(session_duration)"
 type = "scalar"
 statistics.mean = {}
 statistics.percentile = {}
+
+[metrics.cnt_session_starts]
+data_source = "session_duration_table"
+select_expression = "COUNTIF(cnt_session_starts > 0)"
+type = "scalar"
+statistics.sum = {}
+
