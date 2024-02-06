@@ -81,3 +81,5 @@ category = "performance"
 type = "histogram"
 
 [metrics.fx_tab_click_ms.statistics.bootstrap_mean]
+
+[metrics.fx_tab_switch_total_e10s_ms.statistics.bootstrap_mean]
