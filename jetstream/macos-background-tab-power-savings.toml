@@ -1,4 +1,4 @@
-[experiment]
+[metrics]
 
 overall = [
 	"fx_tab_switch_update_ms", 
@@ -11,7 +11,7 @@ overall = [
 	"fx_tab_click_ms",
 ]
 
-week = [
+weekly = [
 	"fx_tab_switch_update_ms", 
 	"fx_tab_switch_total_e10s_ms", 
 	"fx_tab_switch_composite_e10s_ms", 
@@ -21,8 +21,6 @@ week = [
 	"fx_tab_switch_request_tab_warming_state", 
 	"fx_tab_click_ms",
 ]
-
-[metrics]
 
 [metrics.fx_tab_switch_update_ms]
 data_source = "main"
