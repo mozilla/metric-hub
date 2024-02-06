@@ -10,11 +10,11 @@ is_rollout = false
 skip_default_metrics = true
 compact_visualization = false
 metrics = [
-    # "session_count",
-    # "avg_session_duration",
-    # "active_subscribers",
-    # "avg_sum_session_duration",
-    "cnt_session_starts",
+    "session_count",
+    "avg_session_duration",
+    "active_subscribers",
+    "avg_sum_session_duration",
+    # "cnt_session_starts",
     # "cnt_session_ends",
     # "cnt_sessions_start_and_end",
 ]
