@@ -1,0 +1,72 @@
+[metrics]
+
+overall = [
+	"fx_tab_switch_update_ms", 
+	"fx_tab_switch_total_e10s_ms", 
+	"fx_tab_switch_composite_e10s_ms", 
+	"fx_tab_switch_spinner_visible_ms",
+	"fx_tab_switch_spinner_visible_long_ms", 
+	"fx_tab_switch_spinner_visible_trigger",
+	"fx_tab_switch_request_tab_warming_state", 
+	"fx_tab_click_ms",
+]
+
+week = [
+	"fx_tab_switch_update_ms", 
+	"fx_tab_switch_total_e10s_ms", 
+	"fx_tab_switch_composite_e10s_ms", 
+	"fx_tab_switch_spinner_visible_ms",
+	"fx_tab_switch_spinner_visible_long_ms", 
+	"fx_tab_switch_spinner_visible_trigger",
+	"fx_tab_switch_request_tab_warming_state", 
+	"fx_tab_click_ms",
+]
+
+
+[metrics.fx_tab_switch_update_ms]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_update_ms) IGNORE NULLS)"
+friendly_name = "Fx Tab Switch Update Ms"
+description = "Firefox: Time in ms spent updating UI in response to a tab switch"
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_switch_spinner_visible_ms]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_spinner_visible_ms) IGNORE NULLS)"
+friendly_name = "Fx Tab Switch Spinner Visible Ms"
+description = "Firefox: If the spinner interstitial displays during tab switching, records the time in ms the graphic is visible"
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_switch_spinner_visible_long_ms]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_spinner_visible_long_ms) IGNORE NULLS)"
+friendly_name = "Fx Tab Switch Spinner Visible Long Ms"
+description = "Firefox: If the spinner interstitial displays during tab switching, records the time in ms the graphic is visible. This probe is similar to FX_TAB_SWITCH_SPINNER_VISIBLE_MS, but is for truly degenerate cases."
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_switch_spinner_visible_trigger]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_spinner_visible_trigger) IGNORE NULLS)"
+friendly_name = "Fx Tab Switch Spinner Visible Trigger"
+description = "Firefox: Diagnostic probe to aid in categorizing tab switch spinners. Records what most recently set the loadTimer to null if a spinner was displayed."
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_switch_request_tab_warming_stage]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_request_tab_warming_state) IGNORE NULLS)"
+friendly_name = "Fx Tab Switch Request Tab Warming State"
+description = "Firefox: When a tab is selected, records whether or not the tab was speculatively 'warmed up' to improve tab switch time."
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_click_ms]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_click_ms) IGNORE NULLS)"
+friendly_name = "Fx Tab Click Ms"
+description = "Firefox: Time in ms spent on switching tabs in response to a tab click."
+category = "performance"
+type = "histogram"
