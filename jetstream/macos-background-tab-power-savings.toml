@@ -22,6 +22,7 @@ week = [
 	"fx_tab_click_ms",
 ]
 
+[metrics]
 
 [metrics]
 [metrics.fx_tab_switch_update_ms]
