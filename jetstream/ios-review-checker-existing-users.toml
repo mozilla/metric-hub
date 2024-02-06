@@ -25,7 +25,7 @@ from_expression = """(
         DATE(m.submission_timestamp) AS submission_date,
         m.metrics.counter.shopping_product_page_visits AS product_page_visits, 
         m.ping_info
-    FROM `moz-fx-data-shared-prod.org_mozilla_firefox.metrics` AS m
+    FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox.metrics` AS m
     WHERE
         DATE(m.submission_timestamp) >= "2023-11-28"
         AND m.normalized_channel = 'release'
