@@ -1,4 +1,4 @@
-[metrics]
+[experiment]
 
 overall = [
 	"fx_tab_switch_update_ms", 
@@ -23,6 +23,7 @@ week = [
 ]
 
 
+[metrics]
 [metrics.fx_tab_switch_update_ms]
 data_source = "main"
 select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_tab_switch_update_ms) IGNORE NULLS)"
