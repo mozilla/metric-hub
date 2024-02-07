@@ -70,7 +70,7 @@ description = "Firefox: When a tab is selected, records whether or not the tab w
 category = "performance"
 type = "histogram"
 
-[metrics.fx_tab_switch_request_tab_warming_stage.statistics.bootstrap_mean]
+[metrics.fx_tab_switch_request_tab_warming_state.statistics.bootstrap_mean]
 
 [metrics.fx_tab_click_ms]
 data_source = "main"
