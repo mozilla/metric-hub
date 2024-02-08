@@ -32,6 +32,10 @@ type = "histogram"
 
 [metrics.fx_tab_switch_update_ms.statistics.bootstrap_mean]
 
+
+
+
+
 [metrics.fx_tab_switch_spinner_visible_ms]
 data_source = "main"
 select_expression = '{{agg_histogram_mean("payload.histograms.fx_tab_switch_spinner_visible_ms")}}'
@@ -74,7 +78,7 @@ type = "histogram"
 
 [metrics.fx_tab_click_ms]
 data_source = "main"
-select_expression = '{{agg_histogram_mean("payload.histograms.fx_tab_click_ms")}}'
+select_expression = '{{"agg_histogram_mean("payload.histograms.fx_tab_click_ms")}}'
 friendly_name = "Fx Tab Click Ms"
 description = "Firefox: Time in ms spent on switching tabs in response to a tab click."
 category = "performance"
