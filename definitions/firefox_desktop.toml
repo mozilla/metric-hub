@@ -1507,11 +1507,11 @@ select_expression = """(
 data_source = "metrics"
 
 [metrics.repeat_first_month_user]
-select_expression = LOGICAL_OR(COALESCE(qualified_second_day, FALSE))
-data_source = "clients_first_seen_28_days_later"'
+select_expression = "LOGICAL_OR(COALESCE(qualified_second_day, FALSE))"
+data_source = "clients_first_seen_28_days_later"
 
 [metrics.new_profile_retained_week4]
-select_expression = LOGICAL_OR(COALESCE(qualified_week4, FALSE))
+select_expression = "LOGICAL_OR(COALESCE(qualified_week4, FALSE))"
 data_source = "clients_first_seen_28_days_later"
 
 [dimensions]
