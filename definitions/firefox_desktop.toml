@@ -1568,13 +1568,13 @@ data_source = "desktop_cohort_daily_retention"
 description = "Days Since Client Was New - Used for N-Day Retention"
 
 [dimensions.cohort_retention_week]
-select_expression = IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7), NULL)"
+select_expression = "IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7), NULL)"
 friendly_name = "Retention Week"
 data_source = "desktop_cohort_daily_retention"
 description = "Weeks Since Client was New (Even 7 Day Periods Only)"
 
 [dimensions.cohort_retention_month]
-select_expression = IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28), NULL)"
+select_expression = "IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28), NULL)"
 friendly_name = "Retention Month"
 data_source = "desktop_cohort_daily_retention"
 description = "Months Since Client was New (Even 28 Day Periods Only)"
