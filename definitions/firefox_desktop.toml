@@ -1506,6 +1506,14 @@ select_expression = """(
 )"""
 data_source = "metrics"
 
+[metrics.repeat_first_month_user]
+select_expression = LOGICAL_OR(COALESCE(qualified_second_day, FALSE))
+data_source = "clients_first_seen_28_days_later"'
+
+[metrics.new_profile_retained_week4]
+select_expression = LOGICAL_OR(COALESCE(qualified_week4, FALSE))
+data_source = "clients_first_seen_28_days_later"
+
 [dimensions]
 
 [dimensions.os]
@@ -1753,6 +1761,12 @@ description = "Pocket Tiles Visit Activity Daily"
 friendly_name = "Pocket Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
 
+[data_sources.clients_first_seen_28_days_later]
+from_expression = """`moz-fx-data-shared-prod.telemetry.clients_first_seen_28_days_later`"""
+submission_date_column = "first_seen_date"
+description = "Retention Outcomes of Desktop New Profiles 28 Days after being new"
+friendly_name = "Clients First Seen 28 Days Later"
+client_id_column = "client_id"
 
 [segments]
 
