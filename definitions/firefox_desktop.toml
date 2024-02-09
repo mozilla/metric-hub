@@ -1808,7 +1808,7 @@ client_id_column = "client_id"
 
 [data_sources.desktop_cohort_daily_retention]
 from_expression = """`moz-fx-data-shared-prod.telemetry.desktop_cohort_daily_retention`"""
-submission_date_column = "first_seen_date"
+submission_date_column = "submission_date"
 description = "Retention Outcomes of Desktop New Profiles Over their First 112 Days"
 friendly_name = "Desktop Cohorts Daily Retention"
 client_id_column = "client_id"
