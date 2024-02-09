@@ -1811,7 +1811,6 @@ from_expression = """`moz-fx-data-shared-prod.telemetry.desktop_cohort_daily_ret
 submission_date_column = "submission_date"
 description = "Retention Outcomes of Desktop New Profiles Over their First 112 Days"
 friendly_name = "Desktop Cohorts Daily Retention"
-client_id_column = "client_id"
 
 [segments]
 
