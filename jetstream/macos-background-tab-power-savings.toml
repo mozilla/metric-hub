@@ -1,24 +1,24 @@
 [metrics]
 
 overall = [
-	"fx_tab_switch_update_ms", 
-	"fx_tab_switch_total_e10s_ms", 
-	"fx_tab_switch_composite_e10s_ms", 
+	"fx_tab_switch_update_ms",
+	"fx_tab_switch_total_e10s_ms",
+	"fx_tab_switch_composite_e10s_ms",
 	"fx_tab_switch_spinner_visible_ms",
-	"fx_tab_switch_spinner_visible_long_ms", 
+	"fx_tab_switch_spinner_visible_long_ms",
 	"fx_tab_switch_spinner_visible_trigger",
-	"fx_tab_switch_request_tab_warming_state", 
+	"fx_tab_switch_request_tab_warming_state",
 	"fx_tab_click_ms",
 ]
 
 weekly = [
-	"fx_tab_switch_update_ms", 
-	"fx_tab_switch_total_e10s_ms", 
-	"fx_tab_switch_composite_e10s_ms", 
+	"fx_tab_switch_update_ms",
+	"fx_tab_switch_total_e10s_ms",
+	"fx_tab_switch_composite_e10s_ms",
 	"fx_tab_switch_spinner_visible_ms",
-	"fx_tab_switch_spinner_visible_long_ms", 
+	"fx_tab_switch_spinner_visible_long_ms",
 	"fx_tab_switch_spinner_visible_trigger",
-	"fx_tab_switch_request_tab_warming_state", 
+	"fx_tab_switch_request_tab_warming_state",
 	"fx_tab_click_ms",
 ]
 
@@ -32,9 +32,6 @@ category = "performance"
 type = "histogram"
 
 [metrics.fx_tab_switch_update_ms.statistics.bootstrap_mean]
-
-
-
 
 
 [metrics.fx_tab_switch_spinner_visible_ms]
@@ -93,8 +90,30 @@ type = "histogram"
 
 [metrics.fx_tab_click_ms.statistics.bootstrap_mean]
 
-[metrics.fx_tab_switch_total_e10s_ms.statistics.bootstrap_mean]
+[metrics.fx_tab_switch_composite_e10s_ms]
+data_source = "main_filtered"
+
+select_expression = "{{agg_histogram_mean('payload.histograms.fx_tab_switch_composite_e10s_ms')}}"
+
+friendly_name = "Fx Tab Click Ms"
+description = "Firefox: Time in ms spent on switching tabs in response to a tab click."
+category = "performance"
+type = "histogram"
+
 [metrics.fx_tab_switch_composite_e10s_ms.statistics.bootstrap_mean]
+
+[metrics.fx_tab_switch_total_e10s_ms]
+data_source = "main_filtered"
+
+select_expression = "{{agg_histogram_mean('payload.histograms.fx_tab_switch_total_e10s_ms')}}"
+
+friendly_name = "Fx Tab Click Ms"
+description = "Firefox: Time in ms spent on switching tabs in response to a tab click."
+category = "performance"
+type = "histogram"
+
+[metrics.fx_tab_switch_total_e10s_ms.statistics.bootstrap_mean]
+
 
 [data_sources]
 [data_sources.main_filtered]
