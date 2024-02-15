@@ -1754,6 +1754,7 @@ submission_date_column = "submission_date"
 description = "Topsite Tiles Visit Activity Daily"
 friendly_name = "Topsite Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 [data_sources.newtab_visits_search_interactions]
 from_expression = """(
@@ -1769,6 +1770,7 @@ submission_date_column = "submission_date"
 description = "Search Tiles Visit Activity Daily"
 friendly_name = "Search Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 [data_sources.newtab_visits_pocket_interactions]
 from_expression = """(
@@ -1784,6 +1786,7 @@ submission_date_column = "submission_date"
 description = "Pocket Tiles Visit Activity Daily"
 friendly_name = "Pocket Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 [data_sources.newtab_visits]
 from_expression = "moz-fx-data-shared-prod.telemetry.newtab_visits"
