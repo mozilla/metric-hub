@@ -1790,6 +1790,7 @@ from_expression = "moz-fx-data-shared-prod.telemetry.newtab_visits"
 description = 'New Tab visit date without interactions unnested'
 friendly_name = "New Tab visits"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 
 [segments]
