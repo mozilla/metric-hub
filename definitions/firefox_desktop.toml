@@ -1010,6 +1010,22 @@ description = """
 Count of searches performed on the New Tab and handed off to the urlbar
 """
 
+[metrics.newtab_any_searches]
+data_source = "newtab_interactions"
+select_expression = '{{agg_any("searches > 0")}}'
+friendly_name = "Any Newtab Searches"
+description = """
+Client performed any Newtab Handoff searches during the experiment
+"""
+
+[metrics.newtab_gt4_searches]
+data_source = "newtab_interactions"
+select_expression = 'COALESCE(CASE WHEN SUM(searches) > 4 THEN 1 ELSE 0 END, 0)'
+friendly_name = "Any Newtab Searches"
+description = """
+Client performed any Newtab Handoff searches during the experiment
+"""
+
 [metrics.newtab_searches_with_ads]
 data_source = "newtab_interactions"
 select_expression = "SUM(COALESCE(tagged_search_ad_impressions, 0))"
@@ -1282,6 +1298,22 @@ friendly_name = "Newtab Engagement"
 type = "scalar"
 description = """
 Whether or not the client had a newtab search OR a pocket click OR a tile click.
+"""
+
+[metrics.newtab_visits]
+data_source = "newtab_visits"
+select_expression = "COALESCE(COUNT(DISTINCT newtab_visit_id), 0)"
+friendly_name = "Newtab Visit Count"
+description = """
+Count of New Tab visits
+"""
+
+[metrics.newtab_engaged_visits]
+data_source = "newtab_visits"
+select_expression = "COALESCE(COUNTIF(had_non_impression_engagement), 0)"
+friendly_name = "Newtab Engaged Visit Count"
+description = """
+Count of New Tab visits with any engagement
 """
 
 [metrics.newtab_organic_topsite_clicks]
@@ -1722,6 +1754,7 @@ submission_date_column = "submission_date"
 description = "Topsite Tiles Visit Activity Daily"
 friendly_name = "Topsite Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 [data_sources.newtab_visits_search_interactions]
 from_expression = """(
@@ -1737,6 +1770,7 @@ submission_date_column = "submission_date"
 description = "Search Tiles Visit Activity Daily"
 friendly_name = "Search Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 [data_sources.newtab_visits_pocket_interactions]
 from_expression = """(
@@ -1752,6 +1786,14 @@ submission_date_column = "submission_date"
 description = "Pocket Tiles Visit Activity Daily"
 friendly_name = "Pocket Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
+
+[data_sources.newtab_visits]
+from_expression = "moz-fx-data-shared-prod.telemetry.newtab_visits"
+description = 'New Tab visit date without interactions unnested'
+friendly_name = "New Tab visits"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
 
 
 [segments]
