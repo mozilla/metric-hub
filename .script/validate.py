@@ -195,7 +195,9 @@ def validate(path, config_repos):
                         segment_name,
                         segment,
                     ) in entity.spec.segments.definitions.items():
-                        entity.spec.segments.definitions[
+                        segment_definitions = entity.spec.segments.definitions
+
+                        segment_definitions[
                             segment_name
                         ].select_expression = (
                             config_collection.get_env()
@@ -203,17 +205,17 @@ def validate(path, config_repos):
                             .render()
                         )
 
-                        sql = env.render(
-                            metrics=metrics,
-                            dimensions=entity.spec.dimensions.definitions.values(),
-                            segments=entity.spec.segments.definitions.values(),
-                            segment_data_sources=entity.spec.segments.data_sources,
-                            data_sources={
-                                name: d.resolve(None)
-                                for name, d in entity.spec.data_sources.definitions.items()
-                            },
-                        )
-                        sql_to_validate.append(sql)
+                    sql = env.render(
+                        metrics=metrics,
+                        dimensions=entity.spec.dimensions.definitions.values(),
+                        segments=segment_definitions.values(),
+                        segment_data_sources=entity.spec.segments.data_sources,
+                        data_sources={
+                            name: d.resolve(None)
+                            for name, d in entity.spec.data_sources.definitions.items()
+                        },
+                    )
+                    sql_to_validate.append(sql)
 
     with Pool(8) as p:
         result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
