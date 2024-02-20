@@ -191,6 +191,7 @@ def validate(path, config_repos):
                             metrics = []
                             progress += 1
 
+                    segment_definitions = None
                     for (
                         segment_name,
                         segment,
@@ -205,17 +206,18 @@ def validate(path, config_repos):
                             .render()
                         )
 
-                    sql = env.render(
-                        metrics=metrics,
-                        dimensions=entity.spec.dimensions.definitions.values(),
-                        segments=segment_definitions.values(),
-                        segment_data_sources=entity.spec.segments.data_sources,
-                        data_sources={
-                            name: d.resolve(None)
-                            for name, d in entity.spec.data_sources.definitions.items()
-                        },
-                    )
-                    sql_to_validate.append(sql)
+                    if segment_definitions:
+                        sql = env.render(
+                            metrics=metrics,
+                            dimensions=entity.spec.dimensions.definitions.values(),
+                            segments=segment_definitions.values(),
+                            segment_data_sources=entity.spec.segments.data_sources,
+                            data_sources={
+                                name: d.resolve(None)
+                                for name, d in entity.spec.data_sources.definitions.items()
+                            },
+                        )
+                        sql_to_validate.append(sql)
 
     with Pool(8) as p:
         result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
