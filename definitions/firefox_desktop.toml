@@ -1686,6 +1686,13 @@ client_id_column = "client_id"
 friendly_name = "Clients Daily"
 description = "Clients Daily"
 
+[data_sources.clients_last_seen]
+from_expression = "mozdata.telemetry.clients_last_seen"
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+friendly_name = "Clients Last Seen"
+description = "Clients Last Seen"
+
 [data_sources.search_clients_daily]
 from_expression = "mozdata.search.search_clients_engines_sources_daily"
 experiments_column_type = "none"
