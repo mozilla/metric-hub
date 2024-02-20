@@ -1542,13 +1542,13 @@ data_source = "metrics"
 select_expression = "LOGICAL_OR(COALESCE(qualified_second_day, FALSE))"
 data_source = "clients_first_seen_28_days_later"
 friendly_name = "Repeat First Month Users"
-description = "Clients that were DAU at least once between their 2nd and 28th days, inclusive (first day = Day 1).
+description = "Clients that were DAU at least once between their 2nd and 28th days, inclusive (first day = Day 1)."
 
 [metrics.new_profile_retained_week4]
 select_expression = "LOGICAL_OR(COALESCE(qualified_week4, FALSE))"
 data_source = "clients_first_seen_28_days_later"
 friendly_name = "Week 4 Retained Users"
-description = "Clients that were DAU at least once between their 22nd and 28th days, inclusive (first day = Day 1).
+description = "Clients that were DAU at least once between their 22nd and 28th days, inclusive (first day = Day 1)."
 
 [metrics.cohort_clients_in_cohort]
 select_expression = "SUM(COALESCE(num_clients_in_cohort, 0))"
