@@ -1614,7 +1614,7 @@ from_expression = """
             AND event_object = 'stats'
     )
 """
-submission_date_column = "DATE(submission_date)"
+submission_date_column = "submission_date"
 friendly_name = "Memory events"
 description = "Memory related events"
 
