@@ -1541,30 +1541,38 @@ data_source = "metrics"
 [metrics.repeat_first_month_user]
 select_expression = "LOGICAL_OR(COALESCE(qualified_second_day, FALSE))"
 data_source = "clients_first_seen_28_days_later"
+friendly_name = "Repeat First Month Users"
+description = "Clients that were DAU at least once between their 2nd and 28th days, inclusive (first day = Day 1).
 
 [metrics.new_profile_retained_week4]
 select_expression = "LOGICAL_OR(COALESCE(qualified_week4, FALSE))"
 data_source = "clients_first_seen_28_days_later"
+friendly_name = "Week 4 Retained Users"
+description = "Clients that were DAU at least once between their 22nd and 28th days, inclusive (first day = Day 1).
 
 [metrics.cohort_clients_in_cohort]
 select_expression = "SUM(COALESCE(num_clients_in_cohort, 0))"
 data_source = "desktop_cohort_daily_retention"
 friendly_name = "Number of Clients in Daily Cohort of New Users"
+description = "The number of new profiles per day (using method from clients_first_seen_v2)"
 
 [metrics.cohort_clients_active_on_day]
 select_expression = "SUM(COALESCE(num_clients_dau_on_day, 0))"
 data_source = "desktop_cohort_daily_retention"
 friendly_name = "Number of Clients Retained on Day"
+description = "Number of Clients Retained (Qualifying as DAU) on each day"
 
 [metrics.cohort_clients_active_in_week]
 select_expression = "SUM(COALESCE(num_clients_dau_active_atleastonce_in_last_7_days, 0))"
 data_source = "desktop_cohort_daily_retention"
 friendly_name = "Number of Clients Retained in Last Week"
+description = "Number of Clients Retained (Qualifying as DAU) in previous 7 days (current day inclusive)"
 
 [metrics.cohort_clients_active_in_month]
 select_expression = "SUM(COALESCE(num_clients_dau_active_atleastonce_in_last_28_days, 0))"
 data_source = "desktop_cohort_daily_retention"
 friendly_name = "Number of Clients Retained in Last Month"
+description = "Number of Clients Retained (Qualifying as DAU) in previous 28 days (current day inclusive)"
 
 
 [dimensions]
