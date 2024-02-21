@@ -1538,6 +1538,43 @@ select_expression = """(
 )"""
 data_source = "metrics"
 
+[metrics.repeat_first_month_user]
+select_expression = "LOGICAL_OR(COALESCE(qualified_second_day, FALSE))"
+data_source = "clients_first_seen_28_days_later"
+friendly_name = "Repeat First Month Users"
+description = "Clients that were DAU at least once between their 2nd and 28th days, inclusive (first day = Day 1)."
+
+[metrics.new_profile_retained_week4]
+select_expression = "LOGICAL_OR(COALESCE(qualified_week4, FALSE))"
+data_source = "clients_first_seen_28_days_later"
+friendly_name = "Week 4 Retained Users"
+description = "Clients that were DAU at least once between their 22nd and 28th days, inclusive (first day = Day 1)."
+
+[metrics.cohort_clients_in_cohort]
+select_expression = "SUM(COALESCE(num_clients_in_cohort, 0))"
+data_source = "desktop_cohort_daily_retention"
+friendly_name = "Number of Clients in Daily Cohort of New Users"
+description = "The number of new profiles per day (using method from clients_first_seen_v2)"
+
+[metrics.cohort_clients_active_on_day]
+select_expression = "SUM(COALESCE(num_clients_dau_on_day, 0))"
+data_source = "desktop_cohort_daily_retention"
+friendly_name = "Number of Clients Retained on Day"
+description = "Number of Clients Retained (Qualifying as DAU) on each day"
+
+[metrics.cohort_clients_active_in_week]
+select_expression = "SUM(COALESCE(num_clients_dau_active_atleastonce_in_last_7_days, 0))"
+data_source = "desktop_cohort_daily_retention"
+friendly_name = "Number of Clients Retained in Last Week"
+description = "Number of Clients Retained (Qualifying as DAU) in previous 7 days (current day inclusive)"
+
+[metrics.cohort_clients_active_in_month]
+select_expression = "SUM(COALESCE(num_clients_dau_active_atleastonce_in_last_28_days, 0))"
+data_source = "desktop_cohort_daily_retention"
+friendly_name = "Number of Clients Retained in Last Month"
+description = "Number of Clients Retained (Qualifying as DAU) in previous 28 days (current day inclusive)"
+
+
 [dimensions]
 
 [dimensions.os]
@@ -1564,6 +1601,23 @@ select_expression = "normalized_country_code"
 friendly_name = "Country"
 description = "Normalized Country Code"
 
+[dimensions.cohort_retention_day]
+select_expression = "DATE_DIFF(submission_date, first_seen_date, DAY)"
+friendly_name = "Retention Day"
+data_source = "desktop_cohort_daily_retention"
+description = "Days Since Client Was New - Used for N-Day Retention"
+
+[dimensions.cohort_retention_week]
+select_expression = "IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 7), NULL)"
+friendly_name = "Retention Week"
+data_source = "desktop_cohort_daily_retention"
+description = "Weeks Since Client was New (Even 7 Day Periods Only)"
+
+[dimensions.cohort_retention_month]
+select_expression = "IF(MOD(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28) = 0, SAFE_DIVIDE(DATE_DIFF(submission_date, first_seen_date, DAY) + 1, 28), NULL)"
+friendly_name = "Retention Month"
+data_source = "desktop_cohort_daily_retention"
+description = "Months Since Client was New (Even 28 Day Periods Only)"
 
 [data_sources]
 
@@ -1631,6 +1685,13 @@ submission_date_column = "submission_date"
 client_id_column = "client_id"
 friendly_name = "Clients Daily"
 description = "Clients Daily"
+
+[data_sources.clients_last_seen]
+from_expression = "mozdata.telemetry.clients_last_seen"
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+friendly_name = "Clients Last Seen"
+description = "Clients Last Seen"
 
 [data_sources.search_clients_daily]
 from_expression = "mozdata.search.search_clients_engines_sources_daily"
@@ -1795,6 +1856,19 @@ friendly_name = "New Tab visits"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
+[data_sources.clients_first_seen_28_days_later]
+from_expression = """`moz-fx-data-shared-prod.telemetry.clients_first_seen_28_days_later`"""
+submission_date_column = "first_seen_date"
+description = "Retention Outcomes of Desktop New Profiles 28 Days after being new"
+friendly_name = "Clients First Seen 28 Days Later"
+client_id_column = "client_id"
+
+[data_sources.desktop_cohort_daily_retention]
+from_expression = """`moz-fx-data-shared-prod.telemetry.desktop_cohort_daily_retention`"""
+submission_date_column = "submission_date"
+description = "Retention Outcomes of Desktop New Profiles Over their First 112 Days"
+friendly_name = "Desktop Cohorts Daily Retention"
+client_id_column = "NULL"
 
 [segments]
 
