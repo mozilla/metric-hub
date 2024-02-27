@@ -1,0 +1,33 @@
+[metrics.feature_usage_dau_v1]
+select_expression = "SUM(dau)"
+data_source = "feature_usage_metrics_v1"
+friendly_name = "Feature Usage DAU"
+description = "Daily Active Users associated with feature usage"
+owner = "rzhao@mozilla.com"
+
+[metrics.feature_usage_dau_v1.statistics.sum]
+
+
+[metrics.bookmarks_add_users_v1.statistics.sum]
+
+[metrics.bookmarks_add_v1.statistics.sum]
+
+[metrics.bookmarks_add_users_v1.statistics.ratio]
+numerator = "bookmarks_add_users_v1.sum"
+denominator = "feature_usage_dau_v1.sum"
+
+[metrics.bookmarks_add_v1.statistics.ratio]
+numerator = "bookmarks_add_v1.sum"
+denominator = "bookmarks_add_users_v1.sum"
+
+[metrics.bookmarks_delete_users_v1.statistics.sum]
+
+[metrics.bookmarks_delete_v1.statistics.sum]
+
+[metrics.bookmarks_delete_v1.statistics.ratio]
+numerator = "bookmarks_delete_v1.sum"
+denominator = "bookmarks_delete_users_v1.sum"
+
+[metrics.bookmarks_delete_users_v1.statistics.ratio]
+numerator = "bookmarks_delete_users_v1.sum"
+denominator = "feature_usage_dau_v1.sum"
