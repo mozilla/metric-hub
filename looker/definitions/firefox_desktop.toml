@@ -1,0 +1,9 @@
+[metrics.days_of_use.statistics.average]
+
+[metrics.socket_crash_count_v1.statistics.sum]
+[metrics.socket_crash_active_hours_v1.statistics.sum]
+[metrics.socket_crash_dau_v1.statistics.sum]
+[metrics.socket_crash_active_hours_v1.statistics.client_count]
+[metrics.socket_crash_count_v1.statistics.ratio]
+numerator = "socket_crash_count_v1.sum"
+denominator = "socket_crash_active_hours_v1.sum"

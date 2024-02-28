@@ -1574,6 +1574,24 @@ data_source = "desktop_cohort_daily_retention"
 friendly_name = "Number of Clients Retained in Last Month"
 description = "Number of Clients Retained (Qualifying as DAU) in previous 28 days (current day inclusive)"
 
+[metrics.socket_crash_count_v1]
+select_expression = "SUM(socket_crash_count)"
+data_source = "clients_daily"
+friendly_name = "Client Crash Count"
+description = "Number of Socket crashes by a single client. Filter on this field to remove clients with large numbers of crashes."
+
+[metrics.socket_crash_active_hours_v1]
+select_expression = "SUM(IF(socket_crash_count > 0, active_hours_sum, 0))"
+data_source = "clients_daily"
+friendly_name = "Client Crash Active Hours"
+description = "Total active hours of a client with socket crashes"
+
+[metrics.socket_crash_dau_v1]
+select_expression = "COUNTIF(socket_crash_count > 0)"
+data_source = "clients_daily"
+friendly_name = "Daily Active Users with socket crashes"
+description = "Daily active user count with socket crashes"
+
 
 [dimensions]
 
@@ -1869,6 +1887,7 @@ submission_date_column = "submission_date"
 description = "Retention Outcomes of Desktop New Profiles Over their First 112 Days"
 friendly_name = "Desktop Cohorts Daily Retention"
 client_id_column = "NULL"
+
 
 [segments]
 

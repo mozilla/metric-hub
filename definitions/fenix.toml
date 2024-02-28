@@ -619,12 +619,12 @@ experiments_column_type = "none"
 from_expression = """(
     SELECT
         *
-    FROM `moz-fx-data-shared-prod.fenix.feature_usage_metrics` p
+    FROM `mozdata.fenix.feature_usage_metrics` p
     LEFT JOIN (
         SELECT
         submission_date,
         SUM(dau) AS dau
-        FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+        FROM `mozdata.telemetry.active_users_aggregates`
         WHERE app_name = 'Fenix'
         GROUP BY submission_date
     )

@@ -31,3 +31,10 @@ denominator = "bookmarks_delete_users_v1.sum"
 [metrics.bookmarks_delete_users_v1.statistics.ratio]
 numerator = "bookmarks_delete_users_v1.sum"
 denominator = "feature_usage_dau_v1.sum"
+
+[metrics.days_of_use.statistics.average]
+
+[metrics.active_hours.statistics.average]
+
+[metrics.ad_click_organic.statistics.average]
+
