@@ -1804,7 +1804,7 @@ experiments_column_type = "glean"
 [data_sources.newtab_visits_topsite_tile_interactions]
 from_expression = """(
     SELECT
-        e.* EXCEPT (topsite_tile_interactions),
+        e.* EXCEPT (topsite_tile_interactions, search_interactions, pocket_interactions),
         topsite_tile_interactions
     FROM
         `moz-fx-data-shared-prod.telemetry.newtab_visits` e
@@ -1820,7 +1820,7 @@ experiments_column_type = "native"
 [data_sources.newtab_visits_search_interactions]
 from_expression = """(
     SELECT
-        e.* EXCEPT (search_interactions),
+        e.* EXCEPT (topsite_tile_interactions, search_interactions, pocket_interactions),
         search_interactions
     FROM
         `moz-fx-data-shared-prod.telemetry.newtab_visits` e
@@ -1836,7 +1836,7 @@ experiments_column_type = "native"
 [data_sources.newtab_visits_pocket_interactions]
 from_expression = """(
     SELECT
-        e.* EXCEPT (pocket_interactions),
+        e.* EXCEPT (topsite_tile_interactions, search_interactions, pocket_interactions),
         pocket_interactions
     FROM
         `moz-fx-data-shared-prod.telemetry.newtab_visits` e
