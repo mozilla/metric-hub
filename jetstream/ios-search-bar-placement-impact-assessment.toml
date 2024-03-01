@@ -6,12 +6,12 @@ overall = ["new_profile_activation"]
 
 [metrics.new_profile_activation]
 data_source = "new_profile_activation"
-select_expression = "COALESCE(SUM(activated))"
+select_expression = "COUNTIF(is_activated)"
 
 [metrics.new_profile_activation.statistics.binomial]
 
 [data_sources]
 
 [data_sources.new_profile_activation]
-from_expression = "`moz-fx-data-shared-prod.firefox_ios.new_profile_activation`"
+from_expression = "`mozdata.firefox_ios.clients_activation`"
 experiments_column_type = "none"
