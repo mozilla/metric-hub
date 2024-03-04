@@ -445,6 +445,34 @@ friendly_name = "Clicked at least one CTA"
 description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
+[metrics.bookmarks_add_v1]
+select_expression = "SUM(bookmarks_add)"
+data_source = "feature_usage_metrics_v1"
+friendly_name = "Added Bookmarks"
+description = "Number of Added Bookmarks"
+owner = "rzhao@mozilla.com"
+
+[metrics.bookmarks_delete_v1]
+select_expression = "SUM(bookmarks_delete)"
+data_source = "feature_usage_metrics_v1"
+friendly_name = "Deleted Bookmarks"
+description = "Number of Deleted Bookmarks"
+owner = "rzhao@mozilla.com"
+
+[metrics.bookmarks_add_users_v1]
+select_expression = "SUM(bookmarks_add_users)"
+data_source = "feature_usage_metrics_v1"
+friendly_name = "Added Bookmarks Users"
+description = "Number of Users that Added Bookmarks"
+owner = "rzhao@mozilla.com"
+
+[metrics.bookmarks_delete_users_v1]
+select_expression = "SUM(bookmarks_delete_users)"
+data_source = "feature_usage_metrics_v1"
+friendly_name = "Deleted Bookmarks Users"
+description = "Number of Users that Deleted Bookmarks"
+owner = "rzhao@mozilla.com"
+
 [data_sources]
 
 [data_sources.active_users_aggregates_v1]
@@ -585,3 +613,23 @@ GROUP BY 1, 2, 3, 4, 5, 6
 )
 """
 experiments_column_type = "none"
+
+
+[data_sources.feature_usage_metrics_v1]
+from_expression = """(
+    SELECT
+        *
+    FROM `mozdata.fenix.feature_usage_metrics` p
+    LEFT JOIN (
+        SELECT
+        submission_date,
+        SUM(dau) AS dau
+        FROM `mozdata.telemetry.active_users_aggregates`
+        WHERE app_name = 'Fenix'
+        GROUP BY submission_date
+    )
+    USING(submission_date)
+)"""
+client_id_column = "NULL"
+friendly_name = "Feature Usage Metrics"
+description = "Fenix feature usage metrics"

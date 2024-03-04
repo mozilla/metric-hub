@@ -21,8 +21,11 @@ from typing import Any
 import click
 import requests
 import requests.exceptions
-from metric_config_parser.config import (DEFINITIONS_DIR, ConfigCollection,
-                                         entity_from_path)
+from metric_config_parser.config import (
+    DEFINITIONS_DIR,
+    ConfigCollection,
+    entity_from_path,
+)
 from metric_config_parser.function import FunctionsSpec
 
 logger = logging.getLogger(__name__)
@@ -151,31 +154,42 @@ def validate(path, config_repos):
                     validation_template = (
                         Path(TEMPLATES_DIR) / "validation_query.sql"
                     ).read_text()
-
-                    for (
-                        metric_name,
-                        metric,
-                    ) in entity.spec.metrics.definitions.items():
-                        if metric.select_expression:
-                            entity.spec.metrics.definitions[
-                                metric_name
-                            ].select_expression = (
-                                config_collection.get_env()
-                                .from_string(metric.select_expression)
-                                .render()
-                            )
-
                     env = config_collection.get_env().from_string(validation_template)
 
                     i = 0
                     progress = 0
                     metrics = []
-                    for metric in entity.spec.metrics.definitions.values():
+                    data_sources = {}
+                    for metric_name in entity.spec.metrics.definitions.keys():
                         i += 1
+                        metric = config_collection.get_metric_definition(
+                            metric_name, config_file.stem
+                        )
+
+                        if not metric:
+                            print(f"Error with {metric_name}")
+                            dirty = True
+                            break
+
                         if metric.select_expression:
+                            metric.select_expression = (
+                                config_collection.get_env()
+                                .from_string(metric.select_expression)
+                                .render()
+                            )
                             metrics.append(metric)
 
-                        if i % 10 == 0:
+                        if metric.data_source:
+                            data_source = config_collection.get_data_source_definition(
+                                metric.data_source.name, config_file.stem
+                            )
+                            if metric.data_source.name not in data_sources:
+                                data_sources[metric.data_source.name] = data_source
+
+                        if (
+                            i % 10 == 0
+                            or i == len(entity.spec.metrics.definitions.keys()) - 1
+                        ):
                             sql = env.render(
                                 metrics=metrics,
                                 dimensions=[],
@@ -183,7 +197,7 @@ def validate(path, config_repos):
                                 segment_data_sources=[],
                                 data_sources={
                                     name: d.resolve(None)
-                                    for name, d in entity.spec.data_sources.definitions.items()
+                                    for name, d in data_sources.items()
                                 },
                             )
                             sql_to_validate.append(sql)
@@ -198,9 +212,7 @@ def validate(path, config_repos):
                     ) in entity.spec.segments.definitions.items():
                         segment_definitions = entity.spec.segments.definitions
 
-                        segment_definitions[
-                            segment_name
-                        ].select_expression = (
+                        segment_definitions[segment_name].select_expression = (
                             config_collection.get_env()
                             .from_string(segment.select_expression)
                             .render()
