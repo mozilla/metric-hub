@@ -10,6 +10,9 @@ parameters:
   validate-metrics:
     type: boolean
     default: false
+  validate-looker:
+    type: boolean
+    default: false
   build-docs:
     type: boolean
     default: false
@@ -36,7 +39,7 @@ jobs:
           changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- 'definitions/*.toml' 'definitions/*.example.toml')
           echo "Run validation on changed files: "
           echo $changed_files
-          python3 .script/validate.py $changed_files
+          python3 .script/validate.py $changed_files --config_repos='.'
   validate-opmon:
     docker:
     - image: gcr.io/moz-fx-data-experiments/opmon:latest
@@ -67,6 +70,25 @@ jobs:
           echo "Run validation on changed files: "
           echo $changed_files
           jetstream validate_config --config_repos='.' --config_repos='jetstream/' $changed_files
+  validate-looker:
+    docker:
+    - image: python:3.10
+    environment:
+      BASE_COMMIT: << pipeline.parameters.base-revision >>
+      REVISION_COMMIT: << pipeline.git.revision >>
+    steps:
+    - checkout
+    - run:
+        name: Build
+        command: |
+          pip install -r .script/requirements.txt
+    - run:
+        name: Validate config files
+        command: |
+          changed_files=$(git diff --name-only $BASE_COMMIT..$REVISION_COMMIT -- 'looker/*.toml' 'looker/*.example.toml')
+          echo "Run validation on changed files: "
+          echo $changed_files
+          python3 .script/validate.py --config_repos='.' --config_repos=looker/ $changed_files
   build-docs:
     docker:
       - image: python:3.10
@@ -194,6 +216,12 @@ workflows:
         - << pipeline.parameters.validate-jetstream >>
     jobs:
       - validate-jetstream
+  validate-looker:
+    when: 
+      or: 
+        - << pipeline.parameters.validate-looker >>
+    jobs:
+      - validate-looker
   rerun-jetstream:
     when: 
       or: 

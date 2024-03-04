@@ -18,6 +18,7 @@ workflows:
             opmon/.* validate-opmon true
             jetstream/.* validate-jetstream true
             definitions/.* validate-metrics true
+            looker/.* validate-looker true
             .* build-docs true
   filter-paths-pr:
     when:
@@ -32,5 +33,6 @@ workflows:
             opmon/.* validate-opmon true
             jetstream/.* validate-jetstream true
             definitions/.* validate-metrics true
+            looker/.* validate-looker true
             .* build-docs true
             .* base-revision "main"
