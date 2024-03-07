@@ -138,7 +138,7 @@ client_id_column = "client_id"
 
 [metrics.total_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "1"
+select_expression = "100 * 1"
 type = "scalar"
 
 [metrics.total_client_volume.statistics]
@@ -146,7 +146,7 @@ sum = {}
 
 [metrics.Success_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 0 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 0 AS INT64)"
 type = "scalar"
 
 [metrics.Success_client_volume.statistics]
@@ -155,7 +155,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrProgID_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 1 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 1 AS INT64)"
 type = "scalar"
 
 [metrics.ErrProgID_client_volume.statistics]
@@ -164,7 +164,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrHash_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 2 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 2 AS INT64)"
 type = "scalar"
 
 [metrics.ErrHash_client_volume.statistics]
@@ -173,7 +173,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrLaunchExe_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 3 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 3 AS INT64)"
 type = "scalar"
 
 [metrics.ErrLaunchExe_client_volume.statistics]
@@ -182,7 +182,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrExeTimeout_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 4 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 4 AS INT64)"
 type = "scalar"
 
 [metrics.ErrExeTimeout_client_volume.statistics]
@@ -191,7 +191,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrExeProgID_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 5 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 5 AS INT64)"
 type = "scalar"
 
 [metrics.ErrExeProgID_client_volume.statistics]
@@ -200,7 +200,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrExeHash_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 6 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 6 AS INT64)"
 type = "scalar"
 
 [metrics.ErrExeHash_client_volume.statistics]
@@ -209,7 +209,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrExeRejected_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 7 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 7 AS INT64)"
 type = "scalar"
 
 [metrics.ErrExeRejected_client_volume.statistics]
@@ -218,7 +218,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrExeOther_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 8 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 8 AS INT64)"
 type = "scalar"
 
 [metrics.ErrExeOther_client_volume.statistics]
@@ -227,7 +227,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrOther_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 9 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 9 AS INT64)"
 type = "scalar"
 
 [metrics.ErrOther_client_volume.statistics]
@@ -236,7 +236,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.ErrBuild_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) = 10 AS INT64)"
+select_expression = "100 * CAST(MAX(key) = 10 AS INT64)"
 type = "scalar"
 
 [metrics.ErrBuild_client_volume.statistics]
@@ -245,7 +245,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.not_Success_client_volume]
 data_source = "firefox_userchoice"
-select_expression = "CAST(MAX(key) > 0 AS INT64)"
+select_expression = "100 * CAST(MAX(key) > 0 AS INT64)"
 type = "scalar"
 
 [metrics.not_Success_client_volume.statistics]
@@ -257,7 +257,7 @@ total_ratio = { denominator_metric = "total_client_volume" }
 
 [metrics.total_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(value)"
+select_expression = "100 * SUM(value)"
 type = "scalar"
 
 [metrics.total_event_volume.statistics]
@@ -265,7 +265,7 @@ sum = {}
 
 [metrics.Success_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 0, value, 0))"
+select_expression = "100 * SUM(IF(key = 0, value, 0))"
 type = "scalar"
 
 [metrics.Success_event_volume.statistics]
@@ -274,7 +274,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrProgID_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 1, value, 0))"
+select_expression = "100 * SUM(IF(key = 1, value, 0))"
 type = "scalar"
 
 [metrics.ErrProgID_event_volume.statistics]
@@ -283,7 +283,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrHash_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 2, value, 0))"
+select_expression = "100 * SUM(IF(key = 2, value, 0))"
 type = "scalar"
 
 [metrics.ErrHash_event_volume.statistics]
@@ -292,7 +292,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrLaunchExe_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 3, value, 0))"
+select_expression = "100 * SUM(IF(key = 3, value, 0))"
 type = "scalar"
 
 [metrics.ErrLaunchExe_event_volume.statistics]
@@ -301,7 +301,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrExeTimeout_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 4, value, 0))"
+select_expression = "100 * SUM(IF(key = 4, value, 0))"
 type = "scalar"
 
 [metrics.ErrExeTimeout_event_volume.statistics]
@@ -310,7 +310,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrExeProgID_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 5, value, 0))"
+select_expression = "100 * SUM(IF(key = 5, value, 0))"
 type = "scalar"
 
 [metrics.ErrExeProgID_event_volume.statistics]
@@ -319,7 +319,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrExeHash_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 6, value, 0))"
+select_expression = "100 * SUM(IF(key = 6, value, 0))"
 type = "scalar"
 
 [metrics.ErrExeHash_event_volume.statistics]
@@ -328,7 +328,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrExeRejected_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 7, value, 0))"
+select_expression = "100 * SUM(IF(key = 7, value, 0))"
 type = "scalar"
 
 [metrics.ErrExeRejected_event_volume.statistics]
@@ -337,7 +337,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrExeOther_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 8, value, 0))"
+select_expression = "100 * SUM(IF(key = 8, value, 0))"
 type = "scalar"
 
 [metrics.ErrExeOther_event_volume.statistics]
@@ -346,7 +346,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrOther_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 9, value, 0))"
+select_expression = "100 * SUM(IF(key = 9, value, 0))"
 type = "scalar"
 
 [metrics.ErrOther_event_volume.statistics]
@@ -355,7 +355,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.ErrBuild_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key = 10, value, 0))"
+select_expression = "100 * SUM(IF(key = 10, value, 0))"
 type = "scalar"
 
 [metrics.ErrBuild_event_volume.statistics]
@@ -364,7 +364,7 @@ total_ratio = { denominator_metric = "total_event_volume" }
 
 [metrics.not_Success_event_volume]
 data_source = "firefox_userchoice"
-select_expression = "SUM(IF(key > 0, value, 0))"
+select_expression = "100 * SUM(IF(key > 0, value, 0))"
 type = "scalar"
 
 [metrics.not_Success_event_volume.statistics]
