@@ -2,6 +2,8 @@
 daily = ["retained"]
 weekly = ["retained", "active_hours", "days_of_use"]
 overall = ["active_hours", "days_of_use"]
+week_preenrollment = ["active_hours", "days_of_use"]
+days28_preenrollment = ["active_hours", "days_of_use"]
 
 [metrics.retained]
 select_expression = "COALESCE(COUNT(document_id), 0) > 0"
