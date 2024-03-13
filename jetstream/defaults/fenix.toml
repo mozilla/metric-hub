@@ -22,6 +22,30 @@ overall = [
     "client_level_daily_active_users_v2",
 ]
 
+week_preenrollment = [
+    "active_hours",
+    "serp_ad_clicks",
+    "organic_searches",
+    "search_count",
+    "searches_with_ads",
+    "tagged_follow_on_searches",
+    "total_uri_count",
+    "days_of_use",
+    "client_level_daily_active_users_v2",
+]
+
+days28_preenrollment = [
+    "active_hours",
+    "serp_ad_clicks",
+    "organic_searches",
+    "search_count",
+    "searches_with_ads",
+    "tagged_follow_on_searches",
+    "total_uri_count",
+    "days_of_use",
+    "client_level_daily_active_users_v2",
+]
+
 [metrics.retained]
 select_expression = "COALESCE(COUNT(document_id), 0) > 0"
 data_source = "baseline"
