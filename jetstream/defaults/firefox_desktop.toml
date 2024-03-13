@@ -30,6 +30,36 @@ overall = [
   "client_level_daily_active_users_v1",
 ]
 
+week_preenrollment = [
+  "active_hours",
+  "ad_clicks",
+  "days_of_use",
+  "organic_search_count",
+  "search_count",
+  "searches_with_ads",
+  "tagged_search_count",
+  "tagged_follow_on_search_count",
+  "uri_count",
+  "qualified_cumulative_days_of_use",
+  "is_default_browser",
+  "client_level_daily_active_users_v1",
+]
+
+days28_preenrollment = [
+  "active_hours",
+  "ad_clicks",
+  "days_of_use",
+  "organic_search_count",
+  "search_count",
+  "searches_with_ads",
+  "tagged_search_count",
+  "tagged_follow_on_search_count",
+  "uri_count",
+  "qualified_cumulative_days_of_use",
+  "is_default_browser",
+  "client_level_daily_active_users_v1",
+]
+
 
 [metrics.active_hours.statistics.bootstrap_mean]
 [metrics.active_hours.statistics.deciles]
