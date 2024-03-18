@@ -5,7 +5,7 @@ weekly = [
     "active_hours",
     "search_count",
     "serp_ad_clicks",
-    "tagged_sap_searches",
+    "tagged_search_count",
     "total_uri_count",
     "days_of_use",
     "client_level_daily_active_users_v2",
@@ -104,7 +104,7 @@ bootstrap_mean = {}
 
 ##
 
-[metrics.tagged_sap_searches.statistics]
+[metrics.tagged_search_count.statistics]
 deciles = {}
 bootstrap_mean = {}
 
