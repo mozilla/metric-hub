@@ -104,7 +104,7 @@ bootstrap_mean = {}
 
 ##
 
-[metrics.tagged_sap_searches.statistics]
+[metrics.tagged_search_count.statistics]
 deciles = {}
 bootstrap_mean = {}
 
