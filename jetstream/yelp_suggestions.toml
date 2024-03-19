@@ -1,0 +1,91 @@
+[metrics]
+
+weekly = [
+yelp_clicks,
+yelp_impressions,
+yelp_impression_rate,
+yelp_ctr,
+addressbar_ctr,
+yelp_not_relevant_rate,
+yelp_show_less_frequently_rate
+]
+
+overall = [
+yelp_clicks,
+yelp_impressions,
+yelp_impression_rate,
+yelp_ctr,
+addressbar_ctr,
+yelp_not_relevant_rate,
+yelp_show_less_frequently_rate
+]
+
+
+[metrics.yelp_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_yelp', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "yelp suggestion impressions"
+description = "Number of yelp suggestion impressions"
+
+[metrics.yelp_impressions.statistics.bootstrap_mean]
+[metrics.yelp_impressions.statistics.deciles]
+
+[metrics.yelp_clicks]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND event_action = 'engaged' result.result_type = 'rust_yelp', event_id, NULL))"
+data_source = "urlbar_events"
+friendly_name = "yelp suggestion impressions"
+description = "Number of yelp suggestion impressions"
+
+[metrics.yelp_clicks.statistics.bootstrap_mean]
+[metrics.yelp_clicks.statistics.deciles]
+
+[metrics.yelp_ctr]
+depends_on = ["yelp_clicks", "yelp_impressions"]
+friendly_name = "yelp suggestion CTR"
+description = "Proportion of yelp suggestions that were clicked"
+
+[metrics.yelp_ctr.statistics.population_ratio]
+numerator = "yelp_clicks"
+denominator = "yelp_impressions"
+
+
+
+[metrics.yelp_not_relevant]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_yelp' AND engaged_result_type = 'not_relevant', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "yelp_not_relevant enagement"
+description = "Number of yelp_not_relevant enagement"
+
+[metrics.yelp_not_relevant.statistics.bootstrap_mean]
+[metrics.yelp_not_relevant.statistics.deciles]
+
+[metrics.yelp_not_relevant_rate]
+depends_on = ["yelp_not_relevant", "yelp_impressions"]
+friendly_name = "yelp_not_relevant_rate"
+description = ""
+
+[metrics.yelp_not_relevant_rate.statistics.population_ratio]
+numerator = "yelp_not_relevant"
+denominator = "yelp_impressions"
+
+
+
+[metrics.yelp_show_less_frequently]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_yelp' AND engagement_type = 'show_less_frequently', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "yelp_show_less_frequently engagement"
+description = "Number of yelp_show_less_frequently engagement"
+
+[metrics.yelp_show_less_frequently.statistics.bootstrap_mean]
+[metrics.yelp_show_less_frequentlyt.statistics.deciles]
+
+[metrics.yelp_show_less_frequently_rate]
+depends_on = ["yelp_show_less_frequently", "yelp_impressions"]
+friendly_name = "yelp_show_less_frequently_rate"
+description = ""
+
+[metrics.yelp_show_less_frequently_rate.statistics.population_ratio]
+numerator = "yelp_show_less_frequently"
+denominator = "yelp_impressions"
+
+
