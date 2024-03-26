@@ -7,7 +7,7 @@ select_expression = "COUNT(DISTINCT(CASE WHEN is_terminal and event_action = 'en
 data_source = "urlbar_events"
 [metrics.history_clicks.statistics.bootstrap_mean]
 
-[metrics.search_suggestion_clicks.statistics.bootstrap_mean]
+[metrics.search_suggestion_clicks]
 select_expression = "COUNT(DISTINCT(CASE WHEN is_terminal and event_action = 'engaged' and product_engaged_result_type = 'default_partner_search_suggestion' THEN event_id ELSE NULL END))"
 data_source = "urlbar_events"
 [metrics.search_suggestion_clicks.statistics.bootstrap_mean]
