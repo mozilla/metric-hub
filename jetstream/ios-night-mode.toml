@@ -1,0 +1,45 @@
+[experiment]
+#end_date = "2024-03-27"
+#enrollment_period = 8
+segments = ['was_prior_night_mode_user']
+
+[segments]
+[segments.was_prior_night_mode_user]
+select_expression = 'COALESCE(MAX_BY(most_recent_mode, submission_date) = "enabled", FALSE)'
+data_source = 'night_mode_taps'
+
+[segments.data_sources.night_mode_taps]
+from_expression = '''(
+WITH taps AS (
+SELECT 
+  client_info.client_id,
+  submission_timestamp,
+  CASE 
+    WHEN COALESCE(metrics.counter.app_menu_night_mode_disabled,0) > COALESCE(metrics.counter.app_menu_night_mode_enabled,0) THEN "enabled" -- more taps on "disable night mode", assume night mode is enabled
+    WHEN COALESCE(metrics.counter.app_menu_night_mode_disabled,0) < COALESCE(metrics.counter.app_menu_night_mode_enabled,0) THEN "disabled" 
+    ELSE null END AS best_guess_mode_if_flipped -- this will tell us the best guess mode (night mode/not night mode) if flipped during the current session
+FROM 
+  `moz-fx-data-shared-prod.org_mozilla_ios_firefox.metrics`
+WHERE 
+  DATE(submission_timestamp) >= DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)
+), most_recent AS (
+  SELECT 
+    client_id, 
+    submission_timestamp,
+    DATE(submission_timestamp) AS submission_date,
+    LAST_VALUE(best_guess_mode_if_flipped) OVER (PARTITION BY client_id ORDER BY submission_timestamp ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS most_recent_mode 
+  FROM taps
+), client_day_rollup AS (
+  SELECT 
+    client_id, 
+    submission_date,
+    MAX_BY(most_recent_mode, submission_timestamp) AS most_recent_mode
+  FROM most_recent
+  GROUP BY 1,2
+)
+
+SELECT *
+FROM client_day_rollup
+)'''
+window_start = -7
+window_end = -1
