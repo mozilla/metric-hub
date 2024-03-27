@@ -7,3 +7,31 @@
 [metrics.socket_crash_count_v1.statistics.ratio]
 numerator = "socket_crash_count_v1.sum"
 denominator = "socket_crash_active_hours_v1.sum"
+
+[metrics.urlbar_impressions]
+select_expression = "SUM(urlbar_impressions)"
+data_source = "urlbar_events_daily"
+friendly_name = "Urlbar Impression Count"
+description = "Number of Urlbar impressions."
+
+[metrics.urlbar_sessions]
+select_expression = "SUM(urlbar_sessions)"
+data_source = "urlbar_events_daily"
+friendly_name = "Urlbar Session Count"
+description = "Number of Urlbar sessions."
+
+[metrics.urlbar_annoyances]
+select_expression = "SUM(urlbar_annoyances)"
+data_source = "urlbar_events_daily"
+friendly_name = "Urlbar Annoyance Count"
+description = "Number of Urlbar annoyances."
+
+[metrics.urlbar_clicks]
+select_expression = "SUM(urlbar_clicks)"
+data_source = "urlbar_events_daily"
+friendly_name = "Urlbar Click Count"
+description = "Number of Urlbar clicks."
+
+[metrics.urlbar_ctr.statistics.ratio]
+numerator = "urlbar_clicks"
+denominator = "urlbar_impressions"
