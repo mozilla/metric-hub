@@ -31,7 +31,3 @@ select_expression = "SUM(urlbar_clicks)"
 data_source = "urlbar_events_daily"
 friendly_name = "Urlbar Click Count"
 description = "Number of Urlbar clicks."
-
-[metrics.urlbar_ctr.statistics.ratio]
-numerator = "urlbar_clicks"
-denominator = "urlbar_impressions"
