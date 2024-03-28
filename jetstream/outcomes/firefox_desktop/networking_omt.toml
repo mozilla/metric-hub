@@ -1,0 +1,58 @@
+friendly_name = "Networking OMT"
+description = "Off Main Thread networking performance probes" 
+
+[metrics.http_content_onstart_delay]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_onstart_delay")}}'
+bigger_is_better = false
+
+[metrics.http_content_onstart_delay.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_onstop_delay]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_onstop_delay")}}'
+
+[metrics.http_content_onstop_delay.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_ondatafinished_delay]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_ondatafinished_delay")}}'
+
+[metrics.http_content_ondatafinished_delay.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_ondatafinished_to_onstop_delay]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_ondatafinished_to_onstop_delay")}}'
+
+[metrics.http_content_ondatafinished_to_onstop_delay.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_ondatafinished_to_onstop_delay_negative]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_ondatafinished_to_onstop_delay_negative")}}'
+
+[metrics.http_content_ondatafinished_to_onstop_delay_negative.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_html5parser_ondatafinished_to_onstop_delay]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_html5parser_ondatafinished_to_onstop_delay")}}'
+
+[metrics.http_content_html5parser_ondatafinished_to_onstop_delay.statistics.deciles]
+pre_treatments = ["remove_nulls"]
+
+
+[metrics.http_content_html5parser_ondatafinished_to_onstop_delay_negative]
+data_source = "metrics"
+select_expression = '{{agg_histogram_mean("metrics.timing_distribution.http_content_html5parser_ondatafinished_to_onstop_delay_negative")}}'
+
+[metrics.http_content_html5parser_ondatafinished_to_onstop_delay_negative.statistics.deciles]
+pre_treatments = ["remove_nulls"]
