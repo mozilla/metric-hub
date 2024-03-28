@@ -1,0 +1,19 @@
+friendly_name = "New Tab Tiles"
+description = """
+    Measures interactions with tiles on the New Tab.
+"""
+
+[metrics.sponsored_tile_impressions.statistics.bootstrap_mean]
+[metrics.sponsored_tile_impressions.statistics.decile]
+
+[metrics.sponsored_tile_clicks.statistics.bootstrap_mean]
+[metrics.sponsored_tile_clicks.statistics.decile]
+
+[metrics.newtab_tiles_enabled.statistics.boolean]
+[metrics.sponsored_tiles_disabled.statistics.boolean]
+
+[metrics.newtab_organic_topsite_clicks.statistics.bootstrap_mean]
+[metrics.newtab_organic_topsite_clicks.statistics.decile]
+
+[metrics.newtab_organic_topsite_impressions.statistics.bootstrap_mean]
+[metrics.newtab_organic_topsite_impressions.statistics.decile]
