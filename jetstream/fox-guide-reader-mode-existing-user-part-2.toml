@@ -1,5 +1,17 @@
+[experiment]
+
 [experiment.exposure_signal]
-window_end = 14
+name = "nimbus_exposure"
+friendly_name = "Nimbus Exposure"
+description = "Extended exposure signal"
+select_expression = """
+    event_category = 'normandy'
+    AND (event_method = 'exposure' OR event_method = 'expose')
+    AND event_string_value = 'fox-guide-reader-mode-existing-user-part-2'
+"""
+data_source = "events_unnested"
+window_start = 0
+window_end = 14  # extend exposure to 2 weeks
 
 [metrics]
 weekly = ["reader_mode_clients", "reader_mode_clients_repeated_use"]
