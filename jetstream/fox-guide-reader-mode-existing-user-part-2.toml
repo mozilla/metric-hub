@@ -9,7 +9,7 @@ select_expression = """
     AND (event_method = 'exposure' OR event_method = 'expose')
     AND event_string_value = 'fox-guide-reader-mode-existing-user-part-2'
 """
-data_source = "events_unnested"
+data_source = "events"
 window_start = 0
 window_end = 14  # extend exposure to 2 weeks
 
