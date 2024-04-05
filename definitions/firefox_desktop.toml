@@ -1002,8 +1002,8 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 ########################### START OF NEW TAB METRICS ###########################
 
 [metrics.newtab_searches]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(searches, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(searches, 0))"
 friendly_name = "Newtab Handoff Searches"
 type = "scalar"
 description = """
@@ -1011,7 +1011,7 @@ Count of searches performed on the New Tab and handed off to the urlbar
 """
 
 [metrics.newtab_any_searches]
-data_source = "newtab_interactions"
+data_source = "newtab_clients_daily"
 select_expression = '{{agg_any("searches > 0")}}'
 friendly_name = "Any Newtab Searches"
 description = """
@@ -1019,7 +1019,7 @@ Client performed any Newtab Handoff searches during the experiment
 """
 
 [metrics.newtab_gt4_searches]
-data_source = "newtab_interactions"
+data_source = "newtab_clients_daily"
 select_expression = 'COALESCE(CASE WHEN SUM(searches) > 4 THEN 1 ELSE 0 END, 0)'
 friendly_name = "Any Newtab Searches"
 description = """
@@ -1027,8 +1027,8 @@ Client performed any Newtab Handoff searches during the experiment
 """
 
 [metrics.newtab_searches_with_ads]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(tagged_search_ad_impressions, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(tagged_search_ad_impressions, 0))"
 friendly_name = "Newtab Searches with Ads"
 type = "scalar"
 description = """
@@ -1036,8 +1036,8 @@ Count of searches performed on the New Tab that resulted in an ad impression on 
 """
 
 [metrics.newtab_ad_clicks]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(tagged_search_ad_clicks, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(tagged_search_ad_clicks, 0))"
 friendly_name = "Newtab Ad Clicks"
 type = "scalar"
 description = """
@@ -1045,8 +1045,8 @@ Count of searches performed on the New Tab that resulted in an ad click
 """
 
 [metrics.newtab_ad_click_rate]
-data_source = "newtab_interactions"
-select_expression = "SAFE_DIVIDE(SUM(COALESCE(tagged_search_ad_clicks, 0)),  SUM(COALESCE(tagged_search_ad_impressions, 0)))"
+data_source = "newtab_clients_daily"
+select_expression = "SAFE_DIVIDE(COALESCE(SUM(tagged_search_ad_clicks, 0)),  COALESCE(SUM(tagged_search_ad_impressions, 0)))"
 friendly_name = "Newtab Ad Click Rate"
 type = "scalar"
 description = """
@@ -1054,8 +1054,8 @@ New Tab ad clicks divided by New Tab searches with ads
 """
 
 [metrics.organic_pocket_clicks]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(organic_pocket_clicks, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(organic_pocket_clicks, 0))"
 friendly_name = "Organic Pocket Clicks"
 type = "scalar"
 description = """
@@ -1063,8 +1063,8 @@ Count of clicks on Organic Pocket content.
 """
 
 [metrics.sponsored_pocket_clicks]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(sponsored_pocket_clicks, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(sponsored_pocket_clicks, 0))"
 friendly_name = "Sponsored Pocket Clicks"
 type = "scalar"
 description = """
@@ -1072,8 +1072,8 @@ Count of clicks on Sponsored Pocket content.
 """
 
 [metrics.organic_pocket_impressions]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(organic_pocket_impressions, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(organic_pocket_impressions, 0))"
 friendly_name = "Organic Pocket Impressions"
 type = "scalar"
 description = """
@@ -1081,8 +1081,8 @@ Count of impressions on Organic Pocket content.
 """
 
 [metrics.sponsored_pocket_impressions]
-data_source = "newtab_interactions"
-select_expression = "SUM(COALESCE(sponsored_pocket_impressions, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(sponsored_pocket_impressions, 0))"
 friendly_name = "Sponsored Pocket Impressions"
 type = "scalar"
 description = """
@@ -1152,8 +1152,8 @@ Count of Clicks of All Tiles (sponsored and organic) in the third and greater po
 """
 
 [metrics.sponsored_tile_impressions]
-data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "SUM(COALESCE(topsite_tile_interactions.sponsored_topsite_tile_impressions, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(sponsored_topsite_tile_impressions, 0))"
 friendly_name = "Sponsored Tile Impressions"
 type = "scalar"
 description = """
@@ -1195,8 +1195,8 @@ Count of Impressions of All Tiles (sponsored and organic) in the third and great
 """
 
 [metrics.sponsored_tile_clicks]
-data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "SUM(COALESCE(topsite_tile_interactions.sponsored_topsite_tile_clicks, 0))"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(sponsored_topsite_tile_clicks, 0))"
 friendly_name = "Sponsored Tile Clicks"
 type = "scalar"
 description = """
@@ -1238,7 +1238,7 @@ Count of Clicks of Sponsored Tiles in the third and greater positions.
 """
 
 [metrics.newtab_newtab_enabled]
-data_source = "newtab_visits_topsite_tile_interactions"
+data_source = "newtab_clients_daily"
 select_expression = "COALESCE(MAX(IF(newtab_newtab_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Newtab Enabled"
 type = "scalar"
@@ -1247,7 +1247,7 @@ Whether or not new tabs are set to display the default New Tab page.
 """
 
 [metrics.newtab_homepage_enabled]
-data_source = "newtab_visits_topsite_tile_interactions"
+data_source = "newtab_clients_daily"
 select_expression = "COALESCE(MAX(IF(newtab_homepage_category = 'enabled', 1, 0)), 0)"
 friendly_name = "Newtab Homepage Enabled"
 type = "scalar"
@@ -1265,7 +1265,7 @@ Whether or not the SAP (i.e., search handoff) is enabled on the New Tab.
 """
 
 [metrics.newtab_tiles_enabled]
-data_source = "newtab_visits_topsite_tile_interactions"
+data_source = "newtab_clients_daily"
 select_expression = "COALESCE(MAX(CAST(topsites_enabled AS INT)), 0)"
 friendly_name = "Newtab Tiles Enabled"
 type = "scalar"
@@ -1274,7 +1274,7 @@ Whether or not tiles are enabled on the New Tab. Includes both sponsored and non
 """
 
 [metrics.newtab_pocket_enabled]
-data_source = "newtab_visits_topsite_tile_interactions"
+data_source = "newtab_clients_daily"
 select_expression = "COALESCE(MAX(CAST(pocket_enabled AS INT)), 0)"
 friendly_name = "Newtab Pocket Enabled"
 type = "scalar"
@@ -1283,7 +1283,7 @@ Whether or not Pocket is enabled on the New Tab.
 """
 
 [metrics.newtab_sponsored_pocket_stories_enabled]
-data_source = "newtab_visits_topsite_tile_interactions"
+data_source = "newtab_clients_daily"
 select_expression = "COALESCE(MAX(CAST(pocket_sponsored_stories_enabled AS INT)), 0)"
 friendly_name = "Newtab Sponsored Pocket Stories Enabled"
 type = "scalar"
@@ -1292,8 +1292,8 @@ Whether or not Pocket Sponsored Stories is enabled on the New Tab.
 """
 
 [metrics.newtab_engagement]
-data_source = "newtab_interactions"
-select_expression = "COALESCE(MAX(case when searches > 0 OR pocket_clicks > 0 OR topsite_clicks > 0 OR organic_topsite_clicks > 0 then 1 else 0 end), 0)"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(MAX(CASE WHEN visits_with_non_impression_engagement > 0 THEN 1 ELSE 0 END), 0)"
 friendly_name = "Newtab Engagement"
 type = "scalar"
 description = """
@@ -1301,24 +1301,32 @@ Whether or not the client had a newtab search OR a pocket click OR a tile click.
 """
 
 [metrics.newtab_visits]
-data_source = "newtab_visits"
-select_expression = "COALESCE(COUNT(DISTINCT newtab_visit_id), 0)"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(newtab_visit_count), 0)"
 friendly_name = "Newtab Visit Count"
 description = """
 Count of New Tab visits
 """
 
 [metrics.newtab_engaged_visits]
-data_source = "newtab_visits"
-select_expression = "COALESCE(COUNTIF(had_non_impression_engagement), 0)"
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(visits_with_non_impression_engagement), 0)"
 friendly_name = "Newtab Engaged Visit Count"
 description = """
 Count of New Tab visits with any engagement
 """
 
+[metrics.newtab_non_search_engagement]
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(SUM(visits_with_non_search_engagement), 0)"
+friendly_name = "Newtab Non-Search Engaged Visit Count"
+description = """
+Count of New Tab visits with non-search engagement
+"""
+
 [metrics.newtab_organic_topsite_clicks]
 data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "SUM(COALESCE(topsite_tile_interactions.organic_topsite_tile_clicks, 0))"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_clicks, 0))"
 friendly_name = "Newtab Organic Tile Clicks"
 type = "scalar"
 description = """
@@ -1327,7 +1335,7 @@ Count of New Tab organic tile clicks across all positions.
 
 [metrics.newtab_organic_topsite_impressions]
 data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "SUM(COALESCE(topsite_tile_interactions.organic_topsite_tile_impressions, 0))"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_impressions, 0))"
 friendly_name = "Newtab Organic Tile Impressions"
 type = "scalar"
 description = """
@@ -1867,10 +1875,10 @@ friendly_name = "Pocket Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
-[data_sources.newtab_visits]
-from_expression = "moz-fx-data-shared-prod.telemetry.newtab_visits"
-description = 'New Tab visit date without interactions unnested'
-friendly_name = "New Tab visits"
+[data_sources.newtab_clients_daily]
+from_expression = "moz-fx-data-shared-prod.telemetry.newtab_clients_daily"
+description = 'New Tab visit aggregated to client-day level'
+friendly_name = "New Tab Clients Daily"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
