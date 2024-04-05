@@ -32,8 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 DRY_RUN_URL = (
-    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/"
-    "bigquery-etl-dryrun"
+    "https://us-central1-moz-fx-data-experiments.cloudfunctions.net/jetstream-dryrun"
 )
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
