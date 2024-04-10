@@ -999,6 +999,19 @@ description = """
 Was Firefox pinned to the Windows Taskbar at any point during the interval?
 """
 
+[metrics.urlbar_last_position_click_count]
+data_source = "urlbar_events"
+select_expression = """COUNTIF(
+    event_action = 'engaged' AND 
+    is_terminal = true AND 
+    selected_position = 10
+)"""
+friendly_name = "Urlbar Last Position Click Count"
+type = "scalar"
+description = """
+Count of clicks that occur in the final position of the urlbar
+"""
+
 ########################### START OF NEW TAB METRICS ###########################
 
 [metrics.newtab_searches]
