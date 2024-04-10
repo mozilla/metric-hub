@@ -22,7 +22,7 @@ overall = [
     "client_level_daily_active_users_v2",
 ]
 
-week_preenrollment = [
+preenrollment_weekly = [
     "active_hours",
     "serp_ad_clicks",
     "organic_searches",
@@ -34,7 +34,7 @@ week_preenrollment = [
     "client_level_daily_active_users_v2",
 ]
 
-days28_preenrollment = [
+preenrollment_days28 = [
     "active_hours",
     "serp_ad_clicks",
     "organic_searches",
