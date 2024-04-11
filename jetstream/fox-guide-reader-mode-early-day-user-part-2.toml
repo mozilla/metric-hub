@@ -1,0 +1,31 @@
+[experiment]
+enrollment_period = 14
+
+[metrics]
+weekly = ["reader_mode_clients", "reader_mode_clients_repeated_use"]
+overall = ["reader_mode_clients", "reader_mode_clients_repeated_use"]
+
+[metrics.reader_mode_clients]
+select_expression = '''{{agg_any(
+    """
+            (event_method = 'view' AND event_object = 'on')
+        """
+)}}'''
+data_source = "reader_mode_events"
+friendly_name = "Reader Mode Clients"
+description = "Number of clients entering reader mode"
+
+[metrics.reader_mode_clients_repeated_use]
+select_expression = '''SUM(CASE WHEN event_method = 'view' AND event_object = 'on' THEN 1 ELSE 0 END) > 1'''
+data_source = "reader_mode_events"
+friendly_name = "Reader Mode Clients Repeated Use"
+description = "Number of clients entering reader mode more than once"
+
+[metrics.reader_mode_clients.statistics.binomial]
+[metrics.reader_mode_clients_repeated_use.statistics.binomial]
+
+[data_sources.reader_mode_events]
+from_expression = '''(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'readermode')'''
+experiments_column_type = "native"
+friendly_name = "Reader Mode Events"
+description = "Events Ping filtered to only include Reader Mode event category"
