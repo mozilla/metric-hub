@@ -60,11 +60,11 @@ statistics = { deciles = {}, bootstrap_mean = {} }
 # """
 # data_source = "main"
 
-[metrics.picture_in_picture_total_duration.statistics]
-deciles = {}
-bootstrap_mean = {}
-empirical_cdf = { log_space = true }
-kernel_density_estimate = { log_space = true }
+# [metrics.picture_in_picture_total_duration.statistics]
+# deciles = {}
+# bootstrap_mean = {}
+# empirical_cdf = { log_space = true }
+# kernel_density_estimate = { log_space = true }
 
 [metrics.saw_pip_toggle]
 friendly_name = "Saw Picture in Picture Toggle"
