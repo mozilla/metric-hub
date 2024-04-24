@@ -123,7 +123,7 @@ from_expression = """
     (
         SELECT
             *
-        FROM `moz-fx-data-shared-prod.telemetry.events`
+        FROM `moz-fx-data-shared-prod.telemetry_derived.event_events_v1`
         WHERE 
             event_category = 'pictureinpicture'
     )
@@ -131,4 +131,4 @@ from_expression = """
 submission_date_column = "submission_date"
 friendly_name = "Picture in Picture events"
 description = "Picture in Picture related events"
-experiments_column_type = "native"
+experiments_column_type = "none"
