@@ -8,11 +8,11 @@ segments = ["cohort_1", "cohort_2"] # Two cohorts
 
 [segments]
 [segments.cohort_1]
-select_expression = "enrollment_date BETWEEN '2024-01-17' AND '2024-01-30'"
+select_expression = "segment_enrollment_date BETWEEN '2024-01-17' AND '2024-01-30'"
 data_source = "segment_enrollments"
 
 [segments.cohort_2]
-select_expression = "enrollment_date BETWEEN '2024-01-31' AND '2024-02-20'"
+select_expression = "segment_enrollment_date BETWEEN '2024-01-31' AND '2024-02-20'"
 data_source = "segment_enrollments"
 
 [segments.data_sources.segment_enrollments]
