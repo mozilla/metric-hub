@@ -1,6 +1,6 @@
 [experiment]
 
-enrollment_period = 14
+enrollment_period = 28
 end_date = '2024-04-22'
 segments = ["cohort_1", "cohort_2"] # Two cohorts
 
@@ -12,19 +12,19 @@ select_expression = "enrollment_date BETWEEN '2024-01-17' AND '2024-01-30'"
 data_source = "segment_enrollments"
 
 [segments.cohort_2]
-select_expression = "enrollment_date BETWEEN '2024-01-17' AND '2024-02-06'"
+select_expression = "enrollment_date BETWEEN '2024-01-31' AND '2024-02-20'"
 data_source = "segment_enrollments"
 
 [segments.data_sources.segment_enrollments]
 client_id_column = "client_id"
-submission_date_column = "enrollment_date"
+submission_date_column = "segment_enrollment_date"
 friendly_name = "Enrolment table used to calculate above segments"
 from_expression = """(
     SELECT
         e.client_id,
         `mozfun.map.get_key`(e.event_map_values, 'branch')
             AS branch,
-        MIN(e.submission_date) AS enrollment_date,
+        MIN(e.submission_date) AS segment_enrollment_date,
         COUNT(e.submission_date) AS num_enrollment_events
     FROM `moz-fx-data-shared-prod.telemetry.events` e
     WHERE
