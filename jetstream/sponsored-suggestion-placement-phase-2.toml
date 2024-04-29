@@ -499,7 +499,7 @@ from_expression = """(
         * EXCEPT (is_ad_component),
         component IN ('ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar',
         'ad_sitelink') AS ad_component
-    FROM `mozdata.firefox_desktop.serp_events`
+    FROM `moz-fx-data-shared-prod.firefox_desktop_derived.serp_events_v1`
     WHERE search_engine = 'google' AND is_tagged
 )"""
 client_id_column = "legacy_telemetry_client_id"
@@ -527,9 +527,6 @@ from_expression = """(
         AND mozfun.map.get_key(experiments, 'sponsored-suggestion-placement-phase-2') IS NOT NULL
     ),
     urlbar_with_exposed AS (
-      -- interleave exposure events with main urlbar events
-      -- most exposure events have the same event_timestamp as the corresponding urlbar event
-      -- some have an earlier timestamp - these will have a row with urlbar fields null and exposed = true
       SELECT
         glean_client_id,
         seq,
@@ -560,7 +557,7 @@ from_expression = """(
           * EXCEPT (is_ad_component),
           component IN ('ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar', 'ad_sitelink') AS ad_component
         FROM
-          `mozdata.firefox_desktop.serp_events`
+          `moz-fx-data-shared-prod.firefox_desktop_derived.serp_events_v1`
         WHERE
           submission_date BETWEEN '2024-01-16' AND '2024-04-22'
           AND mozfun.map.get_key(experiments, 'sponsored-suggestion-placement-phase-2') IS NOT NULL
