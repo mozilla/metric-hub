@@ -50,3 +50,4 @@ AND enrolled.enrollment_date <= exposed.exposure_date
 GROUP BY 1, 2, 3, 4
     )
     """
+submission_date_column = "enrollment_date"
