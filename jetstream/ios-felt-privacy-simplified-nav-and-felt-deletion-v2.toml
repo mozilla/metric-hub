@@ -4,33 +4,6 @@
 start_date = "2024-02-27"
 enrollment_end_date = "2024-03-08"
 
-enrollment_query = """
-WITH raw_enrollments AS (
-    SELECT events.client_info.client_id AS client_id,
-        mozfun.map.get_key(
-            e.extra,
-            'branch'
-        ) AS branch,
-        DATE(MIN(events.submission_timestamp)) AS enrollment_date,
-        COUNT(events.submission_timestamp) AS num_enrollment_events,
-        COUNT(DISTINCT mozfun.map.get_key(e.extra, 'branch')) OVER (PARTITION BY events.client_info.client_id) AS n_branches
-    FROM `moz-fx-data-shared-prod.{self.app_id or dataset}.events` events,
-    UNNEST(events.events) AS e
-    WHERE
-        events.client_info.client_id IS NOT NULL AND
-        DATE(events.submission_timestamp)
-        BETWEEN '2024-02-27' AND '2024-03-08'
-        AND e.category = "nimbus_events"
-        AND mozfun.map.get_key(e.extra, "experiment") = 'ios-felt-privacy-simplified-nav-and-felt-deletion-v2'
-        AND e.name = 'enrollment'
-    GROUP BY client_id, branch
-)
-
-SELECT *
-FROM raw_enrollments 
-WHERE n_branches = 1 AND num_enrollment_events = 1
-"""
-
 
 [experiment.exposure_signal]
 name = "nimbus_exposure"
