@@ -10,7 +10,7 @@ name = "nimbus_exposure"
 friendly_name = "Nimbus Exposure"
 description = "users who browsed in private mode"
 data_source = "open_private_mode"
-select_expression = "COALESCE(LOGICAL_OR((event_name = 'private_browsing_icon_tapped') OR (AND event_name = 'private_browsing_button_tapped' AND ext.value = 'true')))
+select_expression = "COALESCE(LOGICAL_OR((event_name = 'private_browsing_icon_tapped') OR (AND event_name = 'private_browsing_button_tapped' AND ext.value = 'true')))"
 
 
 [data_sources.open_private_mode]
@@ -26,4 +26,4 @@ WHERE
     events.event_category IN ('tabs_tray', 'preferences')
     AND events.normalized_channel  = 'release'
     AND DATE(events.submission_timestamp) BETWEEN "2024-02-27" AND "2024-03-08"
-)    """
+)"""
