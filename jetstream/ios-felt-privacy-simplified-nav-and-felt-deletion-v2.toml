@@ -2,9 +2,34 @@
 [experiment]
 
 start_date = "2024-02-27"
-
 enrollment_end_date = "2024-03-08"
 
+enrollment_query = """
+WITH raw_enrollments AS (
+    SELECT events.client_info.client_id AS client_id,
+        mozfun.map.get_key(
+            e.extra,
+            'branch'
+        ) AS branch,
+        DATE(MIN(events.submission_timestamp)) AS enrollment_date,
+        COUNT(events.submission_timestamp) AS num_enrollment_events,
+        COUNT(DISTINCT mozfun.map.get_key(e.extra, 'branch')) OVER (PARTITION BY events.client_info.client_id) AS n_branches
+    FROM `moz-fx-data-shared-prod.{self.app_id or dataset}.events` events,
+    UNNEST(events.events) AS e
+    WHERE
+        events.client_info.client_id IS NOT NULL AND
+        DATE(events.submission_timestamp)
+        BETWEEN '2024-02-27' AND '2024-03-08'
+        AND e.category = "nimbus_events"
+        AND mozfun.map.get_key(e.extra, "experiment") = 'ios-felt-privacy-simplified-nav-and-felt-deletion-v2'
+        AND e.name = 'enrollment'
+    GROUP BY client_id, branch
+)
+
+SELECT *
+FROM raw_enrollments 
+WHERE n_branches = 1 AND num_enrollment_events = 1
+"""
 
 
 [experiment.exposure_signal]
@@ -12,42 +37,20 @@ name = "nimbus_exposure"
 friendly_name = "Nimbus Exposure"
 description = "users who browsed in private mode"
 data_source = "open_private_mode"
-select_expression = "exposure_date is not null"
+select_expression = "COALESCE(LOGICAL_OR((event_name = 'private_browsing_icon_tapped') OR (AND event_name = 'private_browsing_button_tapped' AND ext.value = 'true')))
 
 
 [data_sources.open_private_mode]
-from_expression = """
-    ( WITH bad_cl as (
-        SELECT client_id, count(*) cts
-        FROM `moz-fx-data-experiments.mozanalysis.enrollments_ios_felt_privacy_simplified_nav_and_felt_deletion_v2`
-        GROUP BY 1
-        HAVING cts > 1
-)
-, properly_enrolled as (
-    SELECT *
-    FROM `moz-fx-data-experiments.mozanalysis.enrollments_ios_felt_privacy_simplified_nav_and_felt_deletion_v2`
-    WHERE client_id not in (SELECT client_id FROM bad_cl)
-      AND enrollment_date >= "2024-02-27"
-)
-, exposed as (
-  SELECT events.client_info.client_id
-        , MIN(DATE(events.submission_timestamp )) exposure_date
-  FROM `mozdata.firefox_ios.events_unnested`  AS events
-  CROSS JOIN UNNEST(events.event_extra) AS ext
-  WHERE ((events.event_category  = 'tabs_tray' AND events.event_name = 'private_browsing_icon_tapped')
-          OR
-          (events.event_category = 'preferences' AND events.event_name = 'private_browsing_button_tapped' AND ext.value = 'true')
-        )
+from_expression = """(
+SELECT 
+    client_info.client_id,
+    DATE(events.submission_timestamp) AS submission_date,
+    event_name, 
+    ext
+FROM `mozdata.firefox_ios.events_unnested`  AS events
+CROSS JOIN UNNEST(events.event_extra) AS ext
+WHERE 
+    events.event_category IN ('tabs_tray', 'preferences')
     AND events.normalized_channel  = 'release'
-    AND  DATE(events.submission_timestamp) BETWEEN "2024-02-27" AND "2024-03-08"
-    group by 1
-)
-SELECT enrolled.client_id, enrolled.branch, enrolled.enrollment_date,  exposed.exposure_date
-FROM properly_enrolled enrolled
-LEFT JOIN exposed
-ON enrolled.client_id = exposed.client_id
-AND enrolled.enrollment_date <= exposed.exposure_date
-GROUP BY 1, 2, 3, 4
-    )
-    """
-submission_date_column = "enrollment_date"
+    AND DATE(events.submission_timestamp) BETWEEN "2024-02-27" AND "2024-03-08"
+)    """
