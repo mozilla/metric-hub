@@ -1,5 +1,8 @@
 [experiment]
 
+# NOTE: metrics in this experiment make use of the serp_events v1 data source, which is deprecated.
+# To rerun analysis, data source definitions need to be updated.
+
 [experiment.exposure_signal]
 name = "opened_pbm"
 friendly_name = "Opened PBM"
@@ -35,6 +38,8 @@ friendly_name = "PBM search events"
 description = "Glean events unnested, filtered to PBM search impressions"
 
 [data_sources.pbm_ad_click_events]
+# NOTE: from_expression queries the serp_events v1 data source, which is deprecated.
+# To rerun analysis, this query must be updated to work against the v2 data source.
 from_expression = """(
     SELECT 
       legacy_telemetry_client_id AS client_id,
