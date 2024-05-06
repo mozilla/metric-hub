@@ -15,7 +15,7 @@ from_expression = """(
     SELECT
         p.*,
         DATE(p.submission_timestamp) AS submission_date
-    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    FROM `moz-fx-data-shared-prod.org_mozilla_firefox.baseline` p
 )"""
 client_id_column = "client_info.client_id"
 experiments_column_type = "glean"
