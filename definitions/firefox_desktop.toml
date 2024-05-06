@@ -1003,7 +1003,7 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 
 [metrics.newtab_searches]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(searches, 0))"
+select_expression = "COALESCE(SUM(searches), 0)"
 friendly_name = "Newtab Handoff Searches"
 type = "scalar"
 description = """
@@ -1028,7 +1028,7 @@ Client performed any Newtab Handoff searches during the experiment
 
 [metrics.newtab_searches_with_ads]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(tagged_search_ad_impressions, 0))"
+select_expression = "COALESCE(SUM(tagged_search_ad_impressions), 0)"
 friendly_name = "Newtab Searches with Ads"
 type = "scalar"
 description = """
@@ -1037,7 +1037,7 @@ Count of searches performed on the New Tab that resulted in an ad impression on 
 
 [metrics.newtab_ad_clicks]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(tagged_search_ad_clicks, 0))"
+select_expression = "COALESCE(SUM(tagged_search_ad_clicks), 0)"
 friendly_name = "Newtab Ad Clicks"
 type = "scalar"
 description = """
@@ -1046,7 +1046,7 @@ Count of searches performed on the New Tab that resulted in an ad click
 
 [metrics.newtab_ad_click_rate]
 data_source = "newtab_clients_daily"
-select_expression = "SAFE_DIVIDE(COALESCE(SUM(tagged_search_ad_clicks, 0)),  COALESCE(SUM(tagged_search_ad_impressions, 0)))"
+select_expression = "SAFE_DIVIDE(COALESCE(SUM(tagged_search_ad_clicks), 0),  COALESCE(SUM(tagged_search_ad_impressions), 0))"
 friendly_name = "Newtab Ad Click Rate"
 type = "scalar"
 description = """
@@ -1055,7 +1055,7 @@ New Tab ad clicks divided by New Tab searches with ads
 
 [metrics.organic_pocket_clicks]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(organic_pocket_clicks, 0))"
+select_expression = "COALESCE(SUM(organic_pocket_clicks), 0)"
 friendly_name = "Organic Pocket Clicks"
 type = "scalar"
 description = """
@@ -1064,7 +1064,7 @@ Count of clicks on Organic Pocket content.
 
 [metrics.sponsored_pocket_clicks]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(sponsored_pocket_clicks, 0))"
+select_expression = "COALESCE(SUM(sponsored_pocket_clicks), 0)"
 friendly_name = "Sponsored Pocket Clicks"
 type = "scalar"
 description = """
@@ -1073,7 +1073,7 @@ Count of clicks on Sponsored Pocket content.
 
 [metrics.organic_pocket_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(organic_pocket_impressions, 0))"
+select_expression = "COALESCE(SUM(organic_pocket_impressions), 0)"
 friendly_name = "Organic Pocket Impressions"
 type = "scalar"
 description = """
@@ -1082,7 +1082,7 @@ Count of impressions on Organic Pocket content.
 
 [metrics.sponsored_pocket_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(sponsored_pocket_impressions, 0))"
+select_expression = "COALESCE(SUM(sponsored_pocket_impressions), 0)"
 friendly_name = "Sponsored Pocket Impressions"
 type = "scalar"
 description = """
@@ -1153,7 +1153,7 @@ Count of Clicks of All Tiles (sponsored and organic) in the third and greater po
 
 [metrics.sponsored_tile_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(sponsored_topsite_tile_impressions, 0))"
+select_expression = "COALESCE(SUM(sponsored_topsite_tile_impressions), 0)"
 friendly_name = "Sponsored Tile Impressions"
 type = "scalar"
 description = """
@@ -1196,7 +1196,7 @@ Count of Impressions of All Tiles (sponsored and organic) in the third and great
 
 [metrics.sponsored_tile_clicks]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(sponsored_topsite_tile_clicks, 0))"
+select_expression = "COALESCE(SUM(sponsored_topsite_tile_clicks), 0)"
 friendly_name = "Sponsored Tile Clicks"
 type = "scalar"
 description = """
@@ -1326,7 +1326,7 @@ Count of New Tab visits with non-search engagement
 
 [metrics.newtab_organic_topsite_clicks]
 data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_clicks, 0))"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_clicks), 0)"
 friendly_name = "Newtab Organic Tile Clicks"
 type = "scalar"
 description = """
@@ -1335,7 +1335,7 @@ Count of New Tab organic tile clicks across all positions.
 
 [metrics.newtab_organic_topsite_impressions]
 data_source = "newtab_visits_topsite_tile_interactions"
-select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_impressions, 0))"
+select_expression = "COALESCE(SUM(topsite_tile_interactions.organic_topsite_tile_impressions), 0)"
 friendly_name = "Newtab Organic Tile Impressions"
 type = "scalar"
 description = """
