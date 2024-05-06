@@ -1,6 +1,8 @@
 [metrics]
 overall = ['addons_count', 'addon_install']
 weekly = ['addons_count', 'addon_install']
+preenrollment_days28 = ['addons_count', 'addon_install']
+preenrollment_weekly = ['addons_count', 'addon_install']
 
 [metrics.addons_count]
 select_expression = """COALESCE(MAX((SELECT ARRAY_LENGTH(ARRAY_AGG(IF(NOT is_system, addon_id, NULL) IGNORE NULLS)) FROM UNNEST(active_addons))), 0)"""
