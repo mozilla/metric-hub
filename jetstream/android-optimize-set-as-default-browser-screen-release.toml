@@ -1,0 +1,11 @@
+[experiment]
+segments = ['ten_plus', 'less_than_ten']
+
+[segments]
+[segments.ten_plus]
+select_expr = 'COALESCE(LOGICAL_OR(normalized_os_version IN ("10", "11", "12", "13", "14")), FALSE)'
+data_source = 'baseline'
+
+[segments.less_than_ten]
+select_expr = 'COALESCE(LOGICAL_OR(normalized_os_version NOT IN ("10", "11", "12", "13", "14")), FALSE)'
+data_source = 'baseline'
