@@ -30,3 +30,10 @@ data_source = "events"
 friendly_name = "Large file write"
 description = "The amount of times a very large file was written to disk"
 owner = "efilho@mozilla.com"
+
+[metrics.cpu_exception]
+select_expression = """COALESCE(COUNTIF(event.name = "cpu_exception"), 0)"""
+data_source = "events"
+friendly_name = "CPU exception"
+description = "The amount of times a CPU exception is thrown by the OS"
+owner = "omitchell@mozilla.com"
