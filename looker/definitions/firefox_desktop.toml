@@ -7,3 +7,27 @@
 [metrics.socket_crash_count_v1.statistics.ratio]
 numerator = "socket_crash_count_v1.sum"
 denominator = "socket_crash_active_hours_v1.sum"
+
+
+[data_sources.looker_base_fields]
+from_expression = """
+  SELECT
+    client_id,
+    submission_date,
+    normalized_channel,
+    country,
+    experiments,
+    os,
+    locale,
+    is_default_browser,
+    normalized_os_version
+  FROM
+    moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6
+"""
+friendly_name = "Default Looker Base Fields for Firefox Desktop"
+description = """
+  Default fields used to filter and segment metric definition views in Looker
+"""
+columns_as_dimensions = true
+
+[data_sources.'*'.joins.looker_base_fields]
