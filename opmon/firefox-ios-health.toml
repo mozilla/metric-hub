@@ -19,6 +19,9 @@ sum = {}
 [metrics.cpu_exception.statistics]
 sum = {}
 
+[metrics.cpu_exception.statistics.total_ratio]
+denominator_metric = "total_events"
+
 [metrics.dirty_startup]
 select_expression = """COALESCE(COUNTIF(ping_info.reason = "dirty_startup"), 0)"""
 data_source = "baseline_v2"
@@ -39,3 +42,10 @@ data_source = "events"
 friendly_name = "CPU exception"
 description = "The amount of times a CPU exception is thrown by the OS"
 owner = "omitchell@mozilla.com"
+
+[metrics.total_events]
+select_expression = "COUNT(*)"
+data_source = "events"
+friendly_name = "Total number of event pings"
+description = "Total number of event pings sent by clients"
+
