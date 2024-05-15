@@ -5,7 +5,7 @@ platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
 skip_default_metrics = true
-metrics = ['dirty_startup', 'large_file_write', 'cpu_exception']
+metrics = ['dirty_startup', 'large_file_write', 'cpu_exception', 'total_baseline_pings']
 
 [project.population]
 data_source = "baseline_v2"
@@ -18,6 +18,10 @@ sum = {}
 sum = {}
 [metrics.cpu_exception.statistics]
 sum = {}
+[metrics.total_baseline_pings.statistics.sum]
+
+[metrics.dirty_startup.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
 
 [metrics.dirty_startup]
 select_expression = """COALESCE(COUNTIF(ping_info.reason = "dirty_startup"), 0)"""
@@ -39,3 +43,10 @@ data_source = "events"
 friendly_name = "CPU exception"
 description = "The amount of times a CPU exception is thrown by the OS"
 owner = "omitchell@mozilla.com"
+
+[metrics.total_baseline_pings]
+select_expression = "COUNT(*)"
+data_source = "baseline_v2"
+friendly_name = "Total number of baseline pings"
+description = "Total number of baseline pings sent by clients"
+
