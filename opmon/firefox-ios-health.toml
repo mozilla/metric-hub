@@ -5,7 +5,7 @@ platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
 skip_default_metrics = true
-metrics = ['dirty_startup', 'large_file_write', 'cpu_exception']
+metrics = ['dirty_startup', 'large_file_write', 'cpu_exception', 'total_baseline_pings']
 
 [project.population]
 data_source = "baseline_v2"
