@@ -18,6 +18,7 @@ sum = {}
 sum = {}
 [metrics.cpu_exception.statistics]
 sum = {}
+[metrics.total_baseline_pings.statistics.sum]
 
 [metrics.dirty_startup.statistics.total_ratio]
 denominator_metric = "total_baseline_pings"
