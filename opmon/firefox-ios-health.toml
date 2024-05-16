@@ -12,14 +12,12 @@ data_source = "baseline_v2"
 monitor_entire_population = true
 channel = "release"
 
-[metrics.dirty_startup.statistics]
-sum = {}
-[metrics.large_file_write.statistics]
-sum = {}
-[metrics.cpu_exception.statistics]
-sum = {}
 [metrics.total_baseline_pings.statistics.sum]
 
+[metrics.large_file_write.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
+[metrics.cpu_exception.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
 [metrics.dirty_startup.statistics.total_ratio]
 denominator_metric = "total_baseline_pings"
 
