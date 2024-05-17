@@ -4,22 +4,23 @@ weekly = ["history_impressions", "bookmark_impressions", "search_suggestion_impr
 overall = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions",
            "history_clicks", "bookmark_clicks", "search_suggestion_clicks"]
 
-
+## Impressions
 [metrics.history_impressions]
-select_expression = "SUM(IF(product_result_type = 'history', num_impressions, 0))"
-data_source = "urlbar_events_impressions_by_product_result_type"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'history', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
 [metrics.history_impressions.statistics.bootstrap_mean]
 
 [metrics.bookmark_impressions]
-select_expression = "SUM(IF(product_result_type = 'bookmark', num_impressions, 0))"
-data_source = "urlbar_events_impressions_by_product_result_type"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'bookmark', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
 [metrics.bookmark_impressions.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_impressions]
-select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', num_impressions, 0))"
-data_source = "urlbar_events_impressions_by_product_result_type"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'default_partner_search_suggestion', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
+## Clicks
 [metrics.history_clicks]
 select_expression = "COUNT(DISTINCT(CASE WHEN is_terminal and event_action = 'engaged' and product_engaged_result_type = 'history' THEN event_id ELSE NULL END))"
 data_source = "urlbar_events"
@@ -34,55 +35,3 @@ data_source = "urlbar_events"
 select_expression = "COUNT(DISTINCT(CASE WHEN is_terminal and event_action = 'engaged' and product_engaged_result_type = 'default_partner_search_suggestion' THEN event_id ELSE NULL END))"
 data_source = "urlbar_events"
 [metrics.search_suggestion_clicks.statistics.bootstrap_mean]
-
-# this data source may be useful in general.
-# consider making it generally accessible.
-[data_sources.urlbar_events_impressions_by_product_result_type]
-from_expression = """(
-WITH temp_unnested AS (
-  SELECT
-    client_id,
-    submission_date,
-    event_id,
-    event_action,
-    res.product_result_type AS product_result_type,
-    is_terminal
-  FROM
-    `mozdata.firefox_desktop.urlbar_events`
-  CROSS JOIN
-    UNNEST(results) AS res
-  WHERE
-    submission_date BETWEEN "{{experiment.start_date_str}}" AND "{{experiment.end_date_str}}"
-),
-temp_session AS (
-  SELECT
-    client_id,
-    submission_date,
-    event_id,
-    product_result_type,
-    is_terminal,
-    LOGICAL_OR(is_terminal = TRUE) AS is_impression,
-  FROM
-    temp_unnested
-  GROUP BY
-    client_id,
-    submission_date,
-    event_id,
-    product_result_type,
-    is_terminal
-)
-SELECT
-    client_id,
-    submission_date,
-    product_result_type,
-    COUNTIF(is_impression) AS num_impressions,
-  FROM
-    temp_session
-  GROUP BY
-    client_id,
-    submission_date,
-    product_result_type
-)"""
-experiments_column_type = "none"
-friendly_name = "URL bar impressions by product result type"
-description = "URL bar impressions by product result type. One row containing impression count per product result type by client"
