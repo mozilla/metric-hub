@@ -47,7 +47,7 @@ from_expression = """
     DATE(submission_timestamp) AS submission_date,
     * EXCEPT(ping_info, metrics, events, additional_properties)
   FROM
-    moz-fx-data-shared-prod.fenix.baseline
+    `moz-fx-data-shared-prod`.fenix.baseline
 )
 """
 friendly_name = "Default Looker Base Fields for Fenix"
@@ -59,4 +59,6 @@ submission_date_column = "submission_date"
 client_id_column = "client_id"
 
 [data_sources.'*'.joins.looker_base_fields]
-relationship = "many_to_many"
+
+[data_sources.active_users_aggregates_v1]
+columns_as_dimensions = true

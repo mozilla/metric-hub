@@ -1,0 +1,25 @@
+[data_sources.looker_base_fields]
+from_expression = """
+(
+  SELECT
+    client_info.client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    metadata.geo AS geo,
+    metadata.user_agent AS user_agent,
+    * EXCEPT(ping_info, metrics, events, additional_properties, metadata)
+  FROM
+    `moz-fx-data-shared-prod`.focus_ios.baseline
+)
+"""
+friendly_name = "Default Looker Base Fields for Focus iOS"
+description = """
+  Default fields used to filter and segment metric definition views in Looker
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+
+[data_sources.'*'.joins.looker_base_fields]
+
+[data_sources.active_users_aggregates_v1]
+columns_as_dimensions = true
