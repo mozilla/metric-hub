@@ -195,7 +195,7 @@ def validate(path, config_repos):
                                 segments=[],
                                 segment_data_sources=[],
                                 data_sources={
-                                    name: d.resolve(None)
+                                    name: d.resolve(entity.spec, entity, config_collection)
                                     for name, d in data_sources.items()
                                 },
                             )

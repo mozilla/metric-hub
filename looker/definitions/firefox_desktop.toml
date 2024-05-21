@@ -22,7 +22,6 @@ from_expression = """
     country,
     experiments,
     os,
-    normalized_os_version,
     locale,
     is_default_browser,
     partner_id,
@@ -30,7 +29,7 @@ from_expression = """
     default_search_engine,
     normalized_os_version
   FROM
-    moz-fx-data-shared-prod.telemetry_derived.clients_daily_v6
+    `moz-fx-data-shared-prod`.telemetry_derived.clients_daily_v6
 )
 """
 friendly_name = "Default Looker Base Fields for Firefox Desktop"
@@ -42,4 +41,6 @@ submission_date_column = "submission_date"
 client_id_column = "client_id"
 
 [data_sources.'*'.joins.looker_base_fields]
-relationship = "many_to_many"
+
+[data_sources.active_users_aggregates_v1]
+columns_as_dimensions = true
