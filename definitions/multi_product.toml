@@ -95,6 +95,16 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.search_forecasting_revenue_per_ad_click]
+data_source = "search_revenue_levers_monthly"
+select_expression = "SUM(revenue)/ SUM(ad_click)"
+friendly_name = "Revenue per Ad Click"
+description = """
+    Revenue paid to Mozilla per Ad Click.
+"""
+category = "search"
+type = "scalar"
+
 ######
 
 [data_sources]
@@ -113,6 +123,13 @@ client_id_column = "NULL" # this table doesn't include client_id, and we don't n
 [data_sources.search_revenue_levers_daily]
 from_expression = "mozdata.search.search_revenue_levers_daily"
 submission_date_column = "submission_date"
-friendly_name = "Search Clients Engines Sources Daily"
-description = "Search Clients Engines Sources Daily"
-client_id_column = "NULL"                                      # aggregated by submission_date, partner, device, channel, country
+friendly_name = "Search Revenue Levers Daily"
+description = "Search Revenue Levers Daily"
+client_id_column = "NULL"  # aggregated by submission_date, partner, device, channel, country
+
+[data_sources.search_revenue_levers_monthly]
+from_expression = "mozdata.revenue.search_revenue_levers_monthly"
+submission_date_column = "submission_month"
+friendly_name = "Search Revenue Levers Monthly"
+description = "Search Revenue Levers Monthly"
+client_id_column = "NULL"  # aggregated by submission_month, partner, device, country
