@@ -20,6 +20,8 @@ workflows:
             definitions/.* validate-metrics true
             looker/.* validate-looker true
             .* build-docs true
+            lib/metric-config-parser/.* validate-metric-config-parser true
+            lib/metric-config-parser/setup.py deploy-metric-config-parser true
   filter-paths-pr:
     when:
       and:
@@ -36,3 +38,4 @@ workflows:
             looker/.* validate-looker true
             .* build-docs true
             .* base-revision "main"
+            lib/metric-config-parser/.* validate-metric-config-parser true

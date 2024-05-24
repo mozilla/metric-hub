@@ -19,6 +19,18 @@ parameters:
   base-revision:
     type: string
     default: << pipeline.git.base_revision >>
+  validate-metric-config-parser:
+    type: boolean
+    default: false
+  deploy-metric-config-parser:
+    type: boolean
+    default: false
+
+executors:
+  metric-config-parser-executor:
+    docker:
+    - image: python:3.10
+    working_directory: ~/project/lib/metric-config-parser
 
 jobs:
   validate-metrics:
@@ -89,6 +101,51 @@ jobs:
           echo "Run validation on changed files: "
           echo $changed_files
           python3 .script/validate.py --config_repos='.' --config_repos=looker/ $changed_files
+  build-metric-config-parser:
+    executor: metric-config-parser-executor
+    steps:
+    - checkout:
+        path: ~/project
+    - restore_cache:
+        keys:
+          # when lock files change, use increasingly general patterns to restore cache
+          - &cache_key
+            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          - python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+          - python-packages-v1-{{ .Branch }}-
+          - python-packages-v1-
+    - &build
+      run:
+        name: Build
+        command: |
+          python3.10 -m venv venv/
+          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - run:
+        name: PyTest
+        command: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+    - run:
+        name: flake8
+        command: venv/bin/flake8 metric_config_parser
+    - run:
+        name: isort
+        command: venv/bin/isort --check metric_config_parser
+    - run:
+        name: Mypy
+        command: venv/bin/mypy metric_config_parser
+    - save_cache:
+        paths:
+        - venv/
+        key: *cache_key
+  integration-metric-config-parser:
+    executor: metric-config-parser-executor
+    steps:
+    - checkout:
+        path: ~/project
+    - *build
+    - run:
+        name: PyTest Integration Test
+        command: |
+          venv/bin/pytest --black metric_config_parser/tests/integration/
   build-docs:
     docker:
       - image: python:3.10
@@ -196,6 +253,37 @@ jobs:
             echo "Analysis Errors can be accessed via Redash: https://sql.telemetry.mozilla.org/dashboard/jetstream-errors?p_experiment=%25"
             exit 1
           fi
+  deploy-metric-config-parser:
+    executor: metric-config-parser-executor
+    steps:
+      - checkout:
+        path: ~/project
+      - run:
+          name: Check for package version change in last commit before proceeding.
+          command: |
+            if git diff main HEAD~1 setup.py | grep 'version'
+              then
+                echo "Found changes to package version dir, proceeding with deployment."
+              else
+                echo "No changes in package version. Skipping metric-config-parser deployment."
+                circleci-agent step halt
+            fi
+      - run:
+          name: Install deployment tools
+          command: |
+            pip install --upgrade setuptools wheel twine
+      - run:
+          name: Create the distribution files
+          command: |
+            python setup.py sdist bdist_wheel
+      - run:
+          name: Upload to PyPI
+          command: |
+            # Relies on the TWINE_USERNAME and TWINE_PASSWORD environment variables configured at:
+            #   https://circleci.com/gh/mozilla/metric-config-parser/edit#env-vars
+            # For more on twine, see:
+            #   https://twine.readthedocs.io/en/latest/
+            twine upload --skip-existing dist/*
 workflows:
   version: 2
   validate-metrics:
@@ -222,6 +310,24 @@ workflows:
         - << pipeline.parameters.validate-looker >>
     jobs:
       - validate-looker
+  build-metric-config-parser:
+    when: 
+      or: 
+        - << pipeline.parameters.validate-metric-config-parser >>
+    jobs:
+      - build-metric-config-parser
+  integration-metric-config-parser:
+    when: 
+      or: 
+        - << pipeline.parameters.validate-metric-config-parser >>
+    jobs:
+      - integration-metric-config-parser
+  deploy-metric-config-parser:
+    when: 
+      or: 
+        - << pipeline.parameters.deploy-metric-config-parser >>
+    jobs:
+      - deploy-metric-config-parser
   rerun-jetstream:
     when: 
       or: 
