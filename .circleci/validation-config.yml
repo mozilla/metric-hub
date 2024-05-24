@@ -257,7 +257,7 @@ jobs:
     executor: metric-config-parser-executor
     steps:
       - checkout:
-        path: ~/project
+          path: ~/project
       - run:
           name: Check for package version change in last commit before proceeding.
           command: |
