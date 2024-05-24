@@ -80,7 +80,7 @@ pydantic==1.10.15
     # via mozilla-nimbus-schemas
 pyflakes==3.2.0
     # via flake8
-pytest==8.2.0
+pytest==8.2.1
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
