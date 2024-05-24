@@ -497,7 +497,13 @@ class ConfigCollection:
             # copy the original repo to a temporary path were we can go back in history
             with TemporaryDirectory() as tmp_dir:
                 git_dir = Path(repo.repo.git_dir)
-                shutil.copytree(git_dir.parent, tmp_dir, dirs_exist_ok=True)
+                # copy over repo content, except for lib/*, which doesn't contain metric information
+                shutil.copytree(
+                    git_dir.parent,
+                    tmp_dir,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("lib*"),
+                )
                 tmp_repo = Repo(tmp_dir)
 
                 # find the commit that got added just before the `timestamp`

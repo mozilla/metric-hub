@@ -110,10 +110,10 @@ jobs:
         keys:
           # when lock files change, use increasingly general patterns to restore cache
           - &cache_key
-            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-          - python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
-          - python-packages-v1-{{ .Branch }}-
-          - python-packages-v1-
+            python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          - python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-
+          - python-packages-v2-{{ .Branch }}-
+          - python-packages-v2-
     - &build
       run:
         name: Build
