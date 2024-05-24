@@ -143,14 +143,14 @@ def experiments():
 
 
 @pytest.fixture
-def local_tmp_repo(tmpdir):
-    r = Repo.init(tmpdir)
-    shutil.copytree(TEST_DIR / "data", tmpdir / "metrics")
+def local_tmp_repo(tmp_path):
+    r = Repo.init(tmp_path)
+    shutil.copytree(TEST_DIR / "data", tmp_path / "metrics")
     r.config_writer().set_value("user", "name", "test").release()
     r.config_writer().set_value("user", "email", "test@example.com").release()
     r.git.add(".")
     r.git.commit("-m", "commit")
-    return tmpdir
+    return tmp_path
 
 
 @pytest.fixture
