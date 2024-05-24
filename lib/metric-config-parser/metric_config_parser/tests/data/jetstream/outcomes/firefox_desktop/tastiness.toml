@@ -1,0 +1,16 @@
+friendly_name = "Tastiness outcomes"
+description = "Outcomes related to tastiness 😋"
+
+[metrics.meals_eaten]
+data_source = "meals"
+select_expression = "1"
+friendly_name = "Meals eaten"
+description = "Number of consumed meals"
+
+[metrics.meals_eaten.statistics.bootstrap_mean]
+num_samples = 10
+pre_treatments = ["remove_nulls"]
+
+[data_sources.meals]
+from_expression = "meals"
+client_id_column = "client_info.client_id"

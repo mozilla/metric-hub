@@ -34,7 +34,7 @@ executors:
   metric-config-parser-executor:
     docker:
     - image: python:3.10
-    working_directory: lib/metric-config-parser
+    working_directory: ~/project/lib/metric-config-parser
 
 jobs:
   validate-metrics:
@@ -108,7 +108,8 @@ jobs:
   build-metric-config-parser:
     executor: metric-config-parser-executor
     steps:
-    - checkout
+    - checkout:
+        path: ~/project
     - restore_cache:
         keys:
           # when lock files change, use increasingly general patterns to restore cache
@@ -142,7 +143,8 @@ jobs:
   integration-metric-config-parser:
     executor: metric-config-parser-executor
     steps:
-    - checkout
+    - checkout:
+        path: ~/project
     - *build
     - run:
         name: PyTest Integration Test
@@ -258,17 +260,18 @@ jobs:
   deploy-metric-config-parser:
     executor: metric-config-parser-executor
     steps:
-      - checkout
+      - checkout:
+        path: ~/project
       - run:
-        name: Check for package version change in last commit before proceeding.
-        command: |
-          if git diff main HEAD~1 setup.py | grep 'version'
-            then
-              echo "Found changes to package version dir, proceeding with deployment."
-            else
-              echo "No changes in package version. Skipping metric-config-parser deployment."
-              circleci-agent step halt
-          fi
+          name: Check for package version change in last commit before proceeding.
+          command: |
+            if git diff main HEAD~1 setup.py | grep 'version'
+              then
+                echo "Found changes to package version dir, proceeding with deployment."
+              else
+                echo "No changes in package version. Skipping metric-config-parser deployment."
+                circleci-agent step halt
+            fi
       - run:
           name: Install deployment tools
           command: |
@@ -316,13 +319,13 @@ workflows:
       or: 
         - << pipeline.parameters.validate-metric-config-parser >>
     jobs:
-      - validate-metric-config-parser
+      - build-metric-config-parser
   integration-metric-config-parser:
     when: 
       or: 
         - << pipeline.parameters.validate-metric-config-parser >>
     jobs:
-      - validate-metric-config-parser
+      - integration-metric-config-parser
   deploy-metric-config-parser:
     when: 
       or: 
