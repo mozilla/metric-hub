@@ -37,9 +37,11 @@
                 {{ where }}
             {% endif -%}
         ) AS {{ data_source.name }}
-        {% if data_source.joins and data_source.client_id_column != 'NULL' -%}
+        {% if data_source.joins -%}
             {% for joined_data_source_slug, joined_data_source in data_source.joins.items() -%}
-                {{ join(data_source, joined_data_source_slug, joined_data_source) }}
+                {% if data_source.client_id_column != 'NULL' or joined_data_source.get('on_expression') -%}
+                    {{ join(data_source, joined_data_source_slug, joined_data_source) }}
+                {% endif -%}
             {% endfor -%}
         {% endif -%}
 {% if select_fields -%}

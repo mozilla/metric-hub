@@ -41,7 +41,7 @@
     ON 
     joined_baseline.client_id = events.client_id
     
-            )
+                )
 
     ON 
     multiple_joined_baseline.client_id =
@@ -49,4 +49,4 @@
         multiple_joined_baseline.submission_date =
         joined_baseline.submission_date
     
-            )
+                )

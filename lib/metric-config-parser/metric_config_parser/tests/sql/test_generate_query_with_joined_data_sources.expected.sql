@@ -34,7 +34,7 @@ WITH joined_baseline AS (
     ON 
     joined_baseline.client_id = events.client_id
     
-            )
+                )
 
     GROUP BY
         client_id
