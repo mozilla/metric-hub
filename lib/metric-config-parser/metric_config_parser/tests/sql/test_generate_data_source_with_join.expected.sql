@@ -28,4 +28,4 @@
     ON 
     joined_baseline.client_id = events.client_id
     
-            )
+                )
