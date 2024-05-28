@@ -11,6 +11,13 @@ metrics = ['dirty_startup', 'large_file_write', 'hang_exception', 'cpu_exception
 data_source = "baseline_v2"
 monitor_entire_population = true
 channel = "beta"
+dimensions = ["release"]
+
+[dimensions.release]
+data_source = "baseline_v2"
+select_expression = "client_info.app_display_version"
+friendly_name = "Release Version"
+description = "Release version"
 
 [metrics.total_baseline_pings.statistics.sum]
 
