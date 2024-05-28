@@ -101,5 +101,5 @@ client_id_column = "NULL"
 columns_as_dimensions = true
 
 [data_sources.desktop_engagement_v1.joins.countries]
-relationship = "many_to_many"
+relationship = "one_to_many"
 on_expression = "desktop_engagement_v1.country = countries.code"
