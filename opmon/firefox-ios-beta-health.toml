@@ -15,7 +15,7 @@ dimensions = ["release"]
 
 [dimensions.release]
 data_source = "baseline_v2"
-select_expression = "client_info.app_build"
+select_expression = "client_info.app_display_version"
 friendly_name = "Release Version"
 description = "Release version"
 
