@@ -1,6 +1,6 @@
 [project]
 
-name = "Firefox iOS Health"
+name = "Firefox iOS Beta Health"
 platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
@@ -10,7 +10,14 @@ metrics = ['dirty_startup', 'large_file_write', 'hang_exception', 'cpu_exception
 [project.population]
 data_source = "baseline_v2"
 monitor_entire_population = true
-channel = "release"
+channel = "beta"
+dimensions = ["release"]
+
+[dimensions.release]
+data_source = "baseline_v2"
+select_expression = "client_info.app_display_version"
+friendly_name = "Release Version"
+description = "Release version"
 
 [metrics.total_baseline_pings.statistics.sum]
 
