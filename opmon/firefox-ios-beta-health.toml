@@ -19,7 +19,7 @@ friendly_name = "Release Version"
 description = "Release version"
 
 [dimensions.channel]
-data_source = "main"
+data_source = "baseline_v2"
 select_expression = "normalized_channel"
 friendly_name = "Channel"
 description = "Channel"
