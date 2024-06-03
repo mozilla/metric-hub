@@ -94,6 +94,7 @@ def generate_metrics_sql(
                     if platform == definition.platform
                 },
                 "select_fields": True,
+                "ignore_joins": False,
             }
         )
     )
@@ -105,6 +106,7 @@ def generate_data_source_sql(
     platform: str,
     where: Optional[str] = None,
     select_fields: bool = True,
+    ignore_joins: bool = False,
 ) -> str:
     """Generates a SQL query for the specified data source."""
     template = DATA_SOURCE_QUERY.read_text()
@@ -137,6 +139,7 @@ def generate_data_source_sql(
                 },
                 "where": where,
                 "select_fields": select_fields,
+                "ignore_joins": ignore_joins,
             }
         )
     )
