@@ -690,6 +690,7 @@ class ConfigCollection:
         platform: str,
         where: Optional[str] = None,
         select_fields: bool = True,
+        ignore_joins: bool = False,
     ) -> str:
         return generate_data_source_sql(
             self,
@@ -697,6 +698,7 @@ class ConfigCollection:
             platform=platform,
             where=where,
             select_fields=select_fields,
+            ignore_joins=ignore_joins,
         )
 
     def get_env(self) -> jinja2.Environment:
