@@ -23,7 +23,7 @@ click==8.1.7
     # via
     #   black
     #   mozilla-metric-config-parser
-coverage[toml]==7.5.1
+coverage[toml]==7.5.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
