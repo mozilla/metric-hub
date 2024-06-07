@@ -1,2 +1,37 @@
 [experiment]
 end_date = "2024-05-01"
+
+
+[experiment]
+
+[experiment.exposure_signal]
+name = "opened_product_page"
+friendly_name = "Opened at least one product page"
+description = "Clients who opened at least one eligible product page, so would've been invited to try Review Checker"
+select_expression = "COALESCE(product_page_visits,0) > 0"
+data_source = "glean_metrics_ping"
+# restrict to clients who opened shopping page during week of enrollment
+# this may slight bias toward more active users, but guarantees 4 weeks of DAU measurement 
+# on exposed population, alternatives (to allow clients something like 7 days from enrollment
+# to exposure) would require either extending observation beyond the aligned experiment end 
+# date or accepting a shorter observation window for exposed users. 
+window_start = 0
+window_end = 7
+
+[data_sources]
+
+[data_sources.glean_metrics_ping]
+friendly_name = "Glean's Metrics Ping"
+from_expression = """(
+    SELECT 
+        m.metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(m.submission_timestamp) AS submission_date,
+        m.metrics.counter.shopping_product_page_visits AS product_page_visits, 
+        m.ping_info
+    FROM `moz-fx-data-shared-prod.firefox_desktop.metrics` AS m
+    WHERE
+        DATE(m.submission_timestamp) >= "2024-03-27"
+        AND m.normalized_channel = 'release'
+)"""
+experiments_column_type = "glean"
+description = "Glean's metrics ping, filtered down to the necessary columns and date range for the exposure query"
