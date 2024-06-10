@@ -14,6 +14,9 @@ overall = [
     "yelp_annoyances",
     "saw_yelp",
     "clicked_yelp",
+    "yelp_disabled_fx_suggest",
+    "yelp_disabled_fx_sponsored_suggest",
+    
     # SERP
     "serp_impressions",
     "serp_impressions_with_ads",
@@ -142,6 +145,32 @@ friendly_name = "Proportion clicked a Yelp result"
 description = "Proportion of clients that clicked a Yelp suggestion (not available on control)"
 
 [metrics.clicked_yelp.statistics.binomial]
+
+[metrics.yelp_disabled_fx_suggest]
+select_expression = """COUNT(DISTINCT IF(
+  pref_fx_suggestions = FALSE 
+  AND is_terminal
+  AND product_engaged_result_type = 'yelp_suggestion', glean_client_id, NULL)
+)"""
+data_source = "urlbar_events"
+friendly_name = "Yelp suggest disabled"
+description = "Number of users who diabled suggest after seeing Yelp results"
+
+[metrics.yelp_disabled_fx_suggest.statistics.bootstrap_mean]
+[metrics.yelp_disabled_fx_suggest.statistics.deciles]
+
+[metrics.yelp_disabled_fx_sponsored_suggest]
+select_expression = """COUNT(DISTINCT IF(
+  pref_sponsored_suggestions = FALSE 
+  AND is_terminal
+  AND product_engaged_result_type = 'yelp_suggestion', glean_client_id, NULL)
+)"""
+data_source = "urlbar_events"
+friendly_name = "Yelp sponsored suggest disabled"
+description = "Number of users who disabled sponsored suggest after seeing Yelp results"
+
+[metrics.yelp_disabled_fx_sponsored_suggest.statistics.bootstrap_mean]
+[metrics.yelp_disabled_fx_sponsored_suggest.statistics.deciles]
 
 
 #----------------------------------------------
