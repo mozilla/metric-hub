@@ -1062,6 +1062,14 @@ description = """
 Count of clicks on Organic Pocket content.
 """
 
+[metrics.any_organic_pocket_clicks]
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(organic_pocket_clicks > 0), FALSE)"
+friendly_name = "Any organic Pocket Clicks"
+description = """
+Client had any Pocket clicks during the experiment.
+"""
+
 [metrics.sponsored_pocket_clicks]
 data_source = "newtab_clients_daily"
 select_expression = "COALESCE(SUM(sponsored_pocket_clicks), 0)"
