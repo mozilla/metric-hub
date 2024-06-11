@@ -1614,39 +1614,6 @@ data_source = "serp_events"
 friendly_name = "SERP impressions"
 description = "Number of SERP page loads"
 
-[metrics.serp_impressions_with_ads]
-select_expression = "COUNTIF(num_ads_visible > 0)"
-data_source = "serp_events"
-friendly_name = "SERPs with ads"
-description = "Number of SERP page loads with ads visible"
-
-[metrics.serp_has_ad_click]
-select_expression = "COUNTIF(num_ad_clicks > 0)"
-data_source = "serp_events"
-friendly_name = "SERPs with ad clicks"
-description = "Number of SERP page loads where an ad was clicked"
-
-[metrics.serp_ad_clicks]
-select_expression = "SUM(num_ad_clicks)"
-data_source = "serp_events"
-friendly_name = "SERP ad clicks"
-description = "Number of ad clicks across SERP page loads"
-
-[metrics.serp_ad_impression_rate]
-depends_on = ["serp_impressions_with_ads", "serp_impressions"]
-friendly_name = "SERP ad impression rate"
-description = "Proportion of SERP page loads that had visible ads. This is a `population-ratio` metric, not a client-level metric."
-
-[metrics.serp_ad_ctr]
-depends_on = ["serp_has_ad_click", "serp_impressions_with_ads"]
-friendly_name = "SERP ad CTR"
-description = "Proportion of SERP page loads with visible ads that had an ad click. This is a `population-ratio` metric, not a client-level metric."
-
-[metrics.serp_ad_click_rate]
-depends_on = ["serp_ad_clicks", "serp_impressions"]
-friendly_name = "SERP ad click rate"
-description = "Number of ad clicks per SERP page load. This is a `population-ratio` metric, not a client-level metric."
-
 [dimensions]
 
 [dimensions.os]

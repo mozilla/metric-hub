@@ -3,24 +3,3 @@ description = "Metrics for SERP interactions derived from Glean SERP events"
 
 [metrics.serp_impressions.statistics.bootstrap_mean]
 [metrics.serp_impressions.statistics.deciles]
-
-[metrics.serp_impressions_with_ads.statistics.bootstrap_mean]
-[metrics.serp_impressions_with_ads.statistics.deciles]
-
-[metrics.serp_has_ad_click.statistics.bootstrap_mean]
-[metrics.serp_has_ad_click.statistics.deciles]
-
-[metrics.serp_ad_clicks.statistics.bootstrap_mean]
-[metrics.serp_ad_clicks.statistics.deciles]
-
-[metrics.serp_ad_impression_rate.statistics.population_ratio]
-numerator = "serp_impressions_with_ads"
-denominator = "serp_impressions"
-
-[metrics.serp_ad_ctr.statistics.population_ratio]
-numerator = "serp_has_ad_click"
-denominator = "serp_impressions_with_ads"
-
-[metrics.serp_ad_click_rate.statistics.population_ratio]
-numerator = "serp_ad_clicks"
-denominator = "serp_impressions"
