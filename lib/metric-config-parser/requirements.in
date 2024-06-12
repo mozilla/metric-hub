@@ -23,7 +23,7 @@ click==8.1.7
     # via
     #   black
     #   mozilla-metric-config-parser
-coverage[toml]==7.5.1
+coverage[toml]==7.5.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
@@ -31,7 +31,7 @@ exceptiongroup==1.2.1
     # via
     #   cattrs
     #   pytest
-faker==25.2.0
+faker==25.4.0
     # via polyfactory
 flake8==7.0.0
     # via pytest-flake8

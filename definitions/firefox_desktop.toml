@@ -1062,6 +1062,14 @@ description = """
 Count of clicks on Organic Pocket content.
 """
 
+[metrics.any_organic_pocket_clicks]
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(organic_pocket_clicks > 0), FALSE)"
+friendly_name = "Any organic Pocket Clicks"
+description = """
+Client had any Pocket clicks during the experiment.
+"""
+
 [metrics.sponsored_pocket_clicks]
 data_source = "newtab_clients_daily"
 select_expression = "COALESCE(SUM(sponsored_pocket_clicks), 0)"
@@ -1600,6 +1608,11 @@ data_source = "clients_daily"
 friendly_name = "Daily Active Users with socket crashes"
 description = "Daily active user count with socket crashes"
 
+[metrics.serp_impressions]
+select_expression = "COUNT(*)"
+data_source = "serp_events"
+friendly_name = "SERP impressions"
+description = "Number of SERP page loads"
 
 [dimensions]
 
@@ -1811,6 +1824,14 @@ from_expression = """(
 )"""
 friendly_name = "Urlbar Events with Unnested Results"
 description = "Urlbar Events table with the list of displayed results unnested"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
+
+[data_sources.serp_events]
+from_expression = "mozdata.firefox_desktop.serp_events"
+friendly_name = "SERP Events"
+description = "SERP Events table with 1 row per SERP impression"
 submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"

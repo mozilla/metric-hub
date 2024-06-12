@@ -1,0 +1,596 @@
+[experiment]
+
+segments = ["exposed", "not_exposed"]
+
+
+[metrics]
+
+overall = [
+    # Yelp suggestion
+    "yelp_impressions",
+    "yelp_clicks",
+    "yelp_impression_rate",
+    "yelp_ctr",
+    "yelp_annoyances",
+    "saw_yelp",
+    "clicked_yelp",
+    # SERP
+    "serp_impressions",
+    "serp_impressions_with_ads",
+    "serp_has_ad_click",
+    "serp_ad_clicks",
+    "serp_ad_impression_rate",
+    "serp_ad_ctr",
+    "serp_ad_click_rate",
+    # Exposed urlbar
+    "urlbar_search_combined_sessions",
+    "exposed_urlbar_sessions",
+    "exposed_urlbar_engagements",
+    "exposure_rate",
+    "exposed_urlbar_engagement_rate",
+    "exposed_search_engine_clicks",
+    "exposed_search_engine_rate",
+    # Exposed SERP
+    "exposed_serp_impressions",
+    "exposed_serp_impressions_with_ads",
+    "exposed_serp_has_ad_click",
+    "exposed_serp_ad_clicks",
+    "exposed_tagged_google_ad_clicks",
+    "exposed_serp_ad_impression_rate",
+    "exposed_serp_ad_ctr",
+    "exposed_serp_ad_click_rate",
+]
+
+weekly = [
+    # Yelp suggestion
+    "yelp_impressions",
+    "yelp_clicks",
+    "yelp_impression_rate",
+    "yelp_ctr",
+    "yelp_annoyances",
+    "saw_yelp",
+    "clicked_yelp",
+    # SERP
+    "serp_impressions",
+    "serp_impressions_with_ads",
+    "serp_has_ad_click",
+    "serp_ad_clicks",
+    "serp_ad_impression_rate",
+    "serp_ad_ctr",
+    "serp_ad_click_rate",
+]
+
+#----------------------------------------------
+
+# Yelp suggestion metrics
+# These are for exposed sessions, by definition
+
+[metrics.yelp_impressions]
+select_expression = """COUNTIF(
+    is_terminal AND
+    EXISTS(SELECT * FROM UNNEST(results) r WHERE r.product_result_type = 'yelp_suggestion')
+)"""
+data_source = "urlbar_events"
+friendly_name = "Yelp impressions"
+description = "Number of Yelp impressions at engagement time"
+
+[metrics.yelp_impressions.statistics.bootstrap_mean]
+[metrics.yelp_impressions.statistics.deciles]
+
+[metrics.yelp_clicks]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result = 'yelp_suggestion'
+)"""
+data_source = "urlbar_events"
+friendly_name = "Yelp clicks"
+description = "Number of clicks on Yelp results"
+
+[metrics.yelp_clicks.statistics.bootstrap_mean]
+[metrics.yelp_clicks.statistics.deciles]
+
+[metrics.yelp_impression_rate]
+depends_on = ["yelp_impressions", "urlbar_impressions"]
+friendly_name = "Yelp impression rate"
+description = "Proportion of urlbar sessions with a Yelp impression"
+
+[metrics.yelp_impression_rate.statistics.population_ratio]
+numerator = "yelp_impressions"
+denominator = "urlbar_impressions"
+
+[metrics.yelp_ctr]
+depends_on = ["yelp_clicks", "yelp_impressions"]
+friendly_name = "Yelp CTR"
+description = "Proportion of urlbar sessions with a Yelp impression where a Yelp was clicked"
+
+[metrics.yelp_ctr.statistics.population_ratio]
+numerator = "yelp_clicks"
+denominator = "yelp_impressions"
+
+[metrics.yelp_annoyances]
+select_expression = """COUNTIF(
+  event_action = 'annoyance'
+  AND product_engaged_result_type = 'yelp_suggestion'
+)"""
+data_source = "urlbar_events"
+friendly_name = "Yelp annoyances"
+description = "Number of clicks on annoyance signals for Yelp results"
+
+[metrics.yelp_annoyances.statistics.bootstrap_mean]
+[metrics.yelp_annoyances.statistics.deciles]
+
+[metrics.saw_yelp]
+select_expression = """COUNTIF(
+    is_terminal AND
+    EXISTS(SELECT * FROM UNNEST(results) r WHERE r.product_result_type = 'yelp_suggestion')
+) > 0"""
+data_source = "urlbar_events"
+friendly_name = "Proportion had a Yelp impression"
+description = "Proportion of clients that had a Yelp impression at the end of a urlbar session (not available on control)"
+
+[metrics.saw_yelp.statistics.binomial]
+
+[metrics.clicked_yelp]
+select_expression = """COUNTIF(
+  is_terminal
+  AND event_action = 'engaged'
+  AND product_selected_result = 'yelp_suggestion'
+) > 0"""
+data_source = "urlbar_events"
+friendly_name = "Proportion clicked a Yelp result"
+description = "Proportion of clients that clicked a Yelp suggestion (not available on control)"
+
+[metrics.clicked_yelp.statistics.binomial]
+
+
+#----------------------------------------------
+
+# SERP metrics
+
+[metrics.serp_impressions]
+select_expression = "COUNT(*)"
+data_source = "serp_events"
+friendly_name = "SERP impressions"
+description = "Number of SERP page loads (all engines)"
+
+[metrics.serp_impressions.statistics.bootstrap_mean]
+[metrics.serp_impressions.statistics.deciles]
+
+[metrics.serp_impressions_with_ads]
+select_expression = "COUNTIF(num_ads_loaded > 0)"
+data_source = "serp_events"
+friendly_name = "SERPs with ads"
+description = "Number of SERP page loads with ads loaded (all engines). Ads may or may not be visible to the user."
+
+[metrics.serp_impressions_with_ads.statistics.bootstrap_mean]
+[metrics.serp_impressions_with_ads.statistics.deciles]
+
+[metrics.serp_has_ad_click]
+select_expression = "COUNTIF(num_ad_clicks > 0)"
+data_source = "serp_events"
+friendly_name = "SERPs with ad clicks"
+description = "Number of SERP page loads where an ad was clicked (all engines)"
+
+[metrics.serp_has_ad_click.statistics.bootstrap_mean]
+[metrics.serp_has_ad_click.statistics.deciles]
+
+[metrics.serp_ad_clicks]
+select_expression = "SUM(num_ad_clicks)"
+data_source = "serp_events"
+friendly_name = "SERP ad clicks"
+description = "Number of ad clicks across SERP page loads (all engines)"
+
+[metrics.serp_ad_clicks.statistics.bootstrap_mean]
+[metrics.serp_ad_clicks.statistics.deciles]
+
+[metrics.serp_ad_impression_rate]
+depends_on = ["serp_impressions_with_ads", "serp_impressions"]
+friendly_name = "SERP ad impression rate"
+description = "Proportion of SERP page loads that had ads loaded"
+
+[metrics.serp_ad_impression_rate.statistics.population_ratio]
+numerator = "serp_impressions_with_ads"
+denominator = "serp_impressions"
+
+[metrics.serp_ad_ctr]
+depends_on = ["serp_has_ad_click", "serp_impressions_with_ads"]
+friendly_name = "SERP ad CTR"
+description = "Proportion of SERP page loads with ads loaded that had an ad click"
+
+[metrics.serp_ad_ctr.statistics.population_ratio]
+numerator = "serp_has_ad_click"
+denominator = "serp_impressions_with_ads"
+
+[metrics.serp_ad_click_rate]
+depends_on = ["serp_ad_clicks", "serp_impressions"]
+friendly_name = "SERP ad click rate"
+description = "Number of ad clicks per SERP page load"
+
+[metrics.serp_ad_click_rate.statistics.population_ratio]
+numerator = "serp_ad_clicks"
+denominator = "serp_impressions"
+
+#----------------------------------------------
+
+# Exposed session urlbar metrics
+
+[metrics.urlbar_search_combined_sessions]
+select_expression = "COUNTIF(new_session_start)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Urlbar search sessions"
+description = "Number of urlbar search sessions combining urlbar and serp events"
+
+[metrics.urlbar_search_combined_sessions.statistics.bootstrap_mean]
+[metrics.urlbar_search_combined_sessions.statistics.deciles]
+
+[metrics.exposed_urlbar_sessions]
+select_expression = "COUNTIF(exposed_session AND new_session_start)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed urlbar sessions"
+description = "Number of urlbar sessions exposed to Yelp"
+
+[metrics.exposed_urlbar_sessions.statistics.bootstrap_mean]
+[metrics.exposed_urlbar_sessions.statistics.deciles]
+
+[metrics.exposed_urlbar_engagements]
+select_expression = "COUNTIF(exposed_session AND urlbar_fields.event_action = 'engaged')"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed urlbar engagements"
+description = "Number of urlbar sessions exposed to Yelp with an engagement"
+
+[metrics.exposed_urlbar_engagements.statistics.bootstrap_mean]
+[metrics.exposed_urlbar_engagements.statistics.deciles]
+
+[metrics.exposure_rate]
+depends_on = ["exposed_urlbar_sessions", "urlbar_search_combined_sessions"]
+friendly_name = "Urlbar session exposure rate"
+description = "Proportion of urlbar search sessions exposed to Yelp"
+
+[metrics.exposure_rate.statistics.population_ratio]
+numerator = "exposed_urlbar_sessions"
+denominator = "urlbar_search_combined_sessions"
+
+[metrics.exposed_urlbar_engagement_rate]
+depends_on = ["exposed_urlbar_engagements", "exposed_urlbar_sessions"]
+friendly_name = "Exposed urlbar engagement rate"
+description = "Proportion of urlbar search sessions exposed to Yelp with an engagement"
+
+[metrics.exposed_urlbar_engagement_rate.statistics.population_ratio]
+numerator = "exposed_urlbar_engagements"
+denominator = "exposed_urlbar_sessions"
+
+[metrics.exposed_search_engine_clicks]
+select_expression = """COUNTIF(
+  exposed_session
+  AND urlbar_fields.event_action = 'engaged'
+  AND urlbar_fields.product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
+)"""
+data_source = "urlbar_search_sessions"
+description = "Number of exposed urlbar sessions ending with a click leading to a SERP"
+friendly_name = "Exposed urlbar sessions ending on a SERP"
+
+[metrics.exposed_search_engine_clicks.statistics.bootstrap_mean]
+[metrics.exposed_search_engine_clicks.statistics.deciles]
+
+[metrics.exposed_search_engine_rate]
+depends_on = ["exposed_search_engine_clicks", "exposed_urlbar_sessions"]
+friendly_name = "Exposed SERP engagement rate"
+description = "Proportion of exposed urlbar sessions ending with a click leading to a SERP"
+
+[metrics.exposed_search_engine_rate.statistics.population_ratio]
+numerator = "exposed_search_engine_clicks"
+denominator = "exposed_urlbar_sessions"
+
+#----------------------------------------------
+
+# Exposed session SERP metrics
+
+[metrics.exposed_serp_impressions]
+select_expression = "COUNTIF(exposed_session AND is_serp)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed SERP impressions"
+description = "Number of SERP page loads following an exposure (all engines)"
+
+[metrics.exposed_serp_impressions.statistics.bootstrap_mean]
+[metrics.exposed_serp_impressions.statistics.deciles]
+
+[metrics.exposed_serp_impressions_with_ads]
+select_expression = "COUNTIF(exposed_session AND serp_fields.has_ads_loaded)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed SERPs with ads"
+description = "Number of SERP page loads with ads loaded following an exposure (all engines)"
+
+[metrics.exposed_serp_impressions_with_ads.statistics.bootstrap_mean]
+[metrics.exposed_serp_impressions_with_ads.statistics.deciles]
+
+[metrics.exposed_serp_has_ad_click]
+select_expression = "COUNTIF(exposed_session AND serp_fields.num_ad_clicks > 0)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed SERPs with ad clicks"
+description = "Number of SERP page loads where an ad was clicked following an exposure (all enginges)"
+
+[metrics.exposed_serp_has_ad_click.statistics.bootstrap_mean]
+[metrics.exposed_serp_has_ad_click.statistics.deciles]
+
+[metrics.exposed_serp_ad_clicks]
+select_expression = "COALESCE(SUM(IF(exposed_session, serp_fields.num_ad_clicks, 0)),0)"
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed SERP ad clicks"
+description = "Number of ad clicks on SERPs following an exposure (all engines)"
+
+[metrics.exposed_serp_ad_clicks.statistics.bootstrap_mean]
+[metrics.exposed_serp_ad_clicks.statistics.deciles]
+
+[metrics.exposed_tagged_google_ad_clicks]
+select_expression = """COALESCE(SUM(IF(
+    exposed_session AND serp_fields.is_tagged AND serp_fields.search_engine = 'google',
+    serp_fields.num_ad_clicks,
+    0
+)),0)"""
+data_source = "urlbar_search_sessions"
+friendly_name = "Exposed Google ad clicks"
+description = "Number of ad clicks on tagged Google SERPs following an exposure"
+
+[metrics.exposed_tagged_google_ad_clicks.statistics.bootstrap_mean]
+[metrics.exposed_tagged_google_ad_clicks.statistics.deciles]
+
+[metrics.exposed_serp_ad_impression_rate]
+depends_on = ["exposed_serp_impressions_with_ads", "exposed_serp_impressions"]
+friendly_name = "Exposed SERP ad impression rate"
+description = "Proportion of SERP page loads that had ads loaded following an exposure"
+
+[metrics.exposed_serp_ad_impression_rate.statistics.population_ratio]
+numerator = "exposed_serp_impressions_with_ads"
+denominator = "exposed_serp_impressions"
+
+[metrics.exposed_serp_ad_ctr]
+depends_on = ["exposed_serp_has_ad_click", "exposed_serp_impressions_with_ads"]
+friendly_name = "Exposed SERP ad CTR"
+description = "Proportion of SERP page loads with ads loaded that had an ad click following an exposure"
+
+[metrics.exposed_serp_ad_ctr.statistics.population_ratio]
+numerator = "exposed_serp_has_ad_click"
+denominator = "exposed_serp_impressions_with_ads"
+
+[metrics.exposed_serp_ad_click_rate]
+depends_on = ["exposed_serp_ad_clicks", "exposed_serp_impressions"]
+friendly_name = "Exposed SERP ad click rate"
+description = "Number of ad clicks per exposed SERP page load"
+
+[metrics.exposed_serp_ad_click_rate.statistics.population_ratio]
+numerator = "exposed_serp_ad_clicks"
+denominator = "exposed_serp_impressions"
+
+#----------------------------------------------
+
+[segments]
+
+[segments.exposed]
+select_expression = '{{agg_any("is_exposure")}}'
+data_source = "urlbar_exposures"
+friendly_name = "Exposed clients"
+description = "Clients that saw Yelp"
+
+[segments.not_exposed]
+select_expression = 'NOT {{agg_any("is_exposure")}}'
+data_source = "urlbar_exposures"
+friendly_name = "Non-exposed clients"
+description = "Clients that never saw Yelp"
+
+[segments.data_sources.urlbar_exposures]
+from_expression = """(
+    SELECT 
+      metrics.uuid.legacy_telemetry_client_id AS client_id,
+      DATE(submission_timestamp) AS submission_date,
+      event.name = 'exposure' AS is_exposure,
+    FROM `mozdata.firefox_desktop.events`, UNNEST(events) AS event
+    WHERE event.category = 'urlbar'
+)"""
+friendly_name = "Urlbar exposures"
+description = "Glean urlbar exposure events"
+window_start = 0
+window_end = 34
+
+
+[data_sources]
+
+[data_sources.serp_events]
+from_expression = "mozdata.firefox_desktop.serp_events"
+friendly_name = "SERP Events"
+description = "SERP Events table with 1 row per SERP impression"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "native"
+
+[data_sources.urlbar_search_sessions]
+friendly_name = "Urlbar search sessions"
+description = "Search sessions initiated in the urlbar including urlbar and related serp Glean events"
+client_id_column = "legacy_telemetry_client_id"
+submission_date_column = "submission_date"
+experiments_column_type = "native"
+from_expression = """(
+    WITH exposures AS (
+      -- urlbar.exposure events sequence info
+      SELECT DISTINCT
+        client_info.client_id AS glean_client_id,
+        ping_info.seq,
+        event_timestamp,
+        TRUE AS is_exposure,
+      FROM
+        `mozdata.firefox_desktop.events_unnested`
+      WHERE
+        event_category = 'urlbar'
+        AND event_name = 'exposure'
+        AND DATE(submission_timestamp) >= '2024-05-07'
+        AND mozfun.map.get_key(ping_info.experiments, 'yelp-suggestions-pilot-v3') IS NOT NULL
+    ),
+    urlbar AS (
+      -- terminal urlbar events (urlbar sessions)
+      SELECT
+        *
+      FROM
+        `mozdata.firefox_desktop.urlbar_events`
+      WHERE
+        is_terminal
+        AND submission_date >= '2024-05-07'
+        AND mozfun.map.get_key(experiments, 'yelp-suggestions-pilot-v3') IS NOT NULL
+    ),
+    combined AS (
+      -- take union of events tables in order to annotate exposure from sequencing
+      SELECT
+        *,
+        NULL AS urlbar_info
+      FROM
+        exposures
+      UNION ALL
+        (
+          SELECT
+            glean_client_id,
+            seq,
+            event_timestamp,
+            FALSE AS is_exposure,
+            (SELECT AS STRUCT urlbar.*) AS urlbar_info
+          FROM
+            urlbar
+        )
+    ),
+    combined_with_exp AS (
+      -- urlbar event is exposed if it is preceded by an exposure event
+      SELECT
+        *,
+        LAG(is_exposure) OVER (
+        -- exposure events have a (seq, event_timestamp) which is either equal or less than
+        -- the (seq, event_timestamp) for the corresponding urlbar event
+        -- order by is_exposure descending to break ties in case they are equal
+          PARTITION BY
+            glean_client_id
+          ORDER BY
+            seq,
+            event_timestamp,
+            is_exposure DESC
+        ) AS exposed
+      FROM
+        combined
+    ),
+    urlbar_exp AS (
+      -- restrict to urlbar events with exposure indicator
+      SELECT
+        urlbar_info.*,
+        COALESCE(exposed, FALSE) AS exposed
+      FROM
+        combined_with_exp
+      WHERE
+        NOT is_exposure
+    ),
+    serp AS (
+      -- serp events
+      SELECT
+        *
+      FROM
+        `mozdata.firefox_desktop.serp_events`
+      WHERE
+        submission_date >= '2024-05-07'
+        AND mozfun.map.get_key(experiments, 'yelp-suggestions-pilot-v3') IS NOT NULL
+    ),
+    urlbar_serp AS (
+      -- combine urlbar and serp events into single table
+      -- keep only relevant fields from each
+      SELECT
+        glean_client_id,
+        seq,
+        event_timestamp,
+        legacy_telemetry_client_id,
+        submission_date,
+        experiments,
+        FALSE AS is_serp,
+        STRUCT(
+          exposed,
+          event_action,
+          product_selected_result
+        ) AS urlbar_fields,
+        NULL AS serp_fields,
+      FROM
+        urlbar_exp
+      UNION ALL
+        (
+          SELECT
+            glean_client_id,
+            ping_seq AS seq,
+            event_timestamp,
+            legacy_telemetry_client_id,
+            submission_date,
+            experiments,
+            TRUE AS is_serp,
+            NULL AS urlbar_fields,
+            STRUCT(
+              search_engine,
+              is_tagged,
+              sap_source,
+              num_ads_loaded > 0 AS has_ads_loaded,
+              num_ad_clicks
+            ) AS serp_fields
+          FROM
+            serp
+        )
+    ),
+    combined_sess_start AS (
+      -- sessions start with either a urlbar event or a SAP-sourced serp load
+      SELECT
+        *,
+        NOT is_serp
+        OR serp_fields.sap_source IN (
+          'searchbar',
+          'contextmenu',
+          'webextension',
+          'system'
+        ) AS new_session_start
+      FROM
+        urlbar_serp
+    ),
+    sessions AS (
+      -- group events into 'search sessions' starting from a SAP
+      -- and including subsequent follow-on-type serp loads
+      SELECT
+        *,
+        -- use number of sessions seen so far for the client as a session ID
+        COUNTIF(new_session_start) OVER (
+          PARTITION BY
+            glean_client_id
+          ORDER BY
+            seq,
+            event_timestamp
+          RANGE BETWEEN
+            UNBOUNDED PRECEDING
+            AND CURRENT ROW
+        ) AS client_session_id,
+      FROM
+        combined_sess_start
+    ),
+    urlbar_sessions AS (
+      -- restrict to sessions starting from the urlbar
+      SELECT
+        *,
+        -- add session-level exposure indicator
+        LOGICAL_OR(urlbar_fields.exposed) OVER (
+          PARTITION BY
+            glean_client_id,
+            client_session_id
+        ) AS exposed_session
+      FROM
+        sessions
+      WHERE
+        -- drop partial sessions at the start of a window
+        client_session_id > 0
+      QUALIFY
+        LOGICAL_OR(new_session_start AND NOT is_serp) OVER (
+          PARTITION BY
+            glean_client_id,
+            client_session_id
+        )
+    )
+    SELECT
+      *
+    FROM
+      urlbar_sessions
+)"""
