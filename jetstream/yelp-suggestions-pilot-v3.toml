@@ -1,5 +1,6 @@
 [experiment]
 
+enrollment_period = 8
 segments = ["exposed", "not_exposed"]
 
 
