@@ -44,6 +44,12 @@ denominator = "desktop_engagement_mau_v1.sum"
 window_sizes = [1, 7, 28]
 
 
+## New Tab metrics
+[metrics.newtab_visits.statistics.sum]
+[metrics.newtab_visits.statistics.client_count]
+[metrics.newtab_engaged_visits.statistics.sum]
+[metrics.newtab_ad_click_rate.statistics.average]
+
 # Data sources
 
 [data_sources.looker_base_fields]
@@ -103,3 +109,10 @@ columns_as_dimensions = true
 [data_sources.desktop_engagement_v1.joins.countries]
 relationship = "one_to_many"
 on_expression = "desktop_engagement_v1.country = countries.code"
+
+[data_sources.newtab_clients_daily]
+columns_as_dimensions = true
+
+[data_sources.newtab_clients_daily.joins.countries]
+relationship = "one_to_many"
+on_expression = "newtab_clients_daily.country_code = countries.code"
