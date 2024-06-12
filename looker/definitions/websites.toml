@@ -1,7 +1,16 @@
 [data_sources]
 
 [data_sources.www_site_landing_page_metrics]
-from_expression = "moz-fx-data-marketing-prod.ga.www_site_landing_page_metrics"
+from_expression = """
+(
+  SELECT
+    date,
+    operating_system,
+    downloads
+  FROM
+    `moz-fx-data-marketing-prod.ga.www_site_landing_page_metrics`
+)
+"""
 submission_date_column = "date"
 client_id_column = "NULL"
 friendly_name = "WWW Site Landing Page Metrics"
@@ -16,12 +25,3 @@ friendly_name = "Firefox Downloads"
 description = "The number of Firefox Desktop downloads"
 
 [metrics.firefox_downloads_v1.statistics.sum]
-
-
-[dimensions]
-[dimensions.os]
-data_source = "www_site_landing_page_metrics"
-select_expression = "operating_system"
-friendly_name = "Operating System"
-description = "The operating system the visitor used to visit the site"
-
