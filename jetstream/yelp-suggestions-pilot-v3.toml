@@ -149,11 +149,11 @@ description = "Proportion of clients that clicked a Yelp suggestion (not availab
 
 # SERP metrics
 
-[metrics.serp_impressions]
-select_expression = "COUNT(*)"
-data_source = "serp_events"
-friendly_name = "SERP impressions"
-description = "Number of SERP page loads (all engines)"
+# [metrics.serp_impressions]
+# select_expression = "COUNT(*)"
+# data_source = "serp_events"
+# friendly_name = "SERP impressions"
+# description = "Number of SERP page loads (all engines)"
 
 [metrics.serp_impressions.statistics.bootstrap_mean]
 [metrics.serp_impressions.statistics.deciles]
@@ -396,13 +396,13 @@ window_end = 34
 
 [data_sources]
 
-[data_sources.serp_events]
-from_expression = "mozdata.firefox_desktop.serp_events"
-friendly_name = "SERP Events"
-description = "SERP Events table with 1 row per SERP impression"
-submission_date_column = "submission_date"
-client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "native"
+# [data_sources.serp_events]
+# from_expression = "mozdata.firefox_desktop.serp_events"
+# friendly_name = "SERP Events"
+# description = "SERP Events table with 1 row per SERP impression"
+# submission_date_column = "submission_date"
+# client_id_column = "legacy_telemetry_client_id"
+# experiments_column_type = "native"
 
 [data_sources.urlbar_search_sessions]
 friendly_name = "Urlbar search sessions"
