@@ -279,6 +279,15 @@ category = "search"
 type = "scalar"
 owner = "xluo-all@mozilla.com"
 
+[metrics.searches_with_ads_organic]
+friendly_name = "Organic Search With Ads Count"
+description = "Total number of Organic Search With Ads Counts"
+select_expression = "{{agg_sum('search_with_ads_organic')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
 [metrics.search_count]
 friendly_name = "SAP searches"
 description = """
