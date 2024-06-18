@@ -1401,6 +1401,15 @@ description = """
 Count of total clicks on the CTA in the wallpaper feature highlight.
 """
 
+[metrics.newtab_weather_widget_enabled]
+data_source = "newtab_clients_daily"
+select_expression = "COALESCE(MAX(CAST(newtab_weather_widget_enabled AS INT)), 0)"
+friendly_name = "Weather Widget Enabled"
+type = "scalar"
+description = """
+Whether or not the weather widget is enabled on the New Tab.
+"""
+
 [metrics.weather_widget_impressions]
 data_source = "newtab_clients_daily"
 select_expression = "COALESCE(SUM(weather_widget_impressions), 0)"
