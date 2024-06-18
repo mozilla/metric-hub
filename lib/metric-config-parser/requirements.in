@@ -84,7 +84,7 @@ polyfactory==2.16.0
     # via mozilla-nimbus-schemas
 pycodestyle==2.11.1
     # via flake8
-pydantic==1.10.15
+pydantic==1.10.16
     # via mozilla-nimbus-schemas
 pyflakes==3.2.0
     # via flake8
@@ -164,7 +164,7 @@ typing-extensions==4.12.2
     #   mypy
     #   polyfactory
     #   pydantic
-urllib3==2.2.1
+urllib3==2.2.2
     # via
     #   requests
     #   types-requests
