@@ -1,12 +1,14 @@
 [metrics]
 weekly = ["weather_impressions",
           "weather_clicks",
+          "weather_ctr",
           "weather_not_relevant_dismissals",
           "weather_inaccurate_location_dismissals",
           "weather_show_less_frequently_dismissals"]
 
 overall = ["weather_impressions",
            "weather_clicks",
+           "weather_ctr",
            "weather_not_relevant_dismissals",
            "weather_inaccurate_location_dismissals",
            "weather_show_less_frequently_dismissals"]
