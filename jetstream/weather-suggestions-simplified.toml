@@ -1,0 +1,53 @@
+[metrics]
+weekly = ["weather_impressions",
+          "weather_clicks",
+          "weather_not_relevant_dismissals",
+          "weather_inaccurate_location_dismissals",
+          "weather_show_less_frequently_dismissals"]
+
+overall = ["weather_impressions",
+           "weather_clicks",
+           "weather_not_relevant_dismissals",
+           "weather_inaccurate_location_dismissals",
+           "weather_show_less_frequently_dismissals"]
+
+## Impressions
+[metrics.weather_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'weather', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.weather_impressions.statistics.bootstrap_mean]
+[metrics.weather_impressions.statistics.count]
+
+## Clicks
+[metrics.weather_clicks]
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'weather')"
+data_source = "urlbar_events_unnested_results"
+[metrics.weather_clicks.statistics.bootstrap_mean]
+[metrics.weather_clicks.statistics.count]
+
+[metrics.weather_not_relevant_dismissals]
+select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'not_relevant')"
+data_source = "urlbar_events_unnested_results"
+[metrics.weather_not_relevant_dismissals.statistics.bootstrap_mean]
+[metrics.weather_not_relevant_dismissals.statistics.count]
+
+
+[metrics.weather_inaccurate_location_dismissals]
+select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'inaccurate_location')"
+data_source = "urlbar_events_unnested_results"
+[metrics.weather_inaccurate_location_dismissals.statistics.bootstrap_mean]
+[metrics.weather_inaccurate_location_dismissals.statistics.count]
+
+
+[metrics.weather_show_less_frequently_dismissals]
+select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'show_less_frequently')"
+data_source = "urlbar_events_unnested_results"
+[metrics.weather_show_less_frequently_dismissals.statistics.bootstrap_mean]
+[metrics.weather_show_less_frequently_dismissals.statistics.count]
+
+## Urlbar Sessions
+[metrics.urlbar_sessions]
+select_expression = "COUNT(DISTINCT IF(is_terminal, event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.urlbar_sessions.statistics.bootstrap_mean]
+[metrics.urlbar_sessions.statistics.count]
