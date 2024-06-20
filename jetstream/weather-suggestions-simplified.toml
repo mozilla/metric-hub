@@ -1,12 +1,14 @@
 [metrics]
 weekly = ["weather_impressions",
           "weather_clicks",
+          "weather_ctr",
           "weather_not_relevant_dismissals",
           "weather_inaccurate_location_dismissals",
           "weather_show_less_frequently_dismissals"]
 
 overall = ["weather_impressions",
            "weather_clicks",
+           "weather_ctr",
            "weather_not_relevant_dismissals",
            "weather_inaccurate_location_dismissals",
            "weather_show_less_frequently_dismissals"]
@@ -25,19 +27,28 @@ data_source = "urlbar_events_unnested_results"
 [metrics.weather_clicks.statistics.bootstrap_mean]
 [metrics.weather_clicks.statistics.count]
 
+## CTR
+[metrics.weather_ctr]
+depends_on = ["weather_clicks", "weather_impressions"]
+friendly_name = "Weather Sponsored CTR"
+description = "Proportion of urlbar sessions where a weather sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+
+[metrics.weather_ctr.statistics.population_ratio]
+numerator = "weather_clicks"
+denominator = "weather_impressions"
+
+## Dismissals
 [metrics.weather_not_relevant_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events_unnested_results"
 [metrics.weather_not_relevant_dismissals.statistics.bootstrap_mean]
 [metrics.weather_not_relevant_dismissals.statistics.count]
 
-
 [metrics.weather_inaccurate_location_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'inaccurate_location')"
 data_source = "urlbar_events_unnested_results"
 [metrics.weather_inaccurate_location_dismissals.statistics.bootstrap_mean]
 [metrics.weather_inaccurate_location_dismissals.statistics.count]
-
 
 [metrics.weather_show_less_frequently_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'weather' and engagement_type = 'show_less_frequently')"
