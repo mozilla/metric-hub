@@ -56,9 +56,3 @@ data_source = "urlbar_events"
 [metrics.weather_show_less_frequently_dismissals.statistics.bootstrap_mean]
 [metrics.weather_show_less_frequently_dismissals.statistics.count]
 
-## Urlbar Sessions
-[metrics.urlbar_sessions]
-select_expression = "COUNT(DISTINCT IF(is_terminal, event_id, NULL))"
-data_source = "urlbar_events"
-[metrics.urlbar_sessions.statistics.bootstrap_mean]
-[metrics.urlbar_sessions.statistics.count]
