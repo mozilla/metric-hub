@@ -306,7 +306,7 @@ type = "scalar"
 friendly_name = "Firefox Desktop DAU"
 description = """
     This is the official DAU reporting definition. The logic is
-    [generated in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/generated-sql/sql/moz-fx-data-shared-prod/firefox_desktop_derived/active_users_aggregates_v3/query.sql#L64)
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     Whenever possible, this is the preferred DAU reporting definition to use for Desktop.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
