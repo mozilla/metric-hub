@@ -13,7 +13,8 @@ weekly = ["fakespot_amazon_impressions",
           "fakespot_walmart_ctr",
           "fakespot_amazon_not_relevant_dismissals",
           "fakespot_bestbuy_not_relevant_dismissals",
-          "fakespot_walmart_not_relevant_dismissals"]
+          "fakespot_walmart_not_relevant_dismissals",
+          "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
 
 overall = ["fakespot_amazon_impressions",
            "fakespot_bestbuy_impressions",
@@ -29,7 +30,8 @@ overall = ["fakespot_amazon_impressions",
            "fakespot_walmart_ctr",
            "fakespot_amazon_not_relevant_dismissals",
            "fakespot_bestbuy_not_relevant_dismissals",
-           "fakespot_walmart_not_relevant_dismissals"]
+           "fakespot_walmart_not_relevant_dismissals",
+           "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
 
 ## Impressions
 [metrics.fakespot_amazon_impressions]
@@ -143,22 +145,21 @@ denominator = "fakespot_impressions"
 select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_amazon' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_amazon_not_relevant_dismissals.statistics.bootstrap_mean]
-[metrics.fakespot_amazon_not_relevant_dismissals.statistics.count]
 
 [metrics.fakespot_bestbuy_not_relevant_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_bestbuy' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_bestbuy_not_relevant_dismissals.statistics.bootstrap_mean]
-[metrics.fakespot_bestbuy_not_relevant_dismissals.statistics.count]
 
 [metrics.fakespot_walmart_not_relevant_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_walmart' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_walmart_not_relevant_dismissals.statistics.bootstrap_mean]
-[metrics.fakespot_walmart_not_relevant_dismissals.statistics.count]
 
 [metrics.fakespot_not_relevant_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type in ('rs_fakespot_amazon', 'rs_fakespot_bestbuy', 'rs_fakespot_walmart') and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_not_relevant_dismissals.statistics.bootstrap_mean]
-[metrics.fakespot_not_relevant_dismissals.statistics.count]
+
+[metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms]
+[metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms.statistics.bootstrap_mean]
