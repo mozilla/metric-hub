@@ -54,31 +54,31 @@ data_source = "urlbar_events_unnested_results"
 
 ## Impression Rate
 [metrics.fakespot_amazon_impression_rate]
-depends_on = ["fakespot_amazon_impressions", "urlbar_sessions"]
+depends_on = ["fakespot_amazon_impressions", "urlbar_impressions"]
 friendly_name = "Fakespot Amazon Impression Rate"
 description = "Proportion of Fakespot Amazon impressions out of all urlbar sessions (not available on control)"
 
 [metrics.fakespot_amazon_ctr.statistics.population_ratio]
 numerator = "fakespot_amazon_impressions"
-denominator = "urlbar_sessions"
+denominator = "urlbar_impressions"
 
 [metrics.fakespot_bestbuy_impression_rate]
-depends_on = ["fakespot_bestbuy_impressions", "urlbar_sessions"]
+depends_on = ["fakespot_bestbuy_impressions", "urlbar_impressions"]
 friendly_name = "Fakespot Bestbuy Impression Rate"
 description = "Proportion of Fakespot Bestbuy impressions out of all urlbar sessions (not available on control)"
 
 [metrics.fakespot_bestbuy_ctr.statistics.population_ratio]
 numerator = "fakespot_bestbuy_impressions"
-denominator = "urlbar_sessions"
+denominator = "urlbar_impressions"
 
 [metrics.fakespot_walmart_impression_rate]
-depends_on = ["fakespot_walmart_impressions", "urlbar_sessions"]
+depends_on = ["fakespot_walmart_impressions", "urlbar_impressions"]
 friendly_name = "Fakespot Walmart Impression Rate"
 description = "Proportion of Fakespot Walmart impressions out of all urlbar sessions (not available on control)"
 
 [metrics.fakespot_walmart_ctr.statistics.population_ratio]
 numerator = "fakespot_walmart_impressions"
-denominator = "urlbar_sessions"
+denominator = "urlbar_impressions"
 
 ## Clicks
 [metrics.fakespot_amazon_clicks]
