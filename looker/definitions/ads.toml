@@ -42,15 +42,21 @@ submission_date_column = "adm_date"
 from_expression = """
 (
   SELECT
-    submission_timestamp,
+    DATE(submission_timestamp) AS submission_date,
     advertiser,
     campaign_name,
     targeted_country,
     rate_type,
-    impressions,
-    clicks,
-    revenue
+    SUM(impressions) AS impressions,
+    SUM(clicks) AS clicks,
+    SUM(revenue) AS revenue
   FROM `mozdata.ads.consolidated_ad_metrics_hourly`
+  GROUP BY
+    submission_date,
+    advertiser,
+    campaign_name,
+    targeted_country,
+    rate_type
 )
 """
 friendly_name = "Default Looker Base Fields for Firefox SPOC Reporting"
@@ -59,5 +65,5 @@ description = """
   for Firefox SPOC reporting
 """
 columns_as_dimensions = true
-submission_date_column = "submission_timestamp"
+submission_date_column = "submission_date"
 client_id_column = "NULL"
