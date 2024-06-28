@@ -23,12 +23,6 @@ data_source = "consolidated_ads_spocs"
 friendly_name = "SPOC revenue"
 description = "Daily SPOC revenue"
 
-[metrics.ppa_conversions]
-select_expression = "SUM(conversion_count)"
-data_source = "ppa_measurements"
-friendly_name = "PPA conversions"
-description = "Privacy-Preserving Attribution (PPA) conversions"
-
 [metrics.billed_revenue.statistics.sum]
 [metrics.spoc_impressions.statistics.sum]
 [metrics.spoc_clicks.statistics.sum]
@@ -73,18 +67,3 @@ description = """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
-
-[data_sources.ppa_measurements]
-from_expression = """
-(
-  SELECT
-    *,
-    DATE(collection_time) AS collection_date
-  FROM `mozdata.ads.ppa_measurements`
-)
-"""
-client_id_column = "NULL"
-friendly_name = "PPA Measurements"
-description = "Aggregated conversion data from Privacy-Preserving Attribution (PPA)"
-columns_as_dimensions = true
-submission_date_column = "collection_date"
