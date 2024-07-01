@@ -23,7 +23,7 @@ click==8.1.7
     # via
     #   black
     #   mozilla-metric-config-parser
-coverage[toml]==7.5.1
+coverage[toml]==7.5.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
@@ -31,7 +31,7 @@ exceptiongroup==1.2.1
     # via
     #   cattrs
     #   pytest
-faker==25.2.0
+faker==25.8.0
     # via polyfactory
 flake8==7.0.0
     # via pytest-flake8
@@ -70,7 +70,7 @@ mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
-packaging==24.0
+packaging==24.1
     # via
     #   black
     #   pytest
@@ -84,11 +84,11 @@ polyfactory==2.16.0
     # via mozilla-nimbus-schemas
 pycodestyle==2.11.1
     # via flake8
-pydantic==1.10.15
+pydantic==1.10.16
     # via mozilla-nimbus-schemas
 pyflakes==3.2.0
     # via flake8
-pytest==8.2.1
+pytest==8.2.2
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
@@ -112,7 +112,7 @@ referencing==0.35.1
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.2
+requests==2.32.3
     # via
     #   mozilla-metric-config-parser
 rpds-py==0.18.1
@@ -148,7 +148,7 @@ types-pytz==2024.1.0.20240417
 types-pyyaml==6.0.12.20240311
     # via
     #   mozilla-metric-config-parser
-types-requests==2.32.0.20240523
+types-requests==2.32.0.20240602
     # via
     #   mozilla-metric-config-parser
 types-six==1.16.21.20240513
@@ -157,14 +157,14 @@ types-six==1.16.21.20240513
 types-toml==0.10.8.20240310
     # via
     #   mozilla-metric-config-parser
-typing-extensions==4.12.0
+typing-extensions==4.12.2
     # via
     #   black
     #   cattrs
     #   mypy
     #   polyfactory
     #   pydantic
-urllib3==2.2.1
+urllib3==2.2.2
     # via
     #   requests
     #   types-requests

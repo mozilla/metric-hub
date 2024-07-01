@@ -1,3 +1,5 @@
+# Metrics
+
 [metrics.days_of_use.statistics.average]
 
 [metrics.socket_crash_count_v1.statistics.sum]
@@ -8,6 +10,47 @@
 numerator = "socket_crash_count_v1.sum"
 denominator = "socket_crash_active_hours_v1.sum"
 
+
+## OKRs example
+
+[metrics.desktop_engagement_dau_v1]
+select_expression = "SUM(dau)"
+data_source = "desktop_engagement_v1"
+friendly_name = "(non-official) DAU"
+description = "(non-official) Daily active users on desktop based on engagment data"
+
+[metrics.desktop_engagement_wau_v1]
+select_expression = "SUM(wau)"
+data_source = "desktop_engagement_v1"
+friendly_name = "(non-official) WAU"
+description = "(non-official) Weekly active users on desktop based on engagment data"
+
+[metrics.desktop_engagement_mau_v1]
+select_expression = "SUM(mau)"
+data_source = "desktop_engagement_v1"
+friendly_name = "(non-official) MAU"
+description = "(non-official) Monthly active users on desktop based on engagment data"
+
+
+[metrics.desktop_engagement_dau_v1.statistics.sum]
+[metrics.desktop_engagement_wau_v1.statistics.sum]
+[metrics.desktop_engagement_mau_v1.statistics.sum]
+
+[metrics.desktop_engagement_dau_v1.statistics.ratio]
+numerator = "desktop_engagement_dau_v1.sum"
+denominator = "desktop_engagement_mau_v1.sum"
+
+[metrics.desktop_engagement_dau_v1.statistics.rolling_average]
+window_sizes = [1, 7, 28]
+
+
+## New Tab metrics
+[metrics.newtab_visits.statistics.sum]
+[metrics.newtab_visits.statistics.client_count]
+[metrics.newtab_engaged_visits.statistics.sum]
+[metrics.newtab_ad_click_rate.statistics.average]
+
+# Data sources
 
 [data_sources.looker_base_fields]
 from_expression = """
@@ -44,3 +87,32 @@ client_id_column = "client_id"
 
 [data_sources.active_users_aggregates_v1]
 columns_as_dimensions = true
+
+
+[data_sources.countries]
+from_expression = "mozdata.static.country_codes_v1"
+client_id_column = "code"
+friendly_name = "Countries"
+description = "Countries"
+columns_as_dimensions = true
+submission_date_column = "NULL"
+
+
+[data_sources.desktop_engagement_v1]
+from_expression = "moz-fx-data-shared-prod.telemetry.desktop_engagement"
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Desktop Engagement"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.desktop_engagement_v1.joins.countries]
+relationship = "one_to_many"
+on_expression = "desktop_engagement_v1.country = countries.code"
+
+[data_sources.newtab_clients_daily]
+columns_as_dimensions = true
+
+[data_sources.newtab_clients_daily.joins.countries]
+relationship = "one_to_many"
+on_expression = "newtab_clients_daily.country_code = countries.code"

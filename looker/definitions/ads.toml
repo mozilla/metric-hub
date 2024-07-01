@@ -1,0 +1,69 @@
+[metrics]
+
+[metrics.billed_revenue]
+select_expression = "SUM(billed_revenue)"
+data_source = "admarketplace"
+description = "Revenue reported by Admarketplace. Will almost always have a few days of lag"
+
+[metrics.spoc_impressions]
+select_expression = "SUM(impressions)"
+data_source = "consolidated_ads_spocs"
+friendly_name = "SPOC impressions"
+description = "Daily SPOC impressions"
+
+[metrics.spoc_clicks]
+select_expression = "SUM(clicks)"
+data_source = "consolidated_ads_spocs"
+friendly_name = "SPOC clicks"
+description = "Daily SPOC clicks"
+
+[metrics.spoc_revenue]
+select_expression = "SUM(revenue)"
+data_source = "consolidated_ads_spocs"
+friendly_name = "SPOC revenue"
+description = "Daily SPOC revenue"
+
+[metrics.billed_revenue.statistics.sum]
+[metrics.spoc_impressions.statistics.sum]
+[metrics.spoc_clicks.statistics.sum]
+[metrics.spoc_revenue.statistics.sum]
+
+[data_sources]
+
+[data_sources.admarketplace]
+from_expression = "mozdata.revenue.admarketplace"
+client_id_column = "NULL"
+friendly_name = "Admarketplace"
+description = "Revenue numbers reported by AMP"
+columns_as_dimensions = true
+submission_date_column = "adm_date"
+
+[data_sources.consolidated_ads_spocs]
+from_expression = """
+(
+  SELECT
+    DATE(submission_timestamp) AS submission_date,
+    advertiser,
+    campaign_name,
+    targeted_country,
+    rate_type,
+    SUM(impressions) AS impressions,
+    SUM(clicks) AS clicks,
+    SUM(revenue) AS revenue
+  FROM `mozdata.ads.consolidated_ad_metrics_hourly`
+  GROUP BY
+    submission_date,
+    advertiser,
+    campaign_name,
+    targeted_country,
+    rate_type
+)
+"""
+friendly_name = "Default Looker Base Fields for Firefox SPOC Reporting"
+description = """
+  Default fields used to filter and segment metric definition views in Looker
+  for Firefox SPOC reporting
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"

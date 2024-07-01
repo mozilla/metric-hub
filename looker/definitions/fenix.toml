@@ -60,5 +60,8 @@ client_id_column = "client_id"
 
 [data_sources.'*'.joins.looker_base_fields]
 
+[data_sources.feature_usage_metrics_v1]
+columns_as_dimensions = true
+
 [data_sources.active_users_aggregates_v1]
 columns_as_dimensions = true

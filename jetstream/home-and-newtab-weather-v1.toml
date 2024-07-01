@@ -1,0 +1,39 @@
+
+[metrics]
+
+overall = [
+    # weather metrics
+    "newtab_weather_widget_enabled",
+    "weather_widget_impressions",
+    "weather_widget_clicks",
+    "weather_widget_load_errors",
+    "weather_widget_change_display_to_detailed",
+    "weather_widget_change_display_to_simple",
+]
+
+weekly = [
+    # weather metrics
+    "newtab_weather_widget_enabled",
+    "weather_widget_impressions",
+    "weather_widget_clicks",
+    "weather_widget_load_errors",
+    "weather_widget_change_display_to_detailed",
+    "weather_widget_change_display_to_simple",
+]
+
+[metrics.newtab_weather_widget_enabled.statistics.binomial]
+
+[metrics.weather_widget_impressions.statistics.bootstrap_mean]
+[metrics.weather_widget_impressions.statistics.deciles]
+
+[metrics.weather_widget_clicks.statistics.bootstrap_mean]
+[metrics.weather_widget_clicks.statistics.deciles]
+
+[metrics.weather_widget_load_errors.statistics.bootstrap_mean]
+[metrics.weather_widget_load_errors.statistics.deciles]
+
+[metrics.weather_widget_change_display_to_detailed.statistics.bootstrap_mean]
+[metrics.weather_widget_change_display_to_detailed.statistics.deciles]
+
+[metrics.weather_widget_change_display_to_simple.statistics.bootstrap_mean]
+[metrics.weather_widget_change_display_to_simple.statistics.deciles]

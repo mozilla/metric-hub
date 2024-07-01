@@ -224,7 +224,7 @@ def validate(path, config_repos):
                             segments=segment_definitions.values(),
                             segment_data_sources=entity.spec.segments.data_sources,
                             data_sources={
-                                name: d.resolve(None)
+                                name: d.resolve(None, entity, config_collection)
                                 for name, d in entity.spec.data_sources.definitions.items()
                             },
                         )
