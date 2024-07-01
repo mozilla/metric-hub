@@ -27,7 +27,7 @@ overall = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  #"client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v1",
 ]
 
 preenrollment_weekly = [
@@ -42,7 +42,7 @@ preenrollment_weekly = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  #"client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v1",
 ]
 
 preenrollment_days28 = [
