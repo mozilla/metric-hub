@@ -139,7 +139,7 @@ types-futures==3.3.8
 types-pkg-resources==0.1.3
     # via
     #   mozilla-metric-config-parser
-types-protobuf==5.26.0.20240422
+types-protobuf==5.27.0.20240626
     # via
     #   mozilla-metric-config-parser
 types-pytz==2024.1.0.20240417
