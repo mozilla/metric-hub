@@ -17,9 +17,6 @@ binomial = {}
 [metrics.active_hours.statistics]
 deciles = {}
 bootstrap_mean = {}
-[metrics.active_hours.statistics.linear_model_mean]
-[metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
 
 ##
 
@@ -27,10 +24,6 @@ period = "preenrollment_week"
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
-[metrics.days_of_use.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
 
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
