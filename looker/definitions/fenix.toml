@@ -62,6 +62,7 @@ client_id_column = "client_id"
 
 [data_sources.feature_usage_metrics_v1]
 columns_as_dimensions = true
+joins = {}
 
 [data_sources.active_users_aggregates_v1]
 columns_as_dimensions = true
