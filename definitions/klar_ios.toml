@@ -1,6 +1,5 @@
 [metrics]
 
-
 [metrics.baseline_ping_count]
 data_source = "baseline"
 select_expression = "COUNT(document_id)"
