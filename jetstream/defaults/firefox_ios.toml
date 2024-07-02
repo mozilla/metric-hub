@@ -3,14 +3,14 @@ daily = ["retained", "client_level_daily_active_users_v2"]
 weekly = [
     "retained",
     "active_hours",
-    "days_of_use",
+    "days_of_use_v2",
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
 ]
 overall = [
     "active_hours",
-    "days_of_use",
+    "days_of_use_v2",
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
@@ -47,7 +47,7 @@ bootstrap_mean = {}
 
 ##
 
-[metrics.days_of_use.statistics]
+[metrics.days_of_use_v2.statistics]
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
