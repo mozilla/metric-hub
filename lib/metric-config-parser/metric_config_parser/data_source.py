@@ -225,6 +225,9 @@ class DataSourceDefinition:
         for key in attr.fields_dict(type(self)):
             if key != "name":
                 setattr(self, key, getattr(other, key) or getattr(self, key))
+            if key == "joins":
+                if getattr(other, key) is not None:
+                    setattr(self, key, getattr(other, key))
 
 
 @attr.s(auto_attribs=True)
