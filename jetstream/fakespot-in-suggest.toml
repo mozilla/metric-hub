@@ -1,5 +1,6 @@
 [metrics]
-weekly = ["fakespot_amazon_impressions",
+weekly = ["admarketplace_sponsored_impressions",
+          "fakespot_amazon_impressions",
           "fakespot_bestbuy_impressions",
           "fakespot_walmart_impressions",
           "fakespot_amazon_impression_rate",
@@ -16,7 +17,8 @@ weekly = ["fakespot_amazon_impressions",
           "fakespot_walmart_not_relevant_dismissals",
           "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
 
-overall = ["fakespot_amazon_impressions",
+overall = ["admarketplace_sponsored_impressions",
+           "fakespot_amazon_impressions",
            "fakespot_bestbuy_impressions",
            "fakespot_walmart_impressions",
            "fakespot_amazon_impression_rate",
@@ -34,6 +36,11 @@ overall = ["fakespot_amazon_impressions",
            "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
 
 ## Impressions
+[metrics.admarketplace_sponsored_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type like '%adm_sponsored', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.admarketplace_sponsored_impressions.statistics.bootstrap_mean]
+
 [metrics.fakespot_amazon_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rs_fakespot_amazon', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
@@ -55,6 +62,11 @@ data_source = "urlbar_events_unnested_results"
 [metrics.fakespot_impressions.statistics.bootstrap_mean]
 
 ## Impression Rate
+[metrics.admarketplace_sponsored_impression_rate]
+depends_on = ["admarketplace_sponsored_impressions", "urlbar_impressions"]
+friendly_name = "Admarketplace Impression Rate"
+description = "Proportion of Admarketplace impressions out of all urlbar sessions (not available on control)"
+
 [metrics.fakespot_amazon_impression_rate]
 depends_on = ["fakespot_amazon_impressions", "urlbar_impressions"]
 friendly_name = "Fakespot Amazon Impression Rate"
@@ -83,6 +95,11 @@ numerator = "fakespot_walmart_impressions"
 denominator = "urlbar_impressions"
 
 ## Clicks
+[metrics.admarketplace_sponsored_clicks]
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type like '%adm_sponsored')"
+data_source = "urlbar_events"
+[metrics.admarketplace_sponsored_clicks.statistics.bootstrap_mean]
+
 [metrics.fakespot_amazon_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rs_fakespot_amazon')"
 data_source = "urlbar_events"
@@ -104,6 +121,15 @@ data_source = "urlbar_events"
 [metrics.fakespot_clicks.statistics.bootstrap_mean]
 
 ## CTR
+[metrics.admarketplace_sponsored_ctr]
+depends_on = ["admarketplace_sponsored_clicks", "admarketplace_sponsored_impressions"]
+friendly_name = "Admarketplace CTR"
+description = "Proportion of urlbar sessions where an Admarketplace Sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+
+[metrics.admarketplace_sponsored_ctr.statistics.population_ratio]
+numerator = "admarketplace_sponsored_clicks"
+denominator = "admarketplace_sponsored_impressions"
+
 [metrics.fakespot_amazon_ctr]
 depends_on = ["fakespot_amazon_clicks", "fakespot_amazon_impressions"]
 friendly_name = "Fakespot Amazon CTR"
@@ -141,6 +167,11 @@ numerator = "fakespot_clicks"
 denominator = "fakespot_impressions"
 
 ## Dismissals
+[metrics.admarketplace_sponsored_not_relevant_dismissals]
+select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type like '%adm_sponsored' and engagement_type = 'not_relevant')"
+data_source = "urlbar_events"
+[metrics.admarketplace_sponsored_not_relevant_dismissals.statistics.bootstrap_mean]
+
 [metrics.fakespot_amazon_not_relevant_dismissals]
 select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_amazon' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
@@ -161,5 +192,12 @@ select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type 
 data_source = "urlbar_events"
 [metrics.fakespot_not_relevant_dismissals.statistics.bootstrap_mean]
 
+## Review Checker
+[metrics.review_checker_displayed_count]
+select_expression = "COUNTIF(event_category = 'shopping' and event.name = 'surface_displayed')"
+data_source = "events"
+[metrics.review_checker_displayed_count.statistics.bootstrap_mean]
+
+## Remote Settings Latency
 [metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms]
 [metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms.statistics.bootstrap_mean]
