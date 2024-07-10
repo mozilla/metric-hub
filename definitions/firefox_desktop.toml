@@ -300,7 +300,7 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.daily_active_users_v2]
-data_source = "active_users_aggregates_desktop_view"
+data_source = "firefox_desktop_active_users_aggregates_view"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Firefox Desktop DAU"
@@ -359,14 +359,14 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.desktop_dau_kpi_v2]
-data_source = "active_users_aggregates_desktop_view"
+data_source = "firefox_desktop_active_users_aggregates_view"
 select_expression = "SUM(IF(FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15', dau, 0)) / 28"
 type = "scalar"
 friendly_name = "Firefox Desktop DAU KPI"
 description = """
     The average [Firefox Desktop DAU](https://mozilla.github.io/metric-hub/metrics/firefox_desktop/#daily_active_users_v2)
-    in the 28-day period ending on December 15th. This is the official Desktop DAU KPI reporting definition. The logic for calculating DAU is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/desktop_query.sql)
+    in the 28-day period ending on December 15th. This is the official Desktop DAU KPI reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     To reconstruct the annual Desktop DAU KPI, this metric needs to be aggregated by
     `EXTRACT(YEAR FROM submission_date)`.
@@ -1759,7 +1759,7 @@ description = "Months Since Client was New (Even 28 Day Periods Only)"
 
 [data_sources]
 
-[data_sources.active_users_aggregates_desktop_view]
+[data_sources.firefox_desktop_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`

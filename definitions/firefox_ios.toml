@@ -51,13 +51,13 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.daily_active_users_v2]
-data_source = "active_users_aggregates_v1"
+data_source = "firefox_ios_active_users_aggregates_view"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Firefox iOS DAU"
 description = """
     This is the official DAU reporting definition. The logic is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/mobile_query.sql)
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     Whenever possible, this is the preferred DAU reporting definition to use for Firefox iOS.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
@@ -82,7 +82,7 @@ description = """
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
 
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
@@ -367,7 +367,7 @@ deprecated = false
 
 [data_sources]
 
-[data_sources.active_users_aggregates_v1]
+[data_sources.firefox_ios_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
