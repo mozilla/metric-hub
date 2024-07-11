@@ -42,22 +42,22 @@ data_source = "urlbar_events_unnested_results"
 [metrics.admarketplace_sponsored_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_amazon_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rs_fakespot_amazon', event_id, NULL))"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_amazon', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 [metrics.fakespot_amazon_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_bestbuy_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rs_fakespot_bestbuy', event_id, NULL))"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_bestbuy', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 [metrics.fakespot_bestbuy_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_walmart_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rs_fakespot_walmart', event_id, NULL))"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_walmart', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 [metrics.fakespot_walmart_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type in ('rs_fakespot_amazon', 'rs_fakespot_bestbuy', 'rs_fakespot_walmart'), event_id, NULL))"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type in ('rust_fakespot_amazon', 'rust_fakespot_bestbuy', 'rust_fakespot_walmart'), event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 [metrics.fakespot_impressions.statistics.bootstrap_mean]
 
@@ -101,22 +101,22 @@ data_source = "urlbar_events"
 [metrics.admarketplace_sponsored_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_amazon_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rs_fakespot_amazon')"
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_amazon')"
 data_source = "urlbar_events"
 [metrics.fakespot_amazon_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_bestbuy_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rs_fakespot_bestbuy')"
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_bestbuy')"
 data_source = "urlbar_events"
 [metrics.fakespot_bestbuy_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_walmart_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rs_fakespot_walmart')"
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_walmart')"
 data_source = "urlbar_events"
 [metrics.fakespot_walmart_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type in ('rs_fakespot_amazon', 'rs_fakespot_bestbuy', 'rs_fakespot_walmart'))"
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type in ('rust_fakespot_amazon', 'rust_fakespot_bestbuy', 'rust_fakespot_walmart'))"
 data_source = "urlbar_events"
 [metrics.fakespot_clicks.statistics.bootstrap_mean]
 
@@ -173,22 +173,22 @@ data_source = "urlbar_events"
 [metrics.admarketplace_sponsored_not_relevant_dismissals.statistics.bootstrap_mean]
 
 [metrics.fakespot_amazon_not_relevant_dismissals]
-select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_amazon' and engagement_type = 'not_relevant')"
+select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rust_fakespot_amazon' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_amazon_not_relevant_dismissals.statistics.bootstrap_mean]
 
 [metrics.fakespot_bestbuy_not_relevant_dismissals]
-select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_bestbuy' and engagement_type = 'not_relevant')"
+select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rust_fakespot_bestbuy' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_bestbuy_not_relevant_dismissals.statistics.bootstrap_mean]
 
 [metrics.fakespot_walmart_not_relevant_dismissals]
-select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rs_fakespot_walmart' and engagement_type = 'not_relevant')"
+select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type = 'rust_fakespot_walmart' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_walmart_not_relevant_dismissals.statistics.bootstrap_mean]
 
 [metrics.fakespot_not_relevant_dismissals]
-select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type in ('rs_fakespot_amazon', 'rs_fakespot_bestbuy', 'rs_fakespot_walmart') and engagement_type = 'not_relevant')"
+select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type in ('rust_fakespot_amazon', 'rust_fakespot_bestbuy', 'rust_fakespot_walmart') and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.fakespot_not_relevant_dismissals.statistics.bootstrap_mean]
 
