@@ -27,7 +27,7 @@ coverage[toml]==7.5.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
-exceptiongroup==1.2.1
+exceptiongroup==1.2.2
     # via
     #   cattrs
     #   pytest
