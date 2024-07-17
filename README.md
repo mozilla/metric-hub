@@ -6,7 +6,7 @@ Some metrics may only be needed within a limited context, such as a value to be 
 
 For more information on how to add metric definitions please see the [docs on docs.telemetry.mozilla.org](https://docs.telemetry.mozilla.org/concepts/metric_hub.html)
 
-All metric definitions can and should be referenced in other tooling and their configurations, including jetstream, OpMon, [BigQuery ETL](https://docs.telemetry.mozilla.org/concepts/metric_hub.html#using-metrics-in-etl-queries), and [python scripts](https://docs.telemetry.mozilla.org/concepts/metric_hub.html#using-metrics-in-python-scripts). All metrics are also made available in auto-generated Looker Explores, from which visualizations and dashboards can be generated.
+All metric definitions can and should be referenced in other tooling and their configurations, including jetstream, OpMon, [BigQuery ETL](https://docs.telemetry.mozilla.org/concepts/metric_hub.html#using-metrics-in-etl-queries), and [Python scripts](https://docs.telemetry.mozilla.org/concepts/metric_hub.html#using-metrics-in-python-scripts). All metrics are also made available in auto-generated Looker Explores, from which visualizations and dashboards can be generated.
 
 Jetstream specific configs or defaults can be added in the `jetstream/` directory.
 OpMon specific configs or defaults can be added in the `opmon/` directory.
