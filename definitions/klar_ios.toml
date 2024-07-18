@@ -252,6 +252,6 @@ from_expression = """(
     WHERE app_name = "Klar iOS"
 )"""
 submission_date_column = "metric_date"
-description = "4th Week Retention Outcomes of Klar iOS New and Existing Users."
+description = "Aggregated 4th Week Retention Outcomes of Klar iOS New and Existing Users."
 friendly_name = "Klar iOS Retention"
 client_id_column = "NULL"
