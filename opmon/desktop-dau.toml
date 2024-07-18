@@ -13,7 +13,7 @@ metrics = [
 
 [project.population]
 
-data_source = "active_users_aggregates_v1"
+data_source = "firefox_desktop_active_users_aggregates_view"
 monitor_entire_population = true
 
 
@@ -29,7 +29,7 @@ type = "scalar"
 statistics.mean = {}
 
 
-[data_sources.active_users_aggregates_v1]
+[data_sources.firefox_desktop_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
