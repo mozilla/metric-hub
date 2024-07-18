@@ -2099,7 +2099,7 @@ client_id_column = "NULL"
 [data_sources.desktop_retention_view]
 from_expression = "moz-fx-data-shared-prod.telemetry.desktop_retention"
 submission_date_column = "metric_date"
-description = "4th Week Retention Outcomes of Desktop New and Existing Users."
+description = "Aggregated 4th Week Retention Outcomes of Desktop New and Existing Users."
 friendly_name = "Desktop Retention"
 client_id_column = "NULL"
 
