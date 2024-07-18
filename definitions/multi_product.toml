@@ -39,7 +39,7 @@ category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
-[metrics.engagement_rate_v1]
+[metrics.mobile_engagement_rate_v1]
 friendly_name = "Mobile Engagement Rate"
 data_source = "mobile_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
@@ -53,7 +53,7 @@ description = """
 owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
-[metrics.retention_rate_v1]
+[metrics.mobile_retention_rate_v1]
 friendly_name = "Mobile Retention Rate"
 data_source = "mobile_retention_view"
 select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
@@ -64,7 +64,7 @@ description = """
 owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
-[metrics.new_profile_retention_rate_v1]
+[metrics.mobile_new_profile_retention_rate_v1]
 friendly_name = "Mobile New Proflie Retention Rate"
 data_source = "mobile_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
