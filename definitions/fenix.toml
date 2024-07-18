@@ -482,6 +482,44 @@ friendly_name = "Deleted Bookmarks Users"
 description = "Number of Users that Deleted Bookmarks"
 owner = "rzhao@mozilla.com"
 
+[metrics.engagement_rate_v1]
+friendly_name = "Fenix Engagement Rate"
+data_source = "fenix_engagement_view"
+select_expression = "SUM(dau) / SUM(mau)"
+type = "scalar"
+description = """
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.retention_rate_v1]
+friendly_name = "Fenix Retention Rate"
+data_source = "fenix_retention_view"
+select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
+type = "scalar"
+description = """
+    The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.new_profile_retention_rate_v1]
+friendly_name = "Fenix New Proflie Retention Rate"
+data_source = "fenix_retention_view"
+select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
+type = "scalar"
+description = """
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
 [data_sources]
 
 [data_sources.fenix_active_users_aggregates_view]
@@ -642,3 +680,25 @@ from_expression = """(
 client_id_column = "NULL"
 friendly_name = "Feature Usage Metrics"
 description = "Fenix feature usage metrics"
+
+[data_sources.fenix_engagement_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.fenix.engagement`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Fenix Engagement"
+client_id_column = "NULL"
+
+[data_sources.fenix_retention_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.fenix.retention`
+    WHERE is_mobile
+)"""
+submission_date_column = "metric_date"
+description = "Aggregated 4th Week Retention Outcomes of Fenix New and Existing Users."
+friendly_name = "Fenix Retention"
+client_id_column = "NULL"
