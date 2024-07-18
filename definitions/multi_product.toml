@@ -41,7 +41,7 @@ deprecated = false
 
 [metrics.engagement_rate_v1]
 friendly_name = "Mobile Engagement Rate"
-data_source = "data_sources.mobile_engagement_view"
+data_source = "mobile_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
@@ -55,7 +55,7 @@ deprecated = false
 
 [metrics.retention_rate_v1]
 friendly_name = "Mobile Retention Rate"
-data_source = "data_sources.mobile_retention_view"
+data_source = "mobile_retention_view"
 select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
 type = "scalar"
 description = """
@@ -66,7 +66,7 @@ deprecated = false
 
 [metrics.new_profile_retention_rate_v1]
 friendly_name = "Mobile New Proflie Retention Rate"
-data_source = "data_sources.mobile_retention_view"
+data_source = "mobile_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """

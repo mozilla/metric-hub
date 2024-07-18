@@ -139,7 +139,7 @@ owner = "xluo-all@mozilla.com"
 
 [metrics.engagement_rate_v1]
 friendly_name = "Klar Android Engagement Rate"
-data_source = "data_sources.klar_android_engagement_view"
+data_source = "klar_android_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
@@ -153,7 +153,7 @@ deprecated = false
 
 [metrics.retention_rate_v1]
 friendly_name = "Klar Android Retention Rate"
-data_source = "data_sources.klar_android_retention_view"
+data_source = "klar_android_retention_view"
 select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
 type = "scalar"
 description = """
@@ -164,7 +164,7 @@ deprecated = false
 
 [metrics.new_profile_retention_rate_v1]
 friendly_name = "Klar Android New Proflie Retention Rate"
-data_source = "data_sources.klar_android_retention_view"
+data_source = "klar_android_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """

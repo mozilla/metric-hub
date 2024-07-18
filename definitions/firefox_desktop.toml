@@ -1750,7 +1750,7 @@ description = "Number of SERP page loads"
 
 [metrics.engagement_rate_v1]
 friendly_name = "Firefox Desktop Engagement Rate"
-data_source = "data_sources.desktop_engagement_view"
+data_source = "desktop_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
@@ -1764,7 +1764,7 @@ deprecated = false
 
 [metrics.retention_rate_v1]
 friendly_name = "Firefox Desktop Retention Rate"
-data_source = "data_sources.desktop_retention_view"
+data_source = "desktop_retention_view"
 select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
 type = "scalar"
 description = """
@@ -1775,7 +1775,7 @@ deprecated = false
 
 [metrics.new_profile_retention_rate_v1]
 friendly_name = "Firefox Desktop New Proflie Retention Rate"
-data_source = "data_sources.desktop_retention_view"
+data_source = "desktop_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """

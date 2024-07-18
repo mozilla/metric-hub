@@ -140,7 +140,7 @@ owner = "xluo-all@mozilla.com"
 
 [metrics.engagement_rate_v1]
 friendly_name = "Klar iOS Engagement Rate"
-data_source = "data_sources.klar_ios_engagement_view"
+data_source = "klar_ios_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
@@ -154,7 +154,7 @@ deprecated = false
 
 [metrics.retention_rate_v1]
 friendly_name = "Klar iOS Retention Rate"
-data_source = "data_sources.klar_ios_retention_view"
+data_source = "klar_ios_retention_view"
 select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
 type = "scalar"
 description = """
@@ -165,7 +165,7 @@ deprecated = false
 
 [metrics.new_profile_retention_rate_v1]
 friendly_name = "Klar iOS New Proflie Retention Rate"
-data_source = "data_sources.klar_ios_retention_view"
+data_source = "klar_ios_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """
