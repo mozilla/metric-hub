@@ -1668,22 +1668,26 @@ select_expression = """(
 data_source = "metrics"
 
 [metrics.pdf_invoked_to_handle]
-select_expression = "COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')), 0)"
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE)
+)"""
 data_source = "main"
 friendly_name = "PDF Invoked to Handle"
 description = "Firefox was invoked (i.e., was already running and was not launched) to handle a pdf file"
 
 [metrics.pdf_launched_to_handle]
-select_expression = "COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')), 0)"
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) > 0, FALSE)
+)"""
 data_source = "main"
 friendly_name = "PDF Launched to Handle"
 description = "Firefox was launched afresh (i.e., was not already running) to handle a pdf file"
 
 [metrics.pdf_launched_or_invoked_to_handle]
-select_expression = """
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')), 0) + 
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')), 0)
-"""
+select_expression = """(
+    (COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE) OR 
+    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) > 0, FALSE))
+)"""
 data_source = "main"
 friendly_name = "PDF Launched or Invoked"
 description = "Firefox was launched or invoked to handle a pdf file"
