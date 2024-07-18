@@ -369,6 +369,6 @@ from_expression = """(
     WHERE is_mobile
 )"""
 submission_date_column = "metric_date"
-description = "4th Week Retention Outcomes of Focus Android New and Existing Users."
+description = "Aggregated 4th Week Retention Outcomes of Focus Android New and Existing Users."
 friendly_name = "Focus Android Retention"
 client_id_column = "NULL"
