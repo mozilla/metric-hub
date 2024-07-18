@@ -2107,7 +2107,7 @@ from_expression = """(
     WHERE is_desktop
 )"""
 submission_date_column = "metric_date"
-description = "4th Week Retention Outcomes of Desktop New and Existing Users."
+description = "Aggregated 4th Week Retention Outcomes of Desktop New and Existing Users."
 friendly_name = "Desktop Retention"
 client_id_column = "NULL"
 
