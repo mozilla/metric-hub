@@ -137,6 +137,43 @@ category = "search"
 type = "scalar"
 owner = "xluo-all@mozilla.com"
 
+[metrics.engagement_rate_v1]
+friendly_name = "Klar Android Engagement Rate"
+data_source = "data_sources.klar_android_engagement_view"
+select_expression = "SUM(dau) / SUM(mau)"
+type = "scalar"
+description = """
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.retention_rate_v1]
+friendly_name = "Klar Android Retention Rate"
+data_source = "data_sources.klar_android_retention_view"
+select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
+type = "scalar"
+description = """
+    The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.new_profile_retention_rate_v1]
+friendly_name = "Klar Android New Proflie Retention Rate"
+data_source = "data_sources.klar_android_retention_view"
+select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
+type = "scalar"
+description = """
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
 
 [data_sources]
 
@@ -192,3 +229,25 @@ from_expression = "mozdata.search.mobile_search_clients_engines_sources_daily"
 experiments_column_type = "simple"
 client_id_column = "client_id"
 submission_date_column = "submission_date"
+
+[data_sources.klar_android_engagement_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.klar_android.engagement`
+    WHERE app_name = "Klar Android"
+)"""
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Klar Android Engagement"
+client_id_column = "NULL"
+
+[data_sources.klar_android_retention_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.klar_android.retention`
+    WHERE app_name = "Klar Android"
+)"""
+submission_date_column = "metric_date"
+description = "4th Week Retention Outcomes of Klar Android New and Existing Users."
+friendly_name = "Klar Android Retention"
+client_id_column = "NULL"
