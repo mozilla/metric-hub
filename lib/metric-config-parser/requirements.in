@@ -91,7 +91,7 @@ pytest-black==0.3.12
     # via mozilla-metric-config-parser
 pytest-cov==5.0.0
     # via mozilla-metric-config-parser
-pytest-flake8==1.1.1
+pytest-flake8==1.2.1
     # via mozilla-metric-config-parser
 python-dateutil==2.9.0.post0
     # via faker
