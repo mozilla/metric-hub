@@ -281,3 +281,4 @@ from_expression = """(
 )"""
 submission_date_column = "submission_date"
 client_id_column = "client_id"
+deprecated = false
