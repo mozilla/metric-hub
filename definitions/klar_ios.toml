@@ -277,7 +277,7 @@ description = "Client-level table that indicates whether a client meets 'active 
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.klar_ios.active_users`
-    WHERE is_mobile
+    WHERE app_name = "Klar iOS"
 )"""
 submission_date_column = "submission_date"
 client_id_column = "client_id"
