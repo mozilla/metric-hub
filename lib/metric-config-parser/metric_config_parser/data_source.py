@@ -97,7 +97,7 @@ class DataSource:
     columns_as_dimensions = attr.ib(default=False, type=bool)
     timestamp_column = attr.ib(default="submission_timestamp", type=str)
 
-    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean", "main_v5")
+    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean", "main_live")
 
     @experiments_column_type.validator
     def _check_experiments_column_type(self, attribute, value):
