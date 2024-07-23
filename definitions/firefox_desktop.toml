@@ -1790,6 +1790,11 @@ description = """
 owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
+[metrics.first_ping_default_rate]
+select_expression = "CASE WHEN environment.settings.is_default_browser THEN 1 ELSE 0 END"
+data_source = "inflight_main_v5"
+type = "inflight"
+
 [dimensions]
 
 [dimensions.os]
@@ -2114,6 +2119,11 @@ submission_date_column = "metric_date"
 description = "Aggregated 4th Week Retention Outcomes of Desktop New and Existing Users."
 friendly_name = "Desktop Retention"
 client_id_column = "NULL"
+
+[data_sources.inflight_main_v5]
+from_expression = "moz-fx-data-shared-prod.telemetry_live.main_v5"
+timestamp_column = "submission_timestamp",
+experiments_column_type = "main_live"
 
 [segments]
 
