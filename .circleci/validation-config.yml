@@ -42,9 +42,13 @@ jobs:
     steps:
     - checkout
     - run:
-        name: Build
+        name: Dependencies
         command: |
           pip install -r .script/requirements.txt
+    - run: 
+        name: Build current metric-config-parser
+        command: |
+          pip install -e lib/metric-config-parser
     - &authenticate
       run:
         name: Authenticate to GCP
