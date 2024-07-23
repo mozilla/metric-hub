@@ -262,6 +262,7 @@ def validate(path, config_repos):
                                 name: d.resolve(None, entity, config_collection)
                                 for name, d in entity.spec.data_sources.definitions.items()
                             },
+                            inflight=inflight_metrics,
                         )
                         sql_to_validate.append(sql)
 
