@@ -117,8 +117,22 @@ For more information, refer to [the DAU description in Confluence](https://mozil
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
-deprecated = false
+deprecated = true
 
+[metrics.client_level_daily_active_users_v3]
+friendly_name = "Focus Android Client-Level DAU"
+data_source = "focus_android_active_users_view"
+select_expression = """COUNTIF(is_dau)"""
+type = "scalar"
+description = """
+    Client-level DAU. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
+    similar to a "days of use" metric, and not DAU.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
 
 [metrics.ad_clicks]
 select_expression = "{{agg_sum('ad_click')}}"
@@ -372,3 +386,15 @@ submission_date_column = "metric_date"
 description = "Aggregated 4th Week Retention Outcomes of Focus Android New and Existing Users."
 friendly_name = "Focus Android Retention"
 client_id_column = "NULL"
+
+[data_sources.focus_android_active_users_view]
+friendly_name = "Focus Android Active Users"
+description = "Client-level table that indicates whether a client meets 'active user' criteria on a given submission_date."
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.focus_android.active_users`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+deprecated = false
