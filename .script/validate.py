@@ -232,7 +232,7 @@ def validate(path, config_repos):
                                     )
                                     for name, d in data_sources.items()
                                 },
-                                inflight_metrics=inflight_metrics,
+                                inflight=inflight_metrics,
                             )
                             sql_to_validate.append(sql)
                             i = 0
