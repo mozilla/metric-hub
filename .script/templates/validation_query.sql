@@ -41,6 +41,5 @@ FROM
     {{ data_sources[metric.data_source.name].from_expr_for(None) }}
 WHERE DATE({{ data_sources[metric.data_source.name].timestamp_column }}) = DATE('2024-01-01')
 GROUP BY
-    event_timestamp,
     client_id;
 {% endfor %}    
