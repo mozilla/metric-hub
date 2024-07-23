@@ -2122,7 +2122,7 @@ client_id_column = "NULL"
 
 [data_sources.inflight_main_v5]
 from_expression = "moz-fx-data-shared-prod.telemetry_live.main_v5"
-timestamp_column = "submission_timestamp",
+timestamp_column = "submission_timestamp"
 experiments_column_type = "main_live"
 
 [segments]
