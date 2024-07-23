@@ -74,11 +74,6 @@ class Summary:
     pre_treatments: List[PreTreatmentReference] = attr.Factory(list)
 
 
-class MetricType(str, Enum):
-    STANDARD = "standard"
-    INFLIGHT = "inflight"
-
-
 @attr.s(auto_attribs=True, frozen=True, slots=True)
 class Metric:
     """
@@ -101,7 +96,6 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    type: Optional[MetricType] = None
 
 
 @attr.s(auto_attribs=True)
@@ -153,7 +147,6 @@ class MetricDefinition:
     owner: Optional[Union[str, List[str]]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    type: Optional[MetricType] = None
 
     @staticmethod
     def generate_select_expression(
@@ -246,7 +239,6 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
-                    type=self.type,
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = self.analysis_bases or [
@@ -279,7 +271,6 @@ class MetricDefinition:
                 owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                 deprecated=self.deprecated,
                 level=self.level,
-                type=self.type,
             )
 
         metrics_with_treatments = []
