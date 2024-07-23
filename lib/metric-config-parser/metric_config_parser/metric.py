@@ -74,6 +74,11 @@ class Summary:
     pre_treatments: List[PreTreatmentReference] = attr.Factory(list)
 
 
+class MetricType(str, Enum):
+    STANDARD = "standard"
+    INFLIGHT = "inflight"
+
+
 @attr.s(auto_attribs=True, frozen=True, slots=True)
 class Metric:
     """
@@ -96,6 +101,7 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    type: Optional[MetricType] = None
 
 
 @attr.s(auto_attribs=True)
@@ -147,6 +153,7 @@ class MetricDefinition:
     owner: Optional[Union[str, List[str]]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    type: Optional[MetricType] = None
 
     @staticmethod
     def generate_select_expression(
@@ -239,6 +246,7 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
+                    type=self.type,
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = self.analysis_bases or [
@@ -271,6 +279,7 @@ class MetricDefinition:
                 owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                 deprecated=self.deprecated,
                 level=self.level,
+                type=self.type,
             )
 
         metrics_with_treatments = []
@@ -345,6 +354,7 @@ class MetricsSpec:
     preenrollment_weekly: List[MetricReference] = attr.Factory(list)
     preenrollment_days28: List[MetricReference] = attr.Factory(list)
     definitions: Dict[str, MetricDefinition] = attr.Factory(dict)
+    inflight: List[MetricReference] = attr.Factory(list)
 
     @classmethod
     def from_dict(cls, d: dict) -> "MetricsSpec":
@@ -408,6 +418,7 @@ class MetricsSpec:
         self.overall = other.overall + self.overall
         self.preenrollment_weekly = other.preenrollment_weekly + self.preenrollment_weekly
         self.preenrollment_days28 = other.preenrollment_days28 + self.preenrollment_days28
+        self.inflight = other.inflight + self.inflight
 
         seen = set()
         for key, _ in self.definitions.items():
