@@ -37,7 +37,7 @@ overall = ["admarketplace_sponsored_impressions",
 
 ## Impressions
 [metrics.admarketplace_sponsored_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type like '%adm_sponsored', event_id, NULL))"
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
 [metrics.admarketplace_sponsored_impressions.statistics.bootstrap_mean]
 
@@ -96,7 +96,7 @@ denominator = "urlbar_impressions"
 
 ## Clicks
 [metrics.admarketplace_sponsored_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type like '%adm_sponsored')"
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_selected_result = 'admarketplace_sponsored')"
 data_source = "urlbar_events"
 [metrics.admarketplace_sponsored_clicks.statistics.bootstrap_mean]
 
@@ -168,7 +168,7 @@ denominator = "fakespot_impressions"
 
 ## Dismissals
 [metrics.admarketplace_sponsored_not_relevant_dismissals]
-select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type like '%adm_sponsored' and engagement_type = 'not_relevant')"
+select_expression = "COUNTIF(event_action = 'annoyance' and product_engaged_result_type = 'admarketplace_sponsored' and engagement_type = 'not_relevant')"
 data_source = "urlbar_events"
 [metrics.admarketplace_sponsored_not_relevant_dismissals.statistics.bootstrap_mean]
 
