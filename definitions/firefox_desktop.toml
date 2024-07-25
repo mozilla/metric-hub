@@ -533,6 +533,14 @@ description = "The time, in percentage of a vsync interval, spent from the vsync
 category = "performance"
 type = "histogram"
 
+[metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms]
+data_source = "main"
+select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_urlbar_quick_suggest_remote_settings_latency_ms) IGNORE NULLS)"
+friendly_name = "Firefox Suggest Remote Settings Latency Ms"
+description = "The time from when Firefox starts fetching a suggestion from remote settings to the time the suggestion is retrieved."
+category = "performance"
+type = "histogram"
+
 [metrics.fx_new_window_ms]
 data_source = "main"
 select_expression = "ARRAY_AGG(mozfun.hist.extract(payload.histograms.fx_new_window_ms) IGNORE NULLS)"
