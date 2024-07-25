@@ -67,6 +67,10 @@ depends_on = ["admarketplace_sponsored_impressions", "urlbar_impressions"]
 friendly_name = "Admarketplace Impression Rate"
 description = "Proportion of Admarketplace impressions out of all urlbar sessions (not available on control)"
 
+[metrics.admarketplace_sponsored_impression_rate.statistics.population_ratio]
+numerator = "admarketplace_sponsored_impressions"
+denominator = "urlbar_impressions"
+
 [metrics.fakespot_amazon_impression_rate]
 depends_on = ["fakespot_amazon_impressions", "urlbar_impressions"]
 friendly_name = "Fakespot Amazon Impression Rate"
