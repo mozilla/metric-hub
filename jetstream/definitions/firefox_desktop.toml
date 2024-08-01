@@ -50,6 +50,7 @@
 
 [metrics.pocket_rec_clicks.statistics.bootstrap_mean]
 
+[metrics.sponsored_pocket_impressions.statistics.bootstrap_mean]
 
 [metrics.pocket_spoc_clicks.statistics.bootstrap_mean]
 
