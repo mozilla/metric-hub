@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .definition import DefinitionSpecSub
     from .project import ProjectConfiguration
 
+from . import AnalysisUnit
 from .data_source import DataSource, DataSourceReference
 from .parameter import ParameterDefinition
 from .pre_treatment import PreTreatmentReference
@@ -96,6 +97,7 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    aggregation_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
 
 
 @attr.s(auto_attribs=True)
@@ -147,6 +149,7 @@ class MetricDefinition:
     owner: Optional[Union[str, List[str]]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    aggregation_units: Optional[List[AnalysisUnit]] = None
 
     @staticmethod
     def generate_select_expression(
@@ -239,6 +242,7 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
+                    aggregation_units=self.aggregation_units or [AnalysisUnit.CLIENT],
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = self.analysis_bases or [
@@ -247,6 +251,9 @@ class MetricDefinition:
                 ]
                 metric_definition.statistics = self.statistics
                 metric_summary = metric_definition.resolve(spec, conf, configs)
+                metric_definition.aggregation_units = self.aggregation_units or [
+                    AnalysisUnit.CLIENT
+                ]
         else:
             select_expression = self.generate_select_expression(
                 spec.parameters.definitions,
@@ -254,9 +261,21 @@ class MetricDefinition:
                 configs=configs,
             )
 
+            # ensure all of metric's aggregation_units are supported by data_source
+            resolved_ds = self.data_source.resolve(spec, conf, configs)
+            aggregation_units = self.aggregation_units or [AnalysisUnit.CLIENT]
+            for agg_unit in aggregation_units:
+                if agg_unit not in resolved_ds.aggregation_units:
+                    raise ValueError(
+                        f"data_source {resolved_ds.name} does not support "
+                        f"all aggregation_units specified by metric {self.name}: "
+                        f"aggregation_units for metric: {aggregation_units}, "
+                        f"aggregation_units for data_source: {resolved_ds.aggregation_units}"
+                    )
+
             metric = Metric(
                 name=self.name,
-                data_source=self.data_source.resolve(spec, conf, configs),
+                data_source=resolved_ds,
                 select_expression=select_expression,
                 friendly_name=(
                     dedent(self.friendly_name) if self.friendly_name else self.friendly_name
@@ -271,6 +290,7 @@ class MetricDefinition:
                 owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                 deprecated=self.deprecated,
                 level=self.level,
+                aggregation_units=aggregation_units,
             )
 
         metrics_with_treatments = []
@@ -361,7 +381,8 @@ class MetricsSpec:
 
         params["definitions"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, MetricDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                MetricDefinition,
             )
             for k, v in d.items()
             if k not in known_keys and k != "28_day"

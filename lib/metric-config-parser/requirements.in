@@ -30,9 +30,9 @@ exceptiongroup==1.2.2
     # via
     #   cattrs
     #   pytest
-faker==26.0.0
+faker==26.1.0
     # via polyfactory
-flake8==7.1.0
+flake8==5.0.4
     # via pytest-flake8
 gitdb==4.0.11
     # via gitpython
@@ -57,7 +57,7 @@ mccabe==0.7.0
     # via -r -
 mozilla-nimbus-schemas==2023.10.3
     # via mozilla-metric-config-parser
-mypy==1.10.1
+mypy==1.11.1
     # via mozilla-metric-config-parser
 mypy-extensions==1.0.0
     # via
@@ -75,13 +75,13 @@ pluggy==1.5.0
     # via pytest
 polyfactory==2.16.2
     # via mozilla-nimbus-schemas
-pycodestyle==2.12.0
+pycodestyle==2.9.1
     # via flake8
 pydantic==1.10.17
     # via mozilla-nimbus-schemas
-pyflakes==3.2.0
+pyflakes==2.5.0
     # via flake8
-pytest==8.2.2
+pytest==8.3.2
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
@@ -91,7 +91,7 @@ pytest-black==0.3.12
     # via mozilla-metric-config-parser
 pytest-cov==5.0.0
     # via mozilla-metric-config-parser
-pytest-flake8==1.1.1
+pytest-flake8==1.2.2
     # via mozilla-metric-config-parser
 python-dateutil==2.9.0.post0
     # via faker
@@ -103,7 +103,7 @@ referencing==0.35.1
     #   jsonschema-specifications
 requests==2.32.3
     # via mozilla-metric-config-parser
-rpds-py==0.19.0
+rpds-py==0.19.1
     # via
     #   jsonschema
     #   referencing
@@ -129,7 +129,7 @@ types-protobuf==5.27.0.20240626
     # via mozilla-metric-config-parser
 types-pytz==2024.1.0.20240417
     # via mozilla-metric-config-parser
-types-pyyaml==6.0.12.20240311
+types-pyyaml==6.0.12.20240724
     # via mozilla-metric-config-parser
 types-requests==2.32.0.20240712
     # via mozilla-metric-config-parser

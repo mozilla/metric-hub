@@ -6,6 +6,7 @@ import toml
 from cattrs.errors import ClassValidationError
 from mozilla_nimbus_schemas.jetstream import AnalysisBasis
 
+from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisConfiguration, AnalysisSpec
 from metric_config_parser.data_source import DataSource
 from metric_config_parser.errors import InvalidConfigurationException
@@ -347,6 +348,7 @@ class TestAnalysisSpec:
         assert spam.metric.data_source.name == "main"
         assert spam.metric.select_expression == "2"
         assert spam.metric.analysis_bases == [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
+        assert spam.metric.aggregation_units == [AnalysisUnit.CLIENT]
         assert spam.statistic.name == "bootstrap_mean"
         assert spam.statistic.params["num_samples"] == 100
 
@@ -763,3 +765,68 @@ class TestAnalysisSpec:
         assert len(metric.depends_on[0].metric.depends_on) == 1
         assert metric.depends_on[0].metric.depends_on[0].metric.name == "spam"
         assert metric.depends_on[0].metric.depends_on[0].metric.select_expression == "1"
+
+    def test_default_aggregation_units(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["active_hours"]
+
+            [metrics.active_hours.statistics.bootstrap_mean]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+
+        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
+            0
+        ].metric
+        assert metric.aggregation_units == [AnalysisUnit.CLIENT]
+
+        data_source = metric.data_source
+        assert data_source.aggregation_units == [AnalysisUnit.CLIENT]
+
+    @pytest.mark.parametrize(
+        "metric_units,ds_units",
+        (
+            ("aggregation_units = ['client_id']", "aggregation_units = ['profile_group_id']"),
+            (
+                "aggregation_units = ['client_id', 'profile_group_id']",
+                "aggregation_units = ['profile_group_id']",
+            ),
+            ("aggregation_units = ['profile_group_id']", "aggregation_units = ['client_id']"),
+            (
+                "aggregation_units = ['client_id', 'profile_group_id']",
+                "aggregation_units = ['client_id']",
+            ),
+        ),
+    )
+    def test_invalid_aggregation_units_combinations(
+        self, metric_units, ds_units, experiments, config_collection
+    ):
+        config_str = dedent(
+            f"""
+            [metrics]
+            weekly = ["spam"]
+
+            [metrics.spam]
+            data_source = "eggs"
+            select_expression = "1"
+            {metric_units}
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.eggs]
+            from_expression = "england.camelot"
+            client_id_column = "client_info.client_id"
+            {ds_units}
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        # print(spec.metrics.weekly[0].resolve(spec, , config_collection))
+        print(f"metric: {metric_units}, ds: {ds_units}")
+
+        with pytest.raises(ValueError, match="data_source eggs does not support"):
+            spec.resolve(experiments[0], config_collection)
