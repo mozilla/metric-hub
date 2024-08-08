@@ -1,0 +1,113 @@
+[metrics]
+
+[metrics.avg_pub_cpc]
+data_source = "admarketplace"
+select_expression = "AVG(avg_pub_cpc)"
+friendly_name = "Average Publisher CPC"
+description = "Average cost per click (paid to Mozilla, in USD). Calculated as CPC payout divided by valid clicks."
+
+[metrics.total_payout]
+data_source = "admarketplace"
+select_expression = "SUM(payout)"
+friendly_name = "Total Payout"
+description = "Total amount paid to Mozilla in USD."
+
+[metrics.valid_clicks]
+data_source = "admarketplace"
+select_expression = "SUM(valid_clicks)"
+friendly_name = "Total Valid Clicks"
+description = "Total number of valid clicks recorded."
+
+[metrics.valid_impressions]
+data_source = "admarketplace"
+select_expression = "SUM(valid_impressions)"
+friendly_name = "Total Valid Impressions"
+description = "Total number of valid impressions recorded."
+
+[metrics.rpm_rate]
+data_source = "admarketplace"
+select_expression = "AVG(rpm_rate)"
+friendly_name = "Average RPM Rate"
+description = "Average revenue per thousand impressions (paid to Mozilla, in USD), calculated as RPM payout divided by valid impressions times 1000."
+
+[metrics.cost_per_click]
+data_source = "admarketplace"
+select_expression = "SAFE_DIVIDE(SUM(payout), SUM(valid_clicks))"
+friendly_name = "Cost Per Click"
+description = "Calculated as total payout divided by the number of valid clicks. Returns NULL if number of billed clicks is zero."
+
+[metrics.revenue_per_thousand_impressions]
+data_source = "admarketplace"
+select_expression = "SAFE_DIVIDE(SUM(payout), SUM(valid_impressions)) * 1000"
+friendly_name = "Revenue Per Thousand Impressions"
+description = "RPM Payout divided by the number of valid impressions times 1000. Returns NULL if number of valid impressions is zero."
+
+[data_sources]
+
+[data_sources.admarketplace]
+from_expression = "mozdata.revenue.admarketplace"
+client_id_column = "advertiser"
+friendly_name = "AdMarketplace"
+description = "Data source for AdMarketplace metrics. Includes dimensions such as advertiser, device, country, and more."
+
+[dimensions]
+
+[dimensions.date]
+data_source = "admarketplace"
+select_expression = "adm_date"
+friendly_name = "Report Date"
+description = "Date field from the adM report. Not the date the report was sent to us from adM."
+
+[dimensions.date]
+data_source = "admarketplace"
+select_expression = "created_date"
+friendly_name = "Ingestion Date"
+description = "Date field created upon Ingestion."
+
+[dimensions.date]
+data_source = "admarketplace"
+select_expression = "file_date"
+friendly_name = "File Date"
+description = "Date field tied to when the file was received."
+
+[dimensions.advertiser]
+data_source = "admarketplace"
+select_expression = "advertiser"
+friendly_name = "Advertiser"
+description = "The advertiser associated with the data."
+
+[dimensions.device]
+data_source = "admarketplace"
+select_expression = "device"
+friendly_name = "Device"
+description = "Device type from which the ad interaction originated."
+
+[dimensions.partner_name]
+data_source = "admarketplace"
+select_expression = "partner_name"
+friendly_name = "Partner Name"
+description = "Name of the partner associated with the ad data."
+
+[dimensions.placement]
+data_source = "admarketplace"
+select_expression = "placement"
+friendly_name = "Placement"
+description = "Location or position where the ad was displayed."
+
+[dimensions.product]
+data_source = "admarketplace"
+select_expression = "product"
+friendly_name = "Product"
+description = "Product category or type associated with the ad displayed."
+
+[dimensions.pricing_model]
+data_source = "admarketplace"
+select_expression = "pricing_model"
+friendly_name = "Pricing Model"
+description = "Pricing model used for billing the ad interaction, e.g., CPC (Cost Per Click) or RPM (Revenue Per Mille)."
+
+[dimensions.position]
+data_source = "admarketplace"
+select_expression = "position"
+friendly_name = "Ad Position"
+description = "Position in which the content was shown."
