@@ -173,7 +173,7 @@ description = """\
   If there are values in here, you probably should update the opmon config to handle that new ping_type explicitly.\
 """
 data_source = "messaging_system"
-select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr'))"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar_badge', 'toast_notification'))"
 type = "scalar"
 statistics.sum = {}
 
