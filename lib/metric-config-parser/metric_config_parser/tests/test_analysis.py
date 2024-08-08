@@ -788,6 +788,61 @@ class TestAnalysisSpec:
         assert data_source.aggregation_units == [AnalysisUnit.CLIENT]
 
     @pytest.mark.parametrize(
+        "metric1_units, metric2_units, ds_units",
+        (
+            (
+                "aggregation_units = ['profile_group_id']",
+                "aggregation_units = ['profile_group_id']",
+            ),
+            (
+                "aggregation_units = ['client_id']",
+                "aggregation_units = ['client_id']",
+            ),
+            (
+                "aggregation_units = ['profile_group_id']",
+                "aggregation_units = ['client_id', 'profile_group_id']",
+            ),
+            (
+                "aggregation_units = ['client_id']",
+                "aggregation_units = ['profile_group_id', 'client_id']",
+            ),
+            (
+                "aggregation_units = ['client_id', 'profile_group_id']",
+                "aggregation_units = ['profile_group_id', 'client_id']",
+            ),
+        ),
+    )
+    def test_valid_aggregation_units_combinations(
+        self, metric_units, ds_units, experiments, config_collection
+    ):
+        config_str = dedent(
+            f"""
+            [metrics]
+            weekly = ["spam"]
+
+            [metrics.spam]
+            data_source = "eggs"
+            select_expression = "1"
+            {metric_units}
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.eggs]
+            from_expression = "england.camelot"
+            client_id_column = "client_info.client_id"
+            {ds_units}
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
+        assert metric.aggregation_units is not None
+        assert metric.data_source.aggregation_units is not None
+        for unit in metric.aggregation_units:
+            assert unit in metric.data_source.aggregation_units
+
+    @pytest.mark.parametrize(
         "metric_units,ds_units",
         (
             ("aggregation_units = ['client_id']", "aggregation_units = ['profile_group_id']"),

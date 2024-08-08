@@ -250,10 +250,10 @@ class MetricDefinition:
                     AnalysisBasis.EXPOSURES,
                 ]
                 metric_definition.statistics = self.statistics
-                metric_summary = metric_definition.resolve(spec, conf, configs)
                 metric_definition.aggregation_units = self.aggregation_units or [
                     AnalysisUnit.CLIENT
                 ]
+                metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
             select_expression = self.generate_select_expression(
                 spec.parameters.definitions,
