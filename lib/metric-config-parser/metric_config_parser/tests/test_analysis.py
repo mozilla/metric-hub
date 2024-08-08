@@ -788,7 +788,7 @@ class TestAnalysisSpec:
         assert data_source.aggregation_units == [AnalysisUnit.CLIENT]
 
     @pytest.mark.parametrize(
-        "metric1_units, metric2_units, ds_units",
+        "metric_units, ds_units",
         (
             (
                 "aggregation_units = ['profile_group_id']",
