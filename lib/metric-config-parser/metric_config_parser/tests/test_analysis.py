@@ -825,8 +825,6 @@ class TestAnalysisSpec:
         )
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
-        # print(spec.metrics.weekly[0].resolve(spec, , config_collection))
-        print(f"metric: {metric_units}, ds: {ds_units}")
 
         with pytest.raises(ValueError, match="data_source eggs does not support"):
             spec.resolve(experiments[0], config_collection)
