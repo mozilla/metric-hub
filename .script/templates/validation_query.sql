@@ -31,3 +31,15 @@ FROM
     {{ data_sources[dimension.data_source.name].from_expr_for(None) }}
 WHERE {{ data_sources[dimension.data_source.name].submission_date_column }} = DATE('2020-01-01');
 {% endfor %}
+
+{% for metric in inflight %}
+SELECT 
+    {{ data_sources[metric.data_source.name].client_id_column }} AS client_id,
+    MIN_BY({{ metric.select_expression }}, {{ data_sources[metric.data_source.name].timestamp_column }}) AS {{ metric.name }},
+    MIN({{ data_sources[metric.data_source.name].timestamp_column }}) AS event_timestamp
+FROM 
+    {{ data_sources[metric.data_source.name].from_expr_for(None) }}
+WHERE DATE({{ data_sources[metric.data_source.name].timestamp_column }}) = DATE('2024-01-01')
+GROUP BY
+    client_id;
+{% endfor %}    

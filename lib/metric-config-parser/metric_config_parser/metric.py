@@ -345,6 +345,7 @@ class MetricsSpec:
     preenrollment_weekly: List[MetricReference] = attr.Factory(list)
     preenrollment_days28: List[MetricReference] = attr.Factory(list)
     definitions: Dict[str, MetricDefinition] = attr.Factory(dict)
+    inflight: List[MetricReference] = attr.Factory(list)
 
     @classmethod
     def from_dict(cls, d: dict) -> "MetricsSpec":
@@ -408,6 +409,7 @@ class MetricsSpec:
         self.overall = other.overall + self.overall
         self.preenrollment_weekly = other.preenrollment_weekly + self.preenrollment_weekly
         self.preenrollment_days28 = other.preenrollment_days28 + self.preenrollment_days28
+        self.inflight = other.inflight + self.inflight
 
         seen = set()
         for key, _ in self.definitions.items():

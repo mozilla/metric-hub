@@ -44,6 +44,11 @@ class DataSourceJoin:
     on_expression: Optional[str]
 
 
+class DataSourceType(str, Enum):
+    REGULAR = "regular"
+    INFLIGHT = "inflight"
+
+
 @attr.s(frozen=True, slots=True)
 class DataSource:
     """Represents a table or view, from which Metrics may be defined.
@@ -90,8 +95,9 @@ class DataSource:
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
+    timestamp_column = attr.ib(default="submission_timestamp", type=str)
 
-    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
+    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean", "main_live")
 
     @experiments_column_type.validator
     def _check_experiments_column_type(self, attribute, value):
@@ -162,6 +168,7 @@ class DataSourceDefinition:
     description: Optional[str] = None
     joins: Optional[Dict[str, Dict[str, Any]]] = None
     columns_as_dimensions: Optional[bool] = None
+    timestamp_column: Optional[str] = None
 
     def resolve(
         self,
@@ -190,6 +197,7 @@ class DataSourceDefinition:
             "friendly_name",
             "description",
             "columns_as_dimensions",
+            "timestamp_column",
         ):
             v = getattr(self, k)
             if v:

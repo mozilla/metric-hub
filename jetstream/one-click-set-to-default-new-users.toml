@@ -1,0 +1,5 @@
+[metrics]
+inflight = ["first_ping_default_rate"]
+
+[metrics.first_ping_default_rate]
+[metrics.first_ping_default_rate.statistics.design_based_confidence_sequences]

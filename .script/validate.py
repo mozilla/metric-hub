@@ -82,7 +82,7 @@ def dry_run_query(sql: str) -> None:
                 },
                 data=json.dumps(
                     {
-                         "dataset": "mozanalysis",
+                        "dataset": "mozanalysis",
                         "query": sql,
                     }
                 ).encode("utf8"),
@@ -186,6 +186,7 @@ def validate(path, config_repos):
                     i = 0
                     progress = 0
                     metrics = []
+                    inflight_metrics = []
                     data_sources = {}
                     for metric_name in entity.spec.metrics.definitions.keys():
                         i += 1
@@ -204,7 +205,10 @@ def validate(path, config_repos):
                                 .from_string(metric.select_expression)
                                 .render()
                             )
-                            metrics.append(metric)
+                            if metric.type == "inflight":
+                                inflight_metrics.append(metric)
+                            else:
+                                metrics.append(metric)
 
                         if metric.data_source:
                             data_source = config_collection.get_data_source_definition(
@@ -223,9 +227,12 @@ def validate(path, config_repos):
                                 segments=[],
                                 segment_data_sources=[],
                                 data_sources={
-                                    name: d.resolve(entity.spec, entity, config_collection)
+                                    name: d.resolve(
+                                        entity.spec, entity, config_collection
+                                    )
                                     for name, d in data_sources.items()
                                 },
+                                inflight=inflight_metrics,
                             )
                             sql_to_validate.append(sql)
                             i = 0
@@ -255,6 +262,7 @@ def validate(path, config_repos):
                                 name: d.resolve(None, entity, config_collection)
                                 for name, d in entity.spec.data_sources.definitions.items()
                             },
+                            inflight=inflight_metrics,
                         )
                         sql_to_validate.append(sql)
 
