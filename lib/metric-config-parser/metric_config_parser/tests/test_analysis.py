@@ -348,7 +348,7 @@ class TestAnalysisSpec:
         assert spam.metric.data_source.name == "main"
         assert spam.metric.select_expression == "2"
         assert spam.metric.analysis_bases == [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
-        assert spam.metric.aggregation_units == [AnalysisUnit.CLIENT]
+        assert spam.metric.analysis_units == [AnalysisUnit.CLIENT]
         assert spam.statistic.name == "bootstrap_mean"
         assert spam.statistic.params["num_samples"] == 100
 
@@ -766,7 +766,7 @@ class TestAnalysisSpec:
         assert metric.depends_on[0].metric.depends_on[0].metric.name == "spam"
         assert metric.depends_on[0].metric.depends_on[0].metric.select_expression == "1"
 
-    def test_default_aggregation_units(self, experiments, config_collection):
+    def test_default_analysis_units(self, experiments, config_collection):
         config_str = dedent(
             """
             [metrics]
@@ -782,37 +782,37 @@ class TestAnalysisSpec:
         metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
             0
         ].metric
-        assert metric.aggregation_units == [AnalysisUnit.CLIENT]
+        assert metric.analysis_units == [AnalysisUnit.CLIENT]
 
         data_source = metric.data_source
-        assert data_source.aggregation_units == [AnalysisUnit.CLIENT]
+        assert data_source.analysis_units == [AnalysisUnit.CLIENT]
 
     @pytest.mark.parametrize(
         "metric_units, ds_units",
         (
             (
-                "aggregation_units = ['profile_group_id']",
-                "aggregation_units = ['profile_group_id']",
+                "analysis_units = ['profile_group_id']",
+                "analysis_units = ['profile_group_id']",
             ),
             (
-                "aggregation_units = ['client_id']",
-                "aggregation_units = ['client_id']",
+                "analysis_units = ['client_id']",
+                "analysis_units = ['client_id']",
             ),
             (
-                "aggregation_units = ['profile_group_id']",
-                "aggregation_units = ['client_id', 'profile_group_id']",
+                "analysis_units = ['profile_group_id']",
+                "analysis_units = ['client_id', 'profile_group_id']",
             ),
             (
-                "aggregation_units = ['client_id']",
-                "aggregation_units = ['profile_group_id', 'client_id']",
+                "analysis_units = ['client_id']",
+                "analysis_units = ['profile_group_id', 'client_id']",
             ),
             (
-                "aggregation_units = ['client_id', 'profile_group_id']",
-                "aggregation_units = ['profile_group_id', 'client_id']",
+                "analysis_units = ['client_id', 'profile_group_id']",
+                "analysis_units = ['profile_group_id', 'client_id']",
             ),
         ),
     )
-    def test_valid_aggregation_units_combinations(
+    def test_valid_analysis_units_combinations(
         self, metric_units, ds_units, experiments, config_collection
     ):
         config_str = dedent(
@@ -837,27 +837,27 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
         metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
-        assert metric.aggregation_units is not None
-        assert metric.data_source.aggregation_units is not None
-        for unit in metric.aggregation_units:
-            assert unit in metric.data_source.aggregation_units
+        assert metric.analysis_units is not None
+        assert metric.data_source.analysis_units is not None
+        for unit in metric.analysis_units:
+            assert unit in metric.data_source.analysis_units
 
     @pytest.mark.parametrize(
         "metric_units,ds_units",
         (
-            ("aggregation_units = ['client_id']", "aggregation_units = ['profile_group_id']"),
+            ("analysis_units = ['client_id']", "analysis_units = ['profile_group_id']"),
             (
-                "aggregation_units = ['client_id', 'profile_group_id']",
-                "aggregation_units = ['profile_group_id']",
+                "analysis_units = ['client_id', 'profile_group_id']",
+                "analysis_units = ['profile_group_id']",
             ),
-            ("aggregation_units = ['profile_group_id']", "aggregation_units = ['client_id']"),
+            ("analysis_units = ['profile_group_id']", "analysis_units = ['client_id']"),
             (
-                "aggregation_units = ['client_id', 'profile_group_id']",
-                "aggregation_units = ['client_id']",
+                "analysis_units = ['client_id', 'profile_group_id']",
+                "analysis_units = ['client_id']",
             ),
         ),
     )
-    def test_invalid_aggregation_units_combinations(
+    def test_invalid_analysis_units_combinations(
         self, metric_units, ds_units, experiments, config_collection
     ):
         config_str = dedent(

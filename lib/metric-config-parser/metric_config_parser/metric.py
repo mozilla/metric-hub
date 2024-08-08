@@ -97,7 +97,7 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    aggregation_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
+    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
 
 
 @attr.s(auto_attribs=True)
@@ -149,7 +149,7 @@ class MetricDefinition:
     owner: Optional[Union[str, List[str]]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    aggregation_units: Optional[List[AnalysisUnit]] = None
+    analysis_units: Optional[List[AnalysisUnit]] = None
 
     @staticmethod
     def generate_select_expression(
@@ -242,7 +242,7 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
-                    aggregation_units=self.aggregation_units or [AnalysisUnit.CLIENT],
+                    analysis_units=self.analysis_units or [AnalysisUnit.CLIENT],
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = self.analysis_bases or [
@@ -250,9 +250,7 @@ class MetricDefinition:
                     AnalysisBasis.EXPOSURES,
                 ]
                 metric_definition.statistics = self.statistics
-                metric_definition.aggregation_units = self.aggregation_units or [
-                    AnalysisUnit.CLIENT
-                ]
+                metric_definition.analysis_units = self.analysis_units or [AnalysisUnit.CLIENT]
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
             select_expression = self.generate_select_expression(
@@ -261,16 +259,16 @@ class MetricDefinition:
                 configs=configs,
             )
 
-            # ensure all of metric's aggregation_units are supported by data_source
+            # ensure all of metric's analysis_units are supported by data_source
             resolved_ds = self.data_source.resolve(spec, conf, configs)
-            aggregation_units = self.aggregation_units or [AnalysisUnit.CLIENT]
-            for agg_unit in aggregation_units:
-                if agg_unit not in resolved_ds.aggregation_units:
+            analysis_units = self.analysis_units or [AnalysisUnit.CLIENT]
+            for agg_unit in analysis_units:
+                if agg_unit not in resolved_ds.analysis_units:
                     raise ValueError(
                         f"data_source {resolved_ds.name} does not support "
-                        f"all aggregation_units specified by metric {self.name}: "
-                        f"aggregation_units for metric: {aggregation_units}, "
-                        f"aggregation_units for data_source: {resolved_ds.aggregation_units}"
+                        f"all analysis_units specified by metric {self.name}: "
+                        f"analysis_units for metric: {analysis_units}, "
+                        f"analysis_units for data_source: {resolved_ds.analysis_units}"
                     )
 
             metric = Metric(
@@ -290,7 +288,7 @@ class MetricDefinition:
                 owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                 deprecated=self.deprecated,
                 level=self.level,
-                aggregation_units=aggregation_units,
+                analysis_units=analysis_units,
             )
 
         metrics_with_treatments = []

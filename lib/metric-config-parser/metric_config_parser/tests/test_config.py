@@ -507,7 +507,7 @@ class TestConfigIntegration:
                 last_modified=datetime.datetime.now(),
             )
 
-    def test_valid_aggregation_units(self):
+    def test_valid_analysis_units(self):
         config_str = dedent(
             """
             [metrics.active_hours]
@@ -515,19 +515,19 @@ class TestConfigIntegration:
             data_source = "baseline"
             owner = "me@example.com"
             category = "test"
-            aggregation_units = ["profile_group_id"]
+            analysis_units = ["profile_group_id"]
 
             [metrics.other_metric]
             select_expression = "1"
             data_source = "baseline"
             owner = ["me@example.com", "you@example.com"]
             category = "test"
-            aggregation_units = ["client_id", "profile_group_id"]
+            analysis_units = ["client_id", "profile_group_id"]
 
             [data_sources.baseline]
             from_expression = "mozdata.search.baseline"
             experiments_column_type = "simple"
-            aggregation_units = ["client_id", "profile_group_id"]
+            analysis_units = ["client_id", "profile_group_id"]
             """
         )
 
@@ -544,12 +544,12 @@ class TestConfigIntegration:
         metric_definition = config_collection.get_metric_definition(
             "active_hours", "firefox_desktop"
         )
-        assert metric_definition.aggregation_units == [AnalysisUnit.PROFILE_GROUP]
+        assert metric_definition.analysis_units == [AnalysisUnit.PROFILE_GROUP]
 
         metric_definition = config_collection.get_metric_definition(
             "other_metric", "firefox_desktop"
         )
-        assert metric_definition.aggregation_units == [
+        assert metric_definition.analysis_units == [
             AnalysisUnit.CLIENT,
             AnalysisUnit.PROFILE_GROUP,
         ]
@@ -557,7 +557,7 @@ class TestConfigIntegration:
         data_source_definition = config_collection.get_data_source_definition(
             "baseline", "firefox_desktop"
         )
-        assert data_source_definition.aggregation_units == [
+        assert data_source_definition.analysis_units == [
             AnalysisUnit.CLIENT,
             AnalysisUnit.PROFILE_GROUP,
         ]
@@ -565,13 +565,13 @@ class TestConfigIntegration:
     @pytest.mark.parametrize(
         "metric_units,ds_units",
         (
-            ("aggregation_units = 'client_id'", ""),
-            ("aggregation_units = ['invalid']", ""),
-            ("", "aggregation_units = 'client_id'"),
-            ("", "aggregation_units = ['invalid']"),
+            ("analysis_units = 'client_id'", ""),
+            ("analysis_units = ['invalid']", ""),
+            ("", "analysis_units = 'client_id'"),
+            ("", "analysis_units = ['invalid']"),
         ),
     )
-    def test_invalid_aggregation_units(self, metric_units, ds_units):
+    def test_invalid_analysis_units(self, metric_units, ds_units):
         config_str = dedent(
             f"""
             [metrics.active_hours]

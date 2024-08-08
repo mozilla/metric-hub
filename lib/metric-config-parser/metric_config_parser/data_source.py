@@ -84,7 +84,7 @@ class DataSource:
         description (str, optional)
         joins (list[DataSourceJoin], optional)
         columns_as_dimensions (bool, optional): Default false.
-        aggregation_units (list[AnalysisUnit], optional): denotes which
+        analysis_units (list[AnalysisUnit], optional): denotes which
             aggregations are supported by this data_source. At time
             of writing, this means 'client_id', 'profile_group_id',
             or both. Defaults to 'client_id'.
@@ -101,7 +101,7 @@ class DataSource:
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
-    aggregation_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
+    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
 
@@ -174,7 +174,7 @@ class DataSourceDefinition:
     description: Optional[str] = None
     joins: Optional[Dict[str, Dict[str, Any]]] = None
     columns_as_dimensions: Optional[bool] = None
-    aggregation_units: Optional[list[AnalysisUnit]] = None
+    analysis_units: Optional[list[AnalysisUnit]] = None
 
     def resolve(
         self,
@@ -206,7 +206,7 @@ class DataSourceDefinition:
             "friendly_name",
             "description",
             "columns_as_dimensions",
-            "aggregation_units",
+            "analysis_units",
         ):
             v = getattr(self, k)
             if v:
