@@ -18,7 +18,11 @@ weekly = ["admarketplace_sponsored_impressions",
           "fakespot_amazon_not_relevant_dismissals",
           "fakespot_bestbuy_not_relevant_dismissals",
           "fakespot_walmart_not_relevant_dismissals",
-          "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
+          "fx_urlbar_quick_suggest_remote_settings_latency_ms",
+          "fakespot_4_star_A_grade",
+          "fakespot_4_star_B_grade",
+          "fakespot_5_star_A_grade",
+          "fakespot_5_star_B_grade"]
 
 overall = ["admarketplace_sponsored_impressions",
            "fakespot_amazon_impressions",
@@ -36,7 +40,11 @@ overall = ["admarketplace_sponsored_impressions",
            "fakespot_amazon_not_relevant_dismissals",
            "fakespot_bestbuy_not_relevant_dismissals",
            "fakespot_walmart_not_relevant_dismissals",
-           "fx_urlbar_quick_suggest_remote_settings_latency_ms"]
+           "fx_urlbar_quick_suggest_remote_settings_latency_ms",
+           "fakespot_4_star_A_grade",
+           "fakespot_4_star_B_grade",
+           "fakespot_5_star_A_grade",
+           "fakespot_5_star_B_grade"]
 
 ## Impressions
 [metrics.admarketplace_sponsored_impressions]
@@ -199,12 +207,55 @@ select_expression = "COUNTIF(event_action = 'annoyance' and engaged_result_type 
 data_source = "urlbar_events"
 [metrics.fakespot_not_relevant_dismissals.statistics.bootstrap_mean]
 
-## Review Checker
-[metrics.review_checker_displayed_count]
-select_expression = "COUNTIF(event_category = 'shopping' and event.name = 'surface_displayed')"
-data_source = "events"
-[metrics.review_checker_displayed_count.statistics.bootstrap_mean]
+
+[metrics.fakespot_4_star_A_grade]
+select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) < 5))"
+data_source = "fakespot_events"
+[metrics.fakespot_4_star_A_grade.statistics.bootstrap_mean]
+
+[metrics.fakespot_4_star_B_grade]
+select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) < 5))"
+data_source = "fakespot_events"
+[metrics.fakespot_4_star_B_grade.statistics.bootstrap_mean]
+
+[metrics.fakespot_5_star_A_grade]
+select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) = 5))"
+data_source = "fakespot_events"
+[metrics.fakespot_5_star_A_grade.statistics.bootstrap_mean]
+
+[metrics.fakespot_5_star_B_grade]
+select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) = 5))"
+data_source = "fakespot_events"
+[metrics.fakespot_5_star_B_grade.statistics.bootstrap_mean]
 
 ## Remote Settings Latency
 [metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms]
 [metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms.statistics.bootstrap_mean]
+
+[data_sources]
+
+[data_sources.fakespot_events]
+from_expression = """(
+    SELECT 
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        event.name AS event_name,
+        event.extra AS event_extra
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'urlbar'
+        AND event.name = 'fakespot_engagement'
+)"""
+
+friendly_name = "fakespot_events"
+description = "fakespot engagement with grades and rating"
+## Review Checker
+#[metrics.review_checker_displayed_count]
+#select_expression = "COUNTIF(event_category = 'shopping' and event.name = 'surface_displayed')"
+#data_source = "events"
+#[metrics.review_checker_displayed_count.statistics.bootstrap_mean]
+
+## Remote Settings Latency
+#[metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms]
+#[metrics.fx_urlbar_quick_suggest_remote_settings_latency_ms.statistics.bootstrap_mean]
