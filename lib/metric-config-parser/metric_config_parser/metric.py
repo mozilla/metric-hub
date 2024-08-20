@@ -245,12 +245,18 @@ class MetricDefinition:
                     analysis_units=self.analysis_units or [AnalysisUnit.CLIENT],
                 )
             elif metric_definition:
-                metric_definition.analysis_bases = self.analysis_bases or [
-                    AnalysisBasis.ENROLLMENTS,
-                    AnalysisBasis.EXPOSURES,
-                ]
+                metric_definition.analysis_bases = (
+                    self.analysis_bases
+                    or metric_definition.analysis_bases
+                    or [
+                        AnalysisBasis.ENROLLMENTS,
+                        AnalysisBasis.EXPOSURES,
+                    ]
+                )
                 metric_definition.statistics = self.statistics
-                metric_definition.analysis_units = self.analysis_units or [AnalysisUnit.CLIENT]
+                metric_definition.analysis_units = (
+                    self.analysis_units or metric_definition.analysis_units or [AnalysisUnit.CLIENT]
+                )
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
             select_expression = self.generate_select_expression(

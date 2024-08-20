@@ -787,6 +787,33 @@ class TestAnalysisSpec:
         data_source = metric.data_source
         assert data_source.analysis_units == [AnalysisUnit.CLIENT]
 
+    def test_no_override_defined_analysis_units_with_defaults(self, experiments, config_collection):
+        # ensure the resolve function does not override
+        # an upstream definition with the default value
+        custom_conf = dedent(
+            """
+            [metrics]
+            weekly = ["test_active_hours"]
+
+            [metrics.test_active_hours]
+            friendly_name = "Overridden Active Hours"
+
+            [metrics.test_active_hours.statistics.bootstrap_mean]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(custom_conf))
+        cfg = spec.resolve(experiments[0], config_collection)
+
+        spam = [
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "test_active_hours"
+        ][0]
+
+        assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 1
+        assert spam.metric.data_source.name == "test_main"
+        assert spam.metric.analysis_bases == [AnalysisBasis.EXPOSURES]
+        assert spam.metric.analysis_units == [AnalysisUnit.PROFILE_GROUP]
+
     @pytest.mark.parametrize(
         "metric_units, ds_units",
         (
