@@ -8,6 +8,7 @@ import pytz
 import toml
 from git import Repo
 
+from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.config import (
     Config,
@@ -391,6 +392,7 @@ class TestConfigIntegration:
         r = Repo.init(tmp_path)
         r.config_writer().set_value("user", "name", "test").release()
         r.config_writer().set_value("user", "email", "test@example.com").release()
+        r.config_writer().set_value("commit", "gpgsign", "false").release()
 
         # check in broken file
         broken_config = dedent(
@@ -497,6 +499,92 @@ class TestConfigIntegration:
             """
         )
 
+        with pytest.raises(Exception):
+            DefinitionConfig(
+                slug="firefox_desktop",
+                platform="firefox_desktop",
+                spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+                last_modified=datetime.datetime.now(),
+            )
+
+    def test_valid_analysis_units(self):
+        config_str = dedent(
+            """
+            [metrics.active_hours]
+            select_expression = "1"
+            data_source = "baseline"
+            owner = "me@example.com"
+            category = "test"
+            analysis_units = ["profile_group_id"]
+
+            [metrics.other_metric]
+            select_expression = "1"
+            data_source = "baseline"
+            owner = ["me@example.com", "you@example.com"]
+            category = "test"
+            analysis_units = ["client_id", "profile_group_id"]
+
+            [data_sources.baseline]
+            from_expression = "mozdata.search.baseline"
+            experiments_column_type = "simple"
+            analysis_units = ["client_id", "profile_group_id"]
+            """
+        )
+
+        definition = DefinitionConfig(
+            slug="firefox_desktop",
+            platform="firefox_desktop",
+            spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+            last_modified=datetime.datetime.now(),
+        )
+        config_collection = ConfigCollection(
+            configs=[], outcomes=[], defaults=[], definitions=[definition]
+        )
+
+        metric_definition = config_collection.get_metric_definition(
+            "active_hours", "firefox_desktop"
+        )
+        assert metric_definition.analysis_units == [AnalysisUnit.PROFILE_GROUP]
+
+        metric_definition = config_collection.get_metric_definition(
+            "other_metric", "firefox_desktop"
+        )
+        assert metric_definition.analysis_units == [
+            AnalysisUnit.CLIENT,
+            AnalysisUnit.PROFILE_GROUP,
+        ]
+
+        data_source_definition = config_collection.get_data_source_definition(
+            "baseline", "firefox_desktop"
+        )
+        assert data_source_definition.analysis_units == [
+            AnalysisUnit.CLIENT,
+            AnalysisUnit.PROFILE_GROUP,
+        ]
+
+    @pytest.mark.parametrize(
+        "metric_units,ds_units",
+        (
+            ("analysis_units = 'client_id'", ""),
+            ("analysis_units = ['invalid']", ""),
+            ("", "analysis_units = 'client_id'"),
+            ("", "analysis_units = ['invalid']"),
+        ),
+    )
+    def test_invalid_analysis_units(self, metric_units, ds_units):
+        config_str = dedent(
+            f"""
+            [metrics.active_hours]
+            select_expression = "1"
+            data_source = "baseline"
+            {metric_units}
+
+            [data_sources.baseline]
+            from_expression = "mozdata.search.baseline"
+            experiments_column_type = "simple"
+            {ds_units}
+            """
+        )
         with pytest.raises(Exception):
             DefinitionConfig(
                 slug="firefox_desktop",
