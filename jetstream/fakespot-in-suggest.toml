@@ -6,18 +6,23 @@ daily = ["admarketplace_sponsored_impressions",
           "fakespot_amazon_impressions",
           "fakespot_bestbuy_impressions",
           "fakespot_walmart_impressions",
+          "fakespot_impressions",
           "fakespot_amazon_impression_rate",
           "fakespot_bestbuy_impression_rate",
           "fakespot_walmart_impression_rate",
+          "fakespot_impression_rate",
           "fakespot_amazon_clicks",
           "fakespot_bestbuy_clicks",
           "fakespot_walmart_clicks",
+          "fakespot_clicks",
           "fakespot_amazon_ctr",
           "fakespot_bestbuy_ctr",
           "fakespot_walmart_ctr",
+          "fakespot_ctr",
           "fakespot_amazon_not_relevant_dismissals",
           "fakespot_bestbuy_not_relevant_dismissals",
           "fakespot_walmart_not_relevant_dismissals",
+          "fakespot_not_relevant_dismissals",
           "fx_urlbar_quick_suggest_remote_settings_latency_ms",
           "fakespot_4_star_A_grade",
           "fakespot_4_star_B_grade",
@@ -28,18 +33,23 @@ weekly = ["admarketplace_sponsored_impressions",
           "fakespot_amazon_impressions",
           "fakespot_bestbuy_impressions",
           "fakespot_walmart_impressions",
+          "fakespot_impressions",
           "fakespot_amazon_impression_rate",
           "fakespot_bestbuy_impression_rate",
           "fakespot_walmart_impression_rate",
+          "fakespot_impression_rate",
           "fakespot_amazon_clicks",
           "fakespot_bestbuy_clicks",
           "fakespot_walmart_clicks",
+          "fakespot_clicks",
           "fakespot_amazon_ctr",
           "fakespot_bestbuy_ctr",
           "fakespot_walmart_ctr",
+          "fakespot_ctr",
           "fakespot_amazon_not_relevant_dismissals",
           "fakespot_bestbuy_not_relevant_dismissals",
           "fakespot_walmart_not_relevant_dismissals",
+          "fakespot_not_relevant_dismissals",
           "fx_urlbar_quick_suggest_remote_settings_latency_ms",
           "fakespot_4_star_A_grade",
           "fakespot_4_star_B_grade",
@@ -47,51 +57,66 @@ weekly = ["admarketplace_sponsored_impressions",
           "fakespot_5_star_B_grade"]
 
 overall = ["admarketplace_sponsored_impressions",
-           "fakespot_amazon_impressions",
-           "fakespot_bestbuy_impressions",
-           "fakespot_walmart_impressions",
-           "fakespot_amazon_impression_rate",
-           "fakespot_bestbuy_impression_rate",
-           "fakespot_walmart_impression_rate",
-           "fakespot_amazon_clicks",
-           "fakespot_bestbuy_clicks",
-           "fakespot_walmart_clicks",
-           "fakespot_amazon_ctr",
-           "fakespot_bestbuy_ctr",
-           "fakespot_walmart_ctr",
-           "fakespot_amazon_not_relevant_dismissals",
-           "fakespot_bestbuy_not_relevant_dismissals",
-           "fakespot_walmart_not_relevant_dismissals",
-           "fx_urlbar_quick_suggest_remote_settings_latency_ms",
-           "fakespot_4_star_A_grade",
-           "fakespot_4_star_B_grade",
-           "fakespot_5_star_A_grade",
-           "fakespot_5_star_B_grade"]
+          "fakespot_amazon_impressions",
+          "fakespot_bestbuy_impressions",
+          "fakespot_walmart_impressions",
+          "fakespot_impressions",
+          "fakespot_amazon_impression_rate",
+          "fakespot_bestbuy_impression_rate",
+          "fakespot_walmart_impression_rate",
+          "fakespot_impression_rate",
+          "fakespot_amazon_clicks",
+          "fakespot_bestbuy_clicks",
+          "fakespot_walmart_clicks",
+          "fakespot_clicks",
+          "fakespot_amazon_ctr",
+          "fakespot_bestbuy_ctr",
+          "fakespot_walmart_ctr",
+          "fakespot_ctr",
+          "fakespot_amazon_not_relevant_dismissals",
+          "fakespot_bestbuy_not_relevant_dismissals",
+          "fakespot_walmart_not_relevant_dismissals",
+          "fakespot_not_relevant_dismissals",
+          "fx_urlbar_quick_suggest_remote_settings_latency_ms",
+          "fakespot_4_star_A_grade",
+          "fakespot_4_star_B_grade",
+          "fakespot_5_star_A_grade",
+          "fakespot_5_star_B_grade"]
 
 ## Impressions
 [metrics.admarketplace_sponsored_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'admarketplace_sponsored', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
+friendly_name = "ADM sponsored impression counts"
+description = "Number of ADM sponsored impressions"
 [metrics.admarketplace_sponsored_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_amazon_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_amazon', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
+friendly_name = "Amazon Fakespot impression counts"
+description = "Number of Fakespot impressions with provider Amazon (not available on control)"
 [metrics.fakespot_amazon_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_bestbuy_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_bestbuy', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
+friendly_name = "Bestbuy Fakespot impression counts"
+description = "Number of Fakespot impressions with provider Bestbuy (not available on control)"
 [metrics.fakespot_bestbuy_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_walmart_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rust_fakespot_walmart', event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
+friendly_name = "Walmart Fakespot impression counts"
+description = "Number of Fakespot impressions with provider Walmart (not available on control)"
 [metrics.fakespot_walmart_impressions.statistics.bootstrap_mean]
 
 [metrics.fakespot_impressions]
 select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type in ('rust_fakespot_amazon', 'rust_fakespot_bestbuy', 'rust_fakespot_walmart'), event_id, NULL))"
 data_source = "urlbar_events_unnested_results"
+friendly_name = "Fakespot impression counts"
+description = "Number of Fakespot impressions (not available on control)"
 [metrics.fakespot_impressions.statistics.bootstrap_mean]
 
 ## Impression Rate
@@ -131,30 +156,49 @@ description = "Proportion of Fakespot Walmart impressions out of all urlbar sess
 numerator = "fakespot_walmart_impressions"
 denominator = "urlbar_impressions"
 
+[metrics.fakespot_impression_rate]
+depends_on = ["fakespot_impressions", "urlbar_impressions"]
+friendly_name = "Fakespot Impression Rate"
+description = "Proportion of Fakespot impressions out of all urlbar sessions (not available on control)"
+
+[metrics.fakespot_impression_rate.statistics.population_ratio]
+numerator = "fakespot_impressions"
+denominator = "urlbar_impressions"
+
 ## Clicks
 [metrics.admarketplace_sponsored_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_selected_result = 'admarketplace_sponsored')"
 data_source = "urlbar_events"
+friendly_name = "ADM sponsored clicks"
+description = "Number of ADM sponsored clicks"
 [metrics.admarketplace_sponsored_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_amazon_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_amazon')"
 data_source = "urlbar_events"
+friendly_name = "Amazon Fakespot clicks"
+description = "Number of Fakespot clicks with provider Amazon (not available on control)"
 [metrics.fakespot_amazon_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_bestbuy_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_bestbuy')"
 data_source = "urlbar_events"
+friendly_name = "Bestbuy Fakespot clicks"
+description = "Number of Fakespot clicks with provider Bestbuy (not available on control)"
 [metrics.fakespot_bestbuy_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_walmart_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type = 'rust_fakespot_walmart')"
 data_source = "urlbar_events"
+friendly_name = "Walmart Fakespot clicks"
+description = "Number of Fakespot clicks with provider Walmart (not available on control)"
 [metrics.fakespot_walmart_clicks.statistics.bootstrap_mean]
 
 [metrics.fakespot_clicks]
 select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and engaged_result_type in ('rust_fakespot_amazon', 'rust_fakespot_bestbuy', 'rust_fakespot_walmart'))"
 data_source = "urlbar_events"
+friendly_name = "Fakespot clicks"
+description = "Number of Fakespot clicks (not available on control)"
 [metrics.fakespot_clicks.statistics.bootstrap_mean]
 
 ## CTR
@@ -196,7 +240,7 @@ denominator = "fakespot_walmart_impressions"
 
 [metrics.fakespot_ctr]
 depends_on = ["fakespot_clicks", "fakespot_impressions"]
-friendly_name = "Fakespot Amazon CTR"
+friendly_name = "Fakespot CTR"
 description = "Proportion of urlbar sessions where a Fakespot suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
 
 [metrics.fakespot_ctr.statistics.population_ratio]
@@ -231,23 +275,31 @@ data_source = "urlbar_events"
 
 
 [metrics.fakespot_4_star_A_grade]
-select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) < 5))"
+select_expression = "COUNTIF(fakespot_grade_rating = 'fakespot_4_star_A_grade')"
 data_source = "fakespot_events"
+friendly_name = "Fakespot 4 star A grade clicks"
+description = "Number of Fakespot clicks with 4 star A grade"
 [metrics.fakespot_4_star_A_grade.statistics.bootstrap_mean]
 
 [metrics.fakespot_4_star_B_grade]
-select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) < 5))"
+select_expression = "COUNTIF(fakespot_grade_rating = 'fakespot_4_star_B_grade')"
 data_source = "fakespot_events"
+friendly_name = "Fakespot 4 star B grade clicks"
+description = "Number of Fakespot clicks with 4 star B grade"
 [metrics.fakespot_4_star_B_grade.statistics.bootstrap_mean]
 
 [metrics.fakespot_5_star_A_grade]
-select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) = 5))"
+select_expression = "COUNTIF(fakespot_grade_rating = 'fakespot_5_star_A_grade')"
 data_source = "fakespot_events"
+friendly_name = "Fakespot 5 star A grade clicks"
+description = "Number of Fakespot clicks with 5 star A grade"
 [metrics.fakespot_5_star_A_grade.statistics.bootstrap_mean]
 
 [metrics.fakespot_5_star_B_grade]
-select_expression = "COUNTIF(mozfun.map.get_key(event_extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event_extra, 'rating') AS FLOAT64) = 5))"
+select_expression = "COUNTIF(fakespot_grade_rating = 'fakespot_5_star_B_grade')"
 data_source = "fakespot_events"
+friendly_name = "Fakespot 5 star B grade clicks"
+description = "Number of Fakespot clicks with 5 star B grade"
 [metrics.fakespot_5_star_B_grade.statistics.bootstrap_mean]
 
 ## Remote Settings Latency
@@ -259,10 +311,13 @@ data_source = "fakespot_events"
 [data_sources.fakespot_events]
 from_expression = """(
     SELECT 
-        metrics.uuid.legacy_telemetry_client_id AS client_id,
-        DATE(submission_timestamp) AS submission_date,
+        *,
         event.name AS event_name,
-        event.extra AS event_extra
+        CASE WHEN (mozfun.map.get_key(event.extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) = 5)) THEN 'fakespot_5_star_B_grade'
+        WHEN (mozfun.map.get_key(event.extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) = 5)) THEN 'fakespot_5_star_A_grade'
+        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) < 5)) THEN 'fakespot_4_star_A_grade'
+        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) < 5)) THEN 'fakespot_4_star_B_grade' end as fakespot_grade_rating, 
+
     FROM `mozdata.firefox_desktop.events`
     CROSS JOIN UNNEST(events) AS event
     WHERE
@@ -270,7 +325,7 @@ from_expression = """(
         AND event.name = 'fakespot_engagement'
 )"""
 
-friendly_name = "fakespot_events"
+friendly_name = "fakespot_grade_rating_events"
 description = "fakespot engagement with grades and rating"
 ## Review Checker
 #[metrics.review_checker_displayed_count]
