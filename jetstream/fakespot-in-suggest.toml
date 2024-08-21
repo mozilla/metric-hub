@@ -205,7 +205,7 @@ description = "Number of Fakespot clicks (not available on control)"
 [metrics.admarketplace_sponsored_ctr]
 depends_on = ["admarketplace_sponsored_clicks", "admarketplace_sponsored_impressions"]
 friendly_name = "Admarketplace CTR"
-description = "Proportion of urlbar sessions where an Admarketplace Sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+description = "Proportion of urlbar sessions where an Admarketplace Sponsored suggestion was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
 [metrics.admarketplace_sponsored_ctr.statistics.population_ratio]
 numerator = "admarketplace_sponsored_clicks"
@@ -214,7 +214,7 @@ denominator = "admarketplace_sponsored_impressions"
 [metrics.fakespot_amazon_ctr]
 depends_on = ["fakespot_amazon_clicks", "fakespot_amazon_impressions"]
 friendly_name = "Fakespot Amazon CTR"
-description = "Proportion of urlbar sessions where a Fakespot suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+description = "Proportion of urlbar sessions where a Fakespot suggestion was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
 [metrics.fakespot_amazon_ctr.statistics.population_ratio]
 numerator = "fakespot_amazon_clicks"
@@ -223,7 +223,7 @@ denominator = "fakespot_amazon_impressions"
 [metrics.fakespot_bestbuy_ctr]
 depends_on = ["fakespot_bestbuy_clicks", "fakespot_bestbuy_impressions"]
 friendly_name = "Fakespot Bestbuy CTR"
-description = "Proportion of urlbar sessions where a Fakespot sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+description = "Proportion of urlbar sessions where a Fakespot sponsored suggestion was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
 [metrics.fakespot_bestbuy_ctr.statistics.population_ratio]
 numerator = "fakespot_bestbuy_clicks"
@@ -232,7 +232,7 @@ denominator = "fakespot_bestbuy_impressions"
 [metrics.fakespot_walmart_ctr]
 depends_on = ["fakespot_walmart_clicks", "fakespot_walmart_impressions"]
 friendly_name = "Fakespot Walmart CTR"
-description = "Proportion of urlbar sessions where a Fakespot sponsored suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+description = "Proportion of urlbar sessions where a Fakespot sponsored suggestion was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
 [metrics.fakespot_walmart_ctr.statistics.population_ratio]
 numerator = "fakespot_walmart_clicks"
@@ -241,7 +241,7 @@ denominator = "fakespot_walmart_impressions"
 [metrics.fakespot_ctr]
 depends_on = ["fakespot_clicks", "fakespot_impressions"]
 friendly_name = "Fakespot CTR"
-description = "Proportion of urlbar sessions where a Fakespot suggestion was clicked, out of engaged urlbar sessions where one was shown (not available on control)"
+description = "Proportion of urlbar sessions where a Fakespot suggestion was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
 [metrics.fakespot_ctr.statistics.population_ratio]
 numerator = "fakespot_clicks"
