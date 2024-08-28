@@ -19,6 +19,8 @@ metrics = [
   "infobar_ping_volume",
   "spotlight_ping_volume",
   "cfr_ping_volume",
+  "toolbar-badge_ping_volume",
+  "toast_notification_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
   "unknown_keys_volume",
@@ -38,7 +40,7 @@ dimensions = ["normalized_channel", "normalized_os"]
 friendly_name = "Ping Volume by Ping Type"
 description = """\
   The volume of 'messaging-system' pings broken down by `messaging_system.ping_type`.\
-  Currently supported: 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', NULL, and 'other'.\
+  Currently supported: 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar-badge', 'toast_notification', NULL, and 'other'.\
   'undesired-event' can be found in its own plot.\
   """
 metrics = [
@@ -49,6 +51,8 @@ metrics = [
   "cfr_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
+  "toolbar-badge_volume",
+  "toast_notification_volume"
 ]
 
 [project.metric_groups.unexpected_data]
@@ -158,6 +162,22 @@ select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'cfr')"
 type = "scalar"
 statistics.sum = {}
 
+[metrics.toolbar-badge_ping_volume]
+friendly_name = "'toolbar-badge' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'toolbar-badge'"
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'toolbar-badge')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.toast_notification_ping_volume]
+friendly_name = "'toast_notification' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'toast_notification'"
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'toast_notification')"
+type = "scalar"
+statistics.sum = {}
+
 [metrics.null_ping_volume]
 friendly_name = "NULL pings"
 description = "Count of 'messaging-system' pings with ping_type of NULL. Typical for onboarding pings."
@@ -173,7 +193,7 @@ description = """\
   If there are values in here, you probably should update the opmon config to handle that new ping_type explicitly.\
 """
 data_source = "messaging_system"
-select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar_badge', 'toast_notification'))"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar-badge', 'toast_notification'))"
 type = "scalar"
 statistics.sum = {}
 
