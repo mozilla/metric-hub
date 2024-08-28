@@ -19,7 +19,7 @@ metrics = [
   "infobar_ping_volume",
   "spotlight_ping_volume",
   "cfr_ping_volume",
-  "toolbar-badge_ping_volume",
+  "toolbar_badge_ping_volume",
   "toast_notification_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
@@ -51,7 +51,7 @@ metrics = [
   "cfr_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
-  "toolbar-badge_ping_volume",
+  "toolbar_badge_ping_volume",
   "toast_notification_ping_volume"
 ]
 
@@ -162,7 +162,7 @@ select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'cfr')"
 type = "scalar"
 statistics.sum = {}
 
-[metrics.toolbar-badge_ping_volume]
+[metrics.toolbar_badge_ping_volume]
 friendly_name = "'toolbar-badge' pings"
 description = "Count of 'messaging-system' pings with ping_type = 'toolbar-badge'"
 data_source = "messaging_system"
