@@ -45,6 +45,13 @@ jobs:
         name: Build
         command: |
           pip install -r .script/requirements.txt
+    - &authenticate
+      run:
+        name: Authenticate to GCP
+        command: |
+          export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
+          echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
+          echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
     - run:
         name: Validate config files
         command: |
@@ -94,6 +101,7 @@ jobs:
         name: Build
         command: |
           pip install -r .script/requirements.txt
+    - *authenticate
     - run:
         name: Validate config files
         command: |
@@ -187,7 +195,7 @@ jobs:
           apt-get install uuid-runtime
           export USE_GKE_GCLOUD_AUTH_PLUGIN=True
           export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
-          echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          echo "$JETSTREAM_GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
           gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
           gcloud config set project $GCLOUD_PROJECT
           gcloud container clusters get-credentials jetstream --zone us-central1-a --project $GCLOUD_PROJECT

@@ -1,0 +1,34 @@
+## EXPERIMENT SPECIFIC
+[experiment]
+
+start_date = "2024-06-05"
+
+enrollment_period = 7
+
+
+
+[experiment.exposure_signal]
+name = "nimbus_exposure"
+friendly_name = "Nimbus Exposure"
+description = "users who browsed in private mode"
+data_source = "open_private_mode"
+select_expression = "exposure_date is not null"
+
+
+[data_sources.open_private_mode]
+from_expression = """
+    (
+  SELECT events.client_info.client_id
+        , MIN(DATE(events.submission_timestamp )) exposure_date
+  FROM `mozdata.fenix.events_unnested`  AS events
+  CROSS JOIN UNNEST(events.event_extra) AS ext
+  WHERE ((events.event_name like "%private%")
+          OR
+          (events.event_name = 'opened_link' AND ext.key = 'mode' AND ext.value = 'PRIVATE')
+        )
+    AND events.normalized_channel  = 'release'
+    AND  DATE(events.submission_timestamp) BETWEEN "2024-06-05" AND "2024-06-26"
+    group by 1
+    )
+    """
+submission_date_column = "exposure_date"
