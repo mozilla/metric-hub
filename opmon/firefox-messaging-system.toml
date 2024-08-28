@@ -51,8 +51,8 @@ metrics = [
   "cfr_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
-  "toolbar-badge_volume",
-  "toast_notification_volume"
+  "toolbar-badge_ping_volume",
+  "toast_notification_ping_volume"
 ]
 
 [project.metric_groups.unexpected_data]
