@@ -32,6 +32,7 @@ preenrollment_weekly = [
     "total_uri_count",
     "days_of_use",
     "client_level_daily_active_users_v2",
+    "tagged_search_count",
 ]
 
 preenrollment_days28 = [
@@ -44,6 +45,7 @@ preenrollment_days28 = [
     "total_uri_count",
     "days_of_use",
     "client_level_daily_active_users_v2",
+    "tagged_search_count",
 ]
 
 [metrics.retained]
