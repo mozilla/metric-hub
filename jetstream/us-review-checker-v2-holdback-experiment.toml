@@ -59,7 +59,7 @@ data_source = 'review_checker_events'
 # borrowed from: 
 # https://github.com/mozilla/bigquery-etl/blob/71e32d33bcff3e417395de5e2a839e4ce1df8f87/sql/moz-fx-data-shared-prod/firefox_desktop_derived/review_checker_events_v1/query.sql
 # modified to include legacy client id
-from_expression = """
+from_expression = """(
 SELECT
   DATE(submission_timestamp) AS submission_date,
   client_info.client_id AS glean_client_id,
@@ -111,4 +111,4 @@ GROUP BY
   normalized_country_code,
   sample_id,
   os_version
-"""
+)"""
