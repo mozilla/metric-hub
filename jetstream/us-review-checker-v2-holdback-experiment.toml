@@ -65,7 +65,7 @@ SELECT
   client_info.client_id AS glean_client_id,
   mozfun.stats.mode_last(
     ARRAY_AGG(metrics.uuid.legacy_telemetry_client_id ORDER BY submission_timestamp)
-  ) AS client_id  
+  ) AS client_id,
   MAX(CASE WHEN name = 'surface_onboarding_displayed' THEN 1 ELSE 0 END) is_exposed_event,
   MAX(CASE WHEN name = 'surface_opt_in_clicked' THEN 1 ELSE 0 END) is_opt_in_event,
   MAX(CASE WHEN name = 'surface_displayed' THEN 1 ELSE 0 END) is_surface_displayed,
