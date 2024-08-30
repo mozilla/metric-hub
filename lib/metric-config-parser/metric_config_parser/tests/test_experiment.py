@@ -1,7 +1,6 @@
 import datetime as dt
 from pathlib import Path
 from textwrap import dedent
-from unittest import TestCase
 
 import pytest
 import pytz
