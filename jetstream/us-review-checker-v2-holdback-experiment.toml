@@ -63,14 +63,11 @@ from_expression = """(
 SELECT
   DATE(submission_timestamp) AS submission_date,
   client_info.client_id AS glean_client_id,
-  mozfun.stats.mode_last(
-    ARRAY_AGG(metrics.uuid.legacy_telemetry_client_id ORDER BY submission_timestamp)
-  ) AS client_id,
-  MAX(CASE WHEN name = 'surface_onboarding_displayed' THEN 1 ELSE 0 END) is_exposed_event,
-  MAX(CASE WHEN name = 'surface_opt_in_clicked' THEN 1 ELSE 0 END) is_opt_in_event,
-  MAX(CASE WHEN name = 'surface_displayed' THEN 1 ELSE 0 END) is_surface_displayed,
-  MAX(
-    CASE
+  metrics.uuid.legacy_telemetry_client_id AS client_id,
+  CASE WHEN name = 'surface_onboarding_displayed' THEN 1 ELSE 0 END is_exposed_event,
+  CASE WHEN name = 'surface_opt_in_clicked' THEN 1 ELSE 0 END is_opt_in_event,
+  CASE WHEN name = 'surface_displayed' THEN 1 ELSE 0 END is_surface_displayed,
+  CASE
       WHEN name IN (
           'surface_analyze_reviews_none_available_clicked',
           'surface_learn_more_clicked',
@@ -89,27 +86,18 @@ SELECT
         THEN 1
       ELSE 0
     END
-  ) is_engaged_with_sidebar,
-  ANY_VALUE(ping_info.experiments) AS experiments,
+  AS is_engaged_with_sidebar,
+  ping_info,
   normalized_channel,
   normalized_country_code,
   sample_id,
   mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS os_version,
-  mozfun.stats.mode_last(
-    ARRAY_AGG(metrics.uuid.legacy_telemetry_profile_group_id ORDER BY submission_timestamp)
-  ) AS profile_group_id
+  metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
 FROM
   `moz-fx-data-shared-prod.firefox_desktop_stable.events_v1` AS e,
   UNNEST(events)
 WHERE
-  DATE(submission_timestamp) = @submission_date
+  DATE(submission_timestamp) >= '2023-07-16'
   AND category = 'shopping'
-GROUP BY
-  DATE(submission_timestamp),
-  client_info.client_id,
-  normalized_channel,
-  normalized_country_code,
-  sample_id,
-  os_version
 )"""
 experiments_column_type = "glean"
