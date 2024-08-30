@@ -1,0 +1,103 @@
+[metrics]
+
+weekly = [
+  'any_surface_onboarding_displayed',
+  'any_surface_opt_in_clicked',
+  'any_surface_displayed',
+  'total_surface_displayed',
+  'any_interaction',
+  'total_interaction',
+]
+
+overall = [
+  'any_surface_onboarding_displayed',
+  'any_surface_opt_in_clicked',
+  'any_surface_displayed',
+  'total_surface_displayed',
+  'any_interaction',
+  'total_interaction'
+]
+
+[metrics.any_surface_onboarding_displayed]
+description = "The proportion of clients interacting with review checker onboarding"
+select_expression = 'CAST(COALESCE(SUM(is_exposed_event),0) > 0 AS INT)'
+data_source = 'review_checker_events'
+[metrics.any_surface_onboarding_displayed.statistics.binomial]
+
+[metrics.any_surface_opt_in_clicked]
+description = "The proportion of clients opting-in to review checker"
+select_expression = 'CAST(COALESCE(SUM(is_opt_in_event),0) > 0 AS INT)'
+data_source = 'review_checker_events'
+[metrics.any_surface_opt_in_clicked.statistics.binomial]
+
+[metrics.any_surface_displayed]
+description = "The proportion of clients seeing the surface at least once"
+select_expression = 'CAST(COALESCE(SUM(is_surface_displayed),0) > 0 AS INT)'
+data_source = 'review_checker_events'
+[metrics.any_surface_displayed.statistics.binomial]
+
+[metrics.total_surface_displayed]
+description = "The total number of surface displays"
+select_expression = 'COALESCE(SUM(is_surface_displayed),0)'
+data_source = 'review_checker_events'
+[metrics.total_surface_displayed.statistics.bootstrap_mean]
+
+[metrics.any_interaction]
+description = "The proportion of clients interacting with the surface at least once"
+select_expression = 'CAST(COALESCE(SUM(is_engaged_with_sidebar),0) > 0 AS INT)'
+data_source = 'review_checker_events'
+[metrics.any_interaction.statistics.binomial]
+
+[metrics.total_interaction]
+description = "The total number of surface interactions"
+select_expression = 'COALESCE(SUM(is_engaged_with_sidebar),0)'
+data_source = 'review_checker_events'
+[metrics.total_interaction.statistics.bootstrap_mean]
+
+[data_sources]
+[data_sources.review_checker_events]
+# borrowed from: 
+# https://github.com/mozilla/bigquery-etl/blob/71e32d33bcff3e417395de5e2a839e4ce1df8f87/sql/moz-fx-data-shared-prod/firefox_desktop_derived/review_checker_events_v1/query.sql
+# modified to include legacy client id
+from_expression = """(
+SELECT
+  DATE(submission_timestamp) AS submission_date,
+  client_info.client_id AS glean_client_id,
+  metrics.uuid.legacy_telemetry_client_id AS client_id,
+  CASE WHEN name = 'surface_onboarding_displayed' THEN 1 ELSE 0 END is_exposed_event,
+  CASE WHEN name = 'surface_opt_in_clicked' THEN 1 ELSE 0 END is_opt_in_event,
+  CASE WHEN name = 'surface_displayed' THEN 1 ELSE 0 END is_surface_displayed,
+  CASE
+      WHEN name IN (
+          'surface_analyze_reviews_none_available_clicked',
+          'surface_learn_more_clicked',
+          'surface_no_review_reliability_available',
+          'surface_not_now_clicked',
+          'surface_powered_by_fakespot_link_clicked',
+          'surface_reactivated_button_clicked',
+          'surface_reanalyze_clicked',
+          'surface_settings_expand_clicked',
+          'surface_show_more_reviews_button_clicked',
+          'surface_show_privacy_policy_clicked',
+          'surface_show_quality_explainer_clicked',
+          'surface_show_quality_explainer_url_clicked',
+          'surface_show_terms_clicked'
+        )
+        THEN 1
+      ELSE 0
+    END
+  AS is_engaged_with_sidebar,
+  ping_info,
+  normalized_channel,
+  normalized_country_code,
+  sample_id,
+  mozfun.norm.truncate_version(client_info.app_display_version, 'major') AS os_version,
+  metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
+FROM
+  `moz-fx-data-shared-prod.firefox_desktop_stable.events_v1` AS e,
+  UNNEST(events)
+WHERE
+  DATE(submission_timestamp) >= '2023-07-16'
+  AND category = 'shopping'
+)"""
+experiments_column_type = "glean"
