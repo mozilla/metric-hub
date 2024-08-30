@@ -6,7 +6,9 @@ import pytest
 import pytz
 import toml
 from cattrs.errors import ClassValidationError
+from mozilla_nimbus_schemas import RandomizationUnit
 
+from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.errors import NoEndDateException
 from metric_config_parser.metric import AnalysisPeriod
@@ -375,6 +377,30 @@ class TestExperimentConf:
         spec = AnalysisSpec.from_dict(toml.loads(conf))
         cfg = spec.resolve(experiments[7], config_collection)
         assert cfg.experiment.sample_size is None
+
+    def test_analysis_unit_default(self, experiments, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(experiments[1], config_collection)
+        assert cfg.experiment.randomization_unit is None
+        assert cfg.experiment.analysis_unit == AnalysisUnit.CLIENT
+
+    def test_analysis_unit_configured(self, experiments, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(experiments[0], config_collection)
+        assert cfg.experiment.randomization_unit == RandomizationUnit.GROUP_ID
+        assert cfg.experiment.analysis_unit == AnalysisUnit.PROFILE_GROUP
 
 
 class TestDefaultConfiguration:
