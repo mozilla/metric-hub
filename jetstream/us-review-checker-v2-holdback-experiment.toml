@@ -112,3 +112,4 @@ GROUP BY
   sample_id,
   os_version
 )"""
+experiments_column_type = "glean"
