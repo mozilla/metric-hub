@@ -7,7 +7,7 @@ import pytz
 from git import Repo
 
 from metric_config_parser.config import ConfigCollection
-from metric_config_parser.experiment import Branch, BucketConfig, Experiment
+from metric_config_parser.experiment import Branch, Experiment
 
 TEST_DIR = Path(__file__).parent
 
@@ -27,13 +27,6 @@ def experiments():
             reference_branch="b",
             is_high_population=False,
             app_name="firefox_desktop",
-            bucket_config=BucketConfig(
-                randomization_unit="group_id",
-                namespace="testing",
-                start=0,
-                count=10,
-                total=100,
-            ),
         ),
         Experiment(
             experimenter_slug="test_slug",
