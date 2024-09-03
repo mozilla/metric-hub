@@ -44,8 +44,8 @@ from_expression = """(
 SELECT
   legacy_telemetry_client_id AS client_id,
   submission_date,
-  num_ads_visible,
-  num_ad_clicks,
+  --num_ads_visible, -- can we use these instead of the manually created "core" fields? 
+  --num_ad_clicks,
   (
   SELECT
     SUM(
@@ -99,7 +99,7 @@ data_source = "pbm_search_events"
 period = "preenrollment_week"
 
 [metrics.pbm_searches_with_ads]
-select_expression = "COUNTIF(num_ads_showing > 0)"
+select_expression = "COUNTIF(core_component_ads_visible > 0)"
 data_source = "pbm_ad_click_events"
 
 [metrics.pbm_searches_with_ads.statistics.bootstrap_mean]
@@ -108,7 +108,7 @@ data_source = "pbm_ad_click_events"
 period = "preenrollment_week"
 
 [metrics.pbm_ads_seen]
-select_expression = "SUM(num_ads_showing)"
+select_expression = "SUM(core_component_ads_visible)"
 data_source = "pbm_ad_click_events"
 
 [metrics.pbm_ads_seen.statistics.bootstrap_mean]
@@ -117,7 +117,7 @@ data_source = "pbm_ad_click_events"
 period = "preenrollment_week"
 
 [metrics.pbm_ad_clicks]
-select_expression = "COALESCE(SUM(num_ad_clicks),0)"
+select_expression = "COALESCE(SUM(core_component_ad_clicks),0)"
 data_source = "pbm_ad_click_events"
 
 [metrics.pbm_ad_clicks.statistics.bootstrap_mean]
