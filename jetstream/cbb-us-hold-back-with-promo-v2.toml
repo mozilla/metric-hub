@@ -41,38 +41,43 @@ description = "Glean events unnested, filtered to PBM search impressions"
 # NOTE: from_expression queries the serp_events v1 data source, which is deprecated.
 # To rerun analysis, this query must be updated to work against the v2 data source.
 from_expression = """(
-    SELECT 
-      legacy_telemetry_client_id AS client_id,
-      submission_date,
-      num_ads_showing,
-      IF(is_core_ad_component and num_ads_showing > 0, num_clicks, 0) AS num_ad_clicks
-    FROM (
-        SELECT *,
-        COALESCE(
-                  component IN (
-                    'ad_carousel',
-                    'ad_image_row',
-                    'ad_link',
-                    'ad_sidebar',
-                    'ad_sitelink'
-                  ),
-                  FALSE
-                ) AS is_core_ad_component
-      FROM `moz-fx-data-shared-prod.firefox_desktop.serp_events` 
-      INNER JOIN (
-          SELECT
-            mozfun.map.get_key(event.extra, 'impression_id') AS impression_id,
-          FROM
-            `moz-fx-data-shared-prod.firefox_desktop.events`,
-            UNNEST(events) AS event
-          WHERE
-            event.category = 'serp'
-            AND mozfun.map.get_key(event.extra, 'is_private') = 'true'
-            AND DATE(submission_timestamp) >= '2023-11-27'  
-      ) -- impression_ids of private mode ad clicks
-      USING (impression_id)
-      WHERE submission_date >= '2023-11-27'  
-    )
+SELECT
+  impression_id,
+  legacy_telemetry_client_id,
+  num_ads_visible,
+  num_ad_clicks,
+  (
+  SELECT
+    SUM(
+    IF
+      ((ac.component IN UNNEST(['ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar', 'ad_sitelink']))
+        AND (ac.num_visible > 0), ac.num_clicks,0))
+  FROM
+    UNNEST(ad_components) ac) AS core_component_ad_clicks,
+  (
+  SELECT
+    SUM(
+    IF
+      ((ac.component IN UNNEST(['ad_carousel', 'ad_image_row', 'ad_link', 'ad_sidebar', 'ad_sitelink'])),ac.num_visible,0))
+  FROM
+    UNNEST(ad_components) ac) AS core_component_ads_visible,
+FROM
+  `moz-fx-data-shared-prod.firefox_desktop.serp_events` se
+INNER JOIN (
+  SELECT
+    mozfun.map.get_key(event.extra,
+      'impression_id') AS impression_id,
+  FROM
+    `moz-fx-data-shared-prod.firefox_desktop.events`,
+    UNNEST(events) AS event
+  WHERE
+    event.category = 'serp'
+    AND mozfun.map.get_key(event.extra, 'is_private') = 'true'
+    AND DATE(submission_timestamp) >= '2024-07-15' ) -- impression_ids of private mode ad clicks
+USING
+  (impression_id)
+WHERE
+  submission_date >= '2024-07-15'
 )"""
 experiments_column_type = "none"
 friendly_name = "PBM ad clicks"
