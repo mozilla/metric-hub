@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING, Any, List, Optional
 import attr
 import jinja2
 from jinja2 import StrictUndefined
+from mozilla_nimbus_schemas import RandomizationUnit
 
 if TYPE_CHECKING:
     from .config import ConfigCollection
     from .analysis import AnalysisSpec
 
+from . import AnalysisUnit
 from .errors import NoEndDateException, NoStartDateException
 from .exposure_signal import ExposureSignal, ExposureSignalDefinition
 from .segment import Segment, SegmentReference
@@ -149,6 +151,24 @@ class ExperimentConfiguration:
             return self.experiment.bucket_config.start
 
         return None
+
+    @property
+    def randomization_unit(self) -> Optional[RandomizationUnit]:
+        if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
+            # this will raise a ValueError if the provided randomization_unit is invalid
+            return RandomizationUnit(self.experiment.bucket_config.randomization_unit)
+
+        return None
+
+    @property
+    def analysis_unit(self) -> Optional[AnalysisUnit]:
+        """Retrieve the appropriate analysis unit, which is
+        derived from the experiment's randomization unit.
+        """
+        if self.randomization_unit and self.randomization_unit == RandomizationUnit.GROUP_ID:
+            return AnalysisUnit.PROFILE_GROUP
+
+        return AnalysisUnit.CLIENT
 
     @property
     def enrollment_period(self) -> int:

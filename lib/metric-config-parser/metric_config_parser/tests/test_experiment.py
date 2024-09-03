@@ -6,9 +6,12 @@ import pytest
 import pytz
 import toml
 from cattrs.errors import ClassValidationError
+from mozilla_nimbus_schemas import RandomizationUnit
 
+from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.errors import NoEndDateException
+from metric_config_parser.experiment import Branch, BucketConfig, Experiment
 from metric_config_parser.metric import AnalysisPeriod
 from metric_config_parser.segment import Segment
 
@@ -375,6 +378,94 @@ class TestExperimentConf:
         spec = AnalysisSpec.from_dict(toml.loads(conf))
         cfg = spec.resolve(experiments[7], config_collection)
         assert cfg.experiment.sample_size is None
+
+    def test_analysis_unit_default(self, experiments, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(experiments[1], config_collection)
+        assert cfg.experiment.randomization_unit is None
+        assert cfg.experiment.analysis_unit == AnalysisUnit.CLIENT
+
+    @pytest.mark.parametrize(
+        "randomization_unit", [ru for ru in RandomizationUnit.__members__.values()]
+    )
+    def test_analysis_unit_configured(self, config_collection, randomization_unit):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="pref",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+            bucket_config=BucketConfig(
+                randomization_unit=randomization_unit,
+                namespace="testing",
+                start=0,
+                count=10,
+                total=100,
+            ),
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+        expected_randomization_unit = RandomizationUnit(randomization_unit)
+        expected_analysis_unit = (
+            AnalysisUnit.PROFILE_GROUP
+            if expected_randomization_unit == RandomizationUnit.GROUP_ID
+            else AnalysisUnit.CLIENT
+        )
+        assert cfg.experiment.randomization_unit == expected_randomization_unit
+        assert cfg.experiment.analysis_unit == expected_analysis_unit
+
+    @pytest.mark.parametrize("randomization_unit", [None, "invalid_id"])
+    def test_analysis_unit_invalid(self, config_collection, randomization_unit):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="pref",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+            bucket_config=BucketConfig(
+                randomization_unit=randomization_unit,
+                namespace="testing",
+                start=0,
+                count=10,
+                total=100,
+            ),
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+        with pytest.raises(ValueError):
+            cfg.experiment.randomization_unit
+        with pytest.raises(ValueError):
+            cfg.experiment.analysis_unit
 
 
 class TestDefaultConfiguration:
