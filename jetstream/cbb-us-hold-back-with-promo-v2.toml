@@ -1,8 +1,5 @@
 [experiment]
 
-# NOTE: metrics in this experiment make use of the serp_events v1 data source, which is deprecated.
-# To rerun analysis, data source definitions need to be updated.
-
 [experiment.exposure_signal]
 name = "opened_pbm"
 friendly_name = "Opened PBM"
