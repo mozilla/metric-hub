@@ -82,7 +82,7 @@ description = "PBM search impressions enriched with ad clicks. One row per PBM S
 
 weekly = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
 overall = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
-preenrollment_week = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
+preenrollment_weekly = ['pbm_searches','pbm_uri_count', 'pbm_ad_clicks', 'pbm_searches_with_ads', 'pbm_ads_seen']
 
 [metrics.pbm_searches]
 select_expression = "COUNT(*)"
