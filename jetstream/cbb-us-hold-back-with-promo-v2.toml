@@ -43,7 +43,7 @@ description = "Glean events unnested, filtered to PBM search impressions"
 from_expression = """(
 SELECT
   impression_id,
-  legacy_telemetry_client_id,
+  legacy_telemetry_client_id AS client_id,
   num_ads_visible,
   num_ad_clicks,
   (
