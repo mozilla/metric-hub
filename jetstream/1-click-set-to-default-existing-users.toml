@@ -1,0 +1,22 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "filters to clients with experiment's spotlight message impression"
+name = "spotlight_exposure"
+friendly_name = "Spotlight Exposure"
+select_expression = """(
+    COALESCE(mozfun.map.get_key(ping_info.experiments, '1-click-set-to-default-existing-users') IS NOT NULL
+             AND metrics.text2.messaging_system_message_id = 'FOX_DOODLE_SET_DEFAULT', FALSE)
+)"""
+data_source = "spotlight_impressions"
+window_start = 0
+window_end = 7
+
+
+[data_sources]
+[data_sources.spotlight_impressions]
+from_expression = '''(SELECT *, metrics.uuid.messaging_system_client_id AS client_id,
+DATE(submission_timestamp) AS submission_date FROM `moz-fx-data-shared-prod.firefox_desktop.messaging_system` WHERE metrics.string.messaging_system_ping_type = 'spotlight')'''
+experiments_column_type = "native"
+friendly_name = "Messaging System Spotlight Impressions"
+description = "Spotlight Messaging Impressions"
