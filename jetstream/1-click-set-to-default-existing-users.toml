@@ -17,6 +17,6 @@ window_end = 7
 [data_sources.spotlight_impressions]
 from_expression = '''(SELECT *, metrics.uuid.messaging_system_client_id AS client_id,
 DATE(submission_timestamp) AS submission_date FROM `moz-fx-data-shared-prod.firefox_desktop.messaging_system` WHERE metrics.string.messaging_system_ping_type = 'spotlight')'''
-experiments_column_type = "native"
+experiments_column_type = "glean"
 friendly_name = "Messaging System Spotlight Impressions"
 description = "Spotlight Messaging Impressions"
