@@ -8,7 +8,7 @@ from_expression = """
     operating_system,
     downloads
   FROM
-    `moz-fx-data-marketing-prod.ga.www_site_landing_page_metrics`
+    `moz-fx-data-shared-prod.mozilla_org.www_site_landing_page_metrics`
 )
 """
 submission_date_column = "date"
