@@ -1,9 +1,10 @@
 [build-system]
 requires = ["setuptools", "pytest-runner"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "mozilla-metric-config-parser"
-version = "2024.9.3"
+version = "2024.9.4"
 authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
 description = "Parses metric configuration files"
 readme = "README.md"
