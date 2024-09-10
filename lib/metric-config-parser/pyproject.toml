@@ -1,5 +1,6 @@
 [build-system]
 requires = ["setuptools", "pytest-runner"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "mozilla-metric-config-parser"
@@ -29,7 +30,6 @@ Documentation = "https://github.com/mozilla/metric-hub/blob/main/lib/metric-conf
 
 [project.optional-dependencies]
 testing = [
-  "build",
   "coverage",
   "isort",
   "jsonschema",

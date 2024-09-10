@@ -14,9 +14,6 @@ attrs==24.2.0
     #   referencing
 black==24.8.0
     # via pytest-black
-build==1.2.2
-    # via
-    #   mozilla-metric-config-parser
 cattrs==24.1.0
     # via
     #   mozilla-metric-config-parser
@@ -78,7 +75,6 @@ mypy-extensions==1.0.0
 packaging==24.1
     # via
     #   black
-    #   build
     #   pytest
 pathspec==0.12.1
     # via black
@@ -96,8 +92,6 @@ pydantic-core==2.23.3
     # via pydantic
 pyflakes==2.5.0
     # via flake8
-pyproject-hooks==1.1.0
-    # via build
 pytest==8.3.3
     # via
     #   mozilla-metric-config-parser
@@ -140,7 +134,6 @@ toml==0.10.2
 tomli==2.0.1
     # via
     #   black
-    #   build
     #   coverage
     #   mypy
     #   pytest
