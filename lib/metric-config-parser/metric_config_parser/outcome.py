@@ -27,7 +27,8 @@ class OutcomeSpec:
         params["data_sources"] = converter.structure(d.get("data_sources", {}), DataSourcesSpec)
         params["metrics"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, MetricDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                MetricDefinition,
             )
             for k, v in d.get("metrics", {}).items()
         }

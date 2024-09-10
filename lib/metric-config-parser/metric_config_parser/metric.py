@@ -90,7 +90,10 @@ class Metric:
     friendly_name: Optional[str] = None
     description: Optional[str] = None
     bigger_is_better: bool = True
-    analysis_bases: List[AnalysisBasis] = [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
+    analysis_bases: List[AnalysisBasis] = [
+        AnalysisBasis.ENROLLMENTS,
+        AnalysisBasis.EXPOSURES,
+    ]
     type: str = "scalar"
     category: Optional[str] = None
     depends_on: Optional[List[Summary]] = None
@@ -232,7 +235,9 @@ class MetricDefinition:
                     friendly_name=(
                         dedent(self.friendly_name) if self.friendly_name else self.friendly_name
                     ),
-                    description=dedent(self.description) if self.description else self.description,
+                    description=(
+                        dedent(self.description) if self.description else self.description
+                    ),
                     bigger_is_better=self.bigger_is_better,
                     analysis_bases=self.analysis_bases
                     or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
@@ -284,7 +289,7 @@ class MetricDefinition:
                 friendly_name=(
                     dedent(self.friendly_name) if self.friendly_name else self.friendly_name
                 ),
-                description=dedent(self.description) if self.description else self.description,
+                description=(dedent(self.description) if self.description else self.description),
                 bigger_is_better=self.bigger_is_better,
                 analysis_bases=self.analysis_bases
                 or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],

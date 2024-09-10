@@ -269,7 +269,7 @@ jobs:
       - run:
           name: Check for package version change in last commit before proceeding.
           command: |
-            if git diff main HEAD~1 setup.py | grep 'version'
+            if git diff main HEAD~1 pyproject.toml | grep 'version'
               then
                 echo "Found changes to package version dir, proceeding with deployment."
               else
@@ -283,7 +283,7 @@ jobs:
       - run:
           name: Create the distribution files
           command: |
-            python setup.py sdist bdist_wheel
+            python3.10 -m build --sdist
       - run:
           name: Upload to PyPI
           command: |

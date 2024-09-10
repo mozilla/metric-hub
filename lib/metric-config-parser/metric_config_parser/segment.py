@@ -174,8 +174,10 @@ class SegmentDefinition:
             name=self.name,
             data_source=data_source,
             select_expression=configs.get_env().from_string(self.select_expression).render(),
-            friendly_name=dedent(self.friendly_name) if self.friendly_name else self.friendly_name,
-            description=dedent(self.description) if self.description else self.description,
+            friendly_name=(
+                dedent(self.friendly_name) if self.friendly_name else self.friendly_name
+            ),
+            description=(dedent(self.description) if self.description else self.description),
         )
 
 
@@ -195,7 +197,8 @@ class SegmentsSpec:
         }
         definitions = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, SegmentDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                SegmentDefinition,
             )
             for k, v in d.items()
         }

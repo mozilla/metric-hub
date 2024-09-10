@@ -252,7 +252,8 @@ class DataSourcesSpec:
     """Holds data source definitions.
 
     This doesn't have a resolve() method to produce a concrete DataSourcesConfiguration
-    because it's just a container for the definitions, and we don't need it after the spec phase."""
+    because it's just a container for the definitions, and we don't need it after the spec phase.
+    """
 
     definitions: Dict[str, DataSourceDefinition] = attr.Factory(dict)
 

@@ -284,7 +284,10 @@ class ExperimentSpec:
     sample_size: Optional[int] = None
 
     def resolve(
-        self, spec: "AnalysisSpec", experiment: "Experiment", configs: "ConfigCollection"
+        self,
+        spec: "AnalysisSpec",
+        experiment: "Experiment",
+        configs: "ConfigCollection",
     ) -> ExperimentConfiguration:
         experiment_config = ExperimentConfiguration(self, experiment, [])
         # Segment data sources may need to know the enrollment dates of the experiment,

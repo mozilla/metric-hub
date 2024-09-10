@@ -347,7 +347,10 @@ class TestAnalysisSpec:
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 1
         assert spam.metric.data_source.name == "main"
         assert spam.metric.select_expression == "2"
-        assert spam.metric.analysis_bases == [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
+        assert spam.metric.analysis_bases == [
+            AnalysisBasis.ENROLLMENTS,
+            AnalysisBasis.EXPOSURES,
+        ]
         assert spam.metric.analysis_units == [AnalysisUnit.CLIENT]
         assert spam.statistic.name == "bootstrap_mean"
         assert spam.statistic.params["num_samples"] == 100
@@ -587,7 +590,10 @@ class TestAnalysisSpec:
             (
                 [
                     ParameterDefinition(
-                        name="test", default=None, value={"branch_1": "1"}, distinct_by_branch=False
+                        name="test",
+                        default=None,
+                        value={"branch_1": "1"},
+                        distinct_by_branch=False,
                     ),
                     ParameterDefinition(name="test"),
                 ]

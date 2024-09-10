@@ -30,7 +30,7 @@ class FunctionsSpec:
                             definition=fun["definition"],
                         )
                     ),
-                    friendly_name=fun["friendly_name"] if "friendly_name" in fun else None,
+                    friendly_name=(fun["friendly_name"] if "friendly_name" in fun else None),
                     description=fun["description"] if "description" in fun else None,
                 )
                 for slug, fun in d["functions"].items()
