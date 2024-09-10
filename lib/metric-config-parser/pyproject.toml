@@ -3,7 +3,7 @@ requires = ["setuptools", "pytest-runner"]
 
 [project]
 name = "mozilla-metric-config-parser"
-version = "2024.9.2"
+version = "2024.9.3"
 authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
 description = "Parses metric configuration files"
 readme = "README.md"
@@ -38,11 +38,11 @@ testing = [
   "pytest-flake8",
   "pytest",
   "types-futures",
-  "types-pkg-resources",
   "types-protobuf",
   "types-pytz",
   "types-PyYAML",
   "types-requests",
+  "types-setuptools",
   "types-six",
   "types-toml",
 ]
