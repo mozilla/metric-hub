@@ -95,6 +95,4 @@ class ParameterSpec:
         return cls(**params)
 
 
-converter.register_structure_hook(
-    ParameterSpec, lambda obj, _type: ParameterSpec.from_dict(obj)
-)
+converter.register_structure_hook(ParameterSpec, lambda obj, _type: ParameterSpec.from_dict(obj))

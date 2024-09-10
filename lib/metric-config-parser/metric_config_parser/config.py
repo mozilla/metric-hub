@@ -19,8 +19,7 @@ from metric_config_parser.data_source import DataSourceDefinition
 from metric_config_parser.definition import DefinitionSpec, DefinitionSpecSub
 from metric_config_parser.function import FunctionsSpec
 from metric_config_parser.monitoring import MonitoringSpec
-from metric_config_parser.segment import (SegmentDataSourceDefinition,
-                                          SegmentDefinition)
+from metric_config_parser.segment import SegmentDataSourceDefinition, SegmentDefinition
 
 from .analysis import AnalysisSpec
 from .errors import UnexpectedKeyConfigurationException
@@ -53,9 +52,7 @@ class Config:
             resolved = analysis_spec.resolve(experiment, configs)
             # private configs need to override the default dataset
             if self.is_private and resolved.experiment.dataset_id is None:
-                raise ValueError(
-                    "dataset_id needs to be explicitly set for private experiments"
-                )
+                raise ValueError("dataset_id needs to be explicitly set for private experiments")
         elif isinstance(self.spec, MonitoringSpec):
             platform = (
                 experiment.app_name if experiment else self.spec.project.platform
@@ -66,9 +63,7 @@ class Config:
             )
             if experiment and experiment.is_rollout:
                 if platform == "firefox_desktop":
-                    rollout_spec = MonitoringSpec.default_for_platform_or_type(
-                        "rollout", configs
-                    )
+                    rollout_spec = MonitoringSpec.default_for_platform_or_type("rollout", configs)
                     monitoring_spec.merge(rollout_spec)
             monitoring_spec.merge(self.spec)
             monitoring_spec.resolve(experiment, configs)
@@ -109,9 +104,7 @@ def validate_config_settings(config_file: Path) -> None:
     core_config_keys_specified = config.keys()
 
     # checks for unexpected core configuration keys
-    unexpected_config_keys = set(core_config_keys_specified) - set(
-        optional_core_config_keys
-    )
+    unexpected_config_keys = set(core_config_keys_specified) - set(optional_core_config_keys)
     if unexpected_config_keys:
         err_msg = (
             f"Unexpected config key[s] found: {unexpected_config_keys}. "
@@ -131,9 +124,7 @@ class DefaultConfig(Config):
     they are applied to all experiments.
     """
 
-    def validate(
-        self, configs: "ConfigCollection", _experiment: Experiment = None
-    ) -> None:
+    def validate(self, configs: "ConfigCollection", _experiment: Experiment = None) -> None:
         dummy_experiment = Experiment(
             experimenter_slug="dummy-experiment",
             normandy_slug="dummy_experiment",
@@ -193,9 +184,7 @@ class DefinitionConfig(Config):
 
     platform: str = "firefox_desktop"
 
-    def validate(
-        self, configs: "ConfigCollection", _experiment: Experiment = None
-    ) -> None:
+    def validate(self, configs: "ConfigCollection", _experiment: Experiment = None) -> None:
         dummy_experiment = Experiment(
             experimenter_slug="dummy-experiment",
             normandy_slug="dummy_experiment",
@@ -394,9 +383,7 @@ class ConfigCollection:
             if configs is None:
                 configs = ConfigCollection.from_github_repo(repo, is_private=is_private)
             else:
-                collection = ConfigCollection.from_github_repo(
-                    repo, is_private=is_private
-                )
+                collection = ConfigCollection.from_github_repo(repo, is_private=is_private)
                 configs.merge(collection)
         return configs or ConfigCollection.from_github_repo()
 
@@ -413,9 +400,7 @@ class ConfigCollection:
 
         external_configs = []
         for config_file in files_path.glob("*.toml"):
-            last_modified = next(
-                repo.iter_commits("HEAD", paths=config_file)
-            ).committed_date
+            last_modified = next(repo.iter_commits("HEAD", paths=config_file)).committed_date
             config_json = toml.load(config_file)
 
             if "project" in config_json:
@@ -593,9 +578,7 @@ class ConfigCollection:
                         raise e
 
                 repo.commit_hash = rev
-                configs.repos = [
-                    repo
-                ]  # point to the original repo, instead of the temporary one
+                configs.repos = [repo]  # point to the original repo, instead of the temporary one
 
                 if config_collection is None:
                     config_collection = configs
@@ -647,9 +630,7 @@ class ConfigCollection:
 
         return None
 
-    def get_metric_definition(
-        self, slug: str, app_name: str
-    ) -> Optional[MetricDefinition]:
+    def get_metric_definition(self, slug: str, app_name: str) -> Optional[MetricDefinition]:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for metric_slug, metric in definition.spec.metrics.definitions.items():
@@ -686,9 +667,7 @@ class ConfigCollection:
 
         return None
 
-    def get_segment_definition(
-        self, slug: str, app_name: str
-    ) -> Optional[SegmentDefinition]:
+    def get_segment_definition(self, slug: str, app_name: str) -> Optional[SegmentDefinition]:
         for definition in self.definitions:
             if app_name == definition.platform:
                 if not isinstance(definition.spec, MonitoringSpec):
@@ -782,8 +761,7 @@ class ConfigCollection:
             definition.slug: definition for definition in deepcopy(other.definitions)
         }
         definitions = {
-            definition.slug: deepcopy(definition)
-            for definition in deepcopy(self.definitions)
+            definition.slug: deepcopy(definition) for definition in deepcopy(self.definitions)
         }
 
         for slug, definition in other_definitions.items():
@@ -809,9 +787,7 @@ class ConfigCollection:
         # merge functions
         functions = deepcopy(other.functions.functions) if other.functions else {}
         slugs = [slug for slug, _ in functions.items()]
-        for slug, function in (
-            self.functions.functions.items() if self.functions else {}
-        ):
+        for slug, function in self.functions.functions.items() if self.functions else {}:
             if slug not in slugs:
                 functions[slug] = function
 

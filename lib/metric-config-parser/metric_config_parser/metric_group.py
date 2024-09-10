@@ -69,8 +69,7 @@ class MetricGroupsSpec:
         d = dict((k.lower(), v) for k, v in d.items())
 
         definitions = {
-            k: converter.structure({"name": k, **v}, MetricGroupDefinition)
-            for k, v in d.items()
+            k: converter.structure({"name": k, **v}, MetricGroupDefinition) for k, v in d.items()
         }
         return cls(definitions=definitions)
 

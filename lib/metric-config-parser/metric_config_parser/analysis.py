@@ -121,9 +121,7 @@ class AnalysisSpec:
 
     def merge_outcome(self, other: "OutcomeSpec"):
         """Merges an outcome snippet into the analysis spec."""
-        metrics = [
-            MetricReference(metric_name) for metric_name, _ in other.metrics.items()
-        ]
+        metrics = [MetricReference(metric_name) for metric_name, _ in other.metrics.items()]
 
         # metrics defined in outcome snippets are only computed for
         # weekly and overall analysis windows
@@ -167,13 +165,9 @@ class AnalysisSpec:
                 "name": getattr(param_1, "name", None) or getattr(param_2, "name"),
                 "friendly_name": getattr(param_1, "friendly_name", None)
                 or getattr(param_2, "friendly_name"),
-                "description": getattr(param_1, "description", None)
-                or param_2.description,
+                "description": getattr(param_1, "description", None) or param_2.description,
                 "value": (
-                    {
-                        branch: branch_value
-                        for branch, branch_value in final_value.items()
-                    }
+                    {branch: branch_value for branch, branch_value in final_value.items()}
                     if isinstance(final_value, dict)
                     else final_value
                 ),

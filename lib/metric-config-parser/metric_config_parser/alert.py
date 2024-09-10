@@ -66,9 +66,7 @@ class AlertReference:
             raise ValueError(f"Alerts cannot be defined as part of {spec}")
 
 
-converter.register_structure_hook(
-    AlertReference, lambda obj, _type: AlertReference(name=obj)
-)
+converter.register_structure_hook(AlertReference, lambda obj, _type: AlertReference(name=obj))
 
 
 @attr.s(auto_attribs=True)
@@ -110,13 +108,9 @@ class AlertDefinition:
         elif self.type == AlertType.AVG_DIFF:
             none_fields = ["min", "max"]
             if self.window_size is None:
-                raise ValueError(
-                    "'window_size' needs to be specified when using avg_diff alert"
-                )
+                raise ValueError("'window_size' needs to be specified when using avg_diff alert")
             if self.max_relative_change is None:
-                raise ValueError(
-                    "'max_relative_change' to be specified when using avg_diff alert"
-                )
+                raise ValueError("'max_relative_change' to be specified when using avg_diff alert")
 
         for field in none_fields:
             if getattr(self, field) is not None:
@@ -135,9 +129,7 @@ class AlertDefinition:
         metrics = []
         for metric_ref in {p.name for p in self.metrics}:
             if metric_ref in spec.metrics.definitions:
-                metrics += spec.metrics.definitions[metric_ref].resolve(
-                    spec, conf, configs
-                )
+                metrics += spec.metrics.definitions[metric_ref].resolve(spec, conf, configs)
             else:
                 raise ValueError(f"No definition for metric {metric_ref}.")
 
@@ -168,8 +160,7 @@ class AlertsSpec:
         d = dict((k.lower(), v) for k, v in d.items())
 
         definitions = {
-            k: converter.structure({"name": k, **v}, AlertDefinition)
-            for k, v in d.items()
+            k: converter.structure({"name": k, **v}, AlertDefinition) for k, v in d.items()
         }
         return cls(definitions=definitions)
 
@@ -197,6 +188,4 @@ class AlertsSpec:
         self.definitions.update(other.definitions)
 
 
-converter.register_structure_hook(
-    AlertsSpec, lambda obj, _type: AlertsSpec.from_dict(obj)
-)
+converter.register_structure_hook(AlertsSpec, lambda obj, _type: AlertsSpec.from_dict(obj))

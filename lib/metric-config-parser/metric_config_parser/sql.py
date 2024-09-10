@@ -28,9 +28,7 @@ def generate_metrics_sql(
         definition = config_collection.get_metric_definition(slug, platform)
 
         if definition is None:
-            raise ValueError(
-                f"No definition for metric {slug} on platform {platform} found."
-            )
+            raise ValueError(f"No definition for metric {slug} on platform {platform} found.")
 
         metric_definitions.append(definition)
 
@@ -54,9 +52,7 @@ def generate_metrics_sql(
             )
 
             if data_source is None:
-                raise ValueError(
-                    f"No valid data source definition found for metric {metric.name}"
-                )
+                raise ValueError(f"No valid data source definition found for metric {metric.name}")
 
             # default parameters need to be set explicitly otherwise they'll be None
             data_source.client_id_column = data_source.client_id_column or "client_id"
@@ -80,9 +76,7 @@ def generate_metrics_sql(
 
     # using `from_string()` in Jinja doens't support include statements, so
     # substituting them here manually
-    template = template.replace(
-        "{% include 'data_source_macros.j2' %}", macros_template
-    )
+    template = template.replace("{% include 'data_source_macros.j2' %}", macros_template)
     return (
         config_collection.get_env()
         .from_string(template)
@@ -120,20 +114,14 @@ def generate_data_source_sql(
 
     # using `from_string()` in Jinja doens't support include statements, so
     # substituting them here manually
-    template = template.replace(
-        "{% include 'data_source_macros.j2' %}", macros_template
-    )
-    data_source_definition = config_collection.get_data_source_definition(
-        data_source, platform
-    )
+    template = template.replace("{% include 'data_source_macros.j2' %}", macros_template)
+    data_source_definition = config_collection.get_data_source_definition(data_source, platform)
 
     if data_source_definition is None:
         raise ValueError(f"No valid data source definition found for {data_source}")
 
     # default parameters need to be set explicitly otherwise they'll be None
-    data_source_definition.client_id_column = (
-        data_source_definition.client_id_column or "client_id"
-    )
+    data_source_definition.client_id_column = data_source_definition.client_id_column or "client_id"
     data_source_definition.submission_date_column = (
         data_source_definition.submission_date_column or "submission_date"
     )

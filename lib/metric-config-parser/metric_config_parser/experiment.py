@@ -128,11 +128,7 @@ class ExperimentConfiguration:
 
     @property
     def proposed_enrollment(self) -> int:
-        return (
-            self.experiment_spec.enrollment_period
-            or self.experiment.proposed_enrollment
-            or 0
-        )
+        return self.experiment_spec.enrollment_period or self.experiment.proposed_enrollment or 0
 
     @property
     def enrollment_end_date(self) -> Optional[dt.datetime]:
@@ -144,30 +140,21 @@ class ExperimentConfiguration:
 
     @property
     def bucket_count(self) -> Optional[int]:
-        if (
-            hasattr(self.experiment, "bucket_config")
-            and self.experiment.bucket_config is not None
-        ):
+        if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             return self.experiment.bucket_config.count
 
         return None
 
     @property
     def bucket_start(self) -> Optional[int]:
-        if (
-            hasattr(self.experiment, "bucket_config")
-            and self.experiment.bucket_config is not None
-        ):
+        if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             return self.experiment.bucket_config.start
 
         return None
 
     @property
     def randomization_unit(self) -> Optional[RandomizationUnit]:
-        if (
-            hasattr(self.experiment, "bucket_config")
-            and self.experiment.bucket_config is not None
-        ):
+        if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             # this will raise a ValueError if the provided randomization_unit is invalid
             return RandomizationUnit(self.experiment.bucket_config.randomization_unit)
 
@@ -178,10 +165,7 @@ class ExperimentConfiguration:
         """Retrieve the appropriate analysis unit, which is
         derived from the experiment's randomization unit.
         """
-        if (
-            self.randomization_unit
-            and self.randomization_unit == RandomizationUnit.GROUP_ID
-        ):
+        if self.randomization_unit and self.randomization_unit == RandomizationUnit.GROUP_ID:
             return AnalysisUnit.PROFILE_GROUP
 
         return AnalysisUnit.CLIENT
@@ -232,9 +216,7 @@ class ExperimentConfiguration:
     def last_enrollment_date_str(self) -> str:
         if not self.start_date:
             raise NoStartDateException(self.normandy_slug)
-        return (self.start_date + dt.timedelta(days=self.enrollment_period)).strftime(
-            "%Y-%m-%d"
-        )
+        return (self.start_date + dt.timedelta(days=self.enrollment_period)).strftime("%Y-%m-%d")
 
     @property
     def skip(self) -> bool:
@@ -282,9 +264,7 @@ def _validate_yyyy_mm_dd(instance: Any, attribute: Any, value: Any) -> None:
 
 def _validate_dataset_id(instance: Any, attribute, value):
     if instance.is_private and value is None:
-        raise ValueError(
-            "dataset_id must be set to a custom dataset for private experiments"
-        )
+        raise ValueError("dataset_id must be set to a custom dataset for private experiments")
 
 
 @attr.s(auto_attribs=True, kw_only=True)

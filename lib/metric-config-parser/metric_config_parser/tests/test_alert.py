@@ -38,10 +38,7 @@ class TestAlertSpec:
             """
         )
         spec = MonitoringSpec.from_dict(toml.loads(config_str))
-        assert (
-            MetricReference(name="test_metric")
-            in spec.alerts.definitions["test"].metrics
-        )
+        assert MetricReference(name="test_metric") in spec.alerts.definitions["test"].metrics
         conf = spec.resolve(experiment=None, configs=config_collection)
         assert conf.alerts[0].name == "test"
 

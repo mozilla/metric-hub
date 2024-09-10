@@ -10,9 +10,13 @@ from git import Repo
 
 from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
-from metric_config_parser.config import (Config, ConfigCollection,
-                                         DefaultConfig, DefinitionConfig,
-                                         Outcome)
+from metric_config_parser.config import (
+    Config,
+    ConfigCollection,
+    DefaultConfig,
+    DefinitionConfig,
+    Outcome,
+)
 from metric_config_parser.data_source import DataSourceJoinRelationship
 from metric_config_parser.errors import DefinitionNotFound
 from metric_config_parser.metric import MetricLevel
@@ -46,9 +50,7 @@ class TestConfigIntegration:
         assert config_collection.spec_for_experiment("new_table") is not None
         assert config_collection.spec_for_outcome("test", "foo") is None
         assert config_collection.get_platform_defaults("desktop") is None
-        assert (
-            config_collection.get_segment_data_source_definition("foo", "test") is None
-        )
+        assert config_collection.get_segment_data_source_definition("foo", "test") is None
 
     def test_definition_config(self):
         config_str = dedent(
@@ -353,16 +355,12 @@ class TestConfigIntegration:
 
         assert [
             m
-            for slug, m in config_collection_1.definitions[
-                0
-            ].spec.metrics.definitions.items()
+            for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
             if slug == "active_hours"
         ][0].select_expression == "4"
         assert [
             m
-            for slug, m in config_collection_1.definitions[
-                0
-            ].spec.metrics.definitions.items()
+            for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
             if slug == "unenroll"
         ][0].select_expression == "3"
 
@@ -634,13 +632,8 @@ class TestConfigIntegration:
 
         assert len(data_source.joins) == 2
         assert data_source.joins[0].data_source.name == "metrics"
-        assert (
-            data_source.joins[0].on_expression
-            == "metrics.client_id = baseline.client_id"
-        )
-        assert (
-            data_source.joins[0].relationship == DataSourceJoinRelationship.MANY_TO_ONE
-        )
+        assert data_source.joins[0].on_expression == "metrics.client_id = baseline.client_id"
+        assert data_source.joins[0].relationship == DataSourceJoinRelationship.MANY_TO_ONE
 
         assert data_source.joins[1].data_source.name == "events"
 
@@ -667,9 +660,9 @@ class TestConfigIntegration:
         )
 
         with pytest.raises(Exception):
-            config_collection.get_data_source_definition(
-                "baseline", "firefox_desktop"
-            ).resolve(definition.spec, None, config_collection)
+            config_collection.get_data_source_definition("baseline", "firefox_desktop").resolve(
+                definition.spec, None, config_collection
+            )
 
     def test_data_source_joins_circular_dependency(self):
         config_str = dedent(
@@ -699,9 +692,9 @@ class TestConfigIntegration:
         )
 
         with pytest.raises(Exception):
-            config_collection.get_data_source_definition(
-                "baseline", "firefox_desktop"
-            ).resolve(definition.spec, None, config_collection)
+            config_collection.get_data_source_definition("baseline", "firefox_desktop").resolve(
+                definition.spec, None, config_collection
+            )
 
     def test_invalid_wildcard_in_data_source(self):
         # needs to be [data_sources.'baseline_*']
@@ -781,9 +774,7 @@ class TestConfigIntegration:
 
         config_collection_1.merge(config_collection_2)
         assert (
-            config_collection_1.get_data_source_definition(
-                "baseline", "firefox_desktop"
-            ).name
+            config_collection_1.get_data_source_definition("baseline", "firefox_desktop").name
             == "baseline"
         )
         assert (
@@ -792,10 +783,7 @@ class TestConfigIntegration:
             ).experiments_column_type
             == "none"
         )
-        assert (
-            config_collection_1.get_data_source_definition("*", "firefox_desktop")
-            is None
-        )
+        assert config_collection_1.get_data_source_definition("*", "firefox_desktop") is None
         assert (
             config_collection_1.get_metric_definition(
                 "test_metric", "firefox_desktop"
@@ -809,9 +797,7 @@ class TestConfigIntegration:
             ).statistics
         )
         assert (
-            config_collection_1.get_metric_definition(
-                "test_metric", "firefox_desktop"
-            ).category
+            config_collection_1.get_metric_definition("test_metric", "firefox_desktop").category
             == "test_overwrite_second"
         )
 
@@ -852,9 +838,7 @@ class TestConfigIntegration:
 
         config_collection_1.merge(config_collection_2)
         assert (
-            config_collection_1.get_data_source_definition(
-                "baseline", "firefox_desktop"
-            ).name
+            config_collection_1.get_data_source_definition("baseline", "firefox_desktop").name
             == "baseline"
         )
         assert (
@@ -864,8 +848,5 @@ class TestConfigIntegration:
             == "simple"
         )
         assert (
-            config_collection_1.get_data_source_definition(
-                "invalid_*", "firefox_desktop"
-            )
-            is None
+            config_collection_1.get_data_source_definition("invalid_*", "firefox_desktop") is None
         )

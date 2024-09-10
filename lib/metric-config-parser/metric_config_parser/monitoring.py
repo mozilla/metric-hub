@@ -64,9 +64,7 @@ class MonitoringSpec:
     ) -> "MonitoringSpec":
         from metric_config_parser.definition import DefinitionSpec
 
-        if not isinstance(spec, MonitoringSpec) and not isinstance(
-            spec, DefinitionSpec
-        ):
+        if not isinstance(spec, MonitoringSpec) and not isinstance(spec, DefinitionSpec):
             raise ValueError(f"Cannot create MonitoringSpec from {spec}")
 
         if project is None:
@@ -134,9 +132,7 @@ class MonitoringSpec:
         for alert_ref in {d.name for d in self.project.alerts}:
             if alert_ref in self.alerts.definitions:
                 alerts.append(
-                    self.alerts.definitions[alert_ref].resolve(
-                        self, resolved_project, configs
-                    )
+                    self.alerts.definitions[alert_ref].resolve(self, resolved_project, configs)
                 )
             else:
                 raise ValueError(f"No definition for alert {alert_ref}.")

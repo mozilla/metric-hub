@@ -87,9 +87,7 @@ class ExposureSignalDefinition:
             friendly_name=(
                 dedent(self.friendly_name) if self.friendly_name else self.friendly_name
             ),
-            description=(
-                dedent(self.description) if self.description else self.description
-            ),
+            description=(dedent(self.description) if self.description else self.description),
             window_start=self.window_start,
             window_end=self.window_end,
         )

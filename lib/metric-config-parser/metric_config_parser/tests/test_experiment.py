@@ -16,9 +16,7 @@ from metric_config_parser.metric import AnalysisPeriod
 from metric_config_parser.segment import Segment
 
 TEST_DIR = Path(__file__).parent
-DEFAULT_METRICS_CONFIG = (
-    TEST_DIR / "data" / "jetstream" / "defaults" / "firefox_desktop.toml"
-)
+DEFAULT_METRICS_CONFIG = TEST_DIR / "data" / "jetstream" / "defaults" / "firefox_desktop.toml"
 
 
 class TestExperimentSpec:
@@ -47,10 +45,7 @@ class TestExperimentSpec:
         )
         spec = AnalysisSpec.from_dict(toml.loads(conf))
         cfg = spec.resolve(experiments[0], config_collection)
-        assert (
-            cfg.experiment.enrollment_query
-            == "SELECT 1 FROM foo WHERE slug = 'test_slug'"
-        )
+        assert cfg.experiment.enrollment_query == "SELECT 1 FROM foo WHERE slug = 'test_slug'"
 
     def test_silly_query(self, experiments, config_collection):
         conf = dedent(
@@ -115,14 +110,9 @@ class TestExperimentSpec:
         assert configured.experiment.segments[1].name == "my_cool_segment"
 
         assert "agg_any" not in configured.experiment.segments[1].select_expression
-        assert (
-            "1970" not in configured.experiment.segments[1].data_source.from_expression
-        )
+        assert "1970" not in configured.experiment.segments[1].data_source.from_expression
         assert "{{" not in configured.experiment.segments[1].data_source.from_expression
-        assert (
-            "2019-12-01"
-            in configured.experiment.segments[1].data_source.from_expression
-        )
+        assert "2019-12-01" in configured.experiment.segments[1].data_source.from_expression
 
     def test_end_date_str(self, experiments, config_collection):
         conf = dedent(
@@ -201,9 +191,9 @@ class TestExperimentSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        pre_treatments = [
-            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
-        ][0].pre_treatments
+        pre_treatments = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
+            0
+        ].pre_treatments
 
         assert len(pre_treatments) == 3
         assert pre_treatments[0].name == "remove_nulls"
@@ -213,9 +203,7 @@ class TestExperimentSpec:
         assert pre_treatments[1].args["base"] == 20.0
         assert pre_treatments[2].args["fraction"] == 0.9
 
-    def test_pre_treatment_config_multiple_periods(
-        self, experiments, config_collection
-    ):
+    def test_pre_treatment_config_multiple_periods(self, experiments, config_collection):
         config_str = dedent(
             """
             [metrics]
@@ -234,9 +222,9 @@ class TestExperimentSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        pre_treatments = [
-            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
-        ][0].pre_treatments
+        pre_treatments = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
+            0
+        ].pre_treatments
 
         assert len(pre_treatments) == 1
         assert pre_treatments[0].name == "remove_nulls"
@@ -266,18 +254,14 @@ class TestExperimentSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
         week_metrics = [
-            m
-            for m in cfg.metrics[AnalysisPeriod.PREENROLLMENT_WEEK]
-            if m.metric.name == "spam"
+            m for m in cfg.metrics[AnalysisPeriod.PREENROLLMENT_WEEK] if m.metric.name == "spam"
         ]
 
         assert len(week_metrics) == 1
         assert week_metrics[0].metric.name == "spam"
 
         days28_metrics = [
-            m
-            for m in cfg.metrics[AnalysisPeriod.PREENROLLMENT_DAYS_28]
-            if m.metric.name == "spam"
+            m for m in cfg.metrics[AnalysisPeriod.PREENROLLMENT_DAYS_28] if m.metric.name == "spam"
         ]
 
         assert len(days28_metrics) == 1
