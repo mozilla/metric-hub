@@ -129,6 +129,10 @@ jobs:
           python3.10 -m venv venv/
           venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - run:
+        name: Create the distribution files
+        command: |
+          python3.10 -m build --sdist
+    - run:
         name: PyTest
         command: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
     - run:
