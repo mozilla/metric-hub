@@ -85,11 +85,16 @@ class ParameterSpec:
 
         for param_name, param_config in d.items():
             params["definitions"][param_name] = converter.structure(
-                {"name": param_name, **dict((kk.lower(), vv) for kk, vv in param_config.items())},
+                {
+                    "name": param_name,
+                    **dict((kk.lower(), vv) for kk, vv in param_config.items()),
+                },
                 ParameterDefinition,
             )
 
         return cls(**params)
 
 
-converter.register_structure_hook(ParameterSpec, lambda obj, _type: ParameterSpec.from_dict(obj))
+converter.register_structure_hook(
+    ParameterSpec, lambda obj, _type: ParameterSpec.from_dict(obj)
+)

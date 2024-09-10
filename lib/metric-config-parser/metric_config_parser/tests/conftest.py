@@ -157,6 +157,8 @@ def local_tmp_repo(tmp_path):
 @pytest.fixture
 def config_collection(local_tmp_repo):
     default_metrics = ConfigCollection.from_github_repo(local_tmp_repo, path="metrics")
-    jetstream_metrics = ConfigCollection.from_github_repo(local_tmp_repo, path="metrics/jetstream")
+    jetstream_metrics = ConfigCollection.from_github_repo(
+        local_tmp_repo, path="metrics/jetstream"
+    )
     default_metrics.merge(jetstream_metrics)
     return default_metrics

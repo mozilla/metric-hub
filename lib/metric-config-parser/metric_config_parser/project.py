@@ -12,7 +12,8 @@ from metric_config_parser.alert import AlertReference
 from metric_config_parser.experiment import Experiment
 from metric_config_parser.metric import MetricReference
 from metric_config_parser.metric_group import MetricGroup, MetricGroupsSpec
-from metric_config_parser.population import PopulationConfiguration, PopulationSpec
+from metric_config_parser.population import (PopulationConfiguration,
+                                             PopulationSpec)
 from metric_config_parser.util import converter, parse_date
 
 
@@ -114,7 +115,9 @@ class ProjectSpec:
             is_rollout=self.is_rollout,
             metric_groups=[],
         )
-        project_config.population = self.population.resolve(spec, project_config, configs)
+        project_config.population = self.population.resolve(
+            spec, project_config, configs
+        )
 
         metric_groups = []
         for group_ref in [d for _, d in self.metric_groups.definitions.items()]:

@@ -4,7 +4,8 @@ import pytest
 import toml
 
 from metric_config_parser.definition import DefinitionSpec
-from metric_config_parser.monitoring import MonitoringConfiguration, MonitoringSpec
+from metric_config_parser.monitoring import (MonitoringConfiguration,
+                                             MonitoringSpec)
 
 
 class TestMonitoringSpec:
@@ -178,7 +179,9 @@ class TestMonitoringSpec:
             from_expression = "test"
             """
         )
-        spec = MonitoringSpec.from_definition_spec(DefinitionSpec.from_dict(toml.loads(config_str)))
+        spec = MonitoringSpec.from_definition_spec(
+            DefinitionSpec.from_dict(toml.loads(config_str))
+        )
 
         config_str = dedent(
             """
@@ -220,7 +223,9 @@ class TestMonitoringSpec:
             build_id_column = "test"
             """
         )
-        spec = MonitoringSpec.from_definition_spec(DefinitionSpec.from_dict(toml.loads(config_str)))
+        spec = MonitoringSpec.from_definition_spec(
+            DefinitionSpec.from_dict(toml.loads(config_str))
+        )
 
         config_str = dedent(
             """

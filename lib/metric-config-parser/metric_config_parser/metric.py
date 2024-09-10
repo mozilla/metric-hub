@@ -90,7 +90,10 @@ class Metric:
     friendly_name: Optional[str] = None
     description: Optional[str] = None
     bigger_is_better: bool = True
-    analysis_bases: List[AnalysisBasis] = [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
+    analysis_bases: List[AnalysisBasis] = [
+        AnalysisBasis.ENROLLMENTS,
+        AnalysisBasis.EXPOSURES,
+    ]
     type: str = "scalar"
     category: Optional[str] = None
     depends_on: Optional[List[Summary]] = None
@@ -121,7 +124,9 @@ class MetricReference:
 
 
 # These are bare strings in the configuration file.
-converter.register_structure_hook(MetricReference, lambda obj, _type: MetricReference(name=obj))
+converter.register_structure_hook(
+    MetricReference, lambda obj, _type: MetricReference(name=obj)
+)
 
 converter.register_structure_hook(Union[str, List[str], None], lambda obj, _type: obj)
 
@@ -167,7 +172,9 @@ class MetricDefinition:
         formatted_params: Dict[str, Any] = defaultdict()
 
         for param_name, param_definition in param_definitions.items():
-            if param_definition.distinct_by_branch and isinstance(param_definition.value, dict):
+            if param_definition.distinct_by_branch and isinstance(
+                param_definition.value, dict
+            ):
                 formatted_params.update(
                     {
                         param_name: "CASE e.branch "
@@ -184,7 +191,9 @@ class MetricDefinition:
                 formatted_params.update({param_name: param_definition.value})
 
         return (
-            configs.get_env().from_string(select_expr_template).render(parameters=formatted_params)
+            configs.get_env()
+            .from_string(select_expr_template)
+            .render(parameters=formatted_params)
         )
 
     def resolve(
@@ -203,11 +212,15 @@ class MetricDefinition:
             # resolve upstream metrics
             for metric_ref in self.depends_on:
                 # check if upstream metric is defined externally as a "definition"
-                upstream_metric = configs.get_metric_definition(metric_ref.name, conf.app_name)
+                upstream_metric = configs.get_metric_definition(
+                    metric_ref.name, conf.app_name
+                )
 
                 if upstream_metric is None:
                     # check if upstream metric is part of the analysis spec
-                    upstream_metric = spec.metrics.definitions.get(metric_ref.name, None)
+                    upstream_metric = spec.metrics.definitions.get(
+                        metric_ref.name, None
+                    )
 
                 if upstream_metric is None:
                     raise DefinitionNotFound(
@@ -230,9 +243,15 @@ class MetricDefinition:
                     data_source=None,
                     select_expression=None,
                     friendly_name=(
-                        dedent(self.friendly_name) if self.friendly_name else self.friendly_name
+                        dedent(self.friendly_name)
+                        if self.friendly_name
+                        else self.friendly_name
                     ),
-                    description=dedent(self.description) if self.description else self.description,
+                    description=(
+                        dedent(self.description)
+                        if self.description
+                        else self.description
+                    ),
                     bigger_is_better=self.bigger_is_better,
                     analysis_bases=self.analysis_bases
                     or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
@@ -255,7 +274,9 @@ class MetricDefinition:
                 )
                 metric_definition.statistics = self.statistics
                 metric_definition.analysis_units = (
-                    self.analysis_units or metric_definition.analysis_units or [AnalysisUnit.CLIENT]
+                    self.analysis_units
+                    or metric_definition.analysis_units
+                    or [AnalysisUnit.CLIENT]
                 )
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
@@ -282,9 +303,13 @@ class MetricDefinition:
                 data_source=resolved_ds,
                 select_expression=select_expression,
                 friendly_name=(
-                    dedent(self.friendly_name) if self.friendly_name else self.friendly_name
+                    dedent(self.friendly_name)
+                    if self.friendly_name
+                    else self.friendly_name
                 ),
-                description=dedent(self.description) if self.description else self.description,
+                description=(
+                    dedent(self.description) if self.description else self.description
+                ),
                 bigger_is_better=self.bigger_is_better,
                 analysis_bases=self.analysis_bases
                 or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
@@ -323,7 +348,9 @@ class MetricDefinition:
                 metrics_with_treatments += metric_summary
         elif metric:
             if self.statistics is None:
-                raise ValueError(f"No statistical treatment defined for metric '{self.name}'")
+                raise ValueError(
+                    f"No statistical treatment defined for metric '{self.name}'"
+                )
 
             for statistic_name, params in self.statistics.items():
                 stats_params = copy.deepcopy(params)
@@ -345,7 +372,9 @@ class MetricDefinition:
                 )
 
         if len(metrics_with_treatments) == 0:
-            raise ValueError(f"Metric {self.name} has no statistical treatment defined.")
+            raise ValueError(
+                f"Metric {self.name} has no statistical treatment defined."
+            )
 
         return metrics_with_treatments
 
@@ -431,8 +460,12 @@ class MetricsSpec:
         self.weekly = other.weekly + self.weekly
         self.days28 = other.days28 + self.days28
         self.overall = other.overall + self.overall
-        self.preenrollment_weekly = other.preenrollment_weekly + self.preenrollment_weekly
-        self.preenrollment_days28 = other.preenrollment_days28 + self.preenrollment_days28
+        self.preenrollment_weekly = (
+            other.preenrollment_weekly + self.preenrollment_weekly
+        )
+        self.preenrollment_days28 = (
+            other.preenrollment_days28 + self.preenrollment_days28
+        )
 
         seen = set()
         for key, _ in self.definitions.items():
@@ -448,4 +481,6 @@ class MetricsSpec:
                 self.definitions[key] = definition
 
 
-converter.register_structure_hook(MetricsSpec, lambda obj, _type: MetricsSpec.from_dict(obj))
+converter.register_structure_hook(
+    MetricsSpec, lambda obj, _type: MetricsSpec.from_dict(obj)
+)

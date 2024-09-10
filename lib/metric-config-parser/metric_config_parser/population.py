@@ -50,7 +50,11 @@ class PopulationSpec:
                 )
 
         return PopulationConfiguration(
-            data_source=self.data_source.resolve(spec, conf, configs) if self.data_source else None,
+            data_source=(
+                self.data_source.resolve(spec, conf, configs)
+                if self.data_source
+                else None
+            ),
             boolean_pref=self.boolean_pref
             or (conf.population.boolean_pref if conf and not conf.is_rollout else None),
             channel=self.channel or (conf.population.channel if conf else None),
@@ -79,7 +83,9 @@ class PopulationSpec:
         """
         for key in attr.fields_dict(type(self)):
             if key == "branches":
-                self.branches = self.branches if self.branches is not None else other.branches
+                self.branches = (
+                    self.branches if self.branches is not None else other.branches
+                )
             elif key == "dimensions":
                 self.dimensions += other.dimensions
             else:

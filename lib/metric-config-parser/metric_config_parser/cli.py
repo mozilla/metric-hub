@@ -7,13 +7,9 @@ from typing import Iterable
 
 import click
 
-from metric_config_parser.config import (
-    DEFINITIONS_DIR,
-    ConfigCollection,
-    DefinitionConfig,
-    Outcome,
-    entity_from_path,
-)
+from metric_config_parser.config import (DEFINITIONS_DIR, ConfigCollection,
+                                         DefinitionConfig, Outcome,
+                                         entity_from_path)
 from metric_config_parser.function import FunctionsSpec
 
 METRIC_HUB_REPO = "https://github.com/mozilla/metric-hub"
@@ -43,9 +39,9 @@ def cli():
 def validate(path: Iterable[os.PathLike], config_repos, private_config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos).from_github_repos(
-        private_config_repos, is_private=True
-    )
+    config_collection = ConfigCollection.from_github_repos(
+        config_repos
+    ).from_github_repos(private_config_repos, is_private=True)
 
     # get updated definition files
     for config_file in path:
@@ -84,7 +80,9 @@ def validate(path: Iterable[os.PathLike], config_repos, private_config_repos):
         print(f"Evaluating {config_file}...")
         entity = entity_from_path(config_file)
         try:
-            if not isinstance(entity, FunctionsSpec) and not isinstance(entity, Outcome):
+            if not isinstance(entity, FunctionsSpec) and not isinstance(
+                entity, Outcome
+            ):
                 entity.validate(config_collection, None)  # type: ignore
         except Exception as e:
             dirty = True

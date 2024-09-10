@@ -96,7 +96,9 @@ class DataSource:
     client_id_column = attr.ib(default="client_id", type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
     default_dataset = attr.ib(default=None, type=Optional[str])
-    build_id_column = attr.ib(default="SAFE.SUBSTR(application.build_id, 0, 8)", type=str)
+    build_id_column = attr.ib(
+        default="SAFE.SUBSTR(application.build_id, 0, 8)", type=str
+    )
     friendly_name = attr.ib(default=None, type=str)
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
@@ -148,9 +150,13 @@ class DataSourceReference:
         if self.name in spec.data_sources.definitions:
             return spec.data_sources.definitions[self.name].resolve(spec, conf, configs)
 
-        data_source_definition = configs.get_data_source_definition(self.name, conf.app_name)
+        data_source_definition = configs.get_data_source_definition(
+            self.name, conf.app_name
+        )
         if data_source_definition is None:
-            raise DefinitionNotFound(f"No default definition for data source '{self.name}' found")
+            raise DefinitionNotFound(
+                f"No default definition for data source '{self.name}' found"
+            )
         return data_source_definition.resolve(spec, conf, configs)
 
 
@@ -224,7 +230,9 @@ class DataSourceDefinition:
         if self.joins and len(self.joins) > 0:
             params["joins"] = [
                 DataSourceJoin(
-                    data_source=DataSourceReference(name=data_source).resolve(spec, conf, configs),
+                    data_source=DataSourceReference(name=data_source).resolve(
+                        spec, conf, configs
+                    ),
                     relationship=(
                         DataSourceJoinRelationship.from_str(join["relationship"])
                         if "relationship" in join
@@ -252,7 +260,8 @@ class DataSourcesSpec:
     """Holds data source definitions.
 
     This doesn't have a resolve() method to produce a concrete DataSourcesConfiguration
-    because it's just a container for the definitions, and we don't need it after the spec phase."""
+    because it's just a container for the definitions, and we don't need it after the spec phase.
+    """
 
     definitions: Dict[str, DataSourceDefinition] = attr.Factory(dict)
 

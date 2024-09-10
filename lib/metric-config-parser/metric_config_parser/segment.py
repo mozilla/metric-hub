@@ -91,11 +91,15 @@ class SegmentReference:
             return spec.segments.definitions[self.name].resolve(spec, conf, configs)
         segment_definition = configs.get_segment_definition(self.name, conf.app_name)
         if segment_definition is None:
-            raise DefinitionNotFound(f"Could not find definition for segment '{self.name}'")
+            raise DefinitionNotFound(
+                f"Could not find definition for segment '{self.name}'"
+            )
         return segment_definition.resolve(spec, conf, configs)
 
 
-converter.register_structure_hook(SegmentReference, lambda obj, _type: SegmentReference(name=obj))
+converter.register_structure_hook(
+    SegmentReference, lambda obj, _type: SegmentReference(name=obj)
+)
 
 
 @attr.s(auto_attribs=True)
@@ -141,7 +145,9 @@ class SegmentDataSourceReference:
     ) -> SegmentDataSource:
         if self.name in spec.segments.data_sources:
             return spec.segments.data_sources[self.name].resolve(spec, conf, configs)
-        segment_definition = configs.get_segment_data_source_definition(self.name, conf.app_name)
+        segment_definition = configs.get_segment_data_source_definition(
+            self.name, conf.app_name
+        )
         if segment_definition is None:
             raise DefinitionNotFound(
                 f"Could not find definition for segment data source '{self.name}'"
@@ -173,9 +179,15 @@ class SegmentDefinition:
         return Segment(
             name=self.name,
             data_source=data_source,
-            select_expression=configs.get_env().from_string(self.select_expression).render(),
-            friendly_name=dedent(self.friendly_name) if self.friendly_name else self.friendly_name,
-            description=dedent(self.description) if self.description else self.description,
+            select_expression=configs.get_env()
+            .from_string(self.select_expression)
+            .render(),
+            friendly_name=(
+                dedent(self.friendly_name) if self.friendly_name else self.friendly_name
+            ),
+            description=(
+                dedent(self.description) if self.description else self.description
+            ),
         )
 
 
@@ -195,7 +207,8 @@ class SegmentsSpec:
         }
         definitions = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, SegmentDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                SegmentDefinition,
             )
             for k, v in d.items()
         }
@@ -210,4 +223,6 @@ class SegmentsSpec:
         self.definitions.update(other.definitions)
 
 
-converter.register_structure_hook(SegmentsSpec, lambda obj, _type: SegmentsSpec.from_dict(obj))
+converter.register_structure_hook(
+    SegmentsSpec, lambda obj, _type: SegmentsSpec.from_dict(obj)
+)

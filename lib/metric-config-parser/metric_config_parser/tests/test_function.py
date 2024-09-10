@@ -30,14 +30,19 @@ class TestFunction:
         function_spec = FunctionsSpec.from_dict(toml.loads(config_str))
 
         assert function_spec.functions["agg_sum"].slug == "agg_sum"
-        assert function_spec.functions["agg_sum"].definition("1") == "COALESCE(SUM(1), 0)"
+        assert (
+            function_spec.functions["agg_sum"].definition("1") == "COALESCE(SUM(1), 0)"
+        )
 
         assert function_spec.functions["agg_any"].slug == "agg_any"
         assert (
-            function_spec.functions["agg_any"].definition("1") == "COALESCE(LOGICAL_OR(1), FALSE)"
+            function_spec.functions["agg_any"].definition("1")
+            == "COALESCE(LOGICAL_OR(1), FALSE)"
         )
 
-        assert function_spec.functions["agg_histogram_mean"].slug == "agg_histogram_mean"
+        assert (
+            function_spec.functions["agg_histogram_mean"].slug == "agg_histogram_mean"
+        )
 
     def test_parse_invalid_function_config(self):
         config_str = dedent(

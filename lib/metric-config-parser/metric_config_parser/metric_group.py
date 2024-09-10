@@ -31,7 +31,10 @@ class MetricGroupDefinition:
     metrics: List[MetricReference] = attr.Factory(list)
 
     def resolve(
-        self, spec: "MonitoringSpec", _conf: "ProjectConfiguration", _configs: "ConfigCollection"
+        self,
+        spec: "MonitoringSpec",
+        _conf: "ProjectConfiguration",
+        _configs: "ConfigCollection",
     ) -> MetricGroup:
         """Create and return a `MetricGroup` from the definition."""
         for metric_ref in self.metrics:
@@ -66,7 +69,8 @@ class MetricGroupsSpec:
         d = dict((k.lower(), v) for k, v in d.items())
 
         definitions = {
-            k: converter.structure({"name": k, **v}, MetricGroupDefinition) for k, v in d.items()
+            k: converter.structure({"name": k, **v}, MetricGroupDefinition)
+            for k, v in d.items()
         }
         return cls(definitions=definitions)
 

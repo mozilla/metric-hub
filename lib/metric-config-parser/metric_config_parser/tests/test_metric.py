@@ -16,7 +16,10 @@ class TestMetricDefinition:
                 "param = 1",
             ),
             (
-                [{"param": ParameterDefinition(name="param", value="1")}, "{{ parameters.param }}"],
+                [
+                    {"param": ParameterDefinition(name="param", value="1")},
+                    "{{ parameters.param }}",
+                ],
                 "1",
             ),
             ([{"param": ParameterDefinition(name="param", value="1")}, ""], ""),
@@ -24,7 +27,9 @@ class TestMetricDefinition:
                 [
                     {
                         "param": ParameterDefinition(
-                            name="param", distinct_by_branch=True, value={"branch_1": "1"}
+                            name="param",
+                            distinct_by_branch=True,
+                            value={"branch_1": "1"},
                         )
                     },
                     "",
@@ -35,7 +40,9 @@ class TestMetricDefinition:
                 [
                     {
                         "param": ParameterDefinition(
-                            name="param", distinct_by_branch=True, value={"branch_1": "1"}
+                            name="param",
+                            distinct_by_branch=True,
+                            value={"branch_1": "1"},
                         )
                     },
                     "{{parameters.param}}",

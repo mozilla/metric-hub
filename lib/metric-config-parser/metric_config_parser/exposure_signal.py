@@ -84,8 +84,12 @@ class ExposureSignalDefinition:
             name=self.name,
             data_source=self.data_source.resolve(spec, conf=conf, configs=configs),
             select_expression=self.select_expression,
-            friendly_name=dedent(self.friendly_name) if self.friendly_name else self.friendly_name,
-            description=dedent(self.description) if self.description else self.description,
+            friendly_name=(
+                dedent(self.friendly_name) if self.friendly_name else self.friendly_name
+            ),
+            description=(
+                dedent(self.description) if self.description else self.description
+            ),
             window_start=self.window_start,
             window_end=self.window_end,
         )

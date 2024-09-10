@@ -40,14 +40,16 @@ class TestConfigIntegration:
         experiment_config = spec.resolve(experiment, config_collection)
 
         overall_metric_names = [
-            summary.metric.name for summary in experiment_config.metrics[AnalysisPeriod.OVERALL]
+            summary.metric.name
+            for summary in experiment_config.metrics[AnalysisPeriod.OVERALL]
         ]
         assert "retained" not in overall_metric_names
         assert "opened_as_default" in overall_metric_names
         assert "default_browser_card_go_to_settings_pressed" in overall_metric_names
 
         weekly_metric_names = [
-            summary.metric.name for summary in experiment_config.metrics[AnalysisPeriod.WEEK]
+            summary.metric.name
+            for summary in experiment_config.metrics[AnalysisPeriod.WEEK]
         ]
         assert "retained" in weekly_metric_names
         assert "opened_as_default" in weekly_metric_names
@@ -61,13 +63,23 @@ class TestConfigIntegration:
         assert config_collection.get_platform_defaults("firefox_desktop") is None
         assert config_collection.spec_for_outcome("test", "firefox_desktop") is None
         assert (
-            config_collection.get_data_source_definition("clients_daily", "firefox_desktop")
+            config_collection.get_data_source_definition(
+                "clients_daily", "firefox_desktop"
+            )
             is not None
         )
-        assert config_collection.get_metric_definition("baseline_ping_count", "fenix") is not None
-        assert config_collection.get_metric_definition("not_exist", "firefox_desktop") is None
         assert (
-            config_collection.get_segment_definition("regular_users_v3", "firefox_desktop")
+            config_collection.get_metric_definition("baseline_ping_count", "fenix")
+            is not None
+        )
+        assert (
+            config_collection.get_metric_definition("not_exist", "firefox_desktop")
+            is None
+        )
+        assert (
+            config_collection.get_segment_definition(
+                "regular_users_v3", "firefox_desktop"
+            )
             is not None
         )
 
@@ -118,10 +130,17 @@ class TestConfigIntegration:
         )  # 6a052aea23e7e2332a20c992b2e6f07468c3d161
 
         assert config_collection is not None
-        assert config_collection.spec_for_outcome("networking", "firefox_desktop") is None
+        assert (
+            config_collection.spec_for_outcome("networking", "firefox_desktop") is None
+        )
 
-        config_collection = config_collection.as_of(UTC.localize(datetime(2023, 5, 30)))  # 0f92ef5
-        assert config_collection.spec_for_outcome("networking", "firefox_desktop") is not None
+        config_collection = config_collection.as_of(
+            UTC.localize(datetime(2023, 5, 30))
+        )  # 0f92ef5
+        assert (
+            config_collection.spec_for_outcome("networking", "firefox_desktop")
+            is not None
+        )
 
     def test_config_as_of_multiple_repos(self):
         config_collection = ConfigCollection.from_github_repos(
@@ -132,22 +151,38 @@ class TestConfigIntegration:
         )
 
         assert config_collection is not None
-        assert config_collection.spec_for_outcome("networking", "firefox_desktop") is not None
-        assert config_collection.get_metric_definition("daily_active_users_v2", "fenix") is not None
+        assert (
+            config_collection.spec_for_outcome("networking", "firefox_desktop")
+            is not None
+        )
+        assert (
+            config_collection.get_metric_definition("daily_active_users_v2", "fenix")
+            is not None
+        )
 
         config_collection = config_collection.as_of(
             UTC.localize(datetime(2023, 5, 15))
         )  # 6a052aea23e7e2332a20c992b2e6f07468c3d161
 
-        assert config_collection.spec_for_outcome("networking", "firefox_desktop") is None
-        assert config_collection.get_metric_definition("daily_active_users_v2", "fenix") is None
+        assert (
+            config_collection.spec_for_outcome("networking", "firefox_desktop") is None
+        )
+        assert (
+            config_collection.get_metric_definition("daily_active_users_v2", "fenix")
+            is None
+        )
 
         config_collection = config_collection.as_of(
             UTC.localize(datetime(2023, 5, 25, 20, 0, 0))  # 2fa5433
         )
 
-        assert config_collection.spec_for_outcome("networking", "firefox_desktop") is None
-        assert config_collection.get_metric_definition("daily_active_users_v2", "fenix") is not None
+        assert (
+            config_collection.spec_for_outcome("networking", "firefox_desktop") is None
+        )
+        assert (
+            config_collection.get_metric_definition("daily_active_users_v2", "fenix")
+            is not None
+        )
 
     def test_remove_tmp_dir_on_destruct(self):
         config_collection = ConfigCollection.from_github_repos(

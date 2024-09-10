@@ -135,7 +135,9 @@ class TestOutcomes:
         )
         assert outcome_metric.select_expression == "COUNTIF(sample_id = 123)"
 
-    def test_resolving_parameters_distinct_by_branch(self, experiments, config_collection):
+    def test_resolving_parameters_distinct_by_branch(
+        self, experiments, config_collection
+    ):
         config_str = dedent(
             """
             [parameters.id]

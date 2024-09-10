@@ -24,15 +24,19 @@ class OutcomeSpec:
         params: Dict[str, Any] = {}
         params["friendly_name"] = d["friendly_name"]
         params["description"] = d["description"]
-        params["data_sources"] = converter.structure(d.get("data_sources", {}), DataSourcesSpec)
+        params["data_sources"] = converter.structure(
+            d.get("data_sources", {}), DataSourcesSpec
+        )
         params["metrics"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, MetricDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                MetricDefinition,
             )
             for k, v in d.get("metrics", {}).items()
         }
         params["default_metrics"] = [
-            converter.structure(m, MetricReference) for m in d.get("default_metrics", [])
+            converter.structure(m, MetricReference)
+            for m in d.get("default_metrics", [])
         ]
 
         params["parameters"] = ParameterSpec.from_dict(d.get("parameters", dict()))
@@ -40,6 +44,8 @@ class OutcomeSpec:
         # check that default metrics are actually defined in outcome
         for default_metric in params["default_metrics"]:
             if default_metric.name not in params["metrics"].keys():
-                raise ValueError(f"Default metric {default_metric} is not defined in outcome.")
+                raise ValueError(
+                    f"Default metric {default_metric} is not defined in outcome."
+                )
 
         return cls(**params)

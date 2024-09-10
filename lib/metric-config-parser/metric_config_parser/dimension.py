@@ -33,7 +33,10 @@ class DimensionDefinition:
     description: Optional[str] = None
 
     def resolve(
-        self, spec: "MonitoringSpec", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "MonitoringSpec",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Dimension:
         """Create and return a `Dimension` from the definition."""
         return Dimension(
@@ -62,7 +65,8 @@ class DimensionsSpec:
         d = dict((k.lower(), v) for k, v in d.items())
 
         definitions = {
-            k: converter.structure({"name": k, **v}, DimensionDefinition) for k, v in d.items()
+            k: converter.structure({"name": k, **v}, DimensionDefinition)
+            for k, v in d.items()
         }
         return cls(definitions=definitions)
 
@@ -82,7 +86,9 @@ class DimensionsSpec:
                 self.definitions[key] = definition
 
 
-converter.register_structure_hook(DimensionsSpec, lambda obj, _type: DimensionsSpec.from_dict(obj))
+converter.register_structure_hook(
+    DimensionsSpec, lambda obj, _type: DimensionsSpec.from_dict(obj)
+)
 
 
 @attr.s(auto_attribs=True)
@@ -92,7 +98,10 @@ class DimensionReference:
     name: str
 
     def resolve(
-        self, spec: "MonitoringSpec", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "MonitoringSpec",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Dimension:
         """Return the referenced `Dimension`."""
         if self.name in spec.dimensions.definitions:
