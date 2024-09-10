@@ -21,7 +21,7 @@ workflows:
             looker/.* validate-looker true
             .* build-docs true
             lib/metric-config-parser/.* validate-metric-config-parser true
-            lib/metric-config-parser/setup.py deploy-metric-config-parser true
+            lib/metric-config-parser/pyproject.toml deploy-metric-config-parser true
   filter-paths-pr:
     when:
       and:
