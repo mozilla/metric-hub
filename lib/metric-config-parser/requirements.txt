@@ -44,6 +44,10 @@ black==24.8.0 \
     # via
     #   -r requirements.in
     #   pytest-black
+build==1.2.2 \
+    --hash=sha256:119b2fb462adef986483438377a13b2f42064a2a3a4161f24a0cca698a07ac8c \
+    --hash=sha256:277ccc71619d98afdd841a0e96ac9fe1593b823af481d3b0cea748e8894e0613
+    # via -r requirements.in
 cattrs==24.1.0 \
     --hash=sha256:043bb8af72596432a7df63abcff0055ac0f198a4d2e95af8db5a936a7074a761 \
     --hash=sha256:8274f18b253bf7674a43da851e3096370d67088165d23138b04a1c04c8eaf48e
@@ -405,6 +409,7 @@ packaging==24.1 \
     # via
     #   -r requirements.in
     #   black
+    #   build
     #   pytest
 pathspec==0.12.1 \
     --hash=sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08 \
@@ -541,6 +546,12 @@ pyflakes==2.5.0 \
     # via
     #   -r requirements.in
     #   flake8
+pyproject-hooks==1.1.0 \
+    --hash=sha256:4b37730834edbd6bd37f26ece6b44802fb1c1ee2ece0e54ddff8bfc06db86965 \
+    --hash=sha256:7ceeefe9aec63a1064c18d939bdc3adf2d8aa1988a510afec15151578b232aa2
+    # via
+    #   -r requirements.in
+    #   build
 pytest==8.3.3 \
     --hash=sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181 \
     --hash=sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2
@@ -713,6 +724,7 @@ tomli==2.0.1 \
     # via
     #   -r requirements.in
     #   black
+    #   build
     #   coverage
     #   mypy
     #   pytest

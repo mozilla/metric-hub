@@ -29,6 +29,7 @@ Documentation = "https://github.com/mozilla/metric-hub/blob/main/lib/metric-conf
 
 [project.optional-dependencies]
 testing = [
+  "build",
   "coverage",
   "isort",
   "jsonschema",
