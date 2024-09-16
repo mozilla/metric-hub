@@ -88,12 +88,15 @@ class DataSource:
             aggregations are supported by this data_source. At time
             of writing, this means 'client_id', 'profile_group_id',
             or both. Defaults to 'client_id'.
+        group_id_column (str, optional): Name of the column that
+            contains the ``profile_group_id`` (join key). Defaults to
+            'profile_group_id'.
     """
 
     name = attr.ib(validator=attr.validators.instance_of(str))
     from_expression = attr.ib(validator=attr.validators.instance_of(str))
     experiments_column_type = attr.ib(default="simple", type=str)
-    client_id_column = attr.ib(default="client_id", type=str)
+    client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
     default_dataset = attr.ib(default=None, type=Optional[str])
     build_id_column = attr.ib(default="SAFE.SUBSTR(application.build_id, 0, 8)", type=str)
@@ -102,6 +105,7 @@ class DataSource:
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
     analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
+    group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
 
@@ -175,6 +179,7 @@ class DataSourceDefinition:
     joins: Optional[Dict[str, Dict[str, Any]]] = None
     columns_as_dimensions: Optional[bool] = None
     analysis_units: Optional[list[AnalysisUnit]] = None
+    group_id_column: Optional[str] = None
 
     def resolve(
         self,
@@ -207,6 +212,7 @@ class DataSourceDefinition:
             "description",
             "columns_as_dimensions",
             "analysis_units",
+            "group_id_column",
         ):
             v = getattr(self, k)
             if v:
