@@ -14,7 +14,7 @@ attrs==24.2.0
     #   referencing
 black==24.8.0
     # via pytest-black
-cattrs==24.1.0
+cattrs==24.1.1
     # via
     #   mozilla-metric-config-parser
 certifi==2024.8.30
