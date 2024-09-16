@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .analysis import AnalysisSpec
     from .experiment import ExperimentConfiguration
 
+from . import AnalysisUnit
 from .errors import DefinitionNotFound
 from .util import converter
 
@@ -43,15 +44,19 @@ class SegmentDataSource:
             `{dataset}` in from_expression if a value is not provided
             at runtime. Mandatory if from_expression contains a
             `{dataset}` parameter.
+        group_id_column (str, optional): Name of the column that
+            contains the ``profile_group_id`` (join key). Defaults to
+            'profile_group_id'.
     """
 
     name = attr.ib(validator=attr.validators.instance_of(str))
     from_expression = attr.ib(validator=attr.validators.instance_of(str))
     window_start = attr.ib(default=0, type=int)
     window_end = attr.ib(default=0, type=int)
-    client_id_column = attr.ib(default="client_id", type=str)
+    client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
     default_dataset = attr.ib(default=None, type=Optional[str])
+    group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
 
 
 @attr.s(frozen=True, slots=True)
@@ -104,9 +109,10 @@ class SegmentDataSourceDefinition:
     from_expression: str
     window_start: int = 0
     window_end: int = 0
-    client_id_column: Optional[str] = "client_id"
+    client_id_column: Optional[str] = AnalysisUnit.CLIENT.value
     submission_date_column: Optional[str] = "submission_date"
     default_dataset: Optional[str] = None
+    group_id_column: Optional[str] = AnalysisUnit.PROFILE_GROUP.value
 
     def resolve(
         self,
@@ -122,7 +128,7 @@ class SegmentDataSourceDefinition:
             "window_start": self.window_start,
             "window_end": self.window_end,
         }
-        for k in ("client_id_column", "submission_date_column"):
+        for k in ("client_id_column", "submission_date_column", "group_id_column"):
             v = getattr(self, k)
             if v:
                 kwargs[k] = v
