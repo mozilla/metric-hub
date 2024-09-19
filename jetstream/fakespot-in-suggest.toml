@@ -313,10 +313,10 @@ from_expression = """(
     SELECT 
         *,
         event.name AS event_name,
-        CASE WHEN (mozfun.map.get_key(event.extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) = 5)) THEN 'fakespot_5_star_B_grade'
-        WHEN (mozfun.map.get_key(event.extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) = 5)) THEN 'fakespot_5_star_A_grade'
-        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'A' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) < 5)) THEN 'fakespot_4_star_A_grade'
-        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'B' and (CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) >= 4 and CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64) < 5)) THEN 'fakespot_4_star_B_grade' end as fakespot_grade_rating, 
+        CASE WHEN (mozfun.map.get_key(event.extra, 'grade') = 'B' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 5)) THEN 'fakespot_5_star_B_grade'
+        WHEN (mozfun.map.get_key(event.extra, 'grade') = 'A' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 5)) THEN 'fakespot_5_star_A_grade'
+        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'A' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 4 )) THEN 'fakespot_4_star_A_grade'
+        WHEN(mozfun.map.get_key(event.extra, 'grade') = 'B' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 4 )) THEN 'fakespot_4_star_B_grade' end as fakespot_grade_rating  
 
     FROM `mozdata.firefox_desktop.events`
     CROSS JOIN UNNEST(events) AS event
