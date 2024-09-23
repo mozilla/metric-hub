@@ -1,19 +1,19 @@
 [experiment]
 end_date = "2024-09-04"
 
-[experiment.exposure_signal]
-name = "opened_product_page"
-friendly_name = "Opened at least one product page"
-description = "Clients who opened at least one eligible product page, so would've been invited to try Review Checker"
-select_expression = "COALESCE(product_page_visits,0) > 0"
-data_source = "glean_metrics_ping"
-# restrict to clients who opened shopping page during week of enrollment
-# this may slight bias toward more active users, but guarantees 4 weeks of DAU measurement 
-# on exposed population, alternatives (to allow clients something like 7 days from enrollment
-# to exposure) would require either extending observation beyond the aligned experiment end 
-# date or accepting a shorter observation window for exposed users. 
-window_start = 0
-window_end = 7
+# [experiment.exposure_signal]
+# name = "opened_product_page"
+# friendly_name = "Opened at least one product page"
+# description = "Clients who opened at least one eligible product page, so would've been invited to try Review Checker"
+# select_expression = "COALESCE(product_page_visits,0) > 0"
+# data_source = "glean_metrics_ping"
+# # restrict to clients who opened shopping page during week of enrollment
+# # this may slight bias toward more active users, but guarantees 4 weeks of DAU measurement 
+# # on exposed population, alternatives (to allow clients something like 7 days from enrollment
+# # to exposure) would require either extending observation beyond the aligned experiment end 
+# # date or accepting a shorter observation window for exposed users. 
+# window_start = 0
+# window_end = 7
 
 # [metrics]
 
