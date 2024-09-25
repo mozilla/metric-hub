@@ -2144,6 +2144,7 @@ from_expression = """(
 analysis_units = ["profile_group_id"]
 description = "Glean events_stream dataset (events ping unnested to a single row per event)"
 friendly_name = "Glean Events Stream"
+experiments_column_type = "none"
 
 
 
