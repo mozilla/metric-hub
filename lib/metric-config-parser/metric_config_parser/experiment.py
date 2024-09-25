@@ -83,6 +83,7 @@ class Experiment:
     is_enrollment_paused: Optional[bool] = None
     app_id: Optional[str] = None
     outcomes: List[str] = attr.Factory(list)
+    segments: List[str] = attr.Factory(list)
     enrollment_end_date: Optional[dt.datetime] = None
     boolean_pref: Optional[str] = None
     channel: Optional[Channel] = None
