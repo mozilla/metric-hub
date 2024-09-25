@@ -1,0 +1,9 @@
+[metrics]
+
+daily = ['nimbus_is_ready']
+weekly = ['nimbus_is_ready']
+overall = ['nimbus_is_ready']
+
+[metrics.nimbus_is_ready]
+data_sources = "glean_events_stream"
+select_expression = "SUM(CASE WHEN event_category = 'nimbus_events' AND event_name = 'is_ready' THEN 1 ELSE 0 END)"
