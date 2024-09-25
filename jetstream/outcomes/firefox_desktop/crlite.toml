@@ -36,7 +36,7 @@ type = "scalar"
 
 [metrics.crlite_use_counter.statistics.sum]
 
-[metrics.crlite_use_counter.statistics.ratio]
+[metrics.crlite_use_counter.statistics.population_ratio]
 numerator = "crlite_use_counter.sum"
 denominator = "revocation_check_counter.sum"
 
@@ -52,7 +52,7 @@ type = "scalar"
 
 [metrics.ocsp_use_counter.statistics.sum]
 
-[metrics.ocsp_use_counter.statistics.ratio]
+[metrics.ocsp_use_counter.statistics.population_ratio]
 numerator = "ocsp_use_counter.sum"
 denominator = "revocation_check_counter.sum"
 
