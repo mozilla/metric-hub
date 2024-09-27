@@ -140,7 +140,7 @@ tomli==2.0.1
 types-futures==3.3.8
     # via
     #   mozilla-metric-config-parser
-types-protobuf==5.27.0.20240920
+types-protobuf==5.28.0.20240924
     # via
     #   mozilla-metric-config-parser
 types-pytz==2024.1.0.20240417
