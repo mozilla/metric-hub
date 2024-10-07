@@ -139,6 +139,21 @@ def experiments():
             app_name="firefox_desktop",
             enrollment_end_date=dt.datetime(2019, 12, 3, tzinfo=pytz.utc),
         ),
+        Experiment(
+            experimenter_slug="test_slug",
+            type="pref",
+            status="Live",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[],
+            normandy_slug="normandy-test-slug",
+            reference_branch=None,
+            is_high_population=True,
+            outcomes=[],
+            app_name="firefox_desktop",
+            segments=["regular_users_v3"],
+        ),
     ]
 
 

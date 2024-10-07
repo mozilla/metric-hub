@@ -267,6 +267,89 @@ class TestExperimentSpec:
         assert len(days28_metrics) == 1
         assert days28_metrics[0].metric.name == "spam"
 
+    def test_segment_resolution(self, experiments, config_collection):
+        spec = AnalysisSpec()
+
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 1
+
+        segment = cfg.experiment.segments[0]
+
+        assert segment.name == "regular_users_v3"
+        assert segment.data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == segment.data_source.from_expression.strip()
+
+    def test_segment_definition_and_experiment_segment(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            segments = ["test_segment"]
+
+            [segments.test_segment]
+            Data_Source = "test_data_source"
+            Select_Expression = "{{agg_any('1')}}"
+
+            [segments.data_sources.test_data_source]
+            from_expression = "(SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}} AND {{experiment.last_enrollment_date_str}})"
+            """  # noqa
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 2
+
+        custom_segment = [seg for seg in cfg.experiment.segments if seg.name == "test_segment"]
+
+        assert len(custom_segment) == 1
+        assert custom_segment[0].name == "test_segment"
+        assert custom_segment[0].data_source.name == "test_data_source"
+        expected_expression = (
+            """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01 AND 2019-12-08)"""
+        )
+        assert expected_expression == custom_segment[0].data_source.from_expression.strip()
+
+        experiment_segments = [
+            seg for seg in cfg.experiment.segments if seg.name == "regular_users_v3"
+        ]
+
+        assert len(experiment_segments) == 1
+        assert experiment_segments[0].name == "regular_users_v3"
+        assert experiment_segments[0].data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == experiment_segments[0].data_source.from_expression.strip()
+
+    def test_segment_duplication(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            segments = ["regular_users_v3"]
+
+            [segments.regular_users_v3]
+            data_source = "my_cool_data_source"
+            select_expression = "{{agg_any('1')}}"
+
+            [segments.data_sources.my_cool_data_source]
+            from_expression = '''
+                (SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}}
+                AND {{experiment.last_enrollment_date_str}})
+            '''
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 1
+        assert cfg.experiment.segments[0].name == "regular_users_v3"
+        assert cfg.experiment.segments[0].data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == cfg.experiment.segments[0].data_source.from_expression.strip()
+
 
 class TestExperimentConf:
     def test_bad_dates(self, experiments):
