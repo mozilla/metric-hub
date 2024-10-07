@@ -291,14 +291,16 @@ class ExperimentSpec:
         configs: "ConfigCollection",
     ) -> ExperimentConfiguration:
 
-        experiment_segments = [SegmentReference(seg) for seg in experiment.segments]
-        all_segments = self.segments + experiment_segments
-
         experiment_config = ExperimentConfiguration(self, experiment, [])
         # Segment data sources may need to know the enrollment dates of the experiment,
         # so we'll forward the Experiment we know about so far.
+        experiment_segments = [SegmentReference(seg) for seg in experiment.segments]
+        all_segments = []
+        for seg in self.segments + experiment_segments:
+            if seg not in all_segments:
+                all_segments.append(seg)
         experiment_config.segments = [
-            ref.resolve(spec, experiment_config, configs) for ref in (all_segments)
+            ref.resolve(spec, experiment_config, configs) for ref in all_segments
         ]
 
         experiment_config.sample_size = self.sample_size

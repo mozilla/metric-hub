@@ -271,12 +271,15 @@ class TestExperimentSpec:
         spec = AnalysisSpec()
 
         cfg = spec.resolve(experiments[9], config_collection)
-        segments = cfg.experiment.segments
 
-        assert any(
-            segment.name == "regular_users_v3" and segment.data_source.name == "my_cool_data_source"
-            for segment in segments
-        )
+        assert len(cfg.experiment.segments) == 1
+
+        segment = cfg.experiment.segments[0]
+
+        assert segment.name == "regular_users_v3"
+        assert segment.data_source.name == "my_cool_data_source"
+        expected_expression = "SELECT 1 WHERE submission_date BETWEEN"
+        assert expected_expression in segment.data_source.from_expression
 
     def test_segment_definition_and_experiment_segment(self, experiments, config_collection):
         config_str = dedent(
@@ -296,16 +299,55 @@ class TestExperimentSpec:
         cfg = spec.resolve(experiments[9], config_collection)
 
         custom_segment = [seg for seg in cfg.experiment.segments if seg.name == "test_segment"]
+
         assert len(custom_segment) == 1
         assert custom_segment[0].name == "test_segment"
         assert custom_segment[0].data_source.name == "test_data_source"
+        assert (
+            "SELECT 1 WHERE submission_date BETWEEN"
+            in custom_segment[0].data_source.from_expression
+        )
 
         experiment_segments = [
             seg for seg in cfg.experiment.segments if seg.name == "regular_users_v3"
         ]
+
         assert len(experiment_segments) == 1
         assert experiment_segments[0].name == "regular_users_v3"
         assert experiment_segments[0].data_source.name == "my_cool_data_source"
+        assert (
+            "SELECT 1 WHERE submission_date BETWEEN"
+            in experiment_segments[0].data_source.from_expression
+        )
+
+    def test_segment_duplication(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            segments = ["regular_users_v3"]
+
+            [segments.regular_users_v3]
+            data_source = "my_cool_data_source"
+            select_expression = "{{agg_any('1')}}"
+
+            [segments.data_sources.my_cool_data_source]
+            from_expression = '''
+                (SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}}
+                AND {{experiment.last_enrollment_date_str}})
+            '''
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 1
+        assert cfg.experiment.segments[0].name == "regular_users_v3"
+        assert cfg.experiment.segments[0].data_source.name == "my_cool_data_source"
+        assert (
+            "SELECT 1 WHERE submission_date BETWEEN"
+            in cfg.experiment.segments[0].data_source.from_expression
+        )
 
 
 class TestExperimentConf:
