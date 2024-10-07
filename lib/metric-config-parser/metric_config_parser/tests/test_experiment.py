@@ -278,8 +278,9 @@ class TestExperimentSpec:
 
         assert segment.name == "regular_users_v3"
         assert segment.data_source.name == "my_cool_data_source"
-        expected_expression = "SELECT 1 WHERE submission_date BETWEEN"
-        assert expected_expression in segment.data_source.from_expression
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == segment.data_source.from_expression.strip()
 
     def test_segment_definition_and_experiment_segment(self, experiments, config_collection):
         config_str = dedent(
@@ -298,15 +299,17 @@ class TestExperimentSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[9], config_collection)
 
+        assert len(cfg.experiment.segments) == 2
+
         custom_segment = [seg for seg in cfg.experiment.segments if seg.name == "test_segment"]
 
         assert len(custom_segment) == 1
         assert custom_segment[0].name == "test_segment"
         assert custom_segment[0].data_source.name == "test_data_source"
-        assert (
-            "SELECT 1 WHERE submission_date BETWEEN"
-            in custom_segment[0].data_source.from_expression
+        expected_expression = (
+            """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01 AND 2019-12-08)"""
         )
+        assert expected_expression == custom_segment[0].data_source.from_expression.strip()
 
         experiment_segments = [
             seg for seg in cfg.experiment.segments if seg.name == "regular_users_v3"
@@ -315,10 +318,9 @@ class TestExperimentSpec:
         assert len(experiment_segments) == 1
         assert experiment_segments[0].name == "regular_users_v3"
         assert experiment_segments[0].data_source.name == "my_cool_data_source"
-        assert (
-            "SELECT 1 WHERE submission_date BETWEEN"
-            in experiment_segments[0].data_source.from_expression
-        )
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == experiment_segments[0].data_source.from_expression.strip()
 
     def test_segment_duplication(self, experiments, config_collection):
         config_str = dedent(
@@ -344,10 +346,9 @@ class TestExperimentSpec:
         assert len(cfg.experiment.segments) == 1
         assert cfg.experiment.segments[0].name == "regular_users_v3"
         assert cfg.experiment.segments[0].data_source.name == "my_cool_data_source"
-        assert (
-            "SELECT 1 WHERE submission_date BETWEEN"
-            in cfg.experiment.segments[0].data_source.from_expression
-        )
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == cfg.experiment.segments[0].data_source.from_expression.strip()
 
 
 class TestExperimentConf:
