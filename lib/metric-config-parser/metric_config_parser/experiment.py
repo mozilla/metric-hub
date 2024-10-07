@@ -290,7 +290,6 @@ class ExperimentSpec:
         experiment: "Experiment",
         configs: "ConfigCollection",
     ) -> ExperimentConfiguration:
-
         experiment_config = ExperimentConfiguration(self, experiment, [])
         # Segment data sources may need to know the enrollment dates of the experiment,
         # so we'll forward the Experiment we know about so far.
