@@ -105,15 +105,6 @@ class AnalysisSpec:
 
             self.merge_parameters(outcome.parameters)
 
-        for slug in experiment.segments:
-            segment_definition = configs.get_segment_definition(slug, experiment.app_name)
-            if segment_definition is not None:
-                self.merge_segment(SegmentsSpec(definitions={slug: segment_definition}))
-            else:
-                raise ValueError(
-                    f"Segment {slug} doesn't support the platform '{experiment.app_name}'"
-                )
-
         resolved_experiment = self.experiment.resolve(self, experiment, configs)
         metrics = self.metrics.resolve(self, resolved_experiment, configs)
 
@@ -148,10 +139,6 @@ class AnalysisSpec:
 
         if other.parameters:
             self.merge_parameters(other.parameters)
-
-    def merge_segment(self, other: "SegmentsSpec"):
-        """Merges a segment snippet into the analysis spec."""
-        self.segments.merge(other)
 
     @staticmethod
     def _merge_param(
