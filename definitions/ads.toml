@@ -59,7 +59,7 @@ description = "Data source for AdMarketplace metrics. Includes dimensions such a
 
 [dimensions]
 
-[dimensions.submission_date]
+[dimensions.adm_date]
 data_source = "admarketplace"
 select_expression = "adm_date"
 friendly_name = "Report Date"
