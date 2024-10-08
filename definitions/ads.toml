@@ -9,7 +9,7 @@ description = "Average cost per click (paid to Mozilla, in USD). Calculated as C
 [metrics.amp_revenue]
 data_source = "admarketplace"
 select_expression = "SUM(billed_revenue)"
-friendly_name = "Bille Revenue"
+friendly_name = "Billed Revenue"
 description = "Total amount paid to Mozilla in USD."
 
 [metrics.amp_valid_clicks]
