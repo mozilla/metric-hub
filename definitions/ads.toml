@@ -8,7 +8,7 @@ description = "Average cost per click (paid to Mozilla, in USD). Calculated as C
 
 [metrics.total_payout]
 data_source = "admarketplace"
-select_expression = "SUM(payout)"
+select_expression = "SUM(billed_revenue)"
 friendly_name = "Total Payout"
 description = "Total amount paid to Mozilla in USD."
 
@@ -32,13 +32,13 @@ description = "Average revenue per thousand impressions (paid to Mozilla, in USD
 
 [metrics.cost_per_click]
 data_source = "admarketplace"
-select_expression = "SAFE_DIVIDE(SUM(payout), SUM(valid_clicks))"
+select_expression = "SAFE_DIVIDE(SUM(billed_revenue), SUM(valid_clicks))"
 friendly_name = "Cost Per Click"
 description = "Calculated as total payout divided by the number of valid clicks. Returns NULL if number of billed clicks is zero."
 
 [metrics.revenue_per_thousand_impressions]
 data_source = "admarketplace"
-select_expression = "SAFE_DIVIDE(SUM(payout), SUM(valid_impressions)) * 1000"
+select_expression = "SAFE_DIVIDE(SUM(billed_revenue), SUM(valid_impressions)) * 1000"
 friendly_name = "Revenue Per Thousand Impressions"
 description = "RPM Payout divided by the number of valid impressions times 1000. Returns NULL if number of valid impressions is zero."
 
@@ -82,6 +82,18 @@ data_source = "admarketplace"
 select_expression = "advertiser"
 friendly_name = "Advertiser"
 description = "The advertiser associated with the data."
+
+[dimensions.country_code]
+data_source = "admarketplace"
+select_expression = "country_code"
+friendly_name = "Country Code"
+description = "Two-letter country code following the ISO 3166-1 alpha-2 standard."
+
+[dimensions.country_namee]
+data_source = "admarketplace"
+select_expression = "country_name"
+friendly_name = "Country Name"
+description = "The name of the Country."
 
 [dimensions.device]
 data_source = "admarketplace"
