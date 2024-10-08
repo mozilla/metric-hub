@@ -1,48 +1,48 @@
 [metrics]
 
-[metrics.avg_pub_cpc]
+[metrics.amp_avg_cpc]
 data_source = "admarketplace"
 select_expression = "AVG(avg_pub_cpc)"
 friendly_name = "Average Publisher CPC"
 description = "Average cost per click (paid to Mozilla, in USD). Calculated as CPC payout divided by valid clicks."
 
-[metrics.total_payout]
+[metrics.amp_revenue]
 data_source = "admarketplace"
 select_expression = "SUM(billed_revenue)"
-friendly_name = "Total Payout"
+friendly_name = "Bille Revenue"
 description = "Total amount paid to Mozilla in USD."
 
-[metrics.valid_clicks]
+[metrics.amp_valid_clicks]
 data_source = "admarketplace"
 select_expression = "SUM(valid_clicks)"
 friendly_name = "Total Valid Clicks"
 description = "Total number of valid clicks recorded."
 
-[metrics.valid_impressions]
+[metrics.amp_valid_impressions]
 data_source = "admarketplace"
 select_expression = "SUM(valid_impressions)"
 friendly_name = "Total Valid Impressions"
 description = "Total number of valid impressions recorded."
 
-[metrics.rpm_rate]
+[metrics.amp_rpm_rate]
 data_source = "admarketplace"
 select_expression = "AVG(rpm_rate)"
-friendly_name = "Average RPM Rate"
+friendly_name = "RPM Rate"
 description = "Average revenue per thousand impressions (paid to Mozilla, in USD), calculated as RPM payout divided by valid impressions times 1000."
 
-[metrics.cost_per_click]
+[metrics.amp_cpc_rate]
 data_source = "admarketplace"
 select_expression = "SAFE_DIVIDE(SUM(billed_revenue), SUM(valid_clicks))"
-friendly_name = "Cost Per Click"
+friendly_name = "CPC Rate"
 description = "Calculated as total payout divided by the number of valid clicks. Returns NULL if number of billed clicks is zero."
 
-[metrics.revenue_per_thousand_impressions]
+[metrics.amp_revenue_per_thousand_impressions]
 data_source = "admarketplace"
 select_expression = "SAFE_DIVIDE(SUM(billed_revenue), SUM(valid_impressions)) * 1000"
 friendly_name = "Revenue Per Thousand Impressions"
 description = "RPM Payout divided by the number of valid impressions times 1000. Returns NULL if number of valid impressions is zero."
 
-[metrics.sum_of_alternative_revenue]
+[metrics.amp_alternative_revenue]
 data_source = "admarketplace"
 select_expression = "SUM(alternative_revenue)"
 friendly_name = "Alternative Revenue"
@@ -65,67 +65,61 @@ select_expression = "adm_date"
 friendly_name = "Report Date"
 description = "Date field from the adM report. Not the date the report was sent to us from adM."
 
-[dimensions.created_date]
+[dimensions.amp_created_date]
 data_source = "admarketplace"
 select_expression = "created_date"
 friendly_name = "Ingestion Date"
 description = "Date field created upon Ingestion."
 
-[dimensions.file_date]
+[dimensions.amp_file_date]
 data_source = "admarketplace"
 select_expression = "file_date"
 friendly_name = "File Date"
 description = "Date field tied to when the file was received."
 
-[dimensions.advertiser]
+[dimensions.amp_advertiser]
 data_source = "admarketplace"
 select_expression = "advertiser"
 friendly_name = "Advertiser"
 description = "The advertiser associated with the data."
 
-[dimensions.country_code]
+[dimensions.amp_country_code]
 data_source = "admarketplace"
 select_expression = "country_code"
 friendly_name = "Country Code"
 description = "Two-letter country code following the ISO 3166-1 alpha-2 standard."
 
-[dimensions.country_namee]
-data_source = "admarketplace"
-select_expression = "country_name"
-friendly_name = "Country Name"
-description = "The name of the Country."
-
-[dimensions.device]
+[dimensions.amp_device]
 data_source = "admarketplace"
 select_expression = "device"
 friendly_name = "Device"
 description = "Device type from which the ad interaction originated."
 
-[dimensions.partner_name]
+[dimensions.amp_partner_name]
 data_source = "admarketplace"
 select_expression = "partner_name"
 friendly_name = "Partner Name"
 description = "Name of the partner associated with the ad data."
 
-[dimensions.placement]
+[dimensions.amp_placement]
 data_source = "admarketplace"
 select_expression = "placement"
 friendly_name = "Placement"
 description = "Location or position where the ad was displayed."
 
-[dimensions.product]
+[dimensions.amp_product]
 data_source = "admarketplace"
 select_expression = "product"
 friendly_name = "Product"
 description = "Product category or type associated with the ad displayed."
 
-[dimensions.pricing_model]
+[dimensions.amp_pricing_model]
 data_source = "admarketplace"
 select_expression = "pricing_model"
 friendly_name = "Pricing Model"
 description = "Pricing model used for billing the ad interaction, e.g., CPC (Cost Per Click) or RPM (Revenue Per Mille)."
 
-[dimensions.position]
+[dimensions.amp_position]
 data_source = "admarketplace"
 select_expression = "position"
 friendly_name = "Ad Position"
