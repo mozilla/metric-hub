@@ -85,7 +85,10 @@ class ParameterSpec:
 
         for param_name, param_config in d.items():
             params["definitions"][param_name] = converter.structure(
-                {"name": param_name, **dict((kk.lower(), vv) for kk, vv in param_config.items())},
+                {
+                    "name": param_name,
+                    **dict((kk.lower(), vv) for kk, vv in param_config.items()),
+                },
                 ParameterDefinition,
             )
 

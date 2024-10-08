@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .definition import DefinitionSpecSub
     from .project import ProjectConfiguration
 
+from . import AnalysisUnit
 from .data_source import DataSource, DataSourceReference
 from .parameter import ParameterDefinition
 from .pre_treatment import PreTreatmentReference
@@ -89,13 +90,17 @@ class Metric:
     friendly_name: Optional[str] = None
     description: Optional[str] = None
     bigger_is_better: bool = True
-    analysis_bases: List[AnalysisBasis] = [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES]
+    analysis_bases: List[AnalysisBasis] = [
+        AnalysisBasis.ENROLLMENTS,
+        AnalysisBasis.EXPOSURES,
+    ]
     type: str = "scalar"
     category: Optional[str] = None
     depends_on: Optional[List[Summary]] = None
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
 
 
 @attr.s(auto_attribs=True)
@@ -147,6 +152,7 @@ class MetricDefinition:
     owner: Optional[Union[str, List[str]]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
+    analysis_units: Optional[List[AnalysisUnit]] = None
 
     @staticmethod
     def generate_select_expression(
@@ -229,7 +235,9 @@ class MetricDefinition:
                     friendly_name=(
                         dedent(self.friendly_name) if self.friendly_name else self.friendly_name
                     ),
-                    description=dedent(self.description) if self.description else self.description,
+                    description=(
+                        dedent(self.description) if self.description else self.description
+                    ),
                     bigger_is_better=self.bigger_is_better,
                     analysis_bases=self.analysis_bases
                     or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
@@ -239,13 +247,21 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
+                    analysis_units=self.analysis_units or [AnalysisUnit.CLIENT],
                 )
             elif metric_definition:
-                metric_definition.analysis_bases = self.analysis_bases or [
-                    AnalysisBasis.ENROLLMENTS,
-                    AnalysisBasis.EXPOSURES,
-                ]
+                metric_definition.analysis_bases = (
+                    self.analysis_bases
+                    or metric_definition.analysis_bases
+                    or [
+                        AnalysisBasis.ENROLLMENTS,
+                        AnalysisBasis.EXPOSURES,
+                    ]
+                )
                 metric_definition.statistics = self.statistics
+                metric_definition.analysis_units = (
+                    self.analysis_units or metric_definition.analysis_units or [AnalysisUnit.CLIENT]
+                )
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
             select_expression = self.generate_select_expression(
@@ -254,14 +270,26 @@ class MetricDefinition:
                 configs=configs,
             )
 
+            # ensure all of metric's analysis_units are supported by data_source
+            resolved_ds = self.data_source.resolve(spec, conf, configs)
+            analysis_units = self.analysis_units or [AnalysisUnit.CLIENT]
+            for agg_unit in analysis_units:
+                if agg_unit not in resolved_ds.analysis_units:
+                    raise ValueError(
+                        f"data_source {resolved_ds.name} does not support "
+                        f"all analysis_units specified by metric {self.name}: "
+                        f"analysis_units for metric: {analysis_units}, "
+                        f"analysis_units for data_source: {resolved_ds.analysis_units}"
+                    )
+
             metric = Metric(
                 name=self.name,
-                data_source=self.data_source.resolve(spec, conf, configs),
+                data_source=resolved_ds,
                 select_expression=select_expression,
                 friendly_name=(
                     dedent(self.friendly_name) if self.friendly_name else self.friendly_name
                 ),
-                description=dedent(self.description) if self.description else self.description,
+                description=(dedent(self.description) if self.description else self.description),
                 bigger_is_better=self.bigger_is_better,
                 analysis_bases=self.analysis_bases
                 or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
@@ -271,6 +299,7 @@ class MetricDefinition:
                 owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                 deprecated=self.deprecated,
                 level=self.level,
+                analysis_units=analysis_units,
             )
 
         metrics_with_treatments = []
@@ -361,7 +390,8 @@ class MetricsSpec:
 
         params["definitions"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, MetricDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                MetricDefinition,
             )
             for k, v in d.items()
             if k not in known_keys and k != "28_day"

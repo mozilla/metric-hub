@@ -2,7 +2,7 @@
 
 [metrics.unenroll]
 data_source = "normandy_events"
-select_expression='''{{agg_any(
+select_expression = '''{{agg_any(
     """
         event_category = 'normandy'
         AND event_method = 'unenroll'
@@ -67,10 +67,27 @@ data_source = "joined_baseline"
 select_expression = "SELECT 1"
 
 
+[metrics.test_active_hours]
+friendly_name = "Test Active hours"
+description = """
+    Contrived example for specific test case.
+"""
+select_expression = '{{agg_sum("test_active_hours_sum")}}'
+data_source = "test_main"
+analysis_bases = ["exposures"]
+analysis_units = ["profile_group_id"]
+
+[metrics.test_active_hours.statistics.bootstrap_mean]
+
+
 [data_sources]
 
 [data_sources.main]
 from_expression = "(SELECT 1)"
+
+[data_sources.test_main]
+from_expression = "(SELECT 1)"
+analysis_units = ["client_id", "profile_group_id"]
 
 [data_sources.clients_daily]
 from_expression = "mozdata.telemetry.clients_daily"
@@ -91,7 +108,7 @@ from_expression = """(
     FROM mozdata.telemetry.events
     WHERE event_category = 'normandy'
 )"""
-experiments_column_type="native"
+experiments_column_type = "native"
 friendly_name = "Normandy Events"
 description = "Normandy Events"
 

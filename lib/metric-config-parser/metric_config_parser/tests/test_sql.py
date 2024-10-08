@@ -91,7 +91,9 @@ def test_no_metric_definition_found(config_collection):
 def test_data_source(config_collection):
     assert (
         config_collection.get_data_source_sql(
-            data_source="main", platform="firefox_desktop", where="submission_date = '2023-01-01'"
+            data_source="main",
+            platform="firefox_desktop",
+            where="submission_date = '2023-01-01'",
         )
         == (TEST_DATA / "test_generate_data_source.expected.sql").read_text()
     )

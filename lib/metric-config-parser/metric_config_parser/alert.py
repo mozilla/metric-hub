@@ -51,7 +51,10 @@ class AlertReference:
     name: str
 
     def resolve(
-        self, spec: "DefinitionSpecSub", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "DefinitionSpecSub",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Alert:
         """Return the `Alert` that this is referencing."""
         if isinstance(spec, MonitoringSpec):
@@ -116,7 +119,10 @@ class AlertDefinition:
                 )
 
     def resolve(
-        self, spec: "DefinitionSpecSub", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "DefinitionSpecSub",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Alert:
         """Create and return a `Alert` from the definition."""
         # filter to only have metrics that actually need to be monitored

@@ -6,9 +6,12 @@ import pytest
 import pytz
 import toml
 from cattrs.errors import ClassValidationError
+from mozilla_nimbus_schemas import RandomizationUnit
 
+from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.errors import NoEndDateException
+from metric_config_parser.experiment import Branch, BucketConfig, Experiment
 from metric_config_parser.metric import AnalysisPeriod
 from metric_config_parser.segment import Segment
 
@@ -264,6 +267,89 @@ class TestExperimentSpec:
         assert len(days28_metrics) == 1
         assert days28_metrics[0].metric.name == "spam"
 
+    def test_segment_resolution(self, experiments, config_collection):
+        spec = AnalysisSpec()
+
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 1
+
+        segment = cfg.experiment.segments[0]
+
+        assert segment.name == "regular_users_v3"
+        assert segment.data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == segment.data_source.from_expression.strip()
+
+    def test_segment_definition_and_experiment_segment(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            segments = ["test_segment"]
+
+            [segments.test_segment]
+            Data_Source = "test_data_source"
+            Select_Expression = "{{agg_any('1')}}"
+
+            [segments.data_sources.test_data_source]
+            from_expression = "(SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}} AND {{experiment.last_enrollment_date_str}})"
+            """  # noqa
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 2
+
+        custom_segment = [seg for seg in cfg.experiment.segments if seg.name == "test_segment"]
+
+        assert len(custom_segment) == 1
+        assert custom_segment[0].name == "test_segment"
+        assert custom_segment[0].data_source.name == "test_data_source"
+        expected_expression = (
+            """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01 AND 2019-12-08)"""
+        )
+        assert expected_expression == custom_segment[0].data_source.from_expression.strip()
+
+        experiment_segments = [
+            seg for seg in cfg.experiment.segments if seg.name == "regular_users_v3"
+        ]
+
+        assert len(experiment_segments) == 1
+        assert experiment_segments[0].name == "regular_users_v3"
+        assert experiment_segments[0].data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == experiment_segments[0].data_source.from_expression.strip()
+
+    def test_segment_duplication(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            segments = ["regular_users_v3"]
+
+            [segments.regular_users_v3]
+            data_source = "my_cool_data_source"
+            select_expression = "{{agg_any('1')}}"
+
+            [segments.data_sources.my_cool_data_source]
+            from_expression = '''
+                (SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}}
+                AND {{experiment.last_enrollment_date_str}})
+            '''
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+
+        assert len(cfg.experiment.segments) == 1
+        assert cfg.experiment.segments[0].name == "regular_users_v3"
+        assert cfg.experiment.segments[0].data_source.name == "my_cool_data_source"
+        expected_expression = """(SELECT 1 WHERE submission_date BETWEEN 2019-12-01
+    AND 2019-12-08)"""
+        assert expected_expression == cfg.experiment.segments[0].data_source.from_expression.strip()
+
 
 class TestExperimentConf:
     def test_bad_dates(self, experiments):
@@ -375,6 +461,94 @@ class TestExperimentConf:
         spec = AnalysisSpec.from_dict(toml.loads(conf))
         cfg = spec.resolve(experiments[7], config_collection)
         assert cfg.experiment.sample_size is None
+
+    def test_analysis_unit_default(self, experiments, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(experiments[1], config_collection)
+        assert cfg.experiment.randomization_unit is None
+        assert cfg.experiment.analysis_unit == AnalysisUnit.CLIENT
+
+    @pytest.mark.parametrize(
+        "randomization_unit", [ru for ru in RandomizationUnit.__members__.values()]
+    )
+    def test_analysis_unit_configured(self, config_collection, randomization_unit):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="pref",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+            bucket_config=BucketConfig(
+                randomization_unit=randomization_unit,
+                namespace="testing",
+                start=0,
+                count=10,
+                total=100,
+            ),
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+        expected_randomization_unit = RandomizationUnit(randomization_unit)
+        expected_analysis_unit = (
+            AnalysisUnit.PROFILE_GROUP
+            if expected_randomization_unit == RandomizationUnit.GROUP_ID
+            else AnalysisUnit.CLIENT
+        )
+        assert cfg.experiment.randomization_unit == expected_randomization_unit
+        assert cfg.experiment.analysis_unit == expected_analysis_unit
+
+    @pytest.mark.parametrize("randomization_unit", [None, "invalid_id"])
+    def test_analysis_unit_invalid(self, config_collection, randomization_unit):
+        conf = dedent(
+            """
+            [experiment]
+            enrollment_period = 7
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="pref",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+            bucket_config=BucketConfig(
+                randomization_unit=randomization_unit,
+                namespace="testing",
+                start=0,
+                count=10,
+                total=100,
+            ),
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+        with pytest.raises(ValueError):
+            cfg.experiment.randomization_unit
+        with pytest.raises(ValueError):
+            cfg.experiment.analysis_unit
 
 
 class TestDefaultConfiguration:

@@ -1,0 +1,61 @@
+[project]
+name = "Monitor CSAT"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2024-08-01"
+skip_default_metrics = true
+compact_visualization = false
+metrics = [
+    "event_count"
+]
+
+[project.population]
+
+data_source = "base_table"
+monitor_entire_population = true
+dimensions = ["plan_tier", "survey_id", "experiment_branch"]
+
+[data_sources]
+[data_sources.base_table]
+from_expression = """
+    (
+        SELECT
+            submission_date,
+            client_id,
+            plan_tier,
+            survey_id,
+            experiment_branch
+        FROM (
+            SELECT 
+                DATE(submission_timestamp) submission_date,
+                client_info.client_id,
+                key,
+                value
+            FROM `mozdata.monitor_frontend.events_unnested`, UNNEST(event_extra) extras
+            WHERE event_name = "click" AND event_category = "csat_survey"
+        )
+        PIVOT(MAX(value) FOR KEY IN ("plan_tier", "survey_id", "experiment_branch"))
+        GROUP BY submission_date, client_id, plan_tier, survey_id, experiment_branch
+    )
+"""
+client_id_column = "client_id"
+
+[metrics]
+[metrics.event_count]
+data_source = "base_table"
+select_expression = "COUNT(DISTINCT client_id)"
+type = "scalar"
+statistics.sum = {}
+
+[dimensions]
+[dimensions.plan_tier]
+data_source = "base_table"
+select_expression = "plan_tier"
+
+[dimensions.survey_id]
+data_source = "base_table"
+select_expression = "survey_id"
+
+[dimensions.experiment_branch]
+data_source = "base_table"
+select_expression = "experiment_branch"

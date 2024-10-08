@@ -49,10 +49,13 @@ from_expression = """
 (
   SELECT
     DATE(submission_timestamp) AS submission_date,
-    advertiser,
+    advertiser as client,
     campaign_name,
     targeted_country,
     rate_type,
+    creative_title as title,
+    creative_url as url,
+    image_url as image,
     SUM(impressions) AS impressions,
     SUM(clicks) AS clicks,
     SUM(revenue) AS revenue
@@ -62,7 +65,10 @@ from_expression = """
     advertiser,
     campaign_name,
     targeted_country,
-    rate_type
+    rate_type,
+    creative_title,
+    creative_url,
+    image_url
 )
 """
 friendly_name = "Default Looker Base Fields for Firefox SPOC Reporting"
@@ -79,7 +85,7 @@ from_expression = """
 (
   SELECT
     *,
-    DATE(collection_time) AS collection_date
+    DATE(collection_time) AS submission_date
   FROM `mozdata.ads.ppa_measurements`
 )
 """
@@ -87,4 +93,4 @@ client_id_column = "NULL"
 friendly_name = "PPA Measurements"
 description = "Aggregated conversion data from Privacy-Preserving Attribution (PPA)"
 columns_as_dimensions = true
-submission_date_column = "collection_date"
+submission_date_column = "submission_date"

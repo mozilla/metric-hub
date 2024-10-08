@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING, Any, List, Optional
 import attr
 import jinja2
 from jinja2 import StrictUndefined
+from mozilla_nimbus_schemas import RandomizationUnit
 
 if TYPE_CHECKING:
     from .config import ConfigCollection
     from .analysis import AnalysisSpec
 
+from . import AnalysisUnit
 from .errors import NoEndDateException, NoStartDateException
 from .exposure_signal import ExposureSignal, ExposureSignalDefinition
 from .segment import Segment, SegmentReference
@@ -81,6 +83,7 @@ class Experiment:
     is_enrollment_paused: Optional[bool] = None
     app_id: Optional[str] = None
     outcomes: List[str] = attr.Factory(list)
+    segments: List[str] = attr.Factory(list)
     enrollment_end_date: Optional[dt.datetime] = None
     boolean_pref: Optional[str] = None
     channel: Optional[Channel] = None
@@ -149,6 +152,24 @@ class ExperimentConfiguration:
             return self.experiment.bucket_config.start
 
         return None
+
+    @property
+    def randomization_unit(self) -> Optional[RandomizationUnit]:
+        if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
+            # this will raise a ValueError if the provided randomization_unit is invalid
+            return RandomizationUnit(self.experiment.bucket_config.randomization_unit)
+
+        return None
+
+    @property
+    def analysis_unit(self) -> Optional[AnalysisUnit]:
+        """Retrieve the appropriate analysis unit, which is
+        derived from the experiment's randomization unit.
+        """
+        if self.randomization_unit and self.randomization_unit == RandomizationUnit.GROUP_ID:
+            return AnalysisUnit.PROFILE_GROUP
+
+        return AnalysisUnit.CLIENT
 
     @property
     def enrollment_period(self) -> int:
@@ -264,13 +285,21 @@ class ExperimentSpec:
     sample_size: Optional[int] = None
 
     def resolve(
-        self, spec: "AnalysisSpec", experiment: "Experiment", configs: "ConfigCollection"
+        self,
+        spec: "AnalysisSpec",
+        experiment: "Experiment",
+        configs: "ConfigCollection",
     ) -> ExperimentConfiguration:
         experiment_config = ExperimentConfiguration(self, experiment, [])
         # Segment data sources may need to know the enrollment dates of the experiment,
         # so we'll forward the Experiment we know about so far.
+        experiment_segments = [SegmentReference(seg) for seg in experiment.segments]
+        all_segments = []
+        for seg in self.segments + experiment_segments:
+            if seg not in all_segments:
+                all_segments.append(seg)
         experiment_config.segments = [
-            ref.resolve(spec, experiment_config, configs) for ref in self.segments
+            ref.resolve(spec, experiment_config, configs) for ref in all_segments
         ]
 
         experiment_config.sample_size = self.sample_size

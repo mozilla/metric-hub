@@ -224,7 +224,11 @@ def entity_from_path(
         platform = path.parent.name
         spec = OutcomeSpec.from_dict(config_dict)
         return Outcome(
-            slug=slug, spec=spec, platform=platform, commit_hash=None, is_private=is_private
+            slug=slug,
+            spec=spec,
+            platform=platform,
+            commit_hash=None,
+            is_private=is_private,
         )
     elif is_default_config:
         if "project" in config_dict:
@@ -480,7 +484,12 @@ class ConfigCollection:
             definitions,
             functions_spec,
             repos=[
-                Repository(repo=repo, path=path, main_branch=main_branch, is_tmp_repo=is_tmp_repo)
+                Repository(
+                    repo=repo,
+                    path=path,
+                    main_branch=main_branch,
+                    is_tmp_repo=is_tmp_repo,
+                )
             ],
             is_private=is_private,
         )
@@ -536,7 +545,11 @@ class ConfigCollection:
                 # load configs as they were at the time of the commit
                 try:
                     configs = self.from_local_repo(
-                        tmp_repo, repo.path, self.is_private, repo.main_branch, is_tmp_repo=True
+                        tmp_repo,
+                        repo.path,
+                        self.is_private,
+                        repo.main_branch,
+                        is_tmp_repo=True,
                     )
                 except Exception as e:
                     could_load_configs = False
@@ -658,7 +671,10 @@ class ConfigCollection:
         for definition in self.definitions:
             if app_name == definition.platform:
                 if not isinstance(definition.spec, MonitoringSpec):
-                    for segment_slug, segment in definition.spec.segments.definitions.items():
+                    for (
+                        segment_slug,
+                        segment,
+                    ) in definition.spec.segments.definitions.items():
                         if segment_slug == slug:
                             return segment
 

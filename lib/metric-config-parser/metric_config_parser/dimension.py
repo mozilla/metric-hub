@@ -33,7 +33,10 @@ class DimensionDefinition:
     description: Optional[str] = None
 
     def resolve(
-        self, spec: "MonitoringSpec", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "MonitoringSpec",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Dimension:
         """Create and return a `Dimension` from the definition."""
         return Dimension(
@@ -92,7 +95,10 @@ class DimensionReference:
     name: str
 
     def resolve(
-        self, spec: "MonitoringSpec", conf: "ProjectConfiguration", configs: "ConfigCollection"
+        self,
+        spec: "MonitoringSpec",
+        conf: "ProjectConfiguration",
+        configs: "ConfigCollection",
     ) -> Dimension:
         """Return the referenced `Dimension`."""
         if self.name in spec.dimensions.definitions:

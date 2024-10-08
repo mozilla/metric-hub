@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .definition import DefinitionSpecSub
     from .project import ProjectConfiguration
 
+from . import AnalysisUnit
 from .util import converter, is_valid_slug
 
 
@@ -77,12 +78,25 @@ class DataSource:
             `{dataset}` in from_expr if a value is not provided
             at runtime. Mandatory if from_expr contains a
             `{dataset}` parameter.
+        build_id_column (str, optional):
+            Default 'SAFE.SUBSTR(application.build_id, 0, 8)'.
+        friendly_name (str, optional)
+        description (str, optional)
+        joins (list[DataSourceJoin], optional)
+        columns_as_dimensions (bool, optional): Default false.
+        analysis_units (list[AnalysisUnit], optional): denotes which
+            aggregations are supported by this data_source. At time
+            of writing, this means 'client_id', 'profile_group_id',
+            or both. Defaults to 'client_id'.
+        group_id_column (str, optional): Name of the column that
+            contains the ``profile_group_id`` (join key). Defaults to
+            'profile_group_id'.
     """
 
     name = attr.ib(validator=attr.validators.instance_of(str))
     from_expression = attr.ib(validator=attr.validators.instance_of(str))
     experiments_column_type = attr.ib(default="simple", type=str)
-    client_id_column = attr.ib(default="client_id", type=str)
+    client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
     default_dataset = attr.ib(default=None, type=Optional[str])
     build_id_column = attr.ib(default="SAFE.SUBSTR(application.build_id, 0, 8)", type=str)
@@ -90,6 +104,8 @@ class DataSource:
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
+    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
+    group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
 
@@ -162,6 +178,8 @@ class DataSourceDefinition:
     description: Optional[str] = None
     joins: Optional[Dict[str, Dict[str, Any]]] = None
     columns_as_dimensions: Optional[bool] = None
+    analysis_units: Optional[list[AnalysisUnit]] = None
+    group_id_column: Optional[str] = None
 
     def resolve(
         self,
@@ -179,7 +197,10 @@ class DataSourceDefinition:
                 + "Wildcard characters are only allowed if matching slug is defined."
             )
 
-        params: Dict[str, Any] = {"name": self.name, "from_expression": self.from_expression}
+        params: Dict[str, Any] = {
+            "name": self.name,
+            "from_expression": self.from_expression,
+        }
         # Allow mozanalysis to infer defaults for these values:
         for k in (
             "experiments_column_type",
@@ -190,6 +211,8 @@ class DataSourceDefinition:
             "friendly_name",
             "description",
             "columns_as_dimensions",
+            "analysis_units",
+            "group_id_column",
         ):
             v = getattr(self, k)
             if v:
@@ -225,6 +248,9 @@ class DataSourceDefinition:
         for key in attr.fields_dict(type(self)):
             if key != "name":
                 setattr(self, key, getattr(other, key) or getattr(self, key))
+            if key == "joins":
+                if getattr(other, key) is not None:
+                    setattr(self, key, getattr(other, key))
 
 
 @attr.s(auto_attribs=True)
@@ -232,7 +258,8 @@ class DataSourcesSpec:
     """Holds data source definitions.
 
     This doesn't have a resolve() method to produce a concrete DataSourcesConfiguration
-    because it's just a container for the definitions, and we don't need it after the spec phase."""
+    because it's just a container for the definitions, and we don't need it after the spec phase.
+    """
 
     definitions: Dict[str, DataSourceDefinition] = attr.Factory(dict)
 
@@ -240,7 +267,8 @@ class DataSourcesSpec:
     def from_dict(cls, d: dict) -> "DataSourcesSpec":
         definitions = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())}, DataSourceDefinition
+                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                DataSourceDefinition,
             )
             for k, v in d.items()
         }

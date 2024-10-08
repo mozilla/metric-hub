@@ -32,6 +32,7 @@ preenrollment_weekly = [
     "total_uri_count",
     "days_of_use",
     "client_level_daily_active_users_v2",
+    "tagged_search_count",
 ]
 
 preenrollment_days28 = [
@@ -44,6 +45,7 @@ preenrollment_days28 = [
     "total_uri_count",
     "days_of_use",
     "client_level_daily_active_users_v2",
+    "tagged_search_count",
 ]
 
 [metrics.retained]
@@ -59,12 +61,21 @@ binomial = {}
 deciles = {}
 bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
+[metrics.days_of_use.statistics.linear_model_mean]
+drop_highest = 0.0
+[metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
 
 ##
 
 [metrics.active_hours.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.active_hours.statistics.linear_model_mean]
+[metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -75,6 +86,9 @@ data_source = "mobile_search_clients_engines_sources_daily"
 [metrics.serp_ad_clicks.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.serp_ad_clicks.statistics.linear_model_mean]
+[metrics.serp_ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -85,12 +99,19 @@ data_source = "mobile_search_clients_engines_sources_daily"
 [metrics.organic_searches.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.organic_searches.statistics.linear_model_mean]
+[metrics.organic_searches.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
 
 ##
 
 [metrics.search_count.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.search_count.statistics.linear_model_mean]
+[metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -101,12 +122,19 @@ data_source = "mobile_search_clients_engines_sources_daily"
 [metrics.searches_with_ads.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.searches_with_ads.statistics.linear_model_mean]
+[metrics.searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
 
 ##
 
 [metrics.tagged_search_count.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.tagged_search_count.statistics.linear_model_mean]
+[metrics.tagged_search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -117,6 +145,9 @@ data_source = "mobile_search_clients_engines_sources_daily"
 [metrics.tagged_follow_on_searches.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.tagged_follow_on_searches.statistics.linear_model_mean]
+[metrics.tagged_follow_on_searches.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -127,6 +158,9 @@ data_source = "metrics"
 [metrics.total_uri_count.statistics]
 deciles = {}
 bootstrap_mean = {}
+[metrics.total_uri_count.statistics.linear_model_mean]
+[metrics.total_uri_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
