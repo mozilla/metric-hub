@@ -56,6 +56,7 @@ from_expression = "mozdata.revenue.admarketplace"
 client_id_column = "advertiser"
 friendly_name = "AdMarketplace"
 description = "Data source for AdMarketplace metrics. Includes dimensions such as advertiser, device, country, and more."
+submission_date_column = "adm_date"
 
 [dimensions]
 
