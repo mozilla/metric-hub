@@ -52,19 +52,19 @@ description = "Data source for AdMarketplace metrics. Includes dimensions such a
 
 [dimensions]
 
-[dimensions.date]
+[dimensions.adm_date]
 data_source = "admarketplace"
 select_expression = "adm_date"
 friendly_name = "Report Date"
 description = "Date field from the adM report. Not the date the report was sent to us from adM."
 
-[dimensions.date]
+[dimensions.created_date]
 data_source = "admarketplace"
 select_expression = "created_date"
 friendly_name = "Ingestion Date"
 description = "Date field created upon Ingestion."
 
-[dimensions.date]
+[dimensions.file_date]
 data_source = "admarketplace"
 select_expression = "file_date"
 friendly_name = "File Date"
