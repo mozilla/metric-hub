@@ -42,6 +42,13 @@ select_expression = "SAFE_DIVIDE(SUM(payout), SUM(valid_impressions)) * 1000"
 friendly_name = "Revenue Per Thousand Impressions"
 description = "RPM Payout divided by the number of valid impressions times 1000. Returns NULL if number of valid impressions is zero."
 
+[metrics.sum_of_alternative_revenue]
+data_source = "admarketplace"
+select_expression = "SUM(alternative_revenue)"
+friendly_name = "Alternative Revenue"
+description = "Potential Revenue from the other report. Note that this is zero for all revenue coming from CPC since we don't get data for RPM for mobile tiles or instant suggestions."
+
+
 [data_sources]
 
 [data_sources.admarketplace]
