@@ -1,0 +1,15 @@
+[metrics]
+
+weekly = [
+  "organic_search_count",
+  "searches_with_ads",
+  "tagged_search_count",
+  "tagged_follow_on_search_count",
+]
+
+daily = [
+  "organic_search_count",
+  "searches_with_ads",
+  "tagged_search_count",
+  "tagged_follow_on_search_count",
+]
