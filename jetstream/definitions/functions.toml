@@ -18,6 +18,6 @@ definition = """
 definition = """
     SAFE_DIVIDE(
         SUM({select_expr}.sum),
-        SUM({select_expr}.count)
+        SUM((SELECT SUM(value) FROM UNNEST({select_expr}.values)))
     )
 """
