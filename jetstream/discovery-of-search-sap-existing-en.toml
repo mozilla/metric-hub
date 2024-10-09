@@ -1,3 +1,6 @@
+[experiment]
+sample_size = 20
+
 [metrics]
 
 weekly = [
