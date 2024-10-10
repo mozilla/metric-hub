@@ -32,6 +32,7 @@ select_expression = """
 """
 friendly_name = "CRLite usage"
 description = "Number of revocation checks performed using CRLite."
+depends_on = ["crlite_use_counter", "revocation_check_counter"]
 type = "scalar"
 
 [metrics.crlite_use_counter.statistics.sum]
@@ -48,6 +49,7 @@ select_expression = """
 """
 friendly_name = "OCSP usage"
 description = "Number of revocation checks performed using OCSP."
+depends_on = ["ocsp_use_counter", "revocation_check_counter"]
 type = "scalar"
 
 [metrics.ocsp_use_counter.statistics.sum]
