@@ -1,0 +1,99 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "Clients who start the add image funnel in the PDF editor"
+name = "add_image_click"
+friendly_name = "Click on Add Image"
+select_expression = "event_category = 'pdfjs.image' AND event_name = 'add_image_click'"
+data_source = "events_unnested"
+window_end = "analysis_window_end"
+
+[metrics]
+
+weekly = [
+    "pdf_opening",
+    "images_added",
+    "alt_text_ratio"
+]
+
+overall = [
+    "pdf_opening",
+    "images_added",
+    "alt_text_ratio"
+]
+
+[metrics.images_added]
+select_expression = "SUM(images)"
+data_source = "pdf_images_alttext"
+friendly_name = "Number of images added to PDFs"
+description = "Total number of images added in branch"
+
+[metrics.alt_text_ratio]
+select_expression = """SAFE_DIVIDE(
+    SUM(with_alt_text),
+    SUM(images)
+)"""
+data_source = "pdf_images_alttext"
+friendly_name = "Ratio of images added with alt text"
+description = "Ratio of images added in which an alt text is present"
+
+[metrics.images_added.statistics.bootstrap_mean]
+[metrics.images_added.statistics.deciles]
+
+[metrics.alt_text_ratio.statistics.binomial]
+
+[metrics.pdf_opening.statistics.binomial]
+
+[data_sources.events_unnested]
+from_expression = """(
+  SELECT
+    client_info.client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    *
+  FROM
+    `mozdata.firefox_desktop.events_unnested`
+)"""
+experiments_column_type = "glean"
+friendly_name = "Events Unnested"
+description = "Glean Event Ping Unnested"
+
+[data_sources.pdf_images_alttext]
+from_expression = """(
+WITH metric AS (
+ SELECT
+   DATE(submission_timestamp) as submission_date,
+   client_info.client_id,
+   SUM(COALESCE(mozfun.map.get_key(metrics.labeled_counter.pdfjs_stamp, 'inserted_image'),0)) as inserted_image,
+   SUM(COALESCE(mozfun.map.get_key(metrics.labeled_counter.pdfjs_stamp, 'alt_text_description'),0)) as alt_text_description
+ FROM `mozdata.firefox_desktop.metrics`
+ WHERE submission_timestamp >= '2024-09-10'
+ AND ARRAY_LENGTH(metrics.labeled_counter.pdfjs_stamp) > 0
+ GROUP BY 1, 2
+), events AS (
+ SELECT
+   DATE(submission_timestamp) as submission_date,
+   client_info.client_id,
+   COUNTIF(mozfun.map.get_key(event_extra, 'alt_text_type') = 'present') as alt_text_present
+ FROM
+   `mozdata.firefox_desktop.events_unnested`
+ WHERE
+   submission_timestamp >= '2024-09-10'
+   AND event_category = 'pdfjs.image'
+   AND event_name = 'alt_text.save'
+ GROUP BY 1, 2
+)
+SELECT
+  submission_date,
+  client_id,
+  inserted_image as images,
+  alt_text_description + COALESCE(alt_text_present, 0) as with_alt_text,
+FROM metric m
+FULL OUTER JOIN events e USING (client_id, submission_date)
+)"""
+friendly_name = "PDF inserted images"
+description = "Number of images added per client and how many had alt text"
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+experiments_column_type = "none"
+
+
