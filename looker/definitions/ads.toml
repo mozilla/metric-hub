@@ -53,6 +53,8 @@ from_expression = """
     campaign_name,
     targeted_country,
     rate_type,
+    creative_title as title,
+    creative_url as url,
     image_url as image,
     SUM(impressions) AS impressions,
     SUM(clicks) AS clicks,
@@ -64,6 +66,8 @@ from_expression = """
     campaign_name,
     targeted_country,
     rate_type,
+    creative_title,
+    creative_url,
     image_url
 )
 """
