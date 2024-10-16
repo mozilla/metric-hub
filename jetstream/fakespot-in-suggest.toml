@@ -1,6 +1,3 @@
-[experiment]
-skip = true  # skip; but remove once the experiment has launched
-
 [metrics]
 daily = ["admarketplace_sponsored_impressions",
           "fakespot_amazon_impressions",
