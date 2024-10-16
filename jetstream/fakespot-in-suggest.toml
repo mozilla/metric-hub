@@ -1,6 +1,3 @@
-[experiment]
-
-
 [metrics]
 daily = ["admarketplace_sponsored_impressions",
           "fakespot_amazon_impressions",
