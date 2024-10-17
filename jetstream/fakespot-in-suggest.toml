@@ -282,7 +282,7 @@ description = "Number of Fakespot clicks with 5 star B grade"
 [data_sources.fakespot_events]
 from_expression = """(
     SELECT 
-        *,
+        *,metrics.uuid.legacy_telemetry_client_id AS client_id,
         event.name AS event_name,
         CASE WHEN (mozfun.map.get_key(event.extra, 'grade') = 'B' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 5)) THEN 'fakespot_5_star_B_grade'
         WHEN (mozfun.map.get_key(event.extra, 'grade') = 'A' and (round(CAST(mozfun.map.get_key(event.extra, 'rating') AS FLOAT64),0) = 5)) THEN 'fakespot_5_star_A_grade'
@@ -298,6 +298,7 @@ from_expression = """(
 
 friendly_name = "fakespot_grade_rating_events"
 description = "fakespot engagement with grades and rating"
+experiments_column_type = "glean"
 ## Review Checker
 #[metrics.review_checker_displayed_count]
 #select_expression = "COUNTIF(event_category = 'shopping' and event.name = 'surface_displayed')"
