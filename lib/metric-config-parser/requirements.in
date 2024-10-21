@@ -65,7 +65,7 @@ mccabe==0.7.0
 mozilla-nimbus-schemas==2024.9.3
     # via
     #   mozilla-metric-config-parser
-mypy==1.11.2
+mypy==1.12.1
     # via
     #   mozilla-metric-config-parser
 mypy-extensions==1.0.0
