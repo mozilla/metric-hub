@@ -1,0 +1,29 @@
+[experiment]
+
+segments = ["default_browser", "not_default_browser"]
+enrollment_period = 7
+
+[metrics]
+
+overall = ['fxa_configured', 'synced_desktops']
+weekly = ['fxa_configured', 'synced_desktops']
+
+
+[metrics.fxa_configured]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS INT)'
+
+[metrics.synced_desktops]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(sync_count_desktop_mean > 1), FALSE) AS INT)'
+
+[metrics.fxa_configured.statistics.binomial]
+[metrics.synced_desktops.statistics.binomial]
+
+[segments.default_browser]
+select_expression = '{{agg_any("is_default_browser")}}'
+data_source = "clients_daily"
+
+[segments.not_default_browser]
+select_expression = 'NOT {{agg_any("is_default_browser")}}'
+data_source = "clients_daily"
