@@ -1,4 +1,7 @@
 [experiment]
+start_date = "2024-10-22"
+enrollment_period = 7
+end_date = "2024-11-27"
 
 [experiment.exposure_signal]
 description = "Clients who start the add image funnel in the PDF editor"
