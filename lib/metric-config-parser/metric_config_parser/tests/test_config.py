@@ -850,3 +850,40 @@ class TestConfigIntegration:
         assert (
             config_collection_1.get_data_source_definition("invalid_*", "firefox_desktop") is None
         )
+
+    def test_get_all_app_segments_with_toml(self):
+        config_str = """
+        [segments.my_cool_segment]
+        Data_Source = "my_cool_data_source"
+        Select_Expression = "{{agg_any('1')}}"
+
+        [segments.another_segment]
+        Data_Source = "another_data_source"
+        Select_Expression = "{{agg_sum('2')}}"
+
+        [segments.data_sources.my_cool_data_source]
+        from_expression = "max(attr_source is not null)"
+
+        [segments.data_sources.another_data_source]
+        from_expression = "max(attr_source is null)"
+        """
+        definition = DefinitionConfig(
+            slug="firefox_desktop",
+            platform="firefox_desktop",
+            spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+            last_modified=datetime.datetime.now(),
+        )
+
+        config_collection = ConfigCollection(
+            configs=[],
+            outcomes=[],
+            defaults=[],
+            definitions=[definition],
+        )
+
+        segments = config_collection.get_all_app_segments("firefox_desktop")
+        assert len(segments) == 2
+
+        segment_slugs = [seg.name for seg in segments]
+        assert "my_cool_segment" in segment_slugs
+        assert "another_segment" in segment_slugs
