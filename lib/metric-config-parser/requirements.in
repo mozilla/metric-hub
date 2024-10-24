@@ -62,7 +62,7 @@ markupsafe==2.1.5
 mccabe==0.7.0
     # via flake8
     # via -r -
-mozilla-nimbus-schemas==2024.9.3
+mozilla-nimbus-schemas==2024.10.1
     # via
     #   mozilla-metric-config-parser
 mypy==1.11.2
