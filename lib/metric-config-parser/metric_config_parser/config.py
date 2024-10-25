@@ -680,6 +680,14 @@ class ConfigCollection:
 
         return None
 
+    def get_segments_for_app(self, app_name: str) -> Optional[List[SegmentDefinition]]:
+        segments: List[SegmentDefinition] = []
+        for definition in self.definitions:
+            if app_name == definition.platform and not isinstance(definition.spec, MonitoringSpec):
+                segments.extend(definition.spec.segments.definitions.values())
+
+        return segments
+
     def get_metrics_sql(
         self,
         metrics: List[str],
