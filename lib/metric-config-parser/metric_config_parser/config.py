@@ -680,7 +680,7 @@ class ConfigCollection:
 
         return None
 
-    def get_all_app_segments(self, app_name: str) -> Optional[List[SegmentDefinition]]:
+    def get_segments_for_app(self, app_name: str) -> Optional[List[SegmentDefinition]]:
         segments: List[SegmentDefinition] = []
         for definition in self.definitions:
             if app_name == definition.platform:

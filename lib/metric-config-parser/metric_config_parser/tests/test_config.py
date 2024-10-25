@@ -851,15 +851,15 @@ class TestConfigIntegration:
             config_collection_1.get_data_source_definition("invalid_*", "firefox_desktop") is None
         )
 
-    def test_get_all_app_segments_with_toml(self):
-        config_str = """
+    def test_get_segments_for_app_with_toml(self):
+        config_str_desktop = """
         [segments.my_cool_segment]
-        Data_Source = "my_cool_data_source"
-        Select_Expression = "{{agg_any('1')}}"
+        data_source = "my_cool_data_source"
+        select_expression = "{{agg_any('1')}}"
 
         [segments.another_segment]
-        Data_Source = "another_data_source"
-        Select_Expression = "{{agg_sum('2')}}"
+        data_source = "another_data_source"
+        select_expression = "{{agg_sum('2')}}"
 
         [segments.data_sources.my_cool_data_source]
         from_expression = "max(attr_source is not null)"
@@ -867,10 +867,27 @@ class TestConfigIntegration:
         [segments.data_sources.another_data_source]
         from_expression = "max(attr_source is null)"
         """
-        definition = DefinitionConfig(
+
+        config_str_fenix = """
+        [segments.fenix_segment]
+        data_source = "fenix_data_source"
+        select_expression = "{{agg_count('3')}}"
+
+        [segments.data_sources.fenix_data_source]
+        from_expression = "min(attr_source is not null)"
+        """
+
+        definition_desktop = DefinitionConfig(
             slug="firefox_desktop",
             platform="firefox_desktop",
-            spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+            spec=AnalysisSpec.from_dict(toml.loads(config_str_desktop)),
+            last_modified=datetime.datetime.now(),
+        )
+
+        definition_fenix = DefinitionConfig(
+            slug="fenix",
+            platform="fenix",
+            spec=AnalysisSpec.from_dict(toml.loads(config_str_fenix)),
             last_modified=datetime.datetime.now(),
         )
 
@@ -878,12 +895,18 @@ class TestConfigIntegration:
             configs=[],
             outcomes=[],
             defaults=[],
-            definitions=[definition],
+            definitions=[definition_desktop, definition_fenix],
         )
 
-        segments = config_collection.get_all_app_segments("firefox_desktop")
-        assert len(segments) == 2
+        segments_desktop = config_collection.get_segments_for_app("firefox_desktop")
+        assert len(segments_desktop) == 2
 
-        segment_slugs = [seg.name for seg in segments]
-        assert "my_cool_segment" in segment_slugs
-        assert "another_segment" in segment_slugs
+        segment_slugs_desktop = [seg.name for seg in segments_desktop]
+        assert "my_cool_segment" in segment_slugs_desktop
+        assert "another_segment" in segment_slugs_desktop
+
+        segments_fenix = config_collection.get_segments_for_app("fenix")
+        assert len(segments_fenix) == 1
+
+        segment_slugs_fenix = [seg.name for seg in segments_fenix]
+        assert "fenix_segment" in segment_slugs_fenix

@@ -70,7 +70,7 @@ class TestConfigIntegration:
             config_collection.get_segment_definition("regular_users_v3", "firefox_desktop")
             is not None
         )
-        assert config_collection.get_all_app_segments("firefox_desktop") is not None
+        assert config_collection.get_segments_for_app("firefox_desktop") is not None
 
     def test_configs_from_multiple_repos(self):
         config_collection = ConfigCollection.from_github_repos(
