@@ -1,0 +1,25 @@
+[experiment]
+
+enrollments_query = """(
+SELECT
+    e.client_id AS analysis_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch')
+        AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN '2024-10-07' AND '2024-10-25'
+    AND e.event_string_value = 'improved-mailto-handling-with-os-integration'
+    
+    AND (
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'treatment-a' AND e.sample_id < 11)
+        OR
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') != 'treatment-a')
+    )
+GROUP BY e.client_id, branch
+)"""
