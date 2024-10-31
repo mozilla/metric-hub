@@ -81,8 +81,8 @@ WITH metric AS (
    `mozdata.firefox_desktop.events_unnested`
  WHERE
    submission_timestamp >= '2024-09-10'
-   AND event_category = 'pdfjs.image'
-   AND event_name = 'alt_text.save'
+   AND event_category = 'pdfjs.image.alt_text'
+   AND event_name = 'save'
  GROUP BY 1, 2
 )
 SELECT
