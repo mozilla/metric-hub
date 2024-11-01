@@ -1,6 +1,6 @@
 [experiment]
 
-enrollments_query = """(
+enrollment_query = """(
 SELECT
     e.client_id AS analysis_id,
     `mozfun.map.get_key`(e.event_map_values, 'branch')
