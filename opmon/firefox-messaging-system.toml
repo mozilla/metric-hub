@@ -19,6 +19,8 @@ metrics = [
   "infobar_ping_volume",
   "spotlight_ping_volume",
   "cfr_ping_volume",
+  "toolbar_badge_ping_volume",
+  "toast_notification_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
   "unknown_keys_volume",
@@ -26,7 +28,7 @@ metrics = [
 ]
 
 alerts = [
-  "ping_volume_change",
+  "unexpected_data",
 ]
 
 [project.population]
@@ -38,10 +40,10 @@ dimensions = ["normalized_channel", "normalized_os"]
 friendly_name = "Ping Volume by Ping Type"
 description = """\
   The volume of 'messaging-system' pings broken down by `messaging_system.ping_type`.\
-  Currently supported: 'undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', NULL, and 'other'.\
+  Currently supported: 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar-badge', 'toast_notification', NULL, and 'other'.\
+  'undesired-event' can be found in its own plot.\
   """
 metrics = [
-  "undesired_events_ping_volume",
   "whats_new_panel_ping_volume",
   "moments_ping_volume",
   "infobar_ping_volume",
@@ -49,6 +51,8 @@ metrics = [
   "cfr_ping_volume",
   "null_ping_volume",
   "other_ping_volume",
+  "toolbar_badge_ping_volume",
+  "toast_notification_ping_volume"
 ]
 
 [project.metric_groups.unexpected_data]
@@ -78,7 +82,12 @@ description = "OS like 'Windows', 'Mac', 'Linux'"
 [data_sources]
 
 [data_sources.messaging_system]
-from_expression = "mozdata.firefox_desktop.messaging_system"
+from_expression = """(
+    SELECT *
+    FROM mozdata.firefox_desktop.messaging_system
+    WHERE
+      COALESCE(normalized_channel, "Other") <> "Other"
+    )"""
 submission_date_column = "DATE(submission_timestamp)"
 # Not sure that this would be helpful to include
 #build_id_column = "client_info.app_build"
@@ -153,6 +162,22 @@ select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'cfr')"
 type = "scalar"
 statistics.sum = {}
 
+[metrics.toolbar_badge_ping_volume]
+friendly_name = "'toolbar-badge' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'toolbar-badge'"
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'toolbar-badge')"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.toast_notification_ping_volume]
+friendly_name = "'toast_notification' pings"
+description = "Count of 'messaging-system' pings with ping_type = 'toast_notification'"
+data_source = "messaging_system"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type = 'toast_notification')"
+type = "scalar"
+statistics.sum = {}
+
 [metrics.null_ping_volume]
 friendly_name = "NULL pings"
 description = "Count of 'messaging-system' pings with ping_type of NULL. Typical for onboarding pings."
@@ -168,7 +193,7 @@ description = """\
   If there are values in here, you probably should update the opmon config to handle that new ping_type explicitly.\
 """
 data_source = "messaging_system"
-select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr'))"
+select_expression = "COUNTIF(metrics.string.messaging_system_ping_type IS NOT NULL AND metrics.string.messaging_system_ping_type NOT IN ('undesired-events', 'whats-new-panel', 'moments', 'infobar', 'spotlight', 'cfr', 'toolbar-badge', 'toast_notification'))"
 type = "scalar"
 statistics.sum = {}
 
@@ -189,24 +214,6 @@ type = "scalar"
 statistics.sum = {}
 
 [alerts]
-
-[alerts.ping_volume_change]
-# This type of alert triggers when the average of the current window deviates
-# from the average of the previous window by a factor of `max_relative_change`.
-type = "avg_diff"
-window_size = 7 # days
-max_relative_change = 0.5 # Value has not been tuned.
-metrics = [
-  "undesired_events_ping_volume",
-  "whats_new_panel_ping_volume",
-  "moments_ping_volume",
-  "infobar_ping_volume",
-  "spotlight_ping_volume",
-  "cfr_ping_volume",
-  "null_ping_volume",
-  "other_ping_volume",
-  "unknown_keys_volume",
-]
 
 [alerts.unexpected_data]
 # We want to know when there's any unexpected data at all

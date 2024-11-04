@@ -1,0 +1,372 @@
+# Monitoring of Firefox 1-click set-as-default (UserChoice) telemetry.
+#
+# We monitor event volumes and rates, and client volumes and rates (the `sum`
+# and `total_ratio` statistics, respectively).
+#
+# The difference is that a single client can report multiple events.  Since
+# we're monitoring errors we bias towards reporting any errors per client, even
+# when that client also reports success.
+#
+# This definition is very repetitive because the underlying data is a
+# categorical histogram that combines multiple labels (not present in the data
+# itself), the frustration of bucketed histograms, and the lack of control
+# structures in TOML definitions.  See `firefox-user-choice.py` for code to
+# generate *some* (not all!) of these definitions.
+
+[project]
+
+name = "Firefox Set As Default UserChoice"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-01-01"
+# We want continuous monitoring of this data:
+# end_date =
+skip_default_metrics = true
+
+metrics = [
+    # Everything.
+    "total_client_volume",
+    "total_event_volume",
+
+    # Specific results.
+    "Success_client_volume",
+    "Success_event_volume",
+    "ErrProgID_client_volume",
+    "ErrProgID_event_volume",
+    "ErrHash_client_volume",
+    "ErrHash_event_volume",
+    "ErrLaunchExe_client_volume",
+    "ErrLaunchExe_event_volume",
+    "ErrExeTimeout_client_volume",
+    "ErrExeTimeout_event_volume",
+    "ErrExeProgID_client_volume",
+    "ErrExeProgID_event_volume",
+    "ErrExeHash_client_volume",
+    "ErrExeHash_event_volume",
+    "ErrExeRejected_client_volume",
+    "ErrExeRejected_event_volume",
+    "ErrExeOther_client_volume",
+    "ErrExeOther_event_volume",
+    "ErrOther_client_volume",
+    "ErrOther_event_volume",
+    "ErrBuild_client_volume",
+    "ErrBuild_event_volume",
+
+    # For convenience: everything that's not Success.
+    "not_Success_client_volume",
+    "not_Success_event_volume",
+]
+
+[project.population]
+
+data_source = "firefox_userchoice"
+monitor_entire_population = true
+dimensions = ["normalized_channel", "windows_version", "is_msix"]
+
+[dimensions.windows_version]
+data_source = "firefox_userchoice"
+select_expression = "windows_version"
+friendly_name = "Windows Version"
+description = "Windows version, like 'Windows 11', 'Windows 10', etc.  See https://github.com/mozilla/bigquery-etl/blob/generated-sql/sql/mozfun/norm/windows_version_info/udf.sql."
+
+[dimensions.normalized_channel]
+data_source = "firefox_userchoice"
+select_expression = "normalized_channel"
+friendly_name = "Channel"
+description = "Release channel, like 'release', 'beta', 'nightly', 'esr', 'devedition'."
+
+[dimensions.is_msix]
+data_source = "firefox_userchoice"
+select_expression = "is_msix"
+friendly_name = "Is MSIX"
+description = "Whether this install is an MSIX build, i.e., installed from the Microsoft Store."
+
+[data_sources]
+
+[data_sources.firefox_userchoice]
+
+# We could incorporate names and not just keys here, but since we
+# manually name the keys in the metrics below, there's little
+# advantage to the JOIN or CASE.
+
+from_expression = """
+(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        SUBSTR(application.build_id, 0, 10) AS build_id,
+        client_id,
+        mozfun.norm.windows_version_info(
+          environment.system.os.name,
+          environment.system.os.version,
+          CAST(environment.system.os.windows_build_number AS INT64)) AS windows_version,
+        normalized_channel,
+        COALESCE(environment.system.has_win_package_id, FALSE) AS is_msix,
+        values.key AS key,
+        SUM(values.value) AS value
+    FROM
+        `mozdata.telemetry.main`
+    CROSS JOIN
+        UNNEST(mozfun.hist.extract(payload.histograms.browser_set_default_user_choice_result).VALUES) values
+    WHERE
+        sample_id = 52
+        AND normalized_os = 'Windows'
+        AND mozfun.hist.extract(payload.histograms.browser_set_default_user_choice_result).bucket_count IS NOT NULL
+    GROUP BY
+        submission_date,
+        build_id,
+        client_id,
+        windows_version,
+        normalized_channel,
+        is_msix,
+        key
+    HAVING
+        value > 0
+)
+"""
+
+submission_date_column = "submission_date"
+build_id_column = "build_id"
+client_id_column = "client_id"
+
+[metrics]
+
+# For client volumes: We want each (submission_date, client id, build
+# id) group to yield 1 for a single metric and 0 for all others, so
+# that proportions and rates are easy to understand.  Choosing `MIN`
+# biases towards "ever succeeded"; choosing `MAX` biases towards "ever
+# failed".  Right now we care about failure.
+
+[metrics.total_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * 1"
+type = "scalar"
+
+[metrics.total_client_volume.statistics]
+sum = {}
+
+[metrics.Success_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 0 AS INT64)"
+type = "scalar"
+
+[metrics.Success_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrProgID_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 1 AS INT64)"
+type = "scalar"
+
+[metrics.ErrProgID_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrHash_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 2 AS INT64)"
+type = "scalar"
+
+[metrics.ErrHash_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrLaunchExe_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 3 AS INT64)"
+type = "scalar"
+
+[metrics.ErrLaunchExe_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrExeTimeout_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 4 AS INT64)"
+type = "scalar"
+
+[metrics.ErrExeTimeout_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrExeProgID_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 5 AS INT64)"
+type = "scalar"
+
+[metrics.ErrExeProgID_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrExeHash_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 6 AS INT64)"
+type = "scalar"
+
+[metrics.ErrExeHash_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrExeRejected_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 7 AS INT64)"
+type = "scalar"
+
+[metrics.ErrExeRejected_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrExeOther_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 8 AS INT64)"
+type = "scalar"
+
+[metrics.ErrExeOther_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrOther_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 9 AS INT64)"
+type = "scalar"
+
+[metrics.ErrOther_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.ErrBuild_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) = 10 AS INT64)"
+type = "scalar"
+
+[metrics.ErrBuild_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+[metrics.not_Success_client_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * CAST(MAX(key) > 0 AS INT64)"
+type = "scalar"
+
+[metrics.not_Success_client_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_client_volume" }
+
+# For event volumes: we sum everything, so proportions and rates
+# should be easy to understand.
+
+[metrics.total_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(value)"
+type = "scalar"
+
+[metrics.total_event_volume.statistics]
+sum = {}
+
+[metrics.Success_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 0, value, 0))"
+type = "scalar"
+
+[metrics.Success_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrProgID_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 1, value, 0))"
+type = "scalar"
+
+[metrics.ErrProgID_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrHash_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 2, value, 0))"
+type = "scalar"
+
+[metrics.ErrHash_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrLaunchExe_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 3, value, 0))"
+type = "scalar"
+
+[metrics.ErrLaunchExe_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrExeTimeout_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 4, value, 0))"
+type = "scalar"
+
+[metrics.ErrExeTimeout_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrExeProgID_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 5, value, 0))"
+type = "scalar"
+
+[metrics.ErrExeProgID_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrExeHash_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 6, value, 0))"
+type = "scalar"
+
+[metrics.ErrExeHash_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrExeRejected_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 7, value, 0))"
+type = "scalar"
+
+[metrics.ErrExeRejected_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrExeOther_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 8, value, 0))"
+type = "scalar"
+
+[metrics.ErrExeOther_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrOther_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 9, value, 0))"
+type = "scalar"
+
+[metrics.ErrOther_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.ErrBuild_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key = 10, value, 0))"
+type = "scalar"
+
+[metrics.ErrBuild_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }
+
+[metrics.not_Success_event_volume]
+data_source = "firefox_userchoice"
+select_expression = "100 * SUM(IF(key > 0, value, 0))"
+type = "scalar"
+
+[metrics.not_Success_event_volume.statistics]
+sum = {}
+total_ratio = { denominator_metric = "total_event_volume" }

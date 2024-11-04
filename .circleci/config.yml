@@ -3,7 +3,7 @@ version: 2.1
 setup: true
 
 orbs:
-  path-filtering: circleci/path-filtering@0.1.3
+  path-filtering: circleci/path-filtering@1.1.0
 
 workflows:
   filter-paths-main:
@@ -18,7 +18,10 @@ workflows:
             opmon/.* validate-opmon true
             jetstream/.* validate-jetstream true
             definitions/.* validate-metrics true
+            looker/.* validate-looker true
             .* build-docs true
+            lib/metric-config-parser/.* validate-metric-config-parser true
+            lib/metric-config-parser/pyproject.toml deploy-metric-config-parser true
   filter-paths-pr:
     when:
       and:
@@ -32,5 +35,7 @@ workflows:
             opmon/.* validate-opmon true
             jetstream/.* validate-jetstream true
             definitions/.* validate-metrics true
+            looker/.* validate-looker true
             .* build-docs true
             .* base-revision "main"
+            lib/metric-config-parser/.* validate-metric-config-parser true

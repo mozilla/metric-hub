@@ -1,0 +1,198 @@
+[project]
+
+name = "All browsers DAU"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2023-08-10"
+skip_default_metrics = true
+metrics = [
+  "fenix_daily_active_users_v2",
+  "firefox_desktop_daily_active_users_v2",
+  "firefox_ios_daily_active_users_v2",
+  "focus_android_daily_active_users_v2",
+  "focus_ios_daily_active_users_v2",
+]
+
+[project.population]
+
+data_source = "active_users_aggregates_view"
+monitor_entire_population = true
+
+[metrics.fenix_daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.firefox_desktop_daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.firefox_ios_daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.focus_android_daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.focus_ios_daily_active_users_v2.statistics]
+sum = {}
+
+[metrics.fenix_daily_active_users_v2]
+data_source = "fenix_active_users_aggregates_view"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Fenix DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Fenix.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.firefox_desktop_daily_active_users_v2]
+data_source = "firefox_desktop_active_users_aggregates_view"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Firefox Desktop DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Desktop.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+    
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.firefox_ios_daily_active_users_v2]
+data_source = "firefox_ios_active_users_aggregates_view"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Firefox iOS DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Firefox iOS.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.focus_android_daily_active_users_v2]
+data_source = "focus_android_active_users_aggregates_view"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Focus Android DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Focus Android.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+    
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.focus_ios_daily_active_users_v2]
+data_source = "focus_ios_active_users_aggregates_view"
+select_expression = "SUM(dau)"
+type = "scalar"
+friendly_name = "Focus iOS DAU"
+description = """
+    This is the official DAU reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Focus iOS.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
+    it is similar to a "days of use" metric, and not DAU.
+    
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+
+
+[data_sources]
+
+[data_sources.fenix_active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Fenix'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Fenix"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.firefox_desktop_active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Firefox Desktop'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Firefox Desktop"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.firefox_ios_active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Firefox iOS'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Firefox iOS"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.focus_android_active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Focus Android'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Focus Android"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.focus_ios_active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Focus iOS'
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates, filtered on Focus iOS"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU
+
+[data_sources.active_users_aggregates_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+)"""
+friendly_name = "Active Users Aggregates"
+description = "Active Users Aggregates"
+submission_date_column = "submission_date"
+client_id_column = "NULL"  # this table doesn't include client_id, and we don't need it for calculating DAU

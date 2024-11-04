@@ -1,0 +1,48 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "filters to clients that opened a PDF at all during the observation period"
+name = "opened_pdf"
+friendly_name = "Opened PDF"
+select_expression = """(
+    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
+)"""
+data_source = "metrics"
+window_start = 0
+window_end = 7
+
+[metrics]
+
+weekly = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening",
+    "pdf_launched_or_invoked_to_handle",
+    "pdf_invoked_to_handle",
+    "pdf_launched_to_handle"
+]
+
+overall = [
+    "pdf_engagement",
+    "pdf_freetext",
+    "pdf_ink", 
+    "pdf_print", 
+    "pdf_save", 
+    "pdf_opening",
+    "pdf_launched_or_invoked_to_handle",
+    "pdf_invoked_to_handle",
+    "pdf_launched_to_handle"
+]
+
+[metrics.pdf_engagement.statistics.binomial]
+[metrics.pdf_freetext.statistics.binomial]
+[metrics.pdf_ink.statistics.binomial]
+[metrics.pdf_print.statistics.binomial]
+[metrics.pdf_save.statistics.binomial]
+[metrics.pdf_opening.statistics.binomial]
+[metrics.pdf_launched_or_invoked_to_handle.statistics.binomial]
+[metrics.pdf_invoked_to_handle.statistics.binomial]
+[metrics.pdf_launched_to_handle.statistics.binomial]

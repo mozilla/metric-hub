@@ -1,0 +1,155 @@
+[experiment]
+start_date = "2023-10-24"
+end_date = "2023-11-29"
+enrollment_period = 7
+sample_size = 30
+
+[experiment.exposure_signal]
+name = "entered_fx_view"
+friendly_name = "Entered Firefox View"
+description = "Clients who selected the Firefox View tab"
+select_expression = '''COALESCE(event_method = 'tab_selected', FALSE)'''
+data_source = "events_fx_view"
+window_start = 0
+window_end = 7
+
+[metrics]
+weekly = [
+    'fxview_next_tab_selected',
+    'fxview_next_entered', 
+    'fxview_next_fxa_continue', 
+    'fxview_next_fxa_mobile', 
+    'fxview_next_recentlyclosed_item_click', 
+    'fxview_next_recentlyclosed_item_dismiss', 
+    'fxview_next_opentabs_item_click', 
+    'fxview_next_syncedtabs_item_click']
+
+overall = [
+    'fxview_next_tab_selected', 
+    'fxview_next_entered', 
+    'fxview_next_fxa_continue', 
+    'fxview_next_fxa_mobile', 
+    'fxview_next_recentlyclosed_item_click', 
+    'fxview_next_recentlyclosed_item_dismiss', 
+    'fxview_next_opentabs_item_click', 
+    'fxview_next_syncedtabs_item_click']
+
+
+[metrics.fxview_next_tab_selected]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'tab_selected'
+        """
+)}}'''
+friendly_name = "Selected tab for FxView"
+description = """
+    Counts the number of clients that took action to select FxView tab.
+"""
+
+[metrics.fxview_next_entered]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'entered'
+        """
+)}}'''
+friendly_name = "Entered FxView"
+description = """
+    Counts the number of clients that took action to enter FxView.
+"""
+
+[metrics.fxview_next_fxa_continue]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'fxa_continue'
+        """
+)}}'''
+friendly_name = "Sign up to FxA from FxView"
+description = """
+    Counts the number of clients that took action to sign up to FxA from FxView.
+"""
+
+[metrics.fxview_next_fxa_mobile]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'fxa_mobile'
+        """
+)}}'''
+friendly_name = "Try Firefox on Mobile from FxView"
+description = """
+    Counts the number of clients that took action to try Firefox on mobile from FxView.
+"""
+
+[metrics.fxview_next_recentlyclosed_item_click]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            (event_method = 'recently_closed' AND event_category = 'firefoxview_next') 
+            OR (event_method = 'closed_tabs' AND event_category = 'firefoxview')
+        """
+)}}'''
+friendly_name = "Recently Closed item clicked on FxView"
+description = """
+    Counts the number of clients that took action to click on an item from recently closed on FxView.
+"""
+
+[metrics.fxview_next_recentlyclosed_item_dismiss]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'dismiss_closed_tab'
+        """
+)}}'''
+friendly_name = "Recently Closed item clicked on FxView"
+description = """
+    Counts the number of clients that took action to dismiss an item from recently closed on FxView.
+"""
+
+[metrics.fxview_next_opentabs_item_click]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            event_method = 'open_tab'
+        """
+)}}'''
+friendly_name = "Open Tabs item clicked on FxView"
+description = """
+    Counts the number of clients that took action to click on an item from open tabs on FxView.
+"""
+
+[metrics.fxview_next_syncedtabs_item_click]
+data_source = "events_fx_view"
+select_expression = '''{{agg_any(
+    """
+            (event_method = 'synced_tabs' AND event_category = 'firefoxview_next') 
+            OR (event_method = 'tab_pickup' AND event_category = 'firefoxview')
+        """
+)}}'''
+friendly_name = "Synced Tabs item clicked on FxView"
+description = """
+    Counts the number of clients that took action to click on an item from synced tabs on FxView.
+"""
+
+[metrics.fxview_next_tab_selected.statistics.binomial]
+[metrics.fxview_next_entered.statistics.binomial]
+[metrics.fxview_next_fxa_continue.statistics.binomial]
+[metrics.fxview_next_fxa_mobile.statistics.binomial]
+[metrics.fxview_next_syncedtabs_expanded.statistics.binomial]
+[metrics.fxview_next_syncedtabs_collapsed.statistics.binomial]
+[metrics.fxview_next_recentlyclosed_expanded.statistics.binomial]
+[metrics.fxview_next_recentlyclosed_collapsed.statistics.binomial]
+[metrics.fxview_next_recentlyclosed_item_click.statistics.binomial]
+[metrics.fxview_next_recentlyclosed_item_dismiss.statistics.binomial]
+[metrics.fxview_next_opentabs_item_click.statistics.binomial]
+[metrics.fxview_next_syncedtabs_item_click.statistics.binomial]
+
+[data_sources]
+
+[data_sources.events_fx_view]
+from_expression = "(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'firefoxview_next' OR event_category = 'firefoxview')"
+experiments_column_type = "native"
+friendly_name = "Firefox View Events"
+description = "Events Ping filtered to only include Firefox View event category"

@@ -14,8 +14,8 @@ Additional reviews by data scientists are necessary when making changes to [metr
 
 Are your analyses not rendering as expected? See https://experimenter.info/jetstream/troubleshooting.
 
-Learn how to write a Jetstream configuration at <https://experimenter.info/jetstream/configuration>.
+Learn how to write a Jetstream configuration at <https://experimenter.info/deep-dives/jetstream/configuration>.
 
-Learn more about Outcomes at <https://experimenter.info/jetstream/outcomes>.
+Learn more about Outcomes at <https://experimenter.info/deep-dives/jetstream/outcomes>.
 
 See what outcomes and pre-defined metrics are available at https://mozilla.github.io/metric-hub

@@ -17,20 +17,26 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Any
+import google.auth
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.oauth2.id_token import fetch_id_token
+from urllib.request import Request, urlopen
 
 import click
 import requests
 import requests.exceptions
-from metric_config_parser.config import (DEFINITIONS_DIR, ConfigCollection,
-                                         entity_from_path)
+from metric_config_parser.config import (
+    DEFINITIONS_DIR,
+    ConfigCollection,
+    entity_from_path,
+)
 from metric_config_parser.function import FunctionsSpec
 
 logger = logging.getLogger(__name__)
 
 
 DRY_RUN_URL = (
-    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/"
-    "bigquery-etl-dryrun"
+    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
 )
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -54,12 +60,36 @@ class DryRunFailedError(Exception):
 def dry_run_query(sql: str) -> None:
     """Dry run the provided SQL query."""
     try:
-        r = requests.post(
-            DRY_RUN_URL,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"dataset": "mozanalysis", "query": sql}).encode("utf8"),
+        auth_req = GoogleAuthRequest()
+        creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
-        response = r.json()
+        creds.refresh(auth_req)
+        if hasattr(creds, "id_token"):
+            # Get token from default credentials for the current environment created via Cloud SDK run
+            id_token = creds.id_token
+        else:
+            # If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set to service account JSON file,
+            # then ID token is acquired using this service account credentials.
+            id_token = fetch_id_token(auth_req, DRY_RUN_URL)
+
+        r = urlopen(
+            Request(
+                DRY_RUN_URL,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {id_token}",
+                },
+                data=json.dumps(
+                    {
+                         "dataset": "mozanalysis",
+                        "query": sql,
+                    }
+                ).encode("utf8"),
+                method="POST",
+            )
+        )
+        response = json.load(r)
     except Exception as e:
         # This may be a JSONDecode exception or something else.
         # If we got a HTTP exception, that's probably the most interesting thing to raise.
@@ -151,39 +181,50 @@ def validate(path, config_repos):
                     validation_template = (
                         Path(TEMPLATES_DIR) / "validation_query.sql"
                     ).read_text()
-
-                    for (
-                        metric_name,
-                        metric,
-                    ) in entity.spec.metrics.definitions.items():
-                        if metric.select_expression:
-                            entity.spec.metrics.definitions[
-                                metric_name
-                            ].select_expression = (
-                                config_collection.get_env()
-                                .from_string(metric.select_expression)
-                                .render()
-                            )
-
                     env = config_collection.get_env().from_string(validation_template)
 
                     i = 0
                     progress = 0
                     metrics = []
-                    for metric in entity.spec.metrics.definitions.values():
+                    data_sources = {}
+                    for metric_name in entity.spec.metrics.definitions.keys():
                         i += 1
+                        metric = config_collection.get_metric_definition(
+                            metric_name, config_file.stem
+                        )
+
+                        if not metric:
+                            print(f"Error with {metric_name}")
+                            dirty = True
+                            break
+
                         if metric.select_expression:
+                            metric.select_expression = (
+                                config_collection.get_env()
+                                .from_string(metric.select_expression)
+                                .render()
+                            )
                             metrics.append(metric)
 
-                        if i % 10 == 0:
+                        if metric.data_source:
+                            data_source = config_collection.get_data_source_definition(
+                                metric.data_source.name, config_file.stem
+                            )
+                            if metric.data_source.name not in data_sources:
+                                data_sources[metric.data_source.name] = data_source
+
+                        if (
+                            i % 10 == 0
+                            or i == len(entity.spec.metrics.definitions.keys()) - 1
+                        ):
                             sql = env.render(
                                 metrics=metrics,
                                 dimensions=[],
                                 segments=[],
                                 segment_data_sources=[],
                                 data_sources={
-                                    name: d.resolve(None)
-                                    for name, d in entity.spec.data_sources.definitions.items()
+                                    name: d.resolve(entity.spec, entity, config_collection)
+                                    for name, d in data_sources.items()
                                 },
                             )
                             sql_to_validate.append(sql)
@@ -191,35 +232,37 @@ def validate(path, config_repos):
                             metrics = []
                             progress += 1
 
+                    segment_definitions = None
                     for (
                         segment_name,
                         segment,
                     ) in entity.spec.segments.definitions.items():
-                        entity.spec.segments.definitions[
-                            segment_name
-                        ].select_expression = (
+                        segment_definitions = entity.spec.segments.definitions
+
+                        segment_definitions[segment_name].select_expression = (
                             config_collection.get_env()
                             .from_string(segment.select_expression)
                             .render()
                         )
 
-                    sql = env.render(
-                        metrics=metrics,
-                        dimensions=entity.spec.dimensions.definitions.values(),
-                        segments=entity.spec.segments.definitions.values(),
-                        segment_data_sources=entity.spec.segments.data_sources,
-                        data_sources={
-                            name: d.resolve(None)
-                            for name, d in entity.spec.data_sources.definitions.items()
-                        },
-                    )
-                    sql_to_validate.append(sql)
+                    if segment_definitions:
+                        sql = env.render(
+                            metrics=metrics,
+                            dimensions=entity.spec.dimensions.definitions.values(),
+                            segments=segment_definitions.values(),
+                            segment_data_sources=entity.spec.segments.data_sources,
+                            data_sources={
+                                name: d.resolve(None, entity, config_collection)
+                                for name, d in entity.spec.data_sources.definitions.items()
+                            },
+                        )
+                        sql_to_validate.append(sql)
 
-                    with Pool(8) as p:
-                        result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
-                    if not all(result):
-                        sys.exit(1)
-                    print(f"{config_file} OK")
+    with Pool(8) as p:
+        result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
+    if not all(result):
+        sys.exit(1)
+    print(f"{config_file} OK")
 
     sys.exit(1 if dirty else 0)
 

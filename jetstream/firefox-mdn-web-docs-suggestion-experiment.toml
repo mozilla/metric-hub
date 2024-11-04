@@ -1,0 +1,142 @@
+[metrics]
+
+weekly = [
+    "mdn_impressions",
+    "mdn_clicks",
+    # "saw_mdn",
+    # "clicked_mdn",
+    "search_sessions",
+    "mdn_impression_rate",
+    "mdn_ctr",
+    "mdn_annoyances",
+    "engaged_search_sessions",
+    "search_engine_clicks",
+    "urlbar_engagement_rate",
+    "search_engine_rate",
+]
+
+overall = [
+    "mdn_impressions",
+    "mdn_clicks",
+    # "saw_mdn",
+    # "clicked_mdn",
+    "search_sessions",
+    "mdn_impression_rate",
+    "mdn_ctr",
+    "mdn_annoyances",
+    "engaged_search_sessions",
+    "search_engine_clicks",
+    "urlbar_engagement_rate",
+    "search_engine_rate",
+]
+
+
+[metrics.mdn_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.result_type = 'rs_mdn', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+friendly_name = "MDN suggestion impressions"
+description = "Number of MDN suggestion impressions (not available on control)"
+
+[metrics.mdn_impressions.statistics.bootstrap_mean]
+[metrics.mdn_impressions.statistics.deciles]
+
+[metrics.mdn_clicks]
+select_expression = "COUNTIF(is_terminal AND event_action = 'engaged' AND selected_result = 'rs_mdn')"
+data_source = "urlbar_events"
+friendly_name = "MDN suggestion clicks"
+description = "Number of MDN suggestion clicks (not available on control)"
+
+[metrics.mdn_clicks.statistics.bootstrap_mean]
+[metrics.mdn_clicks.statistics.deciles]
+
+# [metrics.saw_mdn]
+# select_expression = "COUNTIF(is_terminal AND result.result_type = 'rs_mdn') > 0"
+# data_source = "urlbar_events_unnested_results"
+# friendly_name = "Saw a MDN suggestion"
+# description = "Proportion of clients that saw a MDN suggestion (not available on control)"
+
+# [metrics.saw_mdn.statistics.binomial]
+
+# [metrics.clicked_mdn]
+# select_expression = "COUNTIF(is_terminal AND event_action = 'engaged' AND selected_result = 'rs_mdn') > 0"
+# data_source = "urlbar_events"
+# friendly_name = "Clicked a MDN result"
+# description = "Proportion of clients that clicked a MDN suggestion (not available on control)"
+
+# [metrics.clicked_mdn.statistics.binomial]
+
+[metrics.search_sessions]
+select_expression = "COUNTIF(is_terminal)"
+data_source = "urlbar_events"
+friendly_name = "Urlbar search sessions"
+description = "Number of URLbar search sessions"
+
+[metrics.search_sessions.statistics.bootstrap_mean]
+[metrics.search_sessions.statistics.deciles]
+
+[metrics.mdn_impression_rate]
+depends_on = ["mdn_impressions", "search_sessions"]
+friendly_name = "MDN suggestion impression rate"
+description = "Proportion of search sessions where a MDN suggestion was shown (not available on control)"
+
+[metrics.mdn_impression_rate.statistics.population_ratio]
+numerator = "mdn_impressions"
+denominator = "search_sessions"
+
+[metrics.mdn_ctr]
+depends_on = ["mdn_clicks", "mdn_impressions"]
+friendly_name = "MDN suggestion CTR"
+description = "Proportion of MDN suggestions that were clicked (not available on control)"
+
+[metrics.mdn_ctr.statistics.population_ratio]
+numerator = "mdn_clicks"
+denominator = "mdn_impressions"
+
+[metrics.mdn_annoyances]
+select_expression = "COUNTIF(event_action = 'annoyance' AND engaged_result_type = 'rs_mdn')"
+data_source = "urlbar_events"
+friendly_name = "MDN annoyances"
+description = "Number of clicks on annoyance options in the meatball menu for MDN suggestions"
+
+[metrics.mdn_annoyances.statistics.bootstrap_mean]
+[metrics.mdn_annoyances.statistics.deciles]
+
+[metrics.engaged_search_sessions]
+select_expression = "COUNTIF(is_terminal AND event_action = 'engaged')"
+data_source = "urlbar_events"
+friendly_name = "Urlbar engagements"
+description = "Number of URLbar search sessions ending in engagement"
+
+[metrics.engaged_search_sessions.statistics.bootstrap_mean]
+[metrics.engaged_search_sessions.statistics.deciles]
+
+[metrics.urlbar_engagement_rate]
+depends_on = ["engaged_search_sessions", "search_sessions"]
+friendly_name = "Urlbar engagement rate"
+description = "Proportion of URLbar search sessions ending in engagement"
+
+[metrics.urlbar_engagement_rate.statistics.population_ratio]
+numerator = "engaged_search_sessions"
+denominator = "search_sessions"
+
+[metrics.search_engine_clicks]
+select_expression = """COUNTIF(
+    is_terminal
+    AND event_action = 'engaged'
+    AND product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
+)"""
+data_source = "urlbar_events"
+friendly_name = "Search sessions ending on a SERP"
+description = "Number of URLbar search sessions ending with a click leading to a SERP"
+
+[metrics.search_engine_clicks.statistics.bootstrap_mean]
+[metrics.search_engine_clicks.statistics.deciles]
+
+[metrics.search_engine_rate]
+depends_on = ["search_engine_clicks", "search_sessions"]
+friendly_name = "SERP engagement rate"
+description = "Proportion of search sessions ending with a click leading to a SERP"
+
+[metrics.search_engine_rate.statistics.population_ratio]
+numerator = "search_engine_clicks"
+denominator = "search_sessions"

@@ -1,0 +1,37 @@
+[metrics]
+weekly = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions",
+          "history_clicks", "bookmark_clicks", "search_suggestion_clicks"]
+overall = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions",
+           "history_clicks", "bookmark_clicks", "search_suggestion_clicks"]
+
+## Impressions
+[metrics.history_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'history', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.history_impressions.statistics.bootstrap_mean]
+
+[metrics.bookmark_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'bookmark', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.bookmark_impressions.statistics.bootstrap_mean]
+
+[metrics.search_suggestion_impressions]
+select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'default_partner_search_suggestion', event_id, NULL))"
+data_source = "urlbar_events_unnested_results"
+[metrics.search_suggestion_impressions.statistics.bootstrap_mean]
+
+## Clicks
+[metrics.history_clicks]
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'history')"
+data_source = "urlbar_events"
+[metrics.history_clicks.statistics.bootstrap_mean]
+
+[metrics.bookmark_clicks]
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'bookmark')"
+data_source = "urlbar_events"
+[metrics.bookmark_clicks.statistics.bootstrap_mean]
+
+[metrics.search_suggestion_clicks]
+select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'default_partner_search_suggestion')"
+data_source = "urlbar_events"
+[metrics.search_suggestion_clicks.statistics.bootstrap_mean]

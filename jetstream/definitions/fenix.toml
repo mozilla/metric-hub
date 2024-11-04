@@ -44,3 +44,8 @@ drop_highest = 0
 
 [metrics.search_count.statistics.bootstrap_mean]
 [metrics.search_count.statistics.deciles]
+
+[metrics.turn_on_notifications_onboarding.statistics.binomial]
+[metrics.set_to_default_onboarding.statistics.binomial]
+[metrics.sign_in_onboarding.statistics.binomial]
+[metrics.at_least_1_cta_onboarding.statistics.binomial]

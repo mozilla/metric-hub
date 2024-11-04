@@ -1,0 +1,27 @@
+[project]
+
+name = "Android Add Ons Extension Process Release Rollout"
+platform = "fenix"
+metrics = [
+  "performance_page_non_blank_paint"
+]
+
+[project.population]
+
+data_source = "baseline"
+channel = "release"
+
+[data_sources.baseline]
+from_expression = """(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+    WHERE sample_id = 0
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "org_mozilla_firefox"
+friendly_name = "Baseline"
+description = "Baseline Ping"
+build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"

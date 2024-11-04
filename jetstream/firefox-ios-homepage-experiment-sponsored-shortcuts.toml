@@ -58,12 +58,12 @@ data_source = "baseline"
 [metrics.spoc_tiles_impressions]
 friendly_name = "Sponsored Tiles Impressions"
 description = "Number of times Contile Sponsored Tiles are shown."
-select_expression = """
+select_expression = '''
       COALESCE(COUNTIF(
-          event.category like 'top_site%'
+          event.category like r'top\_site%'
           AND event.name = 'contile_impression'
       ),0)
-"""
+'''
 data_source = "events"   
 statistics = { bootstrap_mean = {}, deciles = {} }
 
@@ -71,12 +71,12 @@ statistics = { bootstrap_mean = {}, deciles = {} }
 [metrics.spoc_tiles_clicks]
 friendly_name = "Sponsored Tiles Clicks"
 description = "Number of times user clicked a Contile Sponsored Tile."
-select_expression = """
+select_expression = '''
       COALESCE(COUNTIF(
-          event.category like 'top_site%'
+          event.category like r'top\_site%'
           AND event.name = 'contile_click'
       ),0)
-"""
+'''
 data_source = "events" 
 statistics = { bootstrap_mean = {}, deciles = {} }
 

@@ -1,0 +1,50 @@
+[experiment]
+segments = ['segment_imported', 'segment_imported_bookmarks', 'segment_imported_logins', 'segment_imported_history']
+
+[metrics]
+weekly = ['imported_bookmarks', 'imported_logins', 'imported_history', 'is_pinned']
+overall = ['imported_bookmarks', 'imported_logins', 'imported_history', 'is_pinned']
+
+[segments]
+
+[segments.segment_imported]
+select_expression = """(
+  LOGICAL_OR(
+    (bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0) OR
+    (logins_migrations_quantity_all IS NOT NULL AND logins_migrations_quantity_all != 0) OR 
+    (history_migrations_quantity_all IS NOT NULL AND history_migrations_quantity_all != 0)
+  )
+)"""
+data_source = 'clients_daily'
+window_start = 0
+window_end = 0
+
+[segments.segment_imported_bookmarks]
+select_expression = """(
+  LOGICAL_OR(
+    (bookmark_migrations_quantity_all IS NOT NULL AND bookmark_migrations_quantity_all != 0)
+  )
+)"""
+data_source = 'clients_daily'
+window_start = 0
+window_end = 0
+
+[segments.segment_imported_logins]
+select_expression = """(
+  LOGICAL_OR(
+    (logins_migrations_quantity_all IS NOT NULL AND logins_migrations_quantity_all != 0)
+  )
+)"""
+data_source = 'clients_daily'
+window_start = 0
+window_end = 0
+
+[segments.segment_imported_history]
+select_expression = """(
+  LOGICAL_OR(
+    (history_migrations_quantity_all IS NOT NULL AND history_migrations_quantity_all != 0)
+  )
+)"""
+data_source = 'clients_daily'
+window_start = 0
+window_end = 0

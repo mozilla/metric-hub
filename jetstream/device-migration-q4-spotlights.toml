@@ -1,0 +1,86 @@
+[experiment]
+end_date = "2024-01-18"
+enrollment_period = 7
+segments = [
+     'one_to_six_mo',
+     'six_to_twelve_mo', 
+     'one_to_two_years',
+     'two_plus_years',
+     'fr_locale',
+     'de_locale',
+     'it_locale',
+     'en_locale'
+     ]
+
+
+[metrics]
+overall = ['fxa_signed_in', 'sync_morethan1_desktop']
+weekly = ['fxa_signed_in', 'sync_morethan1_desktop']
+
+[metrics.sync_morethan1_desktop]
+data_source = "clients_daily"
+select_expression = "CAST(COALESCE(LOGICAL_OR(sync_count_desktop_mean > 1), FALSE) AS INT)"
+friendly_name = "Syncing with more than one desktop"
+description = "If user is syncing across more than 1 desktop devices"
+
+[metrics.sync_morethan1_desktop.statistics.binomial]
+
+[segments]
+
+[segments.fr_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "fr%"), FALSE)"""
+data_source = 'clients_daily'
+
+[segments.de_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "de%"), FALSE)"""
+data_source = 'clients_daily'
+
+[segments.it_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "it%"), FALSE)"""
+data_source = 'clients_daily'
+
+[segments.en_locale]
+select_expression = """COALESCE(LOGICAL_OR(locale LIKE "en-%"), FALSE)"""
+data_source = 'clients_daily'
+
+
+[segments.one_to_six_mo]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 1 and 6 mo', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.six_to_twelve_mo]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 6 and 12 mo', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.one_to_two_years]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age between 1 and 2 years', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.two_plus_years]
+select_expression = """COALESCE(ANY_VALUE(profile_age_segment_device_migration) = 'profile age more than 2 years', FALSE)"""
+data_source = 'clients_last_seen_with_profileage_segments'
+window_start = 0
+window_end = 0
+
+[segments.data_sources]
+
+[segments.data_sources.clients_last_seen_with_profileage_segments]
+from_expression = """(
+     SELECT 
+          *,
+          CASE WHEN DATE_DIFF(submission_date, first_run_date, DAY) < 28 THEN 'profile age less than 1 mo'
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 28 AND 179 THEN 'profile age between 1 and 6 mo' 
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 180 AND 364 THEN 'profile age between 6 and 12 mo' 
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) BETWEEN 365 AND 729 THEN 'profile age between 1 and 2 years'
+               WHEN DATE_DIFF(submission_date, first_run_date, DAY) >= 730 THEN 'profile age more than 2 years'
+          END AS profile_age_segment_device_migration
+     FROM mozdata.telemetry.clients_last_seen
+)"""
+window_start = 0
+window_end = 0

@@ -1,0 +1,15 @@
+[metrics]
+daily = ["unenroll"]
+
+weekly = [
+  "active_hours",
+]
+
+overall = [
+  "active_hours",
+]
+
+[metrics.active_hours.statistics.bootstrap_mean]
+[metrics.active_hours.statistics.deciles]
+
+[metrics.unenroll.statistics.binomial]

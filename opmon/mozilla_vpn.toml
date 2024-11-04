@@ -1,0 +1,162 @@
+
+[project]
+
+name = "Mozilla VPN"
+platform = "fenix" # not really but needs some platform. I'm overwriting everything
+xaxis = "submission_date"
+start_date = "2023-12-02"
+skip = false
+is_rollout = false
+skip_default_metrics = true
+compact_visualization = false
+metrics = [
+    "session_count",
+    "avg_session_duration",
+    "active_subscribers",
+    "avg_sum_session_duration",
+    "cnt_session_starts",
+    "cnt_session_ends",
+    "cnt_sessions_start_and_end",
+    "cnt_negative_session_lengths"
+]
+
+[project.population]
+
+data_source = "base_table"
+monitor_entire_population = true
+dimensions = ["app"]
+group_by_dimension = "app"
+
+
+[data_sources]
+[data_sources.base_table]
+from_expression = """
+    (
+        SELECT
+            "vpnsession" as source_table,
+            DATE(v.submission_timestamp) AS submission_date,
+            CONCAT(client_info.os, " - vpn_session") as app,
+            CASE v.normalized_app_id
+                WHEN "mozillavpn" THEN v.client_info.client_id
+                ELSE v.metrics.uuid.session_installation_id
+            END AS client_id,
+            v.metrics.uuid.session_session_id AS session_id,
+            v.metrics.datetime.session_session_start AS session_start,
+            v.metrics.datetime.session_session_end AS session_end,
+        FROM `moz-fx-data-shared-prod.mozilla_vpn.vpnsession` AS v
+
+        UNION ALL
+        SELECT 
+            "daemonsession" AS source_table,
+            DATE(d.submission_timestamp) AS submission_date,
+            CONCAT(client_info.os, " - daemon_session") AS app,
+            d.metrics.uuid.session_installation_id AS client_id,
+            d.metrics.uuid.session_daemon_session_id AS session_id,
+            d.metrics.datetime.session_daemon_session_start AS session_start,
+            d.metrics.datetime.session_daemon_session_end AS session_end,
+        FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` AS d
+    )
+"""
+client_id_column = "client_id"
+
+[data_sources.session_duration_table]
+from_expression = """
+    (
+        SELECT 
+            submission_date,
+            app,
+            client_id,
+            session_id,
+            --IF(MAX(session_end) > MIN(session_start), TIMESTAMP_DIFF(MAX(session_end), MIN(session_start), MINUTE), NULL) AS session_duration,
+            TIMESTAMP_DIFF(MAX(session_end), MIN(session_start), MINUTE) AS session_duration,
+            COUNT(session_start) AS cnt_session_starts,
+            COUNT(session_end) as cnt_session_ends
+
+        FROM (
+            SELECT
+                DATE(v.submission_timestamp) AS submission_date,
+                CONCAT(client_info.os, " - vpn_session") as app,
+                CASE v.normalized_app_id
+                    WHEN "mozillavpn" then v.client_info.client_id
+                    ELSE v.metrics.uuid.session_installation_id
+                END AS client_id,
+                v.metrics.uuid.session_session_id AS session_id,
+                v.metrics.datetime.session_session_start as session_start,
+                v.metrics.datetime.session_session_end as session_end,
+            FROM `moz-fx-data-shared-prod.mozilla_vpn.vpnsession` v
+
+            UNION ALL
+            SELECT 
+                DATE(d.submission_timestamp) AS submission_date,
+                CONCAT(client_info.os, " - daemon_session") AS app,
+                d.metrics.uuid.session_installation_id AS client_id,
+                d.metrics.uuid.session_daemon_session_id as session_id,
+                d.metrics.datetime.session_daemon_session_start as session_start,
+                d.metrics.datetime.session_daemon_session_end as session_end,
+            FROM `moz-fx-data-shared-prod.mozilla_vpn.daemonsession` d
+        )
+
+        GROUP BY 
+            submission_date,
+            app,
+            client_id,
+            session_id
+    )
+"""
+client_id_column = "client_id"
+
+[dimensions]
+[dimensions.app]
+data_source = "base_table"
+select_expression = "app"
+
+[metrics]
+[metrics.session_count]
+data_source = "base_table"
+select_expression = "COUNT(DISTINCT session_id)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.avg_session_duration]
+data_source = "session_duration_table"
+select_expression = "AVG(session_duration)"
+type = "scalar"
+statistics.mean = {}
+statistics.percentile = {}
+
+[metrics.active_subscribers]
+data_source = "base_table"
+select_expression = "COUNT(DISTINCT client_id)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.avg_sum_session_duration]
+data_source = "session_duration_table"
+select_expression = "SUM(IF(session_duration > 0, session_duration, NULL))"
+type = "scalar"
+statistics.mean = {}
+statistics.percentile = {}
+
+[metrics.cnt_session_starts]
+data_source = "session_duration_table"
+select_expression = "COUNTIF(cnt_session_starts > 0)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.cnt_session_ends]
+data_source = "session_duration_table"
+select_expression = "COUNTIF(cnt_session_ends > 0)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.cnt_sessions_start_and_end]
+data_source = "session_duration_table"
+select_expression = "COUNTIF(cnt_session_starts > 0 AND cnt_session_ends > 0)"
+type = "scalar"
+statistics.sum = {}
+
+[metrics.cnt_negative_session_lengths]
+data_source = "session_duration_table"
+select_expression = "COUNTIF(session_duration < 0)"
+type = "scalar"
+statistics.sum = {}

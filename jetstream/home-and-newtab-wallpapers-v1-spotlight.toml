@@ -1,0 +1,53 @@
+
+[metrics]
+
+overall = [
+    # content enabled
+    "newtab_search_enabled",
+    "newtab_tiles_enabled",
+    "newtab_sponsored_tiles_enabled",
+    "newtab_pocket_enabled",
+    "newtab_sponsored_pocket_stories_enabled",
+    # wallpaper metrics
+    "wallpaper_clicks",
+    "wallpaper_clicks_had_previous_wallpaper",
+    "wallpaper_clicks_first_selected_wallpaper",
+    "wallpaper_highlight_dismissals",
+    "wallpaper_highlight_cta_clicks",
+]
+
+weekly = [
+    # content enabled
+    "newtab_search_enabled",
+    "newtab_tiles_enabled",
+    "newtab_sponsored_tiles_enabled",
+    "newtab_pocket_enabled",
+    "newtab_sponsored_pocket_stories_enabled",
+    # wallpaper metrics
+    "wallpaper_clicks",
+    "wallpaper_clicks_had_previous_wallpaper",
+    "wallpaper_clicks_first_selected_wallpaper",
+    "wallpaper_highlight_dismissals",
+    "wallpaper_highlight_cta_clicks",
+]
+
+[metrics.newtab_search_enabled.statistics.binomial]
+[metrics.newtab_tiles_enabled.statistics.binomial]
+[metrics.newtab_sponsored_tiles_enabled.statistics.binomial]
+[metrics.newtab_pocket_enabled.statistics.binomial]
+[metrics.newtab_sponsored_pocket_stories_enabled.statistics.binomial]
+
+[metrics.wallpaper_clicks.statistics.bootstrap_mean]
+[metrics.wallpaper_clicks.statistics.deciles]
+
+[metrics.wallpaper_clicks_had_previous_wallpaper.statistics.bootstrap_mean]
+[metrics.wallpaper_clicks_had_previous_wallpaper.statistics.deciles]
+
+[metrics.wallpaper_clicks_first_selected_wallpaper.statistics.bootstrap_mean]
+[metrics.wallpaper_clicks_first_selected_wallpaper.statistics.deciles]
+
+[metrics.wallpaper_highlight_dismissals.statistics.bootstrap_mean]
+[metrics.wallpaper_highlight_dismissals.statistics.deciles]
+
+[metrics.wallpaper_highlight_cta_clicks.statistics.bootstrap_mean]
+[metrics.wallpaper_highlight_cta_clicks.statistics.deciles]
