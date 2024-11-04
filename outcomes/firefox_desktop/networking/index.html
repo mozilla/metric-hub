@@ -910,15 +910,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#events_certerror-certerror-events" class="md-nav__link">
-    events_certerror- Certerror events
+  <a href="#main" class="md-nav__link">
+    main
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#main" class="md-nav__link">
-    main
+  <a href="#events_certerror-certerror-events" class="md-nav__link">
+    events_certerror- Certerror events
   </a>
   
 </li>
@@ -2438,15 +2438,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#events_certerror-certerror-events" class="md-nav__link">
-    events_certerror- Certerror events
+  <a href="#main" class="md-nav__link">
+    main
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#main" class="md-nav__link">
-    main
+  <a href="#events_certerror-certerror-events" class="md-nav__link">
+    events_certerror- Certerror events
   </a>
   
 </li>
@@ -2486,7 +2486,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'REAL')).values,0)),
-        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'REAL'),1))
+        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'REAL'),0))
     )
 </code></pre>
 
@@ -2504,7 +2504,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'GREASE')).values,0)),
-        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'GREASE'),1))
+        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'GREASE'),0))
     )
 </code></pre>
 
@@ -2522,7 +2522,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'NONE')).values,0)),
-        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'NONE'),1))
+        SUM(mozfun.hist.threshold_count(mozfun.map.get_key(payload.keyed_histograms.http3_ech_outcome, 'NONE'),0))
     )
 </code></pre>
 
@@ -2540,7 +2540,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.ssl_handshake_result_conservative).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_conservative,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_conservative,0))
     )
 </code></pre>
 
@@ -2558,7 +2558,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.ssl_handshake_result_first_try).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_first_try,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_first_try,0))
     )
 </code></pre>
 
@@ -2576,7 +2576,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.ssl_handshake_result_ech_grease).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_ech_grease,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_ech_grease,0))
     )
 </code></pre>
 
@@ -2594,7 +2594,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.ssl_handshake_result_ech).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_ech,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result_ech,0))
     )
 </code></pre>
 
@@ -2612,7 +2612,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.ssl_handshake_result).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.ssl_handshake_result,0))
     )
 </code></pre>
 
@@ -2666,7 +2666,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.http_channel_onstart_success).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.http_channel_onstart_success,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.http_channel_onstart_success,0))
     )
 </code></pre>
 
@@ -2684,7 +2684,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.http_pageload_is_ssl).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.http_pageload_is_ssl,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.http_pageload_is_ssl,0))
     )
 </code></pre>
 
@@ -2702,7 +2702,7 @@
 
 <pre><code class="language-sql">SAFE_DIVIDE(
         SUM(mozfun.map.get_key(mozfun.hist.extract(payload.histograms.http_transaction_is_ssl).values,0)),
-        SUM(mozfun.hist.threshold_count(payload.histograms.http_transaction_is_ssl,1))
+        SUM(mozfun.hist.threshold_count(payload.histograms.http_transaction_is_ssl,0))
     )
 </code></pre>
 
@@ -2842,8 +2842,7 @@
 
 <hr />
 <h2 id="data-sources">Data Sources</h2>
-<h3 id="events_certerror-certerror-events"><a href="#events_certerror"><code>events_certerror</code>- Certerror events</a></h3>
-<p>Cert Error related events</p>
+<h3 id="main"><a href="#main"><code>main</code></a></h3>
 <details>
 <summary>Definition:</summary>
 
@@ -2854,7 +2853,8 @@
 </details>
 
 <hr />
-<h3 id="main"><a href="#main"><code>main</code></a></h3>
+<h3 id="events_certerror-certerror-events"><a href="#events_certerror"><code>events_certerror</code>- Certerror events</a></h3>
+<p>Cert Error related events</p>
 <details>
 <summary>Definition:</summary>
 
