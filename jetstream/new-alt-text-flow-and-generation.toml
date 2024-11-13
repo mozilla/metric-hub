@@ -43,29 +43,29 @@ description = "Ratio of images added in which an alt text is present"
 [metrics.images_added.statistics.bootstrap_mean]
 [metrics.images_added.statistics.deciles]
 
-[metrics.alt_text_ratio.statistics.binomial]
+[metrics.alt_text_ratio.statistics.bootstrap_mean]
 
 [metrics.pdf_opening.statistics.binomial]
 
 [data_sources.events_unnested]
 from_expression = """(
   SELECT
-    client_info.client_id as client_id,
+    legacy_telemetry_client_id as client_id,
     CAST(submission_timestamp as DATE) as submission_date,
-    *
+    * EXCEPT (client_id)
   FROM
-    `mozdata.firefox_desktop.events_unnested`
+    `mozdata.firefox_desktop.events_stream`
 )"""
-experiments_column_type = "glean"
-friendly_name = "Events Unnested"
-description = "Glean Event Ping Unnested"
+experiments_column_type = "none"
+friendly_name = "Events Stream"
+description = "Glean Events Stream"
 
 [data_sources.pdf_images_alttext]
 from_expression = """(
 WITH metric AS (
  SELECT
    DATE(submission_timestamp) as submission_date,
-   client_info.client_id,
+   metrics.uuid.legacy_telemetry_client_id as client_id,
    SUM(COALESCE(mozfun.map.get_key(metrics.labeled_counter.pdfjs_stamp, 'inserted_image'),0)) as inserted_image,
    SUM(COALESCE(mozfun.map.get_key(metrics.labeled_counter.pdfjs_stamp, 'alt_text_description'),0)) as alt_text_description
  FROM `mozdata.firefox_desktop.metrics`
@@ -75,10 +75,10 @@ WITH metric AS (
 ), events AS (
  SELECT
    DATE(submission_timestamp) as submission_date,
-   client_info.client_id,
-   COUNTIF(mozfun.map.get_key(event_extra, 'alt_text_type') = 'present') as alt_text_present
+   legacy_telemetry_client_id as client_id,
+   COUNTIF(JSON_VALUE(event_extra.alt_text_type) = 'present') as alt_text_present
  FROM
-   `mozdata.firefox_desktop.events_unnested`
+   `mozdata.firefox_desktop.events_stream`
  WHERE
    submission_timestamp >= '2024-09-10'
    AND event_category = 'pdfjs.image.alt_text'
