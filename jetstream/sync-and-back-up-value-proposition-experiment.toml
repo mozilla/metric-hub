@@ -1,6 +1,6 @@
 [metrics] 
 
-weekly = ['fxa_sign_in']
-overall = ['fxa_sign_in']
+weekly = ['fxa_signed_in']
+overall = ['fxa_signed_in']
 
-[metrics.fxa_sign_in.statistics.binomial]
+[metrics.fxa_signed_in.statistics.binomial]
