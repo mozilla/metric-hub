@@ -1,5 +1,6 @@
 [metrics] 
 
+daily = ['fxa_signed_in']
 weekly = ['fxa_signed_in']
 overall = ['fxa_signed_in']
 
