@@ -494,6 +494,101 @@ class ConfigCollection:
             is_private=is_private,
         )
 
+    @classmethod
+    def from_local_path(cls, path: str, is_private: bool = False) -> "ConfigCollection":
+        """Load configs from a local non-repo copy of a metric-hub-like folder structure.
+
+        Args:
+            path (str): path to the configs. Looks for TOML files in the
+                following locations (all of which are optional):
+                    - . (root)      - creates Config
+                    - outcomes      - creates Outcome
+                    - defaults      - creates DefaultConfig
+                    - definitions   - creates DefinitionConfig
+            is_private (bool): whether the configs are private
+        """
+
+        files_path = Path(path)
+
+        external_configs = []
+        last_modified = dt.datetime.now()
+        for config_file in files_path.glob("*.toml"):
+            config_json = toml.load(config_file)
+
+            if "project" in config_json:
+                # opmon spec
+                spec: DefinitionSpecSub = MonitoringSpec.from_dict(config_json)
+            else:
+                spec = AnalysisSpec.from_dict(config_json)
+                spec.experiment.is_private = spec.experiment.is_private or is_private
+
+            external_configs.append(
+                Config(
+                    config_file.stem,
+                    spec,
+                    last_modified,
+                    is_private=is_private,
+                )
+            )
+
+        outcomes = []
+        for outcome_file in files_path.glob(f"{OUTCOMES_DIR}/*/*.toml"):
+            outcomes.append(
+                Outcome(
+                    slug=outcome_file.stem,
+                    spec=OutcomeSpec.from_dict(toml.load(outcome_file)),
+                    platform=outcome_file.parent.name,
+                    commit_hash=None,
+                    is_private=is_private,
+                )
+            )
+
+        default_configs = []
+        for default_config_file in files_path.glob(f"{DEFAULTS_DIR}/*.toml"):
+            default_config_json = toml.load(default_config_file)
+
+            if "project" in default_config_json:
+                # opmon spec
+                spec = MonitoringSpec.from_dict(default_config_json)
+            else:
+                spec = AnalysisSpec.from_dict(default_config_json)
+                spec.experiment.is_private = spec.experiment.is_private or is_private
+
+            default_configs.append(
+                DefaultConfig(
+                    default_config_file.stem,
+                    spec,
+                    last_modified,
+                    is_private=is_private,
+                )
+            )
+
+        definitions = []
+        for definitions_config_file in files_path.glob(f"{DEFINITIONS_DIR}/*.toml"):
+            definitions.append(
+                DefinitionConfig(
+                    definitions_config_file.stem,
+                    DefinitionSpec.from_dict(toml.load(definitions_config_file)),
+                    last_modified,
+                    platform=definitions_config_file.stem,
+                    is_private=is_private,
+                )
+            )
+
+        functions_spec = None
+        for functions_file in files_path.glob(f"{DEFINITIONS_DIR}/{FUNCTIONS_FILE}"):
+            functions_spec = FunctionsSpec.from_dict(toml.load(functions_file))
+
+        return cls(
+            external_configs,
+            outcomes,
+            default_configs,
+            definitions,
+            functions_spec,
+            repos=[],
+            is_private=is_private,
+        )
+
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
         """Get configs as they were at the provided timestamp."""
         if timestamp is None:
