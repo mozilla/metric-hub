@@ -805,3 +805,146 @@ class ConfigCollection:
             self.functions.functions = functions
 
         self.repos += other.repos
+
+
+@attr.s(auto_attribs=True)
+class LocalConfigCollection(ConfigCollection):
+    """
+    Collection of experiment-specific configurations pulled in
+    from a local directory (structured like metric-hub).
+
+    Unless you are Experimenter, you likely want to use ConfigCollection instead.
+    """
+
+    @classmethod
+    def from_local_path(cls, path: str, is_private: bool = False) -> "ConfigCollection":
+        """Load configs from a local non-repo copy of a metric-hub-like folder structure.
+
+        Args:
+            path (str): path to the configs. Looks for TOML files in the
+                following locations (all of which are optional):
+                    - . (root)      - creates Config
+                    - outcomes      - creates Outcome
+                    - defaults      - creates DefaultConfig
+                    - definitions   - creates DefinitionConfig
+            is_private (bool): whether the configs are private
+        """
+
+        files_path = Path(path)
+
+        external_configs = []
+        last_modified = dt.datetime.now()
+        for config_file in files_path.glob("*.toml"):
+            config_json = toml.load(config_file)
+
+            if "project" in config_json:
+                # opmon spec
+                spec: DefinitionSpecSub = MonitoringSpec.from_dict(config_json)
+            else:
+                spec = AnalysisSpec.from_dict(config_json)
+                spec.experiment.is_private = spec.experiment.is_private or is_private
+
+            external_configs.append(
+                Config(
+                    config_file.stem,
+                    spec,
+                    last_modified,
+                    is_private=is_private,
+                )
+            )
+
+        outcomes = []
+        for outcome_file in files_path.glob(f"{OUTCOMES_DIR}/*/*.toml"):
+            outcomes.append(
+                Outcome(
+                    slug=outcome_file.stem,
+                    spec=OutcomeSpec.from_dict(toml.load(outcome_file)),
+                    platform=outcome_file.parent.name,
+                    commit_hash=None,
+                    is_private=is_private,
+                )
+            )
+
+        default_configs = []
+        for default_config_file in files_path.glob(f"{DEFAULTS_DIR}/*.toml"):
+            default_config_json = toml.load(default_config_file)
+
+            if "project" in default_config_json:
+                # opmon spec
+                spec = MonitoringSpec.from_dict(default_config_json)
+            else:
+                spec = AnalysisSpec.from_dict(default_config_json)
+                spec.experiment.is_private = spec.experiment.is_private or is_private
+
+            default_configs.append(
+                DefaultConfig(
+                    default_config_file.stem,
+                    spec,
+                    last_modified,
+                    is_private=is_private,
+                )
+            )
+
+        definitions = []
+        for definitions_config_file in files_path.glob(f"{DEFINITIONS_DIR}/*.toml"):
+            definitions.append(
+                DefinitionConfig(
+                    definitions_config_file.stem,
+                    DefinitionSpec.from_dict(toml.load(definitions_config_file)),
+                    last_modified,
+                    platform=definitions_config_file.stem,
+                    is_private=is_private,
+                )
+            )
+
+        functions_spec = None
+        for functions_file in files_path.glob(f"{DEFINITIONS_DIR}/{FUNCTIONS_FILE}"):
+            functions_spec = FunctionsSpec.from_dict(toml.load(functions_file))
+
+        return cls(
+            external_configs,
+            outcomes,
+            default_configs,
+            definitions,
+            functions_spec,
+            repos=[],
+            is_private=is_private,
+        )
+
+    @classmethod
+    def from_github_repo(
+        cls,
+        repo_url: Optional[str] = None,
+        is_private: bool = False,
+        path: Optional[str] = None,
+        depth: Optional[int] = None,
+    ):
+        raise NotImplementedError(
+            "`from_github_repo` is not valid for non-repo-based LocalConfigCollection. "
+            + "Use ConfigCollection for this feature."
+        )
+
+    @classmethod
+    def from_github_repos(
+        cls, repo_urls: Optional[List[str]] = None, is_private: bool = False
+    ) -> "ConfigCollection":
+        raise NotImplementedError(
+            "`from_github_repos` is not valid for non-repo-based LocalConfigCollection. "
+            + "Use ConfigCollection for this feature."
+        )
+
+    @classmethod
+    def from_local_repo(
+        cls, repo, path, is_private, main_branch, is_tmp_repo=False
+    ) -> "ConfigCollection":
+        raise NotImplementedError(
+            "`from_local_repo` is not valid for non-repo-based LocalConfigCollection. "
+            + "Use ConfigCollection for this feature."
+        )
+
+    @classmethod
+    def as_of(self, timestamp: datetime) -> "ConfigCollection":
+        raise NotImplementedError(
+            "`as_of` is not valid for non-repo-based LocalConfigCollection. "
+            + "Use ConfigCollection for this feature."
+        )

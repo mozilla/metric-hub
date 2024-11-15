@@ -15,6 +15,7 @@ from metric_config_parser.config import (
     ConfigCollection,
     DefaultConfig,
     DefinitionConfig,
+    LocalConfigCollection,
     Outcome,
 )
 from metric_config_parser.data_source import DataSourceJoinRelationship
@@ -910,3 +911,23 @@ class TestConfigIntegration:
 
         segment_slugs_fenix = [seg.name for seg in segments_fenix]
         assert "fenix_segment" in segment_slugs_fenix
+
+    def test_local_config_collection_from_local_path(self):
+        config_collection = LocalConfigCollection.from_local_path(TEST_DIR / "data")
+        segments = [s.name for s in config_collection.get_segments_for_app("firefox_desktop")]
+        assert "regular_users_v3" in segments
+        assert len(segments) == 1
+
+        outcomes = [o.slug for o in config_collection.outcomes]
+        assert len(outcomes) == 0
+
+        test_metric = config_collection.get_metric_definition("active_hours", "firefox_desktop")
+        assert test_metric.name == "active_hours"
+        assert test_metric.select_expression == '{{agg_sum("active_hours_sum")}}'
+        assert test_metric.data_source.name == "clients_daily"
+
+        cc_jetstream = LocalConfigCollection.from_local_path(TEST_DIR / "data" / "jetstream")
+        config_collection.merge(cc_jetstream)
+
+        outcomes = [o.slug for o in config_collection.outcomes]
+        assert len(outcomes) == 4
