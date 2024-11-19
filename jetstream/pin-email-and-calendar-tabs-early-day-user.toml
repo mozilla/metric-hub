@@ -1,7 +1,23 @@
-friendly_name = "Pin Email and Calendar Tabs Existing User"
+friendly_name = "Pin Email and Calendar Tabs Early Day User"
 description = "Usage metrics for tab pinning."
 
 [metrics]
+
+weekly = [
+    'any_pinned_tab_rate',
+    'more_than_one_pinned_tab_rate',
+    'tab_pinned_event_count',
+    'concurrent_pinned_tab_count',
+    'tab_reload_count',
+]
+
+overall = [
+    'any_pinned_tab_rate',
+    'more_than_one_pinned_tab_rate',
+    'tab_pinned_event_count',
+    'concurrent_pinned_tab_count',
+    'tab_reload_count',
+]
 
 [metrics.any_pinned_tab_rate]
 select_expression = """
@@ -36,4 +52,3 @@ type = "scalar"
 # The count of tab reload events by the user after unloaded -- a proxy for returning to pinned tabs.
 [metrics.tab_reload_count.statistics.bootstrap_mean]
 [metrics.tab_reload_count.statistics.deciles]
-
