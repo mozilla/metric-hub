@@ -5,7 +5,7 @@ description = "Usage metrics for tab pinning."
 
 [metrics.any_pinned_tab_rate]
 select_expression = """
-    CAST(COALESCE(payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count, 0) > 0 AS INT64)
+    CAST(COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count), 0) > 0 AS INT64)
 """
 friendly_name = "Any pinned tab rate"
 description = "Proportion of sessions where at least one tab was pinned."
@@ -16,7 +16,7 @@ type = "scalar"
 
 [metrics.more_than_one_pinned_tab_rate]
 select_expression = """
-    CAST(COALESCE(payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count, 0) > 1 AS INT64)
+    CAST(COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count), 0) > 1 AS INT64)
 """
 friendly_name = "More than one pinned tab rate"
 description = "Proportion of sessions where more than one tab was pinned."
