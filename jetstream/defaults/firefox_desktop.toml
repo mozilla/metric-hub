@@ -1,7 +1,7 @@
 # This defines the default metrics and statistics calculated for each experiment
 
 [metrics]
-daily = ["retained", "unenroll", "client_level_daily_active_users_v1"]
+daily = ["retained", "unenroll", "client_level_daily_active_users_v2"]
 
 weekly = [
   "active_hours",
@@ -12,7 +12,7 @@ weekly = [
   "search_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  "client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v2",
 ]
 
 overall = [
@@ -27,7 +27,7 @@ overall = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  "client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v2",
 ]
 
 preenrollment_weekly = [
@@ -42,7 +42,7 @@ preenrollment_weekly = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  "client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v2",
 ]
 
 preenrollment_days28 = [
@@ -57,7 +57,7 @@ preenrollment_days28 = [
   "uri_count",
   "qualified_cumulative_days_of_use",
   "is_default_browser",
-  "client_level_daily_active_users_v1",
+  "client_level_daily_active_users_v2",
 ]
 
 [metrics.active_hours.statistics.bootstrap_mean]
@@ -147,5 +147,5 @@ period = "preenrollment_week"
 [metrics.is_pinned.statistics.binomial]
 
 
-[metrics.client_level_daily_active_users_v1.statistics.per_client_dau_impact]
+[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
