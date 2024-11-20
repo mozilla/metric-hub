@@ -89,6 +89,9 @@ from_expression = """(
         DATE(submission_timestamp) AS submission_date,
         environment.experiments
     FROM `moz-fx-data-shared-prod.telemetry_stable.main_v5`
+    WHERE 
+        DATE(submission_timestamp) BETWEEN '2024-07-29' AND '2024-09-10'
+        AND normalized_channel = 'release'
 )"""
 experiments_column_type = "native"
 friendly_name = "Main"
