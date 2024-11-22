@@ -4,7 +4,7 @@ description = "Exposure events from the messaging feature"
 name = "saw_message"
 friendly_name = "Saw Message"
 select_expression = """(
-    COALESCE(LOGICAL_OR(feature = 'featureCallout'), false)
+    COALESCE(feature = 'featureCallout', false)
 )"""
 data_source = "exposure_events"
 window_start = 0
