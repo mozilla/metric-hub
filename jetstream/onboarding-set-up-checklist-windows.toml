@@ -12,7 +12,7 @@ window_end = 7
 
 [data_sources]
 [data_sources.exposure_events]
-from_expression = """
+from_expression = """(
   SELECT
       client_id,
       `mozfun.map.get_key`(event_map_values, 'branchSlug') AS branch,
@@ -25,4 +25,5 @@ from_expression = """
       AND (event_method = 'exposure' OR event_method = 'expose')
       AND submission_date >= '2024-11-14'
       AND event_string_value = 'onboarding-set-up-checklist-windows'
+)
 """
