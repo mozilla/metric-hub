@@ -1933,15 +1933,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -1954,8 +1954,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ad_clicks" class="md-nav__link">
-    ad_clicks
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2233,15 +2233,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -2254,8 +2254,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ad_clicks" class="md-nav__link">
-    ad_clicks
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2358,6 +2358,23 @@
 <h2 id="opmon-config">opmon-config</h2>
 <p><a href="https://github.com/mozilla/metric-hub/blob/main/defaults/focus_android.toml">Source</a>  |  <a href="https://github.com/mozilla/metric-hub/edit/main/defaults/focus_android.toml">Edit</a></p>
 <h3 id="metrics">Metrics</h3>
+<h4 id="ad_clicks"><code>ad_clicks</code></h4>
+<p><strong>Ad Clicks</strong></p>
+<p>Counts clicks on ads on search engine result pages with a Mozilla
+partner tag.</p>
+<p>Analysis Periods:  <code>daily</code>  </p>
+<p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p>Statistics: <code>mean</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(SUM(ad_click), 0)
+</code></pre>
+
+</details>
+
+<hr />
 <h4 id="days_of_use"><code>days_of_use</code></h4>
 <p><strong>Days of use</strong></p>
 <p>The number of days in an observation window that clients used the browser.</p>
@@ -2369,22 +2386,6 @@
 
 
 <pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
-</code></pre>
-
-</details>
-
-<hr />
-<h4 id="active_hours"><code>active_hours</code></h4>
-<p><strong>Active Hours</strong></p>
-<p>Total time Firefox was active</p>
-<p>Analysis Periods:  <code>daily</code>  </p>
-<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>mean</code></p>
-<details>
-<summary>Definition:</summary>
-
-
-<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
 </code></pre>
 
 </details>
@@ -2406,18 +2407,17 @@
 </details>
 
 <hr />
-<h4 id="ad_clicks"><code>ad_clicks</code></h4>
-<p><strong>Ad Clicks</strong></p>
-<p>Counts clicks on ads on search engine result pages with a Mozilla
-partner tag.</p>
+<h4 id="active_hours"><code>active_hours</code></h4>
+<p><strong>Active Hours</strong></p>
+<p>Total time Firefox was active</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
-<p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>mean</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(SUM(ad_click), 0)
+<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
 </code></pre>
 
 </details>
@@ -2459,7 +2459,7 @@ partner tag.</p>
 <h4 id="serp_ad_clicks"><code>serp_ad_clicks</code></h4>
 <p><strong>Ad Clicks</strong></p>
 <p>Number of ad clicks on a search engine results page.</p>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code> ,   <code>overall</code>  </p>
+<p>Analysis Periods:  <code>weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
 <p>Statistics: <code>linear_model_mean</code>, <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
@@ -2475,7 +2475,7 @@ partner tag.</p>
 <h4 id="search_count_1"><code>search_count</code></h4>
 <p><strong>SAP search count</strong></p>
 <p>Number of searches performed through a Search Access Point.</p>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code> ,   <code>overall</code>  </p>
+<p>Analysis Periods:  <code>weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
 <p>Statistics: <code>linear_model_mean</code>, <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
@@ -2491,9 +2491,9 @@ partner tag.</p>
 <h4 id="days_of_use_1"><code>days_of_use</code></h4>
 <p><strong>Days of use</strong></p>
 <p>The number of days in an observation window that clients used the browser.</p>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code> ,   <code>overall</code>  </p>
+<p>Analysis Periods:  <code>weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>linear_model_mean</code>, <code>empirical_cdf</code>, <code>bootstrap_mean</code>, <code>deciles</code></p>
+<p>Statistics: <code>linear_model_mean</code>, <code>bootstrap_mean</code>, <code>deciles</code>, <code>empirical_cdf</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2507,7 +2507,7 @@ partner tag.</p>
 <h4 id="active_hours_1"><code>active_hours</code></h4>
 <p><strong>Active Hours</strong></p>
 <p>Total time Firefox was active</p>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code> ,   <code>overall</code>  </p>
+<p>Analysis Periods:  <code>weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>linear_model_mean</code>, <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
