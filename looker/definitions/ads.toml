@@ -60,6 +60,7 @@ from_expression = """
     SUM(clicks) AS clicks,
     SUM(revenue) AS revenue
   FROM `mozdata.ads.consolidated_ad_metrics_hourly`
+  WHERE product = 'SPOCs'
   GROUP BY
     submission_date,
     advertiser,
