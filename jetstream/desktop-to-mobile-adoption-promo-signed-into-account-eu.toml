@@ -1,0 +1,5 @@
+[metrics]
+weekly = ["sync_to_mobile"]
+overall = ["sync_to_mobile"]
+
+[metrics.sync_to_mobile.statistics.binomial]
