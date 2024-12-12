@@ -1,0 +1,55 @@
+[metrics]
+
+weekly = [
+    "sidebar_engagement",
+    "chatbot_engagement"
+]
+
+[metrics.sidebar_engagement]
+select_expression = "COUNT(DISTINCT ds.client_id)"
+data_source = "sidebar_toggle"
+friendly_name = "Sidebar Engagement"
+description = "Number of clients who opened any panel in the sidebar"
+
+[metrics.chatbot_engagement]
+select_expression = "COUNT(DISTINCT ds.client_id)"
+data_source = "chatbot_toggle"
+friendly_name = "Chatbot Engagement"
+description = "Number of clients who opened the chatbot panel in the sidebar"
+
+[metrics.sidebar_engagement.statistics.bootstrap_mean]
+[metrics.chatbot_engagement.statistics.bootstrap_mean]
+
+[data_sources.sidebar_toggle]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    * EXCEPT (client_id)
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('genai.chatbot', 'history', 'synced_tabs', 'bookmarks', 'extension')
+    AND event_name = 'sidebar_toggle'
+    AND JSON_VALUE(event_extra.opened) = 'true'
+)"""
+experiments_column_type = "none"
+friendly_name = "Sidebar Open Events"
+description = "Glean Events Stream"
+
+[data_sources.chatbot_toggle]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    * EXCEPT (client_id)
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'genai.chatbot'
+    AND event_name = 'sidebar_toggle'
+    AND JSON_VALUE(event_extra.opened) = 'true'
+)"""
+experiments_column_type = "none"
+friendly_name = "Chtbot Open Events"
+description = "Glean Events Stream"
