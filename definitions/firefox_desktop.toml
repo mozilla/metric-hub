@@ -1815,6 +1815,7 @@ level = "bronze"
 friendly_name = "Desktop Sync to Mobile"
 data_source = "clients_daily"
 select_expression = "COALESCE(sync_count_mobile_mean > 0, FALSE)"
+type = "scalar"
 description = "Did a desktop user sync to mobile"
 
 
