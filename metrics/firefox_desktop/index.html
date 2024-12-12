@@ -2541,6 +2541,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#sync_to_mobile" class="md-nav__link">
+    sync_to_mobile
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4799,6 +4806,13 @@
           <li class="md-nav__item">
   <a href="#new_profile_retention_rate_v1" class="md-nav__link">
     new_profile_retention_rate_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync_to_mobile" class="md-nav__link">
+    sync_to_mobile
   </a>
   
 </li>
@@ -7706,6 +7720,20 @@ a wallpaper.</p>
 
 
 <pre><code class="language-sql">SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="sync_to_mobile">sync_to_mobile</h3>
+<p><strong>Desktop Sync to Mobile</strong></p>
+<p>Did a desktop user sync to mobile</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_daily"><code>clients_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">LOGICAL_OR(COALESCE(sync_count_mobile_mean &gt; 0, FALSE))
 </code></pre>
 
 </details>
