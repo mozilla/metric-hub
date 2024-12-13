@@ -23,6 +23,12 @@ data_source = "chatbot_toggle"
 friendly_name = "Chatbot Engagement"
 description = "Percentage of clients who opened the chatbot panel in the sidebar"
 
+[metrics.sidebar_disable]
+select_expression = "COUNT(DISTINCT CASE WHEN sidebar_button = FALSE THEN ds.client_id END) / COUNT(DISTINCT ds.client_id)"
+data_source = "sidebar_disable"
+friendly_name = "Sidebar Hard Disable"
+description = "Percentage of clients who remove sidebar button from toolbar"
+
 [metrics.chatbot_disable]
 select_expression = "COUNT(DISTINCT CASE WHEN metrics.boolean.genai_chatbot_enabled = FALSE THEN ds.metrics.uuid.legacy_telemetry_client_id END) / COUNT(DISTINCT ds.metrics.uuid.legacy_telemetry_client_id)"
 data_source = "metrics"
@@ -31,6 +37,7 @@ description = "Percentage of clients who disable the chatbot"
 
 [metrics.sidebar_engagement.statistics.bootstrap_mean]
 [metrics.chatbot_engagement.statistics.bootstrap_mean]
+[metrics.sidebar_disable.statistics.bootstrap_mean]
 [metrics.chatbot_disable.statistics.bootstrap_mean]
 
 [data_sources.sidebar_toggle]
@@ -94,3 +101,17 @@ LEFT JOIN events USING (client_id, submission_date)
 experiments_column_type = "none"
 friendly_name = "Chatbot Open"
 description = "Clients who open the Chatbot sidebar panel"
+
+[data_sources.sidebar_disable]
+from_expression = """(
+  SELECT DISTINCT
+    DATE(submission_timestamp) as submission_date,
+    metrics.uuid.legacy_telemetry_client_id as client_id,
+    FIRST_VALUE(w.key LIKE 'sidebar-button_pinned%') OVER (PARTITION BY metrics.uuid.legacy_telemetry_client_id ORDER BY submission_timestamp DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as sidebar_button
+  FROM
+    `mozdata.firefox_desktop.metrics`
+  CROSS JOIN UNNEST (metrics.labeled_boolean.browser_ui_mirror_for_toolbar_widgets) w
+)"""
+experiments_column_type = "none"
+friendly_name = "Sidebar Disable"
+description = "Clients who remove sidebar button from toolbar"
