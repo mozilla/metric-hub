@@ -1,0 +1,128 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "Clients who upgrade to Firefox 133"
+name = "firefox_133"
+friendly_name = "Firefox 133"
+select_expression = "mozfun.norm.extract_version(app_version, 'major') >= 133"
+data_source = "clients_daily"
+window_end = "analysis_window_end"
+
+[metrics]
+
+weekly = [
+    "sidebar_engagement",
+    "chatbot_engagement",
+    "chatbot_disable"
+]
+
+overall = [
+    "sidebar_engagement",
+    "chatbot_engagement",
+    "chatbot_disable"
+]
+
+[metrics.sidebar_engagement]
+select_expression = "COUNT(DISTINCT CASE WHEN engagement THEN ds.client_id END) / COUNT(DISTINCT ds.client_id)"
+data_source = "sidebar_toggle"
+friendly_name = "Sidebar Engagement"
+description = "Percentage of clients who opened any panel in the sidebar"
+
+[metrics.chatbot_engagement]
+select_expression = "COUNT(DISTINCT CASE WHEN engagement THEN ds.client_id END) / COUNT(DISTINCT ds.client_id)"
+data_source = "chatbot_toggle"
+friendly_name = "Chatbot Engagement"
+description = "Percentage of clients who opened the chatbot panel in the sidebar"
+
+[metrics.sidebar_disable]
+select_expression = "COUNT(DISTINCT CASE WHEN sidebar_button = FALSE THEN ds.client_id END) / COUNT(DISTINCT ds.client_id)"
+data_source = "sidebar_disable"
+friendly_name = "Sidebar Hard Disable"
+description = "Percentage of clients who remove sidebar button from toolbar"
+
+[metrics.chatbot_disable]
+select_expression = "COUNT(DISTINCT CASE WHEN metrics.boolean.genai_chatbot_enabled = FALSE THEN ds.metrics.uuid.legacy_telemetry_client_id END) / COUNT(DISTINCT ds.metrics.uuid.legacy_telemetry_client_id)"
+data_source = "metrics"
+friendly_name = "Chatbot Hard Disable"
+description = "Percentage of clients who disable the chatbot"
+
+[metrics.sidebar_engagement.statistics.bootstrap_mean]
+[metrics.chatbot_engagement.statistics.bootstrap_mean]
+[metrics.sidebar_disable.statistics.bootstrap_mean]
+[metrics.chatbot_disable.statistics.bootstrap_mean]
+
+[data_sources.sidebar_toggle]
+from_expression = """(
+WITH clients AS (
+  SELECT
+    client_id,
+    submission_date
+  FROM
+    mozdata.telemetry.clients_daily
+), events AS (
+  SELECT DISTINCT 
+    legacy_telemetry_client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    True as engagement 
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('genai.chatbot', 'history', 'synced_tabs', 'bookmarks', 'extension')
+    AND event_name = 'sidebar_toggle'
+    AND JSON_VALUE(event_extra.opened) = 'true'
+)
+SELECT
+  client_id,
+  submission_date,
+  COALESCE(engagement, False) as engagement
+FROM clients 
+LEFT JOIN events USING (client_id, submission_date)
+)"""
+experiments_column_type = "none"
+friendly_name = "Sidebar Open"
+description = "Clients who open any sidebar panel"
+
+[data_sources.chatbot_toggle]
+from_expression = """(
+WITH clients AS (
+  SELECT
+    client_id,
+    submission_date
+  FROM
+    mozdata.telemetry.clients_daily
+), events AS (
+  SELECT DISTINCT 
+    legacy_telemetry_client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    True as engagement 
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'genai.chatbot'
+    AND event_name = 'sidebar_toggle'
+    AND JSON_VALUE(event_extra.opened) = 'true'
+)
+SELECT
+  client_id,
+  submission_date,
+  COALESCE(engagement, False) as engagement
+FROM clients 
+LEFT JOIN events USING (client_id, submission_date)
+)"""
+experiments_column_type = "none"
+friendly_name = "Chatbot Open"
+description = "Clients who open the Chatbot sidebar panel"
+
+[data_sources.sidebar_disable]
+from_expression = """(
+  SELECT DISTINCT
+    DATE(submission_timestamp) as submission_date,
+    metrics.uuid.legacy_telemetry_client_id as client_id,
+    FIRST_VALUE(w.key LIKE 'sidebar-button_pinned%') OVER (PARTITION BY metrics.uuid.legacy_telemetry_client_id ORDER BY submission_timestamp DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as sidebar_button
+  FROM
+    `mozdata.firefox_desktop.metrics`
+  CROSS JOIN UNNEST (metrics.labeled_boolean.browser_ui_mirror_for_toolbar_widgets) w
+)"""
+experiments_column_type = "none"
+friendly_name = "Sidebar Disable"
+description = "Clients who remove sidebar button from toolbar"
