@@ -1,3 +1,13 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "Clients who upgrade to Firefox 133"
+name = "firefox_133"
+friendly_name = "Firefox 133"
+select_expression = "mozfun.norm.extract_version(app_version, 'major') >= 133"
+data_source = "clients_daily"
+window_end = "analysis_window_end"
+
 [metrics]
 
 weekly = [
