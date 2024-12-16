@@ -17,7 +17,7 @@ black==24.8.0
 cattrs==24.1.2
     # via
     #   mozilla-metric-config-parser
-certifi==2024.8.30
+certifi==2024.12.14
     # via requests
 charset-normalizer==3.3.2
     # via requests
