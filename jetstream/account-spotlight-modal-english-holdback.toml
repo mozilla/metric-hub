@@ -1,7 +1,3 @@
-[metrics]
-overall = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
-weekly = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
-
 [parameters]
 
 [parameters.message_id]
@@ -10,6 +6,12 @@ description = "ID of the spotlight message associated with this experiment"
 # only used for validation; needs to be specified for each experiment
 default = { control = "DEVICE_MIGRATION_BACKUP_AND_SYNC_SPOTLIGHT", treatment = "DEVICE_MIGRATION_BACKUP_AND_SYNC_SPOTLIGHT"}
 distinct_by_branch = true
+
+
+[metrics]
+
+overall = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
+weekly = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
 
 
 ### metrics definition
