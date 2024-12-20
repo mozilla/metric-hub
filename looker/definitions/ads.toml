@@ -94,3 +94,44 @@ friendly_name = "PPA Measurements"
 description = "Aggregated conversion data from Privacy-Preserving Attribution (PPA)"
 columns_as_dimensions = true
 submission_date_column = "submission_date"
+
+
+[data_sources.newtab_desktop_ad_metrics_hourly]
+from_expression = """
+(
+  SELECT
+    submission_date,
+    spoc_id,
+    position,
+    advertiser,
+    campaign_name,
+    title,
+    flight_id,
+    creative_type,
+    site_name,
+    zone_name,
+    country,
+    rate_type,
+    pid,
+    ad_url,
+    image_url,
+    external_param,
+    impressions,
+    clicks,
+    click_rate,
+    dismisses,
+    dismiss_rate,
+    saves,
+    save_rate,
+    campaign_id,
+    spend
+  FROM `mozdata.ads_derived.newtab_desktop_ad_metrics_hourly_v1`
+)
+"""
+friendly_name = "Newtab Desktop AD Metrics"
+description = """
+  Tracks NewTab Ad Metrics
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
