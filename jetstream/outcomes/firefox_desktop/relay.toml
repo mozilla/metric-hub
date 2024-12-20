@@ -1,0 +1,34 @@
+friendly_name = "Relay"
+description = "Metrics for the Relay integration"
+
+
+# Metric for tracking how many times the offer was shown
+[metrics.relay_integration_clients_shown_relay_offer]
+data_source = "events"
+select_expression = "COUNT(DISTINCT client_id)"
+from_expression = "WHERE event_category = 'relay_integration' AND event_object = 'offer_relay' AND event_method = 'shown'"
+name = "relay_integration.clients_shown_relay_offer"
+friendly_name = "Relay offer shown to client"
+description = "Tracks how many times the Relay offer is shown to a client"
+type = "scalar"
+[metrics.relay_integration_clients_shown_relay_offer.statistics.sum]
+
+# Metric for tracking how many times the offer was clicked
+[metrics.relay_integration_clients_clicked_relay_offer]
+data_source = "events"
+select_expression = "COUNT(DISTINCT client_id)"
+from_expression = "WHERE event_category = 'relay_integration' AND event_object = 'offer_relay' AND event_method = 'clicked'"
+name = "relay_integration.clients_clicked_relay_offer"
+friendly_name = "Relay offer clicked by client"
+description = "Tracks how many times the Relay offer is clicked by a client"
+type = "scalar"
+[metrics.relay_integration_clients_clicked_relay_offer.statistics.sum]
+
+# Calculating the Relay Offer Click-Through Rate (CTR) percentage
+[metrics.relay_integration_relay_offer_ctr]
+data_source = "events"
+name = "relay_integration.relay_offer_ctr"
+type = "derived"
+description = "Calculated Click-Through Rate (CTR) for Relay offer"
+formula = "relay_integration.clients_clicked_relay_offer / relay_integration.clients_shown_offer_relay * 100"
+[metrics.relay_integration_relay_offer_ctr.statistics.sum]
