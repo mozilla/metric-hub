@@ -37,43 +37,43 @@ description = "Privacy-Preserving Attribution (PPA) conversions"
 [metrics.newtab_spend]
 select_expression = "SUM(spend)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Spend"
+friendly_name = "Desktop Spend"
 description ="Newtab Desktop Metrics spend"
 
 [metrics.newtab_dismisses]
 select_expression = "SUM(dismisses)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Dismisses"
+friendly_name = "Desktop Dismisses"
 description ="Newtab Desktop Metrics dismisses"
 
 [metrics.newtab_clicks]
 select_expression = "SUM(clicks)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Clicks"
+friendly_name = "Desktop Clicks"
 description ="Newtab Desktop Metrics clicks"
 
 [metrics.newtab_saves]
 select_expression = "SUM(saves)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Saves"
+friendly_name = "Desktop Saves"
 description ="Newtab Desktop Metrics saves"
 
 [metrics.newtab_dismiss_rate]
 select_expression = "AVG(dismiss_rate)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Dismiss Rate"
+friendly_name = "Desktop Dismiss Rate"
 description ="Newtab Desktop Metrics dismiss rate"
 
 [metrics.newtab_click_rate]
 select_expression = "AVG(click_rate)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Click Rate"
+friendly_name = "Desktop Click Rate"
 description ="Newtab Desktop Metrics click rate"
 
 [metrics.newtab_save_rate]
 select_expression = "AVG(save_rate)"
 data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Save Rate"
+friendly_name = "Desktop Save Rate"
 description ="Newtab Desktop Metrics save rate"
 
 [data_sources]
