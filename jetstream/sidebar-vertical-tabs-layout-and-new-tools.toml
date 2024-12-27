@@ -1,4 +1,5 @@
 [experiment]
+end_date = "2025-01-13"
 
 [experiment.exposure_signal]
 description = "Clients who upgrade to Firefox 133"
