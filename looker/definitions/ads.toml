@@ -138,7 +138,7 @@ columns_as_dimensions = true
 submission_date_column = "submission_date"
 
 
-[data_sources.newtab_desktop_ad_metrics_hourly]
+[data_sources.native_desktop_ad_metrics_hourly]
 from_expression = """
 (
   SELECT
