@@ -170,9 +170,9 @@ from_expression = """
   FROM `moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly`
 )
 """
-friendly_name = "Newtab Desktop AD Metrics"
+friendly_name = "Native Desktop AD Metrics"
 description = """
-  Tracks NewTab Ad Metrics
+  Tracks Native Desktop Ad Metrics
 """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
