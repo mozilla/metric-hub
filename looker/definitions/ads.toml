@@ -34,6 +34,16 @@ description = "Privacy-Preserving Attribution (PPA) conversions"
 [metrics.spoc_clicks.statistics.sum]
 [metrics.spoc_revenue.statistics.sum]
 
+[metrics.amp_avg_cpc.statistics.average]
+[metrics.amp_revenue.statistics.sum]
+[metrics.amp_valid_clicks.statistics.sum]
+[metrics.amp_valid_impressions.statistics.sum]
+[metrics.amp_rpm_rate.statistics.average]
+[metrics.amp_alternative_revenue.statistics.sum]
+[metrics.amp_cpc_rate.statistics.average]
+[metrics.amp_revenue_per_thousand_impressions.statistics.average]
+
+
 [data_sources]
 
 [data_sources.admarketplace]
