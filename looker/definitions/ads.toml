@@ -167,7 +167,7 @@ from_expression = """
     save_rate,
     campaign_id,
     spend
-  FROM `mozdata.ads_derived.newtab_desktop_ad_metrics_hourly_v1`
+  FROM `moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly`
 )
 """
 friendly_name = "Newtab Desktop AD Metrics"
