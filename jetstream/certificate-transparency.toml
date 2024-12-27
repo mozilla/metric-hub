@@ -1,0 +1,58 @@
+[metrics]
+
+weekly = ["cert_errors", "tls_timing"]
+overall = ["cert_errors", "tls_timing"]
+
+[metrics.cert_errors]
+friendly_name = "TLS certification errors"
+description = "Count of TLS certification errors"
+select_expression = """(
+    COALESCE(COUNTIF(event_category = 'security.ui.certerror' 
+        AND event_object = 'aboutcerterror' 
+        AND event_method = 'load'), 0)
+)"""
+data_source = "events"
+
+[metrics.cert_errors.statistics.bootstrap_mean]
+
+[metrics.tls_timing]
+friendly_name = "TLS timing"
+description = "Amount of time for TLS handshake in seconds"
+select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)"
+data_source = "tls_metrics"
+
+[metrics.tls_timing.statistics.bootstrap_mean]
+
+[data_sources.tls_metrics]
+friendly_name = "TLS glean metrics"
+description = "The glean metric ping with metrics.timing_distribution.network_tls_handshake.values unnested"
+from_expression =  """(
+    SELECT 
+        m.client_info.client_id,
+        DATE(m.submission_timestamp) AS submission_date,
+        v.key,
+        m.ping_info
+    FROM `mozdata.firefox_desktop.metrics` AS m
+        CROSS JOIN UNNEST(metrics.timing_distribution.network_tls_handshake.values) AS v
+    WHERE
+        DATE(m.submission_timestamp) >= "2024-12-04"
+        AND m.normalized_channel = 'release'
+ )"""
+ experiments_column_type = "glean"
+
+# modified the data sources from this example in android review checker experiment
+# [data_sources.glean_metrics_ping]
+# friendly_name = "Glean's Metrics Ping"
+# from_expression = """(
+#     SELECT 
+#         m.client_info.client_id,
+#         DATE(m.submission_timestamp) AS submission_date,
+#         m.metrics.counter.shopping_product_page_visits AS product_page_visits, 
+#         m.ping_info
+#     FROM `moz-fx-data-shared-prod.org_mozilla_firefox.metrics` AS m
+#     WHERE
+#         DATE(m.submission_timestamp) >= "2023-11-28"
+#         AND m.normalized_channel = 'release'
+# )"""
+# experiments_column_type = "glean"
+# description = "Glean's metrics ping, filtered down to the necessary columns and date range for the exposure query"
