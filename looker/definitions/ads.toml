@@ -34,11 +34,11 @@ description = "Privacy-Preserving Attribution (PPA) conversions"
 [metrics.spoc_clicks.statistics.sum]
 [metrics.spoc_revenue.statistics.sum]
 
-[metrics.newtab_spend]
+[metrics.native_spend]
 select_expression = "SUM(spend)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Spend"
-description ="Newtab Desktop Metrics spend"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Spend"
+description ="Native Desktop Metrics spend"
 
 [metrics.newtab_dismisses]
 select_expression = "SUM(dismisses)"
