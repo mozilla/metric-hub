@@ -40,35 +40,35 @@ data_source = "native_desktop_ad_metrics"
 friendly_name = "Native Spend"
 description ="Native Desktop Metrics spend"
 
-[metrics.newtab_dismisses]
+[metrics.native_dismisses]
 select_expression = "SUM(dismisses)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Dismisses"
-description ="Newtab Desktop Metrics dismisses"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Dismisses"
+description ="Native Desktop Metrics dismisses"
 
-[metrics.newtab_clicks]
+[metrics.native_clicks]
 select_expression = "SUM(clicks)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Clicks"
-description ="Newtab Desktop Metrics clicks"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Clicks"
+description ="Native Desktop Metrics clicks"
 
 [metrics.newtab_saves]
 select_expression = "SUM(saves)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Saves"
-description ="Newtab Desktop Metrics saves"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Saves"
+description ="Native Desktop Metrics saves"
 
 [metrics.newtab_dismiss_rate]
 select_expression = "AVG(dismiss_rate)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Dismiss Rate"
-description ="Newtab Desktop Metrics dismiss rate"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Dismiss Rate"
+description ="Native Desktop Metrics dismiss rate"
 
 [metrics.newtab_click_rate]
 select_expression = "AVG(click_rate)"
-data_source = "newtab_desktop_ad_metrics"
-friendly_name = "Desktop Click Rate"
-description ="Newtab Desktop Metrics click rate"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "Native Click Rate"
+description ="Native Desktop Metrics click rate"
 
 [metrics.native_save_rate]
 select_expression = "AVG(save_rate)"
