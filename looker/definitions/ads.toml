@@ -64,7 +64,7 @@ data_source = "native_desktop_ad_metrics"
 friendly_name = "Native Dismiss Rate"
 description ="Native Desktop Metrics dismiss rate"
 
-[metrics.newtab_click_rate]
+[metrics.native_click_rate]
 select_expression = "AVG(click_rate)"
 data_source = "native_desktop_ad_metrics"
 friendly_name = "Native Click Rate"
