@@ -168,6 +168,7 @@ from_expression = """
     campaign_id,
     spend
   FROM `moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly`
+  WHERE submission_date = @submission_date
 )
 """
 friendly_name = "Native Desktop AD Metrics"
