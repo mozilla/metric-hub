@@ -58,7 +58,7 @@ data_source = "native_desktop_ad_metrics"
 friendly_name = "Native Saves"
 description ="Native Desktop Metrics saves"
 
-[metrics.newtab_dismiss_rate]
+[metrics.native_dismiss_rate]
 select_expression = "AVG(dismiss_rate)"
 data_source = "native_desktop_ad_metrics"
 friendly_name = "Native Dismiss Rate"
