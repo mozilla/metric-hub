@@ -36,7 +36,7 @@ description = "Privacy-Preserving Attribution (PPA) conversions"
 
 [metrics.native_spend]
 select_expression = "SUM(spend)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Spend"
 description ="Native Desktop Metrics spend"
 
