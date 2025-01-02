@@ -54,7 +54,7 @@ description ="Native Desktop Metrics clicks"
 
 [metrics.native_saves]
 select_expression = "SUM(saves)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Saves"
 description ="Native Desktop Metrics saves"
 
