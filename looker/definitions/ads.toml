@@ -60,7 +60,7 @@ description ="Native Desktop Metrics saves"
 
 [metrics.native_dismiss_rate]
 select_expression = "AVG(dismiss_rate)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Dismiss Rate"
 description ="Native Desktop Metrics dismiss rate"
 
