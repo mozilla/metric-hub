@@ -48,7 +48,7 @@ description ="Native Desktop Metrics dismisses"
 
 [metrics.native_clicks]
 select_expression = "SUM(clicks)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Clicks"
 description ="Native Desktop Metrics clicks"
 
