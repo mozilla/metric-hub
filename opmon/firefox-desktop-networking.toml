@@ -1,0 +1,73 @@
+[project]
+
+name = "Firefox Desktop Networking Monitoring"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+start_date = "2024-12-05"
+# We want continuous monitoring of this data
+#end_date =
+skip_default_metrics = true
+
+metrics = [
+  "total_network_close_errors"
+]
+
+alerts = [
+  "historical_diff_total_network_close_errors"
+]
+
+
+[project.population]
+
+data_source = "network_close_reasons"
+monitor_entire_population = true
+dimensions = ["network_close_reason"]
+group_by_dimension = "network_close_reason"
+
+
+[metrics]
+
+[metrics.total_network_close_errors]
+data_source = "network_close_reasons"
+select_expression = "SUM(total_count)"
+friendly_name = "Total network close errors"
+description = "Total number of network close errors"
+type = "scalar"
+
+[metrics.total_network_close_errors.statistics.sum]
+
+
+[dimensions]
+
+[dimensions.network_close_reason]
+data_source = "network_close_reasons"
+select_expression = "reason"
+
+
+[data_sources]
+
+[data_sources.network_close_reasons]
+from_expression = """
+  (
+    SELECT 
+      DATE(submission_timestamp) AS submission_date,
+      client_info.client_id AS client_id,
+      reason.key AS reason,
+      reason.value AS total_count
+    FROM mozdata.firefox_desktop.metrics AS m,
+      m.metrics.labeled_counter.`networking_http_3_connection_close_reason` AS reason
+  )
+"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+
+
+[alerts]
+
+[alerts.historical_diff_total_network_close_errors]
+type = "avg_diff"
+metrics = [
+  "total_network_close_errors"
+]
+window_size = 7
+max_relative_change = 0.5
