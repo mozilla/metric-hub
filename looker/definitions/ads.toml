@@ -30,48 +30,45 @@ description = "Daily SPOC revenue"
 
 [metrics.native_spend]
 select_expression = "SUM(spend)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Spend"
 description ="Native Desktop Metrics spend"
 
 [metrics.native_dismisses]
 select_expression = "SUM(dismisses)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Dismisses"
 description ="Native Desktop Metrics dismisses"
 
-[metrics.native_impressions]
-select_expression = "SUM(impressions)"
-data_source = "native_desktop_ad_metrics"
-friendly_name = "Native Impressions"
-description ="Native Desktop Metrics impressions"
-
 [metrics.native_clicks]
 select_expression = "SUM(clicks)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Clicks"
 description ="Native Desktop Metrics clicks"
 
 [metrics.native_saves]
 select_expression = "SUM(saves)"
-data_source = "native_desktop_ad_metrics"
+data_source = "native_desktop_ad_metrics_hourly"
 friendly_name = "Native Saves"
 description ="Native Desktop Metrics saves"
 
-[metrics.native_spend.statistics.sum]
-[metrics.native_dismisses.statistics.sum]
-[metrics.native_impressions.statistics.sum]
-[metrics.native_clicks.statistics.sum]
-[metrics.native_saves.statistics.sum]
-[metrics.native_dismiss_rate.statistics.ratio]
-numerator = "native_dismisses.sum"
-denominator = "native_impressions.sum"
-[metrics.native_click_rate.statistics.ratio]
-numerator = "native_clicks.sum"
-denominator = "native_impressions.sum"
-[metrics.native_save_rate.statistics.ratio]
-numerator = "native_saves.sum"
-denominator = "native_impressions.sum"
+[metrics.native_dismiss_rate]
+select_expression = "AVG(dismiss_rate)"
+data_source = "native_desktop_ad_metrics_hourly"
+friendly_name = "Native Dismiss Rate"
+description ="Native Desktop Metrics dismiss rate"
+
+[metrics.native_click_rate]
+select_expression = "AVG(click_rate)"
+data_source = "native_desktop_ad_metrics_hourly"
+friendly_name = "Native Click Rate"
+description ="Native Desktop Metrics click rate"
+
+[metrics.native_save_rate]
+select_expression = "AVG(save_rate)"
+data_source = "native_desktop_ad_metrics_hourly"
+friendly_name = "Native Desktop Save Rate"
+description ="Native Desktop Metrics save rate"
 
 [data_sources]
 
@@ -119,7 +116,7 @@ columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
-[data_sources.native_desktop_ad_metrics]
+[data_sources.native_desktop_ad_metrics_hourly]
 from_expression = """
 (
   SELECT
@@ -151,9 +148,9 @@ from_expression = """
   FROM `moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly`
 )
 """
-friendly_name = "Native Desktop Ads Metrics Daily"
+friendly_name = "Native Desktop AD Metrics"
 description = """
-  Tracks Native Desktop Ad Metrics Across Days
+  Tracks Native Desktop Ad Metrics
 """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
