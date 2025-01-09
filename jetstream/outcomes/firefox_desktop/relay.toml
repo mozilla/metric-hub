@@ -108,7 +108,7 @@ denominator = "relay_integration_shown_optin_panel"
 [metrics.relay_offer_ctr]
 description = "Relay offer clicked by client / Relay offer shown to client"
 friendly_name = " CTR on the Relay mask offer"
-depends_on = ["urlbar_clicks", "urlbar_impressions"]
+depends_on = ["relay_integration_clicked_relay_offer", "relay_integration_shown_relay_offer"]
 
 [metrics.optin_ctr.statistics.population_ratio]
 numerator = "relay_integration_clicked_relay_offer"
