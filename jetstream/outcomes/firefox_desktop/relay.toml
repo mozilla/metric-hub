@@ -140,7 +140,7 @@ friendly_name = "Relay Engagement: CTR on the Relay fill_username"
 depends_on = ["relay_integration_clicked_fill_username", "relay_integration_shown_fill_username"]
 
 [metrics.fill_username_ctr.statistics.population_ratio]
-numerator = "relay_integration_clicked_fill_username",
+numerator = "relay_integration_clicked_fill_username"
 denominator = "relay_integration_shown_fill_username"
 
 
