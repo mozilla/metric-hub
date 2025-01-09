@@ -8,8 +8,8 @@ friendly_name = "Relay offer shown to client"
 description = "Number of times Relay offer is shown"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'shown_offer_relay'
-         AND event.category = 'relay_integration'
+         events.name= 'shown_offer_relay'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -20,8 +20,8 @@ friendly_name = "Relay offer clicked by client"
 description = "Number of times user clicked on Relay offer"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'clicked_offer_relay'
-         AND event.category = 'relay_integration'
+         events.name= 'clicked_offer_relay'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -32,8 +32,8 @@ friendly_name = "Relay optin panel shown to client"
 description = "Number of times Relay optin panel is shown"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'shown_opt_in_panel'
-         AND event.category = 'relay_integration'
+         events.name= 'shown_opt_in_panel'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -44,8 +44,8 @@ friendly_name = "Relay optin panel enabled by client"
 description = "Number of times Relay optin panel is enabled"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'enabled_opt_in_panel'
-         AND event.category = 'relay_integration'
+         events.name= 'enabled_opt_in_panel'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -56,8 +56,8 @@ friendly_name = "Relay optin panel postponed by client"
 description = "Number of times Relay optin panel is postponed"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'postponed_opt_in_panel'
-         AND event.category = 'relay_integration'
+         events.name= 'postponed_opt_in_panel'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -68,8 +68,8 @@ friendly_name = "Relay optin panel disabled by client"
 description = "Number of times Relay optin panel is disabled"
 select_expression = """
       COALESCE(COUNTIF(
-         event.name= 'disabled_opt_in_panel'
-         AND event.category = 'relay_integration'
+         events.name= 'disabled_opt_in_panel'
+         AND events.category = 'relay_integration'
       ),0)
 """
 data_source = "events"   
@@ -81,7 +81,7 @@ description = "Fraction of Users that return to original form and receive an ema
 select_expression = """
        COALESCE(MAX(
     CAST(
-       event.name= 'shown_fill_username' AS int )
+       events.name= 'shown_fill_username' AS int )
   ),0) 
 """
 data_source = "events"   
