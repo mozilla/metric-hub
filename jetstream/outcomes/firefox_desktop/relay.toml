@@ -81,18 +81,6 @@ select_expression = """
 data_source = "events"   
 statistics = { bootstrap_mean = {}, deciles = {} }
 
-[metrics.relay_integration_shown_fill_username]
-friendly_name = "Relay autocomplete popup"
-description = "Fraction of Users that return to original form and receive an email mask"
-select_expression = """
-       COALESCE(MAX(
-    CAST(
-       event_method = 'shown' AND event_object = 'fill_username' AS int )
-  ),0) 
-"""
-data_source = "events"   
-statistics = { binomial = {}}
-
 [metrics.relay_optin_rate]
 description = "Relay optin panel enabled by client / Relay optin panel shown to client "
 friendly_name = "Relay Optin Rate"
