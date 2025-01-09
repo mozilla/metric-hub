@@ -8,7 +8,8 @@ friendly_name = "Relay offer shown to client"
 description = "Number of times Relay offer is shown"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method= 'shown_offer_relay'
+         event_method= 'shown'
+         AND event_object = 'offer_relay'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -20,7 +21,8 @@ friendly_name = "Relay offer clicked by client"
 description = "Number of times user clicked on Relay offer"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method = 'clicked_offer_relay'
+         event_method = 'clicked'
+         AND event_object = 'offer_relay'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -32,7 +34,8 @@ friendly_name = "Relay optin panel shown to client"
 description = "Number of times Relay optin panel is shown"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method = 'shown_opt_in_panel'
+         event_method = 'shown'
+         AND event_object = 'opt_in_panel'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -44,7 +47,8 @@ friendly_name = "Relay optin panel enabled by client"
 description = "Number of times Relay optin panel is enabled"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method = 'enabled_opt_in_panel'
+         event_method = 'enabled'
+         AND event_object = 'opt_in_panel'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -56,7 +60,8 @@ friendly_name = "Relay optin panel postponed by client"
 description = "Number of times Relay optin panel is postponed"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method = 'postponed_opt_in_panel'
+         event_method = 'postponed'
+         AND event_object = 'opt_in_panel'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -68,7 +73,8 @@ friendly_name = "Relay optin panel disabled by client"
 description = "Number of times Relay optin panel is disabled"
 select_expression = """
       COALESCE(COUNTIF(
-         event_method = 'disabled_opt_in_panel'
+         event_method = 'disabled'
+         AND event_object = 'opt_in_panel'
          AND event_category = 'relay_integration'
       ),0)
 """
@@ -81,7 +87,7 @@ description = "Fraction of Users that return to original form and receive an ema
 select_expression = """
        COALESCE(MAX(
     CAST(
-       event_method = 'shown_fill_username' AS int )
+       event_method = 'shown' AND event_object = 'fill_username' AS int )
   ),0) 
 """
 data_source = "events"   
