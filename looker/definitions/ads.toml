@@ -63,13 +63,13 @@ description ="Native Desktop Metrics saves"
 [metrics.native_impressions.statistics.sum]
 [metrics.native_clicks.statistics.sum]
 [metrics.native_saves.statistics.sum]
-[metrics.native_dismiss_rate.statistics.ratio]
+[metrics.native_dismisses.statistics.ratio]
 numerator = "native_dismisses.sum"
 denominator = "native_impressions.sum"
-[metrics.native_click_rate.statistics.ratio]
+[metrics.native_clicks.statistics.ratio]
 numerator = "native_clicks.sum"
 denominator = "native_impressions.sum"
-[metrics.native_save_rate.statistics.ratio]
+[metrics.native_saves.statistics.ratio]
 numerator = "native_saves.sum"
 denominator = "native_impressions.sum"
 
@@ -120,6 +120,16 @@ submission_date_column = "submission_date"
 client_id_column = "NULL"
 
 [data_sources.native_desktop_ad_metrics]
+from_expression = "moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly"
+friendly_name = "Native Desktop Ads Metrics Daily"
+description = """
+  Tracks Native Desktop Ad Metrics Across Days
+"""
+columns_as_dimensions = false
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.native_desktop_ad_metrics]
 from_expression = """
 (
   SELECT
@@ -139,15 +149,7 @@ from_expression = """
     ad_url,
     image_url,
     external_param,
-    impressions,
-    clicks,
-    click_rate,
-    dismisses,
-    dismiss_rate,
-    saves,
-    save_rate,
-    campaign_id,
-    spend
+    campaign_id
   FROM `moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly`
 )
 """
@@ -155,6 +157,6 @@ friendly_name = "Native Desktop Ads Metrics Daily"
 description = """
   Tracks Native Desktop Ad Metrics Across Days
 """
-columns_as_dimensions = true
+columns_as_dimensions = false
 submission_date_column = "submission_date"
 client_id_column = "NULL"
