@@ -7,8 +7,8 @@ default = { control = "DEVICE_MIGRATION_BACKUP_AND_SYNC_SPOTLIGHT", treatment = 
 distinct_by_branch = true
 
 [metrics]
-overall = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
-weekly = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses']
+overall = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses', 'multi_device_signin']
+weekly = ['fxa_signed_in', 'spotlight_impressions', 'spotlight_clicks', 'spotlight_dismisses', 'multi_device_signin']
 
 ### metrics definition
 [metrics.spotlight_impressions]
@@ -31,6 +31,12 @@ description = "How often users dismissed Spotlight during an analysis window"
 select_expression = "COUNTIF(event = 'DISMISS' AND message_id = '{{ parameters.message_id }}')"
 data_source = "spotlight"
 statistics = { bootstrap_mean = {} }
+
+[metrics.multi_device_signin]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALSE) AS int)'
+
+[metrics.multi_device_signin.statistics.binomial]
 
 [data_sources.spotlight]
 from_expression = """
