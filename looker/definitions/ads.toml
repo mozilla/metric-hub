@@ -129,7 +129,7 @@ columns_as_dimensions = false
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
-[data_sources.native_desktop_ad_metrics]
+[data_sources.native_desktop_ad_metrics_v1]
 from_expression = """
 (
   SELECT
@@ -160,3 +160,21 @@ description = """
 columns_as_dimensions = false
 submission_date_column = "submission_date"
 client_id_column = "NULL"
+
+# The purpose of the below join is to hide metrics from surfacing in Looker as dimensions.
+[data_sources.native_desktop_ad_metrics.joins.native_desktop_ad_metrics_v1]
+relationship = "one_to_one"
+on_expression = """
+  native_desktop_ad_metrics.submission_date = native_desktop_ad_metrics_v1.submission_date
+  AND native_desktop_ad_metrics.spoc_id = native_desktop_ad_metrics_v1.spoc_id
+  AND native_desktop_ad_metrics.position = native_desktop_ad_metrics_v1.position
+  AND native_desktop_ad_metrics.advertiser = native_desktop_ad_metrics_v1.advertiser
+  AND native_desktop_ad_metrics.title = native_desktop_ad_metrics_v1.title
+  AND native_desktop_ad_metrics.flight_id = native_desktop_ad_metrics_v1.flight_id
+  AND native_desktop_ad_metrics.creative_type = native_desktop_ad_metrics_v1.creative_type
+  AND native_desktop_ad_metrics.country = native_desktop_ad_metrics_v1.country
+  AND native_desktop_ad_metrics.rate_type = native_desktop_ad_metrics_v1.rate_type
+  AND native_desktop_ad_metrics.pid = native_desktop_ad_metrics_v1.pid
+  AND native_desktop_ad_metrics.ad_url = native_desktop_ad_metrics_v1.ad_url
+  AND native_desktop_ad_metrics.campaign_id = native_desktop_ad_metrics_v1.campaign_id
+ """
