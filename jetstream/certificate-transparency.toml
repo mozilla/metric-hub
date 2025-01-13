@@ -35,8 +35,9 @@ from_expression = """(
     FROM `mozdata.firefox_desktop.metrics` AS m
         CROSS JOIN UNNEST(metrics.timing_distribution.network_tls_handshake.values) AS v
     WHERE
-        DATE(m.submission_timestamp) >= "2024-12-04"
+        DATE(m.submission_timestamp) BETWEEN '2024-12-04' AND '2025-01-10'
         AND m.normalized_channel = 'release'
+        AND `mozfun.map.get_key`(m.ping_info.experiments, 'certificate-transparency') IS NOT NULL
 )"""
 experiments_column_type = "glean"
 
