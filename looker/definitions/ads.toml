@@ -157,7 +157,7 @@ friendly_name = "Native Desktop Ads Metrics Daily"
 description = """
   Tracks Native Desktop Ad Metrics Across Days
 """
-columns_as_dimensions = false
+columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
