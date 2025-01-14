@@ -17,8 +17,8 @@ data_source = "events_certerror"
 
 [metrics.tls_timing]
 friendly_name = "TLS timing"
-description = "Amount of time for TLS handshake in miliseconds"
-select_expression = "COALESCE(SUM(CAST(key AS INT64)), 0)"
+description = "Amount of time for TLS handshake in seconds"
+select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)"
 data_source = "tls_metrics"
 
 [metrics.tls_timing.statistics.bootstrap_mean]
