@@ -11,7 +11,7 @@ select_expression = """(
         AND event_object = 'aboutcerterror' 
         AND event_method = 'load'), 0)
 )"""
-data_source = "events"
+data_source = "events_certerror"
 
 [metrics.cert_errors.statistics.bootstrap_mean]
 
@@ -26,7 +26,7 @@ data_source = "tls_metrics"
 [data_sources.tls_metrics]
 friendly_name = "TLS glean metrics"
 description = "The glean metric ping with metrics.timing_distribution.network_tls_handshake.values unnested"
-from_expression =  """(
+from_expression = """(
     SELECT 
         m.client_info.client_id,
         DATE(m.submission_timestamp) AS submission_date,
@@ -35,10 +35,25 @@ from_expression =  """(
     FROM `mozdata.firefox_desktop.metrics` AS m
         CROSS JOIN UNNEST(metrics.timing_distribution.network_tls_handshake.values) AS v
     WHERE
-        DATE(m.submission_timestamp) >= "2024-12-04"
+        DATE(m.submission_timestamp) BETWEEN '2024-12-04' AND '2025-01-10'
         AND m.normalized_channel = 'release'
- )"""
- experiments_column_type = "glean"
+        AND `mozfun.map.get_key`(m.ping_info.experiments, 'certificate-transparency') IS NOT NULL
+)"""
+experiments_column_type = "glean"
+
+[data_sources.events_certerror]
+from_expression = """
+    (
+        SELECT
+            *
+        FROM `mozdata.telemetry.events`
+        WHERE 
+            event_category = 'security.ui.certerror'
+    )
+"""
+friendly_name = "Certerror events"
+description = "Cert Error related events"
+experiments_column_type = "native"
 
 # modified the data sources from this example in android review checker experiment
 # [data_sources.glean_metrics_ping]
