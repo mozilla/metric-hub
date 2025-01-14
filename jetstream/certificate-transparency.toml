@@ -28,7 +28,7 @@ friendly_name = "TLS glean metrics"
 description = "The glean metric ping with metrics.timing_distribution.network_tls_handshake.values unnested"
 from_expression = """(
     SELECT 
-        m.client_info.client_id,
+        m.metrics.uuid.legacy_telemetry_client_id as client_id,
         DATE(m.submission_timestamp) AS submission_date,
         v.key,
         m.ping_info
