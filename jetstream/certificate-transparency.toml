@@ -1,7 +1,8 @@
 [metrics]
 
-weekly = ["cert_errors", "tls_timing"]
-overall = ["cert_errors", "tls_timing"]
+daily = ["cert_errors", "tls_timing", "num_handshakes", "timing_ratio"]
+weekly = ["cert_errors", "tls_timing", "num_handshakes", "timing_ratio"]
+overall = ["cert_errors", "tls_timing", "num_handshakes", "timing_ratio"]
 
 [metrics.cert_errors]
 friendly_name = "TLS certification errors"
@@ -14,6 +15,7 @@ select_expression = """(
 data_source = "events_certerror"
 
 [metrics.cert_errors.statistics.bootstrap_mean]
+[metrics.cert_errors.statistics.deciles]
 
 [metrics.tls_timing]
 friendly_name = "TLS timing"
@@ -22,6 +24,25 @@ select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)"
 data_source = "tls_metrics"
 
 [metrics.tls_timing.statistics.bootstrap_mean]
+[metrics.tls_timing.statistics.deciles]
+
+[metrics.num_handshakes]
+friendly_name = "Number of handshakes"
+description = "Number of handshakes computed by counting number of values in metrics.timing_distribution.network_tls_handshake.values"
+select_expression = "COALESCE(COUNT(key), 0)"
+data_source = "tls_metrics"
+
+[metrics.num_handshakes.statistics.bootstrap_mean]
+[metrics.num_handshakes.statistics.deciles]
+
+[metrics.timing_ratio]
+friendly_name = "TLS timing ratio"
+description = "TLS timing divided by number of handshakes"
+select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)/COALESCE(COUNT(key), 1)"
+data_source = "tls_metrics"
+
+[metrics.timing_ratio.statistics.bootstrap_mean]
+[metrics.timing_ratio.statistics.deciles]
 
 [data_sources.tls_metrics]
 friendly_name = "TLS glean metrics"
