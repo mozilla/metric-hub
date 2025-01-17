@@ -37,7 +37,7 @@ data_source = "tls_metrics"
 
 [metrics.timing_ratio]
 friendly_name = "TLS timing ratio"
-description = "TLS timing divided by number of handshakes"
+description = "TLS timing (in seconds) divided by number of handshakes"
 select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)/COALESCE(COUNT(key), 1)"
 data_source = "tls_metrics"
 
