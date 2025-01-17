@@ -1,5 +1,17 @@
+[experiment]
+segments = ['not_signed_into_mobile_at_start', 'signed_into_mobile_at_start']
+
 [metrics]
 weekly = ["sync_to_mobile"]
 overall = ["sync_to_mobile"]
 
 [metrics.sync_to_mobile.statistics.binomial]
+
+[segments]
+[segments.not_signed_into_mobile_at_start]
+select_expression = 'COALESCE(LOGICAL_AND(sync_count_mobile_mean = 0), FALSE)'
+data_source = 'clients_daily'
+
+[segments.signed_into_mobile_at_start]
+select_expression = 'COALESCE(LOGICAL_OR(sync_count_mobile_mean > 0), FALSE)'
+data_source = 'clients_daily'
