@@ -35,9 +35,9 @@ friendly_name = "TLS timing ratio"
 description = "TLS timing (in seconds) divided by number of handshakes"
 select_expression = "SAFE_DIVIDE(COALESCE(SUM(CAST(key AS INT64)/1000000), 0), COUNT(key))"
 data_source = "tls_metrics"
-pre_treatments = ["remove_nulls"]
 
 [metrics.timing_ratio.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
 
 [data_sources.tls_metrics]
 friendly_name = "TLS glean metrics"
