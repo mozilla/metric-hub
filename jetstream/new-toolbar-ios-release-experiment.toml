@@ -9,5 +9,5 @@ enrollment_period = 21
 weekly = ["firefox_ios_page_action_menu_share_page_with", "firefox_ios_share_button_tapped"]
 overall = ["firefox_ios_page_action_menu_share_page_with", "firefox_ios_share_button_tapped"]
 
-[metrics.firefox_ios_page_action_menu_share_page_with.bootstrap_mean]
-[metrics.firefox_ios_share_button_tapped.bootstrap_mean]
+[metrics.firefox_ios_page_action_menu_share_page_with.statistics.bootstrap_mean]
+[metrics.firefox_ios_share_button_tapped.statistics.bootstrap_mean]
