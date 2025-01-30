@@ -1,0 +1,13 @@
+[experiment]
+
+start_date = "2024-11-25"
+end_date = "2025-01-21"
+enrollment_period = 21
+
+[metrics]
+
+weekly = ["firefox_ios_page_action_menu_share_page_with", "firefox_ios_share_button_tapped"]
+overall = ["firefox_ios_page_action_menu_share_page_with", "firefox_ios_share_button_tapped"]
+
+[metrics.firefox_ios_page_action_menu_share_page_with.bootstrap_mean]
+[metrics.firefox_ios_share_button_tapped.bootstrap_mean]
