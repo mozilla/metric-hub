@@ -1463,6 +1463,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#firefox_ios_share_button_tapped" class="md-nav__link">
+    firefox_ios_share_button_tapped
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox_ios_page_action_menu_share_page_with" class="md-nav__link">
+    firefox_ios_page_action_menu_share_page_with
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2605,6 +2619,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#firefox_ios_share_button_tapped" class="md-nav__link">
+    firefox_ios_share_button_tapped
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox_ios_page_action_menu_share_page_with" class="md-nav__link">
+    firefox_ios_page_action_menu_share_page_with
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3184,6 +3212,38 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 
 
 <pre><code class="language-sql">SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="firefox_ios_share_button_tapped">firefox_ios_share_button_tapped</h3>
+<p><strong>Firefox iOS toolbar share button tapped</strong></p>
+<p>Number of times the toolbar share button is tapped.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_ios/#events"><code>events</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(SUM(CASE WHEN
+          event.category = 'toolbar'
+          AND event.name = 'share_button_tapped'
+    THEN 1 ELSE 0 END
+  ),0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="firefox_ios_page_action_menu_share_page_with">firefox_ios_page_action_menu_share_page_with</h3>
+<p><strong>Share page button in page action menu tapped</strong></p>
+<p>Number of times Share page button in page action menu is tapped.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_ios/#metrics"><code>metrics</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(SUM(metrics.counter.page_action_menu_share_page_with), 0)
 </code></pre>
 
 </details>
