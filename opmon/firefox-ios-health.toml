@@ -65,7 +65,7 @@ friendly_name = "Total number of baseline pings"
 description = "Total number of baseline pings sent by clients"
 
 [metrics.tab_loss_detected]
-select_expression = "COUNTIF(app_version_major >= 134)"
-data_source = "baseline_v2"
+select_expression = "COUNTIF(app_version_major >= 134 AND event.name = 'tab_loss_detected')"
+data_source = "events"
 friendly_name = "Tab loss count"
 description = "Count of users who have lost tabs"
