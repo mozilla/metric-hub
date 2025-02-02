@@ -146,7 +146,7 @@ types-protobuf==5.28.0.20240924
 types-pytz==2024.2.0.20240913
     # via
     #   mozilla-metric-config-parser
-types-pyyaml==6.0.12.20240917
+types-pyyaml==6.0.12.20241221
     # via
     #   mozilla-metric-config-parser
 types-requests==2.32.0.20240914

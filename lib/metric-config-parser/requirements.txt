@@ -728,9 +728,9 @@ types-pytz==2024.2.0.20240913 \
     --hash=sha256:4433b5df4a6fc587bbed41716d86a5ba5d832b4378e506f40d34bc9c81df2c24 \
     --hash=sha256:a1eebf57ebc6e127a99d2fa2ba0a88d2b173784ef9b3defcc2004ab6855a44df
     # via -r requirements.in
-types-pyyaml==6.0.12.20240917 \
-    --hash=sha256:392b267f1c0fe6022952462bf5d6523f31e37f6cea49b14cee7ad634b6301570 \
-    --hash=sha256:d1405a86f9576682234ef83bcb4e6fff7c9305c8b1fbad5e0bcd4f7dbdc9c587
+types-pyyaml==6.0.12.20241221 \
+    --hash=sha256:0657a4ff8411a030a2116a196e8e008ea679696b5b1a8e1a6aa8ebb737b34688 \
+    --hash=sha256:4f149aa893ff6a46889a30af4c794b23833014c469cc57cbc3ad77498a58996f
     # via -r requirements.in
 types-requests==2.32.0.20240914 \
     --hash=sha256:2850e178db3919d9bf809e434eef65ba49d0e7e33ac92d588f4a5e295fffd405 \
