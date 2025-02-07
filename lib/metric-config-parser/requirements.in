@@ -169,7 +169,7 @@ typing-extensions==4.12.2
     #   polyfactory
     #   pydantic
     #   pydantic-core
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   requests
     #   types-requests
