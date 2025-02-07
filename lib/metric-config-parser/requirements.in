@@ -131,7 +131,7 @@ toml==0.10.2
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
-tomli==2.0.1
+tomli==2.2.1
     # via
     #   black
     #   coverage
