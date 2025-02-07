@@ -57,7 +57,7 @@ jsonschema==4.23.0
     #   mozilla-metric-config-parser
 jsonschema-specifications==2024.10.1
     # via jsonschema
-markupsafe==2.1.5
+markupsafe==3.0.2
     # via jinja2
 mccabe==0.7.0
     # via flake8
