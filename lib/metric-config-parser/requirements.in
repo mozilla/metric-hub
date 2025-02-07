@@ -19,7 +19,7 @@ cattrs==24.1.2
     #   mozilla-metric-config-parser
 certifi==2024.12.14
     # via requests
-charset-normalizer==3.3.2
+charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via
