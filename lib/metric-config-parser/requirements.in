@@ -98,7 +98,7 @@ pytest==8.3.3
     #   pytest-black
     #   pytest-cov
     #   pytest-flake8
-pytest-black==0.3.12
+pytest-black==0.6.0
     # via
     #   mozilla-metric-config-parser
 pytest-cov==5.0.0
