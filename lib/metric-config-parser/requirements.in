@@ -155,7 +155,7 @@ types-requests==2.32.0.20240914
 types-setuptools==75.6.0.20241223
     # via
     #   mozilla-metric-config-parser
-types-six==1.16.21.20240513
+types-six==1.17.0.20241205
     # via
     #   mozilla-metric-config-parser
 types-toml==0.10.8.20240310
