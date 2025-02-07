@@ -12,7 +12,7 @@ attrs==24.3.0
     #   jsonschema
     #   mozilla-metric-config-parser
     #   referencing
-black==24.8.0
+black==25.1.0
     # via pytest-black
 cattrs==24.1.2
     # via
