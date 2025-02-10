@@ -39,7 +39,7 @@ flake8==5.0.4
     # via pytest-flake8
 gitdb==4.0.11
     # via gitpython
-gitpython==3.1.43
+gitpython==3.1.44
     # via
     #   mozilla-metric-config-parser
 idna==3.10
