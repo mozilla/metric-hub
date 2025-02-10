@@ -33,7 +33,7 @@ exceptiongroup==1.2.2
     # via
     #   cattrs
     #   pytest
-faker==35.2.0
+faker==36.0.0
     # via polyfactory
 flake8==5.0.4
     # via pytest-flake8

@@ -239,9 +239,9 @@ exceptiongroup==1.2.2 \
     #   -r requirements.in
     #   cattrs
     #   pytest
-faker==35.2.0 \
-    --hash=sha256:28c24061780f83b45d9cb15a72b8f143b09d276c9ff52eb557744b7a89e8ba19 \
-    --hash=sha256:609abe555761ff31b0e5e16f958696e9b65c9224a7ac612ac96bfc2b8f09fe35
+faker==36.0.0 \
+    --hash=sha256:67b89f255843c84fac395ae4430d48a7422e1f48b3435dbcceb77364d24e2bb8 \
+    --hash=sha256:e00cf69e55d3466f93c82cf63259a484d14b48702a1d9ed719ff039e9f392b49
     # via
     #   -r requirements.in
     #   polyfactory
@@ -796,7 +796,6 @@ typing-extensions==4.12.2 \
     #   -r requirements.in
     #   black
     #   cattrs
-    #   faker
     #   mozilla-nimbus-schemas
     #   mypy
     #   polyfactory
