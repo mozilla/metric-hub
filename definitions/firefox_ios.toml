@@ -527,7 +527,7 @@ client_id_column = "client_id"
 submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
-from_expression = "`mozdata.firefox_ios.clients_activation`"
+from_expression = "`mozdata.firefox_ios.new_profile_activation_clients`"
 experiments_column_type = "none"
 
 [data_sources.special_onboarding_events]
