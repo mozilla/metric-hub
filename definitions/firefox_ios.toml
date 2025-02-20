@@ -606,7 +606,7 @@ from_expression = """(
 )"""
 friendly_name = "iOS Funnel Retention Metrics"
 description = "Bottom of the funnel metrics pulled from clients telemetry table"
-submission_date_column = "submission_date"
+submission_date_column = "metric_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
 
