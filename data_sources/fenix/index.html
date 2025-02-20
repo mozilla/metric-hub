@@ -1475,6 +1475,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#special_onboarding_events_v2" class="md-nav__link">
+    special_onboarding_events_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#feature_usage_metrics_v1" class="md-nav__link">
     feature_usage_metrics_v1
   </a>
@@ -2270,6 +2277,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#special_onboarding_events_v2" class="md-nav__link">
+    special_onboarding_events_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#feature_usage_metrics_v1" class="md-nav__link">
     feature_usage_metrics_v1
   </a>
@@ -2493,6 +2507,65 @@ LEFT JOIN (
   CROSS JOIN
      UNNEST(event.extra) AS ext
   WHERE event.category = &quot;onboarding&quot; AND ext.key =&quot;action&quot; AND event.name in  (&quot;set_to_default&quot;, &quot;turn_on_notifications&quot;, &quot;sign_in&quot;)
+  AND DATE(submission_timestamp) &gt;= &quot;2023-01-01&quot;
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3, 4, 5, 6
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="special_onboarding_events_v2"><a href="#special_onboarding_events_v2">special_onboarding_events_v2</a></h3>
+<p>Client ID column: <code>None</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when (conv.set_to_default &gt;= 1 AND expo.set_to_default_card &gt;= 1) then 1
+           when (coalesce(conv.set_to_default, 0) = 0 AND expo.set_to_default_card &gt;= 1) then 0 else null end as set_to_default_flag
+    , case when (conv.turn_on_notifications &gt;= 1 AND expo.turn_on_notifications_card &gt;= 1) then 1
+           when (coalesce(conv.turn_on_notifications, 0) = 0 AND expo.turn_on_notifications_card &gt;= 1) then 0 else null end as turn_on_notifications_flag
+    , case when (conv.sign_in &gt;= 1 AND expo.sign_in_card &gt;= 1) then 1
+           when (coalesce(conv.sign_in,0) = 0 AND expo.sign_in_card &gt;= 1) then 0 else null end as sign_in_flag
+    , case when (conv.set_to_default &gt;= 1 AND expo.set_to_default_card &gt;= 1) OR (conv.turn_on_notifications &gt;= 1 AND expo.turn_on_notifications_card &gt;= 1) OR (conv.sign_in &gt;= 1 AND expo.sign_in_card &gt;= 1)then 1
+           when (coalesce(conv.set_to_default, 0) = 0 AND coalesce(conv.turn_on_notifications, 0) = 0 AND coalesce(conv.sign_in,0) = 0)  AND (set_to_default_card &gt;= 1 OR turn_on_notifications_card &gt;= 1 OR sign_in_card &gt;= 1) then 0 else null end as at_least_1_cta
+
+FROM (
+      SELECT
+            client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+            , count(case when event_name = &quot;set_to_default_card&quot; then DATE(submission_timestamp) END) as set_to_default_card
+            , count(case when event_name = &quot;turn_on_notifications_card&quot; then DATE(submission_timestamp) END) as turn_on_notifications_card
+            , count(case when event_name = &quot;sign_in_card&quot; then DATE(submission_timestamp) END) as sign_in_card
+      FROM
+        `mozdata.org_mozilla_firefox.events_stream` tm
+
+      WHERE event_category = &quot;onboarding&quot;
+        AND JSON_VALUE(event_extra, &quot;$.action&quot;) = 'impression'
+        AND event_name in (&quot;set_to_default_card&quot;, &quot;turn_on_notifications_card&quot;, &quot;sign_in_card&quot;)
+      AND DATE(submission_timestamp) &gt;= &quot;2023-01-01&quot;
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_id as client_id
+            , count(case when event_name = &quot;set_to_default&quot; then DATE(submission_timestamp) END) as set_to_default
+            , count(case when event_name = &quot;turn_on_notifications&quot; then DATE(submission_timestamp) END) as turn_on_notifications
+            , count(case when event_name = &quot;sign_in&quot; then DATE(submission_timestamp) END) as sign_in
+  FROM
+    `mozdata.org_mozilla_firefox.events_stream` tm
+
+  WHERE event_category = &quot;onboarding&quot; 
+    AND JSON_QUERY(event_extra, &quot;$.action&quot;) IS NOT NULL
+    AND event_name in  (&quot;set_to_default&quot;, &quot;turn_on_notifications&quot;, &quot;sign_in&quot;)
   AND DATE(submission_timestamp) &gt;= &quot;2023-01-01&quot;
   GROUP BY 1
 ) conv
