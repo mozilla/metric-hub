@@ -214,6 +214,9 @@ jobs:
             fi
           done
 
+          echo "Latest change affected these experiments:"
+          echo $params
+
           # stop running instances so that they do not interfere
           uuid=`uuidgen`
           pod_identifier="jetstream-${uuid}"
