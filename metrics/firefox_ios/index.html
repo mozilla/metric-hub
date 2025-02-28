@@ -3122,7 +3122,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <h3 id="funnel_new_profiles">funnel_new_profiles</h3>
 <p><strong>Firefox iOS funnel new profiles</strong></p>
 <p>This is the total number of new profiles created on a given date. We only count new profiles that came via release channel and we also filter out app version 107.2  data that was recieved after February 1st. The etl of the base table is
-    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql">defined in <code>bigquery-etl</code></a>.
+    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql">defined in <code>bigquery-etl</code></a>.
     This metric needs to be aggregated by <code>first_seen_date</code> for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".</p>
 <p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_ios/#funnel_retention"><code>funnel_retention</code></a></p>
@@ -3130,7 +3130,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">SUM(new_profiles)
+<pre><code class="language-sql">SUM(new_profiles_metric_date)
 </code></pre>
 
 </details>
@@ -3139,7 +3139,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <h3 id="repeat_users">repeat_users</h3>
 <p><strong>Firefox iOS funnel repeat users</strong></p>
 <p>This is the total number of new profiles that visited more than once within their first 28 days. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
-    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql">defined in <code>bigquery-etl</code></a>.
+    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql">defined in <code>bigquery-etl</code></a>.
     This metric needs to be aggregated by <code>first_seen_date</code> for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".</p>
 <p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_ios/#funnel_retention"><code>funnel_retention</code></a></p>
@@ -3147,7 +3147,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">SUM(repeat_user)
+<pre><code class="language-sql">SUM(repeat_profiles)
 </code></pre>
 
 </details>
@@ -3156,7 +3156,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <h3 id="week_4_retained_users">week_4_retained_users</h3>
 <p><strong>Firefox iOS funnel week 4 retained users</strong></p>
 <p>This is the total number of new profiles that returned between between day 22 to day 28 after first seen. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
-    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql">defined in <code>bigquery-etl</code></a>.
+    <a href="https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql">defined in <code>bigquery-etl</code></a>.
     This metric needs to be aggregated by <code>first_seen_date</code> for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".</p>
 <p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_ios/#funnel_retention"><code>funnel_retention</code></a></p>

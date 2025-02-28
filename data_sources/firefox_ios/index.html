@@ -2451,7 +2451,7 @@
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">`mozdata.firefox_ios.clients_activation`
+<pre><code class="language-sql">`mozdata.firefox_ios.new_profile_activation_clients`
 </code></pre>
 
 </details>
@@ -2542,14 +2542,14 @@ GROUP BY 1, 2, 3, 4, 5, 6
 <hr />
 <h3 id="funnel_retention"><a href="#funnel_retention">funnel_retention</a></h3>
 <p>Client ID column: <code>NULL</code></p>
-<p>Submission Date column: <code>submission_date</code></p>
+<p>Submission Date column: <code>metric_date</code></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
     SELECT *
-     FROM `mozdata.firefox_ios.funnel_retention_week_4`
+     FROM `mozdata.firefox_ios.retention`
 )
 </code></pre>
 
