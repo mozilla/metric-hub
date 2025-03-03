@@ -36,7 +36,9 @@ Scenario #1 in particular could come with significant cost, and is unlikely to b
 Scenario #2 will also come with added cost, though less significant than Scenario #1. Whether using `[ci rerun-skip]` here is worthwhile will depend on a few factors. Here are a few examples of when to skip or not:
   * Skip
     * if you only care about changes going forward
-    * if the only thing changing is statistics
+      * Example: changes to weekly metrics before the first week of observation has elapsed
+      * Example: add an experiment end date that is not in the past (e.g., to compute overall metrics before the experiment officially ends)
+    * if the only thing changing is statistics (i.e., metrics themselves stay the same)
     * if you only care about one analysis window (e.g., overall)
   * Don't skip
     * if you want to rerun full (daily, weekly, overall) analysis anyway
