@@ -1,7 +1,6 @@
 [metrics]
 
-weekly = ["cert_errors", "tls_timing"]
-overall = ["cert_errors", "tls_timing"]
+overall = ["cert_errors", "tls_timing", "num_handshakes", "timing_ratio"]
 
 [metrics.cert_errors]
 friendly_name = "TLS certification errors"
@@ -23,12 +22,29 @@ data_source = "tls_metrics"
 
 [metrics.tls_timing.statistics.bootstrap_mean]
 
+[metrics.num_handshakes]
+friendly_name = "Number of handshakes"
+description = "Number of handshakes computed by counting number of values in metrics.timing_distribution.network_tls_handshake.values"
+select_expression = "COALESCE(COUNT(key), 0)"
+data_source = "tls_metrics"
+
+[metrics.num_handshakes.statistics.bootstrap_mean]
+
+[metrics.timing_ratio]
+friendly_name = "TLS timing ratio"
+description = "TLS timing (in seconds) divided by number of handshakes"
+select_expression = "SAFE_DIVIDE(COALESCE(SUM(CAST(key AS INT64)/1000000), 0), COUNT(key))"
+data_source = "tls_metrics"
+
+[metrics.timing_ratio.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
 [data_sources.tls_metrics]
 friendly_name = "TLS glean metrics"
 description = "The glean metric ping with metrics.timing_distribution.network_tls_handshake.values unnested"
 from_expression = """(
     SELECT 
-        m.client_info.client_id,
+        m.metrics.uuid.legacy_telemetry_client_id as client_id,
         DATE(m.submission_timestamp) AS submission_date,
         v.key,
         m.ping_info

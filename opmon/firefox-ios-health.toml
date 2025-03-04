@@ -5,7 +5,12 @@ platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
 skip_default_metrics = true
-metrics = ['dirty_startup', 'large_file_write', 'hang_exception', 'cpu_exception', 'total_baseline_pings']
+metrics = ['dirty_startup',
+           'large_file_write',
+           'hang_exception',
+           'cpu_exception',
+           'total_baseline_pings',
+           'tab_loss_detected']
 
 [project.population]
 data_source = "baseline_v2"
@@ -22,6 +27,8 @@ denominator_metric = "total_baseline_pings"
 denominator_metric = "total_baseline_pings"
 [metrics.dirty_startup.statistics.total_ratio]
 denominator_metric = "total_baseline_pings"
+[metrics.tab_loss_detected.statistics]
+sum = {}
 
 [metrics.dirty_startup]
 select_expression = """COALESCE(COUNTIF(ping_info.reason = "dirty_startup"), 0)"""
@@ -56,3 +63,9 @@ select_expression = "COUNT(*)"
 data_source = "baseline_v2"
 friendly_name = "Total number of baseline pings"
 description = "Total number of baseline pings sent by clients"
+
+[metrics.tab_loss_detected]
+select_expression = "COUNTIF(app_version_major >= 134 AND event.name = 'tab_loss_detected')"
+data_source = "events"
+friendly_name = "Tab loss count"
+description = "Count of users who have lost tabs"
