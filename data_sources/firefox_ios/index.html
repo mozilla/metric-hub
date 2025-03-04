@@ -2549,7 +2549,8 @@ GROUP BY 1, 2, 3, 4, 5, 6
 
 <pre><code class="language-sql">(
     SELECT *
-     FROM `mozdata.firefox_ios.retention`
+    FROM `mozdata.firefox_ios.retention`
+    WHERE metric_date = first_seen_date
 )
 </code></pre>
 
