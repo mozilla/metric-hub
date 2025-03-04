@@ -51,7 +51,6 @@ overall = [
     "exposed_adm_clicks_per_session",
 ]
 
-
 #----------------------------------------------
 
 # Legacy SERP metrics
