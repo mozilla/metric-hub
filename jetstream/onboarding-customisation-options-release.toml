@@ -1,3 +1,3 @@
 [experiment]
-enrollment_start_date = "2025-02-07"
-enrollment_end_date = "2023-02-28"
+start_date = "2025-02-07"
+enrollment_period = 21
