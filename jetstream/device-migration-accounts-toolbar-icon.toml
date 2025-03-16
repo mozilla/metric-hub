@@ -1,0 +1,47 @@
+[metrics]
+weekly = ['fxa_toolbar_menu_button_users_clicks', 'fxa_configured','fxa_signed_in','fxa_avatar_menu_clicks', 'multi_device_signin' ]
+overall = ['fxa_toolbar_menu_button_users_clicks', 'fxa_configured','fxa_signed_in','fxa_avatar_menu_clicks', 'multi_device_signin' ]
+
+[metrics.fxa_signed_in.statistics.binomial]
+
+[metrics.fxa_toolbar_menu_button_users_clicks]
+select_expression = """(
+  SUM(
+    COALESCE(mozfun.map.get_key(payload.processes.parent.keyed_scalars.browser_ui_interaction_nav_bar, 'fxa-toolbar-menu-button'),0) 
+  )
+)"""
+data_source = "main"
+friendly_name = "Clicks on the account button from users"
+description = """
+   Counts the number of times  user clicks on the account button
+"""
+
+[metrics.fxa_toolbar_menu_button_users_clicks.statistics.bootstrap_mean]
+
+[metrics.fxa_configured]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS INT)'
+
+[metrics.fxa_configured.statistics.binomial]
+
+[metrics.fxa_avatar_menu_clicks]
+friendly_name = "Clicks on the sign in option on the PXI panel"
+description = "Number of times user clicks on fxa_avatar_menu"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method= 'click'
+         AND event_object = 'login'
+         AND event_category = 'fxa_avatar_menu'
+      ),0)
+"""
+data_source = "events"
+statistics = { bootstrap_mean = {} }
+
+[metrics.multi_device_signin]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALSE) AS int)'
+
+[metrics.multi_device_signin.statistics.binomial]
+
+
+
