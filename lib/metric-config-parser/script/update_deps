@@ -3,4 +3,10 @@ pip-compile -o - - <<< '.[testing]' |
     grep -v 'file://' |
     sed 's/pip-compile.*/update_deps/' > requirements.in
 
-pip-compile --generate-hashes -o requirements.txt requirements.in
+# INFO on the flags:
+# --strip-extras: do not explicitly include extras
+#   - will be the default behavior (https://github.com/jazzband/pip-tools/issues/1613)
+# --allow-unsafe: allow "unsafe" packages in requirements file, like setuptools
+#   - https://github.com/jazzband/pip-tools/issues/806#issuecomment-493591664
+pip-compile --generate-hashes --allow-unsafe --strip-extras -o requirements.txt requirements.in
+
