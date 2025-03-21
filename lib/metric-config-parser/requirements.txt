@@ -235,10 +235,7 @@ coverage[toml]==7.6.1 \
 exceptiongroup==1.2.2 \
     --hash=sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b \
     --hash=sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc
-    # via
-    #   -r requirements.in
-    #   cattrs
-    #   pytest
+    # via -r requirements.in
 faker==35.2.0 \
     --hash=sha256:28c24061780f83b45d9cb15a72b8f143b09d276c9ff52eb557744b7a89e8ba19 \
     --hash=sha256:609abe555761ff31b0e5e16f958696e9b65c9224a7ac612ac96bfc2b8f09fe35
@@ -751,19 +748,14 @@ tomli==2.2.1 \
     --hash=sha256:e85e99945e688e32d5a35c1ff38ed0b3f41f43fad8df0bdf79f72b2ba7bc5272 \
     --hash=sha256:ece47d672db52ac607a3d9599a9d48dcb2f2f735c6c2d1f34130085bb12b112a \
     --hash=sha256:f4039b9cbc3048b2416cc57ab3bda989a6fcf9b36cf8937f01a6e731b64f80d7
-    # via
-    #   -r requirements.in
-    #   black
-    #   coverage
-    #   mypy
-    #   pytest
+    # via -r requirements.in
 types-futures==3.3.8 \
     --hash=sha256:6fe8ccc2c2af7ef2fdd9bf73eab6d617074f09f30ad7d373510b4043d39c42de \
     --hash=sha256:d6e97ec51d56b96debfbf1dea32ebec22c1687f16d2547ea0a34b48db45df205
     # via -r requirements.in
-types-protobuf==5.29.1.20241207 \
-    --hash=sha256:2ebcadb8ab3ef2e3e2f067e0882906d64ba0dc65fc5b0fd7a8b692315b4a0be9 \
-    --hash=sha256:92893c42083e9b718c678badc0af7a9a1307b92afe1599e5cba5f3d35b668b2f
+types-protobuf==5.29.1.20250315 \
+    --hash=sha256:0b05bc34621d046de54b94fddd5f4eb3bf849fe2e13a50f8fb8e89f35045ff49 \
+    --hash=sha256:57efd51fd0979d1f5e1d94053d1e7cfff9c028e8d05b17e341b91a1c7fce37c4
     # via -r requirements.in
 types-pytz==2024.2.0.20241221 \
     --hash=sha256:06d7cde9613e9f7504766a0554a270c369434b50e00975b3a4a0f6eed0f2c1a9 \
@@ -794,8 +786,6 @@ typing-extensions==4.12.2 \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
     # via
     #   -r requirements.in
-    #   black
-    #   cattrs
     #   faker
     #   mozilla-nimbus-schemas
     #   mypy
