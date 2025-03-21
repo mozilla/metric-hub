@@ -6,7 +6,7 @@
 #
 annotated-types==0.7.0
     # via pydantic
-attrs==24.3.0
+attrs==25.3.0
     # via
     #   cattrs
     #   jsonschema
@@ -15,9 +15,8 @@ attrs==24.3.0
 black==25.1.0
     # via pytest-black
 cattrs==24.1.2
-    # via
-    #   mozilla-metric-config-parser
-certifi==2024.12.14
+    # via mozilla-metric-config-parser
+certifi==2025.1.31
     # via requests
 charset-normalizer==3.4.1
     # via requests
@@ -25,7 +24,7 @@ click==8.1.8
     # via
     #   black
     #   mozilla-metric-config-parser
-coverage[toml]==7.6.1
+coverage[toml]==7.7.0
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
@@ -33,41 +32,36 @@ exceptiongroup==1.2.2
     # via
     #   cattrs
     #   pytest
-faker==35.2.0
+faker==37.0.1
     # via polyfactory
-flake8==5.0.4
+flake8==7.1.2
     # via pytest-flake8
-gitdb==4.0.11
+gitdb==4.0.12
     # via gitpython
-gitpython==3.1.43
-    # via
-    #   mozilla-metric-config-parser
+gitpython==3.1.44
+    # via mozilla-metric-config-parser
 idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
-    # via
-    #   mozilla-metric-config-parser
-jinja2==3.1.5
-    # via
-    #   mozilla-metric-config-parser
+isort==6.0.1
+    # via mozilla-metric-config-parser
+jinja2==3.1.6
+    # via mozilla-metric-config-parser
 jsonschema==4.23.0
     # via
     #   mozilla-metric-config-parser
+    #   mozilla-nimbus-schemas
 jsonschema-specifications==2024.10.1
     # via jsonschema
 markupsafe==3.0.2
     # via jinja2
 mccabe==0.7.0
     # via flake8
-    # via -r -
-mozilla-nimbus-schemas==2024.12.2
-    # via
-    #   mozilla-metric-config-parser
-mypy==1.14.0
-    # via
-    #   mozilla-metric-config-parser
+mozilla-nimbus-schemas==3000.0.0
+    # via mozilla-metric-config-parser
+mypy==1.15.0
+    # via mozilla-metric-config-parser
 mypy-extensions==1.0.0
     # via
     #   black
@@ -84,48 +78,39 @@ pluggy==1.5.0
     # via pytest
 polyfactory==2.19.0
     # via mozilla-nimbus-schemas
-pycodestyle==2.9.1
+pycodestyle==2.12.1
     # via flake8
-pydantic==2.9.1
+pydantic==2.10.6
     # via mozilla-nimbus-schemas
-pydantic-core==2.23.3
+pydantic-core==2.27.2
     # via pydantic
-pyflakes==2.5.0
+pyflakes==3.2.0
     # via flake8
-pytest==8.3.4
+pytest==8.3.5
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
     #   pytest-cov
     #   pytest-flake8
 pytest-black==0.6.0
-    # via
-    #   mozilla-metric-config-parser
+    # via mozilla-metric-config-parser
 pytest-cov==6.0.0
-    # via
-    #   mozilla-metric-config-parser
+    # via mozilla-metric-config-parser
 pytest-flake8==1.3.0
-    # via
-    #   mozilla-metric-config-parser
-python-dateutil==2.9.0.post0
-    # via faker
-pytz==2024.2
-    # via
-    #   mozilla-metric-config-parser
-referencing==0.35.1
+    # via mozilla-metric-config-parser
+pytz==2025.1
+    # via mozilla-metric-config-parser
+referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.3
-    # via
-    #   mozilla-metric-config-parser
-rpds-py==0.22.3
+    # via mozilla-metric-config-parser
+rpds-py==0.23.1
     # via
     #   jsonschema
     #   referencing
-six==1.17.0
-    # via python-dateutil
-smmap==5.0.1
+smmap==5.0.2
     # via gitdb
 toml==0.10.2
     # via
@@ -138,38 +123,37 @@ tomli==2.2.1
     #   mypy
     #   pytest
 types-futures==3.3.8
-    # via
-    #   mozilla-metric-config-parser
-types-protobuf==5.29.1.20241207
-    # via
-    #   mozilla-metric-config-parser
-types-pytz==2024.2.0.20241221
-    # via
-    #   mozilla-metric-config-parser
-types-pyyaml==6.0.12.20241221
-    # via
-    #   mozilla-metric-config-parser
-types-requests==2.32.0.20241016
-    # via
-    #   mozilla-metric-config-parser
-types-setuptools==75.6.0.20241223
-    # via
-    #   mozilla-metric-config-parser
-types-six==1.17.0.20241205
-    # via
-    #   mozilla-metric-config-parser
+    # via mozilla-metric-config-parser
+types-protobuf==5.29.1.20250315
+    # via mozilla-metric-config-parser
+types-pytz==2025.1.0.20250318
+    # via mozilla-metric-config-parser
+types-pyyaml==6.0.12.20241230
+    # via mozilla-metric-config-parser
+types-requests==2.32.0.20250306
+    # via mozilla-metric-config-parser
+types-setuptools==76.0.0.20250313
+    # via mozilla-metric-config-parser
+types-six==1.17.0.20250304
+    # via mozilla-metric-config-parser
 types-toml==0.10.8.20240310
-    # via
-    #   mozilla-metric-config-parser
+    # via mozilla-metric-config-parser
 typing-extensions==4.12.2
     # via
     #   black
     #   cattrs
+    #   mozilla-nimbus-schemas
     #   mypy
     #   polyfactory
     #   pydantic
     #   pydantic-core
+    #   referencing
+tzdata==2025.1
+    # via faker
 urllib3==2.3.0
     # via
     #   requests
     #   types-requests
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
