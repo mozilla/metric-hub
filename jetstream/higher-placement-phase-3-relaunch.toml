@@ -263,9 +263,6 @@ description = "Per-client rate of sponsored suggestion clicks per urlbar search 
 
 [data_sources.tagged_google_serp_events]
 from_expression = """(
-  CREATE TEMP FUNCTION in_experiment(experiment ANY TYPE, sample_id INT) AS (
-  mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
-  );
   SELECT
     * EXCEPT(ad_components)
     FROM
@@ -273,7 +270,7 @@ from_expression = """(
       , UNNEST(ad_components) a
     WHERE
       submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-      AND in_experiment(experiments, sample_id)
+      AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
       AND search_engine = 'google' AND is_tagged
 )"""
 client_id_column = "legacy_telemetry_client_id"
@@ -289,10 +286,6 @@ client_id_column = "legacy_telemetry_client_id"
 submission_date_column = "submission_date"
 experiments_column_type = "native"
 from_expression = """(
-  CREATE TEMP FUNCTION in_experiment(experiment ANY TYPE, sample_id INT) AS (
-  mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
-  );
-
   WITH urlbar AS (
     -- terminal urlbar events (urlbar sessions)
     SELECT
@@ -302,7 +295,7 @@ from_expression = """(
     WHERE
       is_terminal
       AND submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-      AND in_experiment(experiments, sample_id)
+      AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
   ),
   urlbar_with_exposed AS (
     SELECT
@@ -337,7 +330,7 @@ from_expression = """(
         , UNNEST(ad_components) a
       WHERE
         submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-        AND in_experiment(experiments, sample_id)
+        AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
     )
     WHERE
       search_engine = 'google'
