@@ -23,7 +23,7 @@ overall = [
   "adm_clicks",
   "adm_impression_rate",
   "adm_ctr",
-  "serp_impressions",
+  "serp_impressions_tagged",
   "serp_impressions_with_ads",
   "serp_has_ad_click",
   "serp_ad_clicks",
@@ -110,14 +110,14 @@ denominator = "adm_impressions"
 
 # Glean metrics: SERP
 
-[metrics.serp_impressions]
+[metrics.serp_impressions_tagged]
 select_expression = "COUNT(DISTINCT impression_id)"
 data_source = "tagged_google_serp_events"
 friendly_name = "Google SERP loads"
 description = "Tagged Google SERP page loads"
 
-[metrics.serp_impressions.statistics.bootstrap_mean]
-[metrics.serp_impressions.statistics.deciles]
+[metrics.serp_impressions_tagged.statistics.bootstrap_mean]
+[metrics.serp_impressions_tagged.statistics.deciles]
 
 [metrics.serp_impressions_with_ads]
 select_expression = "COUNT(DISTINCT IF(component is not null AND num_loaded > 0, impression_id, NULL))"
@@ -147,13 +147,13 @@ description = "Ad clicks on tagged Google SERPs"
 [metrics.serp_ad_clicks.statistics.deciles]
 
 [metrics.serp_ad_impression_rate]
-depends_on = ["serp_impressions_with_ads", "serp_impressions"]
+depends_on = ["serp_impressions_with_ads", "serp_impressions_tagged"]
 friendly_name = "SERP ad impression rate"
 description = "Proportion of tagged Google SERP page loads with loaded ads"
 
 [metrics.serp_ad_impression_rate.statistics.population_ratio]
 numerator = "serp_impressions_with_ads"
-denominator = "serp_impressions"
+denominator = "serp_impressions_tagged"
 
 [metrics.serp_ad_ctr]
 depends_on = ["serp_has_ad_click", "serp_impressions_with_ads"]
@@ -165,14 +165,14 @@ numerator = "serp_has_ad_click"
 denominator = "serp_impressions_with_ads"
 
 [metrics.serp_ad_click_rate]
-depends_on = ["serp_ad_clicks", "serp_impressions"]
+depends_on = ["serp_ad_clicks", "serp_impressions_tagged"]
 friendly_name = "SERP ad click rate"
 description = "Number of ad clicks per tagged Google SERP page load"
 exposure_basis = ["enrollments"]
 
 [metrics.serp_ad_click_rate.statistics.population_ratio]
 numerator = "serp_ad_clicks"
-denominator = "serp_impressions"
+denominator = "serp_impressions_tagged"
 
 #----------------------------------------------
 
