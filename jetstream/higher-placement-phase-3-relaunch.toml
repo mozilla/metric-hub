@@ -270,7 +270,7 @@ from_expression = """(
       , UNNEST(ad_components) a
     WHERE
       submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-      AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
+      AND mozfun.map.get_key(experiments, 'higher-placement-phase-3-relaunch') IS NOT NULL
       AND search_engine = 'google' AND is_tagged
 )"""
 client_id_column = "legacy_telemetry_client_id"
@@ -295,7 +295,7 @@ from_expression = """(
     WHERE
       is_terminal
       AND submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-      AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
+      AND mozfun.map.get_key(experiments, 'higher-placement-phase-3-relaunch') IS NOT NULL
   ),
   urlbar_with_exposed AS (
     SELECT
@@ -330,7 +330,7 @@ from_expression = """(
         , UNNEST(ad_components) a
       WHERE
         submission_date BETWEEN '2025-01-27' AND '2025-02-18'
-        AND mozfun.map.get_key(experiment, 'higher-placement-phase-3-relaunch') IS NOT NULL
+        AND mozfun.map.get_key(experiments, 'higher-placement-phase-3-relaunch') IS NOT NULL
     )
     WHERE
       search_engine = 'google'
