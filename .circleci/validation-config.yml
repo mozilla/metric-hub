@@ -127,6 +127,7 @@ jobs:
         name: Build
         command: |
           python3.10 -m venv venv/
+          venv/bin/python -m pip install --upgrade pip
           venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - run:
         name: PyTest
@@ -165,6 +166,7 @@ jobs:
           name: Build and deploy docs
           command: |
             python3.10 -m venv venv/
+            venv/bin/python -m pip install --upgrade pip
             venv/bin/pip install -r .script/requirements.txt
             venv/bin/python3 .script/generate_docs.py \
               --output_dir=generated_docs/
