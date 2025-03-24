@@ -318,7 +318,7 @@ from_expression = """(
       legacy_telemetry_client_id,
       impression_id,
       submission_date,
-      -- ANY_VALUE(experiments) AS experiments,
+      ANY_VALUE(experiments) AS experiments,
       LOGICAL_OR(component is not null AND num_loaded > 0) AS has_ads_loaded,
       LOGICAL_OR(component is not null AND num_visible > 0 AND num_clicks > 0) AS has_ad_click,
       SUM(IF(component is not null AND num_visible > 0, num_clicks, 0)) AS num_ad_clicks,
@@ -347,7 +347,7 @@ from_expression = """(
       event_timestamp,
       legacy_telemetry_client_id,
       submission_date,
-      -- experiments,
+      experiments,
       FALSE AS is_serp,
       STRUCT(
         exposed,
@@ -370,7 +370,7 @@ from_expression = """(
         event_timestamp,
         legacy_telemetry_client_id,
         submission_date,
-        -- experiments,
+        experiments,
         TRUE AS is_serp,
         NULL AS urlbar_fields,
         STRUCT(
