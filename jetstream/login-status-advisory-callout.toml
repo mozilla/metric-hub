@@ -1,3 +1,6 @@
+[experiment]
+segments = ['not_signed_into_desktop_at_start', 'signed_into_desktop_at_start']
+
 [metrics]
 weekly = ['fxa_toolbar_menu_button_users_clicks', 'fxa_configured','fxa_signed_in','fxa_avatar_menu_clicks', 'multi_device_signin' ]
 overall = ['fxa_toolbar_menu_button_users_clicks', 'fxa_configured','fxa_signed_in','fxa_avatar_menu_clicks', 'multi_device_signin' ]
@@ -42,6 +45,18 @@ data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALSE) AS int)'
 
 [metrics.multi_device_signin.statistics.binomial]
+
+[segments]
+
+[segments.not_signed_into_desktop_at_start]
+select_expression = 'COALESCE(LOGICAL_AND(sync_count_desktop_mean IS NULL), FALSE)'
+data_source = 'clients_daily'
+
+[segments.signed_into_desktop_at_start]
+select_expression = 'COALESCE(LOGICAL_OR(sync_count_desktop_mean > 0), FALSE)'
+data_source = 'clients_daily'
+
+[data_sources]
 
 [data_sources.fxa_avatar_menu_events]
 from_expression = '''(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'fxa_avatar_menu')'''
