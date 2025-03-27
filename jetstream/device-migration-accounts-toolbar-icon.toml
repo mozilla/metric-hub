@@ -47,6 +47,7 @@ select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALS
 [metrics.multi_device_signin.statistics.binomial]
 
 [segments]
+
 [segments.not_signed_into_desktop_at_start]
 select_expression = 'COALESCE(LOGICAL_AND(sync_count_desktop_mean IS NULL), FALSE)'
 data_source = 'clients_daily'
@@ -54,6 +55,8 @@ data_source = 'clients_daily'
 [segments.signed_into_desktop_at_start]
 select_expression = 'COALESCE(LOGICAL_OR(sync_count_desktop_mean > 0), FALSE)'
 data_source = 'clients_daily'
+
+[data_sources]
 
 [data_sources.fxa_avatar_menu_events]
 from_expression = '''(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'fxa_avatar_menu')'''
