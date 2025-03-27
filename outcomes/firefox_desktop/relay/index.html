@@ -1022,8 +1022,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#events-events" class="md-nav__link">
-    events- Events
+  <a href="#relay_integration_events-relay-integration-events" class="md-nav__link">
+    relay_integration_events- Relay Integration Events
   </a>
   
 </li>
@@ -2340,8 +2340,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#events-events" class="md-nav__link">
-    events- Events
+  <a href="#relay_integration_events-relay-integration-events" class="md-nav__link">
+    relay_integration_events- Relay Integration Events
   </a>
   
 </li>
@@ -2445,7 +2445,7 @@
 <p>**Relay Engagement: Relay integration autocomplete popup clicked **</p>
 <p>Number of times the Relay UI is clicked to fill in a new Relay mask</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2454,7 +2454,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'clicked'
          AND event_object = 'fill_username'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2465,7 +2464,7 @@
 <p>**Relay Engagement: Relay integration autocomplete popup shown **</p>
 <p>Number of times the Relay UI is shown to fill in a new Relay mask</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2474,7 +2473,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'shown'
          AND event_object = 'fill_username'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2485,7 +2483,7 @@
 <p>**Relay Optin: Relay optin panel disabled by client **</p>
 <p>Number of times Relay optin panel is disabled</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2494,7 +2492,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'disabled'
          AND event_object = 'opt_in_panel'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2505,7 +2502,7 @@
 <p>**Relay Optin: Relay optin panel postponed by client **</p>
 <p>Number of times Relay optin panel is postponed</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2514,7 +2511,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'postponed'
          AND event_object = 'opt_in_panel'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2525,7 +2521,7 @@
 <p>**Relay Optin: Relay optin panel enabled by client **</p>
 <p>Number of times Relay optin panel is enabled</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2534,7 +2530,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'enabled'
          AND event_object = 'opt_in_panel'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2545,7 +2540,7 @@
 <p>**Relay Optin: Relay optin panel shown to client **</p>
 <p>Number of times Relay optin panel is shown</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2554,7 +2549,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'shown'
          AND event_object = 'opt_in_panel'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2565,7 +2559,7 @@
 <p>**Relay Optin: Relay offer clicked by client **</p>
 <p>Number of times user clicked on Relay offer</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
@@ -2574,7 +2568,6 @@
 <pre><code class="language-sql">COALESCE(COUNTIF(
          event_method = 'clicked'
          AND event_object = 'offer_relay'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2585,16 +2578,15 @@
 <p>**Relay Optin: Relay offer shown to client **</p>
 <p>Number of times Relay offer is shown</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#relay_integration_events"><code>relay_integration_events</code></a></p>
 <p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">COALESCE(COUNTIF(
-         event_method= 'shown'
+         event_method = 'shown'
          AND event_object = 'offer_relay'
-         AND event_category = 'relay_integration'
       ),0)
 </code></pre>
 
@@ -2602,8 +2594,8 @@
 
 <hr />
 <h2 id="data-sources">Data Sources</h2>
-<h3 id="events-events"><a href="#events"><code>events</code>- Events</a></h3>
-<p>Events Ping</p>
+<h3 id="relay_integration_events-relay-integration-events"><a href="#relay_integration_events"><code>relay_integration_events</code>- Relay Integration Events</a></h3>
+<p>Events Ping filtered to relay_integration category</p>
 <details>
 <summary>Definition:</summary>
 
