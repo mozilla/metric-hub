@@ -1,6 +1,24 @@
 [experiment]
 enrollment_period = 14
-end_date = "2025-03-25"
+end_date = "2025-04-08"
+enrollment_query = """
+SELECT
+    e.client_id,
+    e.client_id as analysis_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN "{{experiment.start_date_str}}" AND "{{experiment.last_enrollment_date_str}}"
+    AND e.event_string_value = '{{experiment.normandy_slug}}'
+    AND `mozfun.map.get_key`(e.event_map_values, 'branch') <> 'treatment-b'
+GROUP BY e.client_id, branch
+"""
 
 [experiment.exposure_signal]
 name = "contextual_reach"
