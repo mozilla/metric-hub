@@ -1,0 +1,42 @@
+[experiment]
+end_date = "2025-03-31"
+
+[metrics]
+weekly = ['search_engine_default_change', 'non_default_search_engine_search']
+overall = ['search_engine_default_change', 'non_default_search_engine_search']
+
+
+[metrics.search_engine_default_change]
+friendly_name = "Search Engine Default Changed"
+description = "If the Search Engine Default Changed"
+select_expression = """
+      CAST(COALESCE(LOGICAL_OR(IF(event_name= 'changed' AND event_category = 'search.engine.default', TRUE, FALSE)), FALSE) AS INT)
+"""
+data_source = "glean_events_stream"
+
+[metrics.non_default_search_engine_search]
+friendly_name = "Search with Non-Default Search Engine"
+description = "If Client Searched with Non-Default Search Engine"
+select_expression = """
+      CAST(COALESCE(LOGICAL_OR(IF(metrics.string.search_engine_default_display_name != urlbar_searchmode_searchbutton_search_engine AND urlbar_searchmode_searchbutton_search_engine_search_count > 0, TRUE, FALSE)), FALSE) AS INT)
+"""
+data_source = "metrics_unnested_urlbar_searchmode_searchbutton"
+
+
+
+[metrics.search_engine_default_change.statistics.binomial]
+[metrics.non_default_search_engine_search.statistics.binomial]
+
+
+
+[data_sources.metrics_unnested_urlbar_searchmode_searchbutton]
+friendly_name = "Glean Metrics"
+description = "The Glean metrics ping"
+from_expression = """(
+    SELECT
+      p.*, u.key AS urlbar_searchmode_searchbutton_search_engine, u.value AS urlbar_searchmode_searchbutton_search_engine_search_count,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p, UNNEST(metrics.labeled_counter.urlbar_searchmode_searchbutton) u
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
