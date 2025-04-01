@@ -61,6 +61,7 @@ analysis_bases = ["enrollments"]
 
 [data_sources.ios_events]
 from_expression = """
+(
   SELECT
     client_id,
     DATE(submission_timestamp) AS submission_date,
@@ -68,6 +69,7 @@ from_expression = """
   FROM `mozdata.org_mozilla_ios_firefox.events_stream`
   WHERE event = 'share_sheet.shared_to'
     AND event_category = 'share_sheet'
+)
 """
 experiments_column_type = "none"
 analysis_units = ["client_id"]
