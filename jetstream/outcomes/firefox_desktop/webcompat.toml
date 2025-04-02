@@ -1,0 +1,70 @@
+friendly_name = "Webcompat"
+description = """
+Metrics typically influenced by webcompat-breakages.
+Currently contains ETP Disablement, URI reloads,
+webcompat reporting panel impressions,
+and webcompat reporting panel uses.
+"""
+
+[metrics.etp_disablement]
+select_expression = "COALESCE(COUNTIF(event_name  = 'click_etp_toggle_off'), 0)"
+data_source = "protections_popup_events"
+friendly_name = "ETP Disablement"
+
+[metrics.etp_disablement.statistics.bootstrap_mean]
+
+
+[metrics.uri_reloads]
+select_expression = 'COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_reload_count), 0)'
+data_source = 'main'
+friendly_name = "URI Reloads"
+
+[metrics.uri_reloads.statistics.bootstrap_mean]
+
+
+[metrics.site_breakage_impressions]
+select_expression = "COALESCE(COUNTIF(event_name = 'opened'), 0)"
+data_source = "site_breakage_events"
+friendly_name = "Webcompat Reporting Panel Impressions"
+
+[metrics.site_breakage_impressions.statistics.bootstrap_mean]
+
+[metrics.site_breakage_uses]
+select_expression = "COALESCE(COUNTIF(event_name = 'send' OR event_name = 'send_more_info'), 0)"
+data_source = "site_breakage_events"
+friendly_name = "Webcompat Reporting Panel Uses"
+
+[metrics.site_breakage_uses.statistics.bootstrap_mean]
+
+
+[data_sources.site_breakage_events]
+from_expression = """(
+    SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        ping_info.experiments AS experiments,
+        event.name AS event_name,
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'webcompatreporting'
+)"""
+experiments_column_type = "native"
+friendly_name = "Webcompat reporting tool events"
+description = "Glean events unnested, filtered to webcompat reporting tools"
+
+[data_sources.protections_popup_events]
+from_expression = """(
+    SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        ping_info.experiments AS experiments,
+        event.name AS event_name,
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'security.ui.protectionspopup'
+)"""
+experiments_column_type = "native"
+friendly_name = "Protections popup events"
+description = "Glean events unnested, filtered to protections popup events"
