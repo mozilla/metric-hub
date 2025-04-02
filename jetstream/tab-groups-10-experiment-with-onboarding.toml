@@ -1,0 +1,29 @@
+[experiment]
+end_date = "2025-04-21"
+
+[experiment.exposure_signal]
+name = "contextual_reach"
+friendly_name = "Contextual Message Eligibility"
+description = "Clients eligible to see tab groups contextual message"
+data_source = "contextual_message"
+select_expression = "COALESCE(exposure, FALSE)"
+window_start = 0
+window_end = "analysis_window_end"
+
+[data_sources.contextual_message]
+from_expression = """(
+  SELECT DISTINCT
+    CAST(submission_timestamp as DATE) as submission_date,
+    client_id,
+    TRUE as exposure
+  FROM `mozdata.telemetry.main`
+  WHERE
+    DATE(submission_timestamp) BETWEEN '2025-04-01' AND '2025-05-06'
+    AND (payload.processes.parent.scalars.browser_engagement_max_concurrent_tab_count >= 8
+        OR payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_count >= 8)
+    AND `mozfun.map.get_key`(payload.processes.parent.keyed_scalars.browser_ui_interaction_tabs_bar, 'tab-close-button') > 0
+    AND `mozfun.map.get_key`(environment.`experiments`, 'tab-groups-10-experiment-with-onboarding').branch IS NOT NULL
+)"""
+experiments_column_type = "none"
+friendly_name = "Contextual Message"
+description = "Clients eligible to see tab groups contextual message"
