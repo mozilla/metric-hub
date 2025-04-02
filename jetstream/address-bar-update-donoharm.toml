@@ -12,7 +12,7 @@ description = "If the Search Engine Default Changed"
 select_expression = """
       CAST(COALESCE(LOGICAL_OR(IF(event_name= 'changed' AND event_category = 'search.engine.default', TRUE, FALSE)), FALSE) AS INT)
 """
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_filtered"
 
 [metrics.non_default_search_engine_search]
 friendly_name = "Search with Non-Default Search Engine"
@@ -40,3 +40,14 @@ from_expression = """(
     )"""
 client_id_column = "metrics.uuid.legacy_telemetry_client_id"
 experiments_column_type = "glean"
+
+
+[data_sources.glean_events_stream_filtered]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'search.engine.default'
+)"""
+description = "Glean events_stream dataset filtered to event_category 'search.engine.default'"
+friendly_name = "Glean Events Stream filtered to event_category 'search.engine.default'"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
