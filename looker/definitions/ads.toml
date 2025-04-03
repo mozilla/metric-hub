@@ -120,7 +120,54 @@ submission_date_column = "submission_date"
 client_id_column = "NULL"
 
 [data_sources.native_desktop_ad_metrics]
-from_expression = "moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly"
+from_expression = """
+(
+  SELECT
+    submission_date,
+    spoc_id,
+    position,
+    advertiser,
+    campaign_name,
+    campaign_id,
+    title,
+    flight_id,
+    creative_type,
+    site_name,
+    zone_name,
+    country,
+    rate_type,
+    pid,
+    ad_url,
+    image_url,
+    external_param,
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom,
+    SUM(impressions) as impressions,
+    sum(clicks) as clicks,
+    SUM(dismisses) as dismisses,
+    SUM(saves) as saves,
+    SUM(spend) as spend
+  FROM `mozdata.ads.native_desktop_ad_metrics_hourly`
+  GROUP BY
+    submission_date,
+    spoc_id,
+    position,
+    advertiser,
+    campaign_name,
+    campaign_id,
+    title,
+    flight_id,
+    creative_type,
+    site_name,
+    zone_name,
+    country,
+    rate_type,
+    pid,
+    ad_url,
+    image_url,
+    external_param,
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)')
+)
+"""
 friendly_name = "Native Desktop Ads Metrics Daily"
 description = """
   Tracks Native Desktop Ad Metrics Across Days
