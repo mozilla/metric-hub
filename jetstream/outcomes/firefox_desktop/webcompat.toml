@@ -15,8 +15,8 @@ friendly_name = "ETP Disablement"
 
 
 [metrics.uri_reloads]
-select_expression = 'COALESCE(SUM(payload.processes.parent.scalars.browser_engagement_tab_reload_count), 0)'
-data_source = 'main'
+select_expression = 'COALESCE(SUM(metrics.counter.browser_engagement_tab_reload_count), 0)'
+data_source = 'metrics'
 friendly_name = "URI Reloads"
 
 [metrics.uri_reloads.statistics.bootstrap_mean]
