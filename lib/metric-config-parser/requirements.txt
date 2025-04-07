@@ -771,9 +771,9 @@ types-setuptools==76.0.0.20250313 \
     --hash=sha256:b2be66f550f95f3cad2a7d46177b273c7e9c80df7d257fa57addbbcfc8126a9e \
     --hash=sha256:bf454b2a49b8cfd7ebcf5844d4dd5fe4c8666782df1e3663c5866fd51a47460e
     # via -r requirements.in
-types-six==1.17.0.20250304 \
-    --hash=sha256:e482df1d439375f4b7c1f2540b1b8584aea82850164a296203ead4a7024fe14f \
-    --hash=sha256:eeb240f9faec63ddd0498d6c0b6abd0496b154a66f960c004d4d733cf31bb4bd
+types-six==1.17.0.20250403 \
+    --hash=sha256:0bbb20fc34a18163afe7cac70b85864bd6937e6d73413c5b8f424def28760ae8 \
+    --hash=sha256:82076f86e6e672a95adbf8b52625b1b3c72a8b9a893180344c1a02a6daabead6
     # via -r requirements.in
 types-toml==0.10.8.20240310 \
     --hash=sha256:3d41501302972436a6b8b239c850b26689657e25281b48ff0ec06345b8830331 \
