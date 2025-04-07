@@ -759,9 +759,9 @@ types-pytz==2025.1.0.20250318 \
     --hash=sha256:04dba4907c5415777083f9548693c6d9f80ec53adcaff55a38526a3f8ddcae04 \
     --hash=sha256:97e0e35184c6fe14e3a5014512057f2c57bb0c6582d63c1cfcc4809f82180449
     # via -r requirements.in
-types-pyyaml==6.0.12.20241230 \
-    --hash=sha256:7f07622dbd34bb9c8b264fe860a17e0efcad00d50b5f27e93984909d9363498c \
-    --hash=sha256:fa4d32565219b68e6dee5f67534c722e53c00d1cfc09c435ef04d7353e1e96e6
+types-pyyaml==6.0.12.20250402 \
+    --hash=sha256:652348fa9e7a203d4b0d21066dfb00760d3cbd5a15ebb7cf8d33c88a49546681 \
+    --hash=sha256:d7c13c3e6d335b6af4b0122a01ff1d270aba84ab96d1a1a1063ecba3e13ec075
     # via -r requirements.in
 types-requests==2.32.0.20250306 \
     --hash=sha256:0962352694ec5b2f95fda877ee60a159abdf84a0fc6fdace599f20acb41a03d1 \
