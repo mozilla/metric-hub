@@ -959,6 +959,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/webcompat/" class="md-nav__link">
+        Webcompat
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -2558,6 +2572,27 @@
           <li class="md-nav__item">
   <a href="#sync_to_mobile" class="md-nav__link">
     sync_to_mobile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site_breakage_impressions" class="md-nav__link">
+    site_breakage_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site_breakage_uses" class="md-nav__link">
+    site_breakage_uses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etp_disablement" class="md-nav__link">
+    etp_disablement
   </a>
   
 </li>
@@ -4827,6 +4862,27 @@
           <li class="md-nav__item">
   <a href="#sync_to_mobile" class="md-nav__link">
     sync_to_mobile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site_breakage_impressions" class="md-nav__link">
+    site_breakage_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site_breakage_uses" class="md-nav__link">
+    site_breakage_uses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etp_disablement" class="md-nav__link">
+    etp_disablement
   </a>
   
 </li>
@@ -7748,6 +7804,45 @@ a wallpaper.</p>
 
 
 <pre><code class="language-sql">LOGICAL_OR(COALESCE(sync_count_mobile_mean &gt; 0, FALSE))
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="site_breakage_impressions">site_breakage_impressions</h3>
+<p><strong>Webcompat Reporting Panel Impressions</strong></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#site_breakage_events"><code>site_breakage_events</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(event_name = 'opened'), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="site_breakage_uses">site_breakage_uses</h3>
+<p><strong>Webcompat Reporting Panel Uses</strong></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#site_breakage_events"><code>site_breakage_events</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(event_name = 'send' OR event_name = 'send_more_info'), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="etp_disablement">etp_disablement</h3>
+<p><strong>ETP Disablement</strong></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#protections_popup_events"><code>protections_popup_events</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(event_name  = 'click_etp_toggle_off'), 0)
 </code></pre>
 
 </details>

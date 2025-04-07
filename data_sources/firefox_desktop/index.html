@@ -959,6 +959,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/webcompat/" class="md-nav__link">
+        Webcompat
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1645,6 +1659,20 @@
           <li class="md-nav__item">
   <a href="#firefox_desktop_active_users_view" class="md-nav__link">
     firefox_desktop_active_users_view
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site_breakage_events" class="md-nav__link">
+    site_breakage_events
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protections_popup_events" class="md-nav__link">
+    protections_popup_events
   </a>
   
 </li>
@@ -2563,6 +2591,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#site_breakage_events" class="md-nav__link">
+    site_breakage_events
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protections_popup_events" class="md-nav__link">
+    protections_popup_events
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3081,6 +3123,52 @@
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.desktop_active_users`
     WHERE is_desktop
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="site_breakage_events"><a href="#site_breakage_events">site_breakage_events</a></h3>
+<p>Client ID column: <code>None</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        ping_info.experiments AS experiments,
+        event.name AS event_name,
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'webcompatreporting'
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="protections_popup_events"><a href="#protections_popup_events">protections_popup_events</a></h3>
+<p>Client ID column: <code>None</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        DATE(submission_timestamp) AS submission_date,
+        ping_info.experiments AS experiments,
+        event.name AS event_name,
+    FROM `mozdata.firefox_desktop.events`
+    CROSS JOIN UNNEST(events) AS event
+    WHERE
+        event.category = 'security.ui.protectionspopup'
 )
 </code></pre>
 
