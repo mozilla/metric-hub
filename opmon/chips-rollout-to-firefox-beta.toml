@@ -11,8 +11,7 @@ metrics = [
 ]
 
 [project.population]
-data_source = "metrics"
-branches = ["control"]
+data_source = "main"
 channel = "beta"
 
 [project.metric_groups.webcompat_panel]
