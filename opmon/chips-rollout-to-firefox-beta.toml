@@ -1,0 +1,24 @@
+[project]
+name = "CHIPS Beta Rollout"
+platform = "firefox_desktop"
+xaxis = "submission_date"
+is_rollout = true
+metrics = [
+    'etp_disablement',
+    'tab_reload_count',
+    'site_breakage_impressions',
+    'site_breakage_uses'
+]
+
+[project.population]
+data_source = "metrics"
+branches = ["control"]
+channel = "beta"
+
+[project.metric_groups.webcompat_panel]
+friendly_name = "Webcompat Panel"
+description = "Webcompat panel interactions"
+metrics = [
+    "site_breakage_impressions",
+    "site_breakage_uses",
+]
