@@ -22,14 +22,14 @@ metrics = [
     "site_breakage_uses",
 ]
 
-[metrics.etp_disablement.statistics.bootstrap_mean]
-[metrics.etp_disablement.statistics.deciles]
+[metrics.etp_disablement.statistics.mean]
+[metrics.etp_disablement.statistics.percentile]
 
-[metrics.tab_reload_count.statistics.bootstrap_mean]
-[metrics.tab_reload_count.statistics.deciles]
+[metrics.tab_reload_count.statistics.mean]
+[metrics.tab_reload_count.statistics.percentile]
 
-[metrics.site_breakage_impressions.statistics.bootstrap_mean]
-[metrics.site_breakage_impressions.statistics.deciles]
+[metrics.site_breakage_impressions.statistics.mean]
+[metrics.site_breakage_impressions.statistics.percentile]
 
-[metrics.site_breakage_uses.statistics.bootstrap_mean]
-[metrics.site_breakage_uses.statistics.deciles]
+[metrics.site_breakage_uses.statistics.mean]
+[metrics.site_breakage_uses.statistics.percentile]
