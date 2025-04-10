@@ -42,7 +42,7 @@ gitpython==3.1.44
     # via mozilla-metric-config-parser
 idna==3.10
     # via requests
-iniconfig==2.0.0
+iniconfig==2.1.0
     # via pytest
 isort==6.0.1
     # via mozilla-metric-config-parser
