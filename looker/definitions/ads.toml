@@ -124,7 +124,8 @@ from_expression = """
 (
   SELECT
     *,
-    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom,
+    REGEXP_EXTRACT(ad_url, r'ref=([^&]+)') AS campaign_name_custom_2
   FROM `mozdata.ads.native_desktop_ad_metrics_hourly`
 )
 """
