@@ -18,61 +18,50 @@ description = "Sum of population"
 friendly_name = "Calendar"
 description = "One row per date, with info about the year, month, quarter, day of week, day of year, etc"
 from_expression = "mozdata.external.calendar"
-submission_date_column = "submission_date"
-client_id_column = "NULL"
 
 
 [data_sources.holiday]
 friendly_name = "Holidays"
 description = "One row per date, with info about world holidays on that date"
 from_expression = "mozdata.external.holidays"
-submission_date_column = "submission_date"
-client_id_column = "NULL"
+
 
 
 [data_sources.chrome_extensions]
 friendly_name = "Chrome Extensions"
 description = "Data about extensions available on the Chrome web store"
 from_expression = "mozdata.external.chrome_extensions"
-submission_date_column = "submission_date"
-client_id_column = "NULL"
+
 
 
 [data_sources.gdp]
 friendly_name = "IMF Gross Domestic Product (GDP) by Country"
 description = "GDP data by country and year, from the IMF API"
 from_expression = "mozdata.external.gdp"
-submission_date_column = "NULL"
-client_id_column = "NULL"
+
 
 
 [data_sources.imf_exchange_rates]
 friendly_name = "IMF Exchange Rates"
 description = "Data about monetary exchange rates between various countries and the United States"
-from_expression = "mozdata.external.imf_exchange_rates"
-submission_date_column = "NULL"
-client_id_column = "NULL"
+
 
 
 [data_sources.inflation_monthly]
 friendly_name = "Inflation - Monthly"
 description = "Contains monthly inflation rate data by country from IMF, only for countries who report monthly"
 from_expression = "mozdata.external.monthly_inflation"
-submission_date_column = "NULL"
-client_id_column = "NULL"
+
 
 
 [data_sources.inflation_quarterly]
 friendly_name = "Inflation - Quarterly"
 description = "Contains quarterly inflation rate data by country from IMF, only for countries who report quarterly"
 from_expression = "mozdata.external.quarterly_inflation"
-submission_date_column = "NULL"
-client_id_column = "NULL"
+
 
 
 [data_sources.population_by_country]
 friendly_name = "Population by Country"
 description = "Population data by country pulled from the United Nations API"
 from_expression = "mozdata.external.population_by_country"
-submission_date_column = "NULL"
-client_id_column = "NULL"
