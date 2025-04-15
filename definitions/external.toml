@@ -6,7 +6,7 @@ data_source = "chrome_extensions"
 description = "Sum of number of users"
 
 
-[metrics.population]
+[metrics.population_total]
 select_expression = "SUM(population)"
 data_source = "population_by_country"
 description = "Sum of population"
