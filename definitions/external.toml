@@ -58,7 +58,7 @@ submission_date_column = NULL
 
 [data_sources.inflation_quarterly]
 friendly_name = "Inflation - Quarterly"
-description = "Contains quarterly inflation rate data by country from IMF, only for countries who report quarterly""
+description = "Contains quarterly inflation rate data by country from IMF, only for countries who report quarterly"
 from_expression = "mozdata.external.quarterly_inflation"
 submission_date_column = NULL
 
