@@ -120,7 +120,14 @@ submission_date_column = "submission_date"
 client_id_column = "NULL"
 
 [data_sources.native_desktop_ad_metrics]
-from_expression = "moz-fx-data-shared-prod.ads.native_desktop_ad_metrics_hourly"
+from_expression = """
+(
+  SELECT
+    *,
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom
+  FROM `mozdata.ads.native_desktop_ad_metrics_hourly`
+)
+"""
 friendly_name = "Native Desktop Ads Metrics Daily"
 description = """
   Tracks Native Desktop Ad Metrics Across Days
