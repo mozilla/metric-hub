@@ -1,0 +1,11 @@
+[experiment]
+[experiment.exposure_signal]
+name = "show_logins_exposure"
+friendly_name = "Logins dropdown exposure"
+description = "User exposed to logins dropdown on a login form"
+data_source = "glean_events_stream"
+select_expression = "
+   event_category = 'form_autocomplete'
+   AND event_name = 'show'
+"
+
