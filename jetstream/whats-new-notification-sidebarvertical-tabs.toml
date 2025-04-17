@@ -1,0 +1,22 @@
+
+[experiment]
+
+#segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
+segments = ["clients_last_seen.is_new_or_resurrected_v3", "clients_last_seen.activity_segments_v1"]
+
+
+[metrics]
+# Metrics to compute for each daily analysis window.
+# Defined as a list of strings. The string should be the "slug" of the metric,
+# which is the name of the metric defined in `definitions/`, or the name
+# of the metric definition section in this config file (see below).
+daily = ["notification_clicks"]
+
+# Metrics to compute for each weekly analysis window.
+weekly = ["notification_clicks"]
+
+# Metrics to compute for each 28 days long analysis window
+28_day = ["notification_clicks"]
+
+# Metrics to compute only for the overall analysis window.
+overall = ["notification_clicks"]
