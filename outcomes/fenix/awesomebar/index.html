@@ -2247,7 +2247,7 @@
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(event.category = 'awesomebar' AND event.name = 'abandonment'), 0)
+<pre><code class="language-sql">COALESCE(COUNTIF((event.category IN ('urlbar', 'awesomebar')) AND (event.name = 'abandonment')), 0)
 </code></pre>
 
 </details>
@@ -2263,7 +2263,7 @@
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(event.category = 'awesomebar' AND event.name = 'engagement'), 0)
+<pre><code class="language-sql">COALESCE(COUNTIF((event.category IN ('urlbar', 'awesomebar')) AND (event.name = 'engagement')), 0)
 </code></pre>
 
 </details>
