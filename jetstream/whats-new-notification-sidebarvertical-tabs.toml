@@ -6,17 +6,29 @@ segments = ["clients_last_seen.is_new_or_resurrected_v3", "clients_last_seen.act
 
 
 [metrics]
-# Metrics to compute for each daily analysis window.
-# Defined as a list of strings. The string should be the "slug" of the metric,
-# which is the name of the metric defined in `definitions/`, or the name
-# of the metric definition section in this config file (see below).
-daily = ["notification_clicks"]
-
 # Metrics to compute for each weekly analysis window.
-weekly = ["notification_clicks"]
+weekly = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
 
 # Metrics to compute for each 28 days long analysis window
-28_day = ["notification_clicks"]
+28_day = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
 
 # Metrics to compute only for the overall analysis window.
-overall = ["notification_clicks"]
+overall = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
+
+[metrics.avg_max_concurrent_vertical_tab_count]
+#averaging the count of maximum number of tabs with vertical tabs enabled per client_id, branch over an analysis window
+#probe:https://probes.telemetry.mozilla.org/?search=max_concurrent_vertical_tab_count&view=detail&probeId=scalar%2Fbrowser.engagement.max_concurrent_vertical_tab_count
+select_expression= AVG(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_count)
+data_source = "main"
+friendly_name = "mean of max_concurrent_vertical_tab_count"
+description = "average of maximum number of tabs with vertical tabs enabled of each day per client_id, branch over an analysis window"
+
+
+# Number of enrolled clients.
+[metrics.notification_clicks.statistics.count]
+# Number of clicks.
+[metrics.notification_clicks.statistics.sum]
+# Click through rate.
+[metrics.notification_clicks.statistics.binomial]
+# Average max number of taps opened. 
+[metrics.avg_max_concurrent_vertical_tab_count.bootstrap_mean]
