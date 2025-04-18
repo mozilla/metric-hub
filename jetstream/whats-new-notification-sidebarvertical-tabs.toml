@@ -2,7 +2,7 @@
 [experiment]
 
 #segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
-segments = ["is_new_or_resurrected_v3", "activity_segments_v1"]
+segments = ["new_or_resurrected_v3", "activity_segments_v1"]
 
 
 [metrics]
