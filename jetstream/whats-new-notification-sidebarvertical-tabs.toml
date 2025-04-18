@@ -7,7 +7,7 @@ segments = ["new_or_resurrected_v3", "regular_users_v3", "new_unique_profiles"]
 
 [metrics]
 # Metrics to compute for each weekly analysis window.
-weekly = ["notification_clicks","aused_vertical_tab"]
+weekly = ["notification_clicks","used_vertical_tab"]
 
 # Metrics to compute for each 28 days long analysis window
 28_day = ["notification_clicks","used_vertical_tab"]
