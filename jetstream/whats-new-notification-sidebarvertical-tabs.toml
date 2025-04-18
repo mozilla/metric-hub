@@ -7,7 +7,7 @@ segments = ["clients_last_seen.is_new_or_resurrected_v3", "clients_last_seen.act
 
 [metrics]
 # Metrics to compute for each weekly analysis window.
-weekly = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
+weekly = ["notification_clicks","aused_vertical_tab"]
 
 # Metrics to compute for each 28 days long analysis window
 28_day = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
