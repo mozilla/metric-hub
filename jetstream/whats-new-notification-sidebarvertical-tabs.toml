@@ -13,7 +13,7 @@ weekly = ["notification_clicks","aused_vertical_tab"]
 28_day = ["notification_clicks","used_vertical_tab"]
 
 # Metrics to compute only for the overall analysis window.
-overall = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
+overall = ["notification_clicks","used_vertical_tab"]
 
 [metrics.used_vertical_tab]
 #averaging the count of maximum number of tabs with vertical tabs enabled per client_id, branch over an analysis window
