@@ -31,4 +31,4 @@ description = "1 if the vertical tab count >0 else 0"
 # Click through rate.
 [metrics.notification_clicks.statistics.binomial]
 # Average max number of taps opened. 
-[metrics.avg_max_concurrent_vertical_tab_count.bootstrap_mean]
+[metrics.used_vertical_tab_count.binomial]
