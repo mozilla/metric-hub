@@ -15,7 +15,7 @@ weekly = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
 # Metrics to compute only for the overall analysis window.
 overall = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
 
-[metrics.avg_max_concurrent_vertical_tab_count]
+[metrics.used_vertical_tab]
 #averaging the count of maximum number of tabs with vertical tabs enabled per client_id, branch over an analysis window
 #probe:https://probes.telemetry.mozilla.org/?search=max_concurrent_vertical_tab_count&view=detail&probeId=scalar%2Fbrowser.engagement.max_concurrent_vertical_tab_count
 select_expression= "CAST(SUM(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_count ,0)) > 0 AS INT)"
