@@ -1,0 +1,5 @@
+[metrics.launched_from_notification]
+data_source = "glean_events_stream"
+select_expression = "SUM(IF(event_category = 'browser.launched_to_handle' AND event_name = 'system_notification', 1, 0)) > 1"
+
+[metrics.launched_from_notification.statistics.binomial]
