@@ -18,7 +18,7 @@ overall = ["notification_clicks","avg_max_concurrent_vertical_tab_count"]
 [metrics.avg_max_concurrent_vertical_tab_count]
 #averaging the count of maximum number of tabs with vertical tabs enabled per client_id, branch over an analysis window
 #probe:https://probes.telemetry.mozilla.org/?search=max_concurrent_vertical_tab_count&view=detail&probeId=scalar%2Fbrowser.engagement.max_concurrent_vertical_tab_count
-select_expression= "AVG(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_countwser_engagement_max_concurrent_vertical_tab_count,0))"
+select_expression= "CAST(SUM(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_count ,0)) > 0 AS INT)"
 data_source = "main"
 friendly_name = "mean of max_concurrent_vertical_tab_count"
 description = "average of maximum number of tabs with vertical tabs enabled of each day per client_id, branch over an analysis window"
