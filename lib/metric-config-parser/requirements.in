@@ -150,7 +150,7 @@ typing-extensions==4.12.2
     #   referencing
 tzdata==2025.1
     # via faker
-urllib3==2.3.0
+urllib3==2.4.0
     # via
     #   requests
     #   types-requests
