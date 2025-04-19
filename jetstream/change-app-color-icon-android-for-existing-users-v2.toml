@@ -10,7 +10,7 @@ weekly = ["app_opened", "app_icon_used"]
 overall = ["app_opened", "app_icon_used"]
 
 [metrics.app_opened]
-select_expression = "CAST(SUM(IF(event.name = "app_opened",1,0)) >0 AS INT)"
+select_expression = "CAST(SUM(IF(event.name = 'app_opened',1,0)) >0 AS INT)"
 data_source = "event"
 friendly_name = "app opened"
 description = "app opened"
