@@ -19,7 +19,7 @@ description = "app opened"
 
 [metrics.app_icon_used]
 select_expression = "CAST(SUM(IF(event.name = 'app_opened' AND STARTS_WITH(mozfun.map.get_key(event.extra,
-      'source'),'APP_ICON') ,1,0)) >0 AS INT)"
+      'source'),'APP_ICON') ,1,0)) >0 AS INT)"""
 data_source = "event"
 friendly_name = "app icon used"
 description = "app icon used to open the app"
