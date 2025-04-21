@@ -1,10 +1,6 @@
 [metrics]
 
-[metrics.billed_revenue]
-select_expression = "SUM(billed_revenue)"
-data_source = "admarketplace"
-description = "Revenue reported by Admarketplace. Will almost always have a few days of lag"
-
+### data_sources.consolidated_ads_spocs
 [metrics.spoc_impressions]
 select_expression = "SUM(impressions)"
 data_source = "consolidated_ads_spocs"
@@ -23,11 +19,11 @@ data_source = "consolidated_ads_spocs"
 friendly_name = "SPOC revenue"
 description = "Daily SPOC revenue"
 
-[metrics.billed_revenue.statistics.sum]
 [metrics.spoc_impressions.statistics.sum]
 [metrics.spoc_clicks.statistics.sum]
 [metrics.spoc_revenue.statistics.sum]
 
+### data_sources.native_desktop_ad_metrics
 [metrics.native_spend]
 select_expression = "SUM(spend)"
 data_source = "native_desktop_ad_metrics"
@@ -73,15 +69,33 @@ denominator = "native_impressions.sum"
 numerator = "native_saves.sum"
 denominator = "native_impressions.sum"
 
-[data_sources]
+### data_sources.ad_mmm_metrics_daily
+[metrics.ad_impressions]
+select_expression = "SUM(impressions)"
+data_source = "ad_mmm_metrics_daily"
+friendly_name = "Ad Impressions"
+description ="Ad impressions"
 
-[data_sources.admarketplace]
-from_expression = "mozdata.revenue.admarketplace"
-client_id_column = "NULL"
-friendly_name = "Admarketplace"
-description = "Revenue numbers reported by AMP"
-columns_as_dimensions = true
-submission_date_column = "adm_date"
+[metrics.ad_clicks]
+select_expression = "SUM(clicks)"
+data_source = "ad_mmm_metrics_daily"
+friendly_name = "Ad Clicks"
+description ="Ad impressions"
+
+[metrics.ad_spend]
+select_expression = "SUM(spend)"
+data_source = "ad_mmm_metrics_daily"
+friendly_name = "Ad Spend"
+description ="Ad spend"
+
+[metrics.ad_impressions.statistics.sum]
+[metrics.ad_clicks.statistics.sum]
+[metrics.ad_spend.statistics.sum]
+[metrics.ad_clicks.statistics.ratio]
+numerator = "ad_clicks.sum"
+denominator = "ad_impressions.sum"
+
+[data_sources]
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -131,7 +145,21 @@ from_expression = """
 """
 friendly_name = "Native Desktop Ads Metrics Daily"
 description = """
-  Tracks Native Desktop Ad Metrics Across Days
+  Tracks Native Desktop Ad Metrics Across Days.
+  Primarily used for AdOps Internal and External reporting.
+  Data in this view is only available starting on April 1, 2025.
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.ad_mmm_metrics_daily]
+from_expression = "mozdata.ads.campaign_metrics_daily"
+friendly_name = "Ad Campaign Metrics Daily (MMM)"
+description = """
+  Tracks ad metrics across days, advertisers, and campaigns, for both native and tiles.
+  Primarily used for the MMM (Mix Media Modeling) data feed product.
+  Data in this view goes back 24 months.
 """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
