@@ -1,0 +1,28 @@
+
+[metrics]
+
+weekly = ["app_opened", "app_icon_used"]
+
+# Metrics to compute for each 28 days long analysis window
+28_day = ["app_opened", "app_icon_used"]
+
+# Metrics to compute only for the overall analysis window.
+overall = ["app_opened", "app_icon_used"]
+
+[metrics.app_opened]
+select_expression = "CAST(SUM(IF(event.name = 'app_opened',1,0)) >0 AS INT)"
+data_source = "events"
+friendly_name = "app opened"
+description = "app opened"
+
+
+
+[metrics.app_icon_used]
+select_expression = """CAST(SUM(IF(event.name = 'app_opened' AND STARTS_WITH(mozfun.map.get_key(event.extra,
+      'source'),'APP_ICON') ,1,0)) >0 AS INT)"""
+data_source = "events"
+friendly_name = "app icon used"
+description = "app icon used to open the app"
+
+[metrics.app_opened.statistics.binomial]
+[metrics.app_icon_used.statistics.binomial]
