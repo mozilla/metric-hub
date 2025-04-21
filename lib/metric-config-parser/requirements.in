@@ -66,7 +66,7 @@ mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
-packaging==24.2
+packaging==25.0
     # via
     #   black
     #   pytest
