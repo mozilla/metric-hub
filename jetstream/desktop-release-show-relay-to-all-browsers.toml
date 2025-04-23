@@ -8,6 +8,6 @@ select_expression = "event_name = 'show_logins'"
 
 [data_sources]
 [data_sources.events_form_autocomplete]
-from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp), event_name FROM firefox_desktop.events_stream WHERE event_category = 'form_autocomplete')"
+from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp), event_name FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'form_autocomplete')"
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
