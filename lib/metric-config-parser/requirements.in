@@ -58,7 +58,7 @@ markupsafe==3.0.2
     # via jinja2
 mccabe==0.7.0
     # via flake8
-mozilla-nimbus-schemas==3000.0.0
+mozilla-nimbus-schemas==3001.0.0
     # via mozilla-metric-config-parser
 mypy==1.15.0
     # via mozilla-metric-config-parser
