@@ -4,9 +4,10 @@ name = "show_logins_exposure"
 friendly_name = "Logins dropdown exposure"
 description = "User exposed to logins dropdown on a login form"
 data_source = "events_form_autocomplete"
-select_expression = "event_method = 'show'"
+select_expression = "event_name = 'show_logins'"
 
 [data_sources]
 [data_sources.events_form_autocomplete]
-from_expression = "(SELECT client_id, experiments, submission_date, event_method FROM mozdata.telemetry.events WHERE event_category = 'form_autocomplete')"
-experiments_column_type = "native"
+from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp), event_name FROM firefox_desktop.events_stream WHERE event_category = 'form_autocomplete')"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
