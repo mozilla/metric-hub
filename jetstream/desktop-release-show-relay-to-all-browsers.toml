@@ -8,5 +8,5 @@ select_expression = "event_method = 'show'"
 
 [data_sources]
 [data_sources.events_form_autocomplete]
-from_expression = "mozdata.telemetry.events WHERE event_category = 'form_autocomplete'"
+from_expression = "(SELECT client_id, experiments, submission_date, event_method FROM mozdata.telemetry.events WHERE event_category = 'form_autocomplete')"
 experiments_column_type = "native"
