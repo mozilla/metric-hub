@@ -3,5 +3,11 @@
 name = "show_logins_exposure"
 friendly_name = "Logins dropdown exposure"
 description = "User exposed to logins dropdown on a login form"
-data_source = "glean_events_stream"
-select_expression = "event_category = 'form_autocomplete' AND event_name = 'show'"
+data_source = "events_form_autocomplete"
+select_expression = "event_name = 'show_logins'"
+
+[data_sources]
+[data_sources.events_form_autocomplete]
+from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp) AS submission_date, event_name FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'form_autocomplete')"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
