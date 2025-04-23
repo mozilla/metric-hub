@@ -1996,8 +1996,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2017,8 +2017,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -2254,8 +2254,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2275,8 +2275,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -2374,9 +2374,9 @@
 </details>
 
 <hr />
-<h4 id="days_of_use"><code>days_of_use</code></h4>
-<p><strong>Days of use</strong></p>
-<p>The number of days in an observation window that clients used the browser.</p>
+<h4 id="active_hours"><code>active_hours</code></h4>
+<p><strong>Active Hours</strong></p>
+<p>Total time Firefox was active</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>mean</code></p>
@@ -2384,7 +2384,7 @@
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
+<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
 </code></pre>
 
 </details>
@@ -2423,9 +2423,9 @@ partner tag.</p>
 </details>
 
 <hr />
-<h4 id="active_hours"><code>active_hours</code></h4>
-<p><strong>Active Hours</strong></p>
-<p>Total time Firefox was active</p>
+<h4 id="days_of_use"><code>days_of_use</code></h4>
+<p><strong>Days of use</strong></p>
+<p>The number of days in an observation window that clients used the browser.</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>mean</code></p>
@@ -2433,7 +2433,7 @@ partner tag.</p>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
+<pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
 </code></pre>
 
 </details>
@@ -2461,7 +2461,7 @@ partner tag.</p>
 <p>The number of days in an observation window that clients used the browser.</p>
 <p>Analysis Periods:  <code>overall</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>empirical_cdf</code>, <code>bootstrap_mean</code>, <code>deciles</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>empirical_cdf</code>, <code>deciles</code></p>
 <details>
 <summary>Definition:</summary>
 
