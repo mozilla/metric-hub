@@ -3,5 +3,10 @@
 name = "show_logins_exposure"
 friendly_name = "Logins dropdown exposure"
 description = "User exposed to logins dropdown on a login form"
-data_source = "glean_events_stream"
-select_expression = "event_category = 'form_autocomplete' AND event_name = 'show'"
+data_source = "events_form_autocomplete"
+select_expression = "event_method = 'show'"
+
+[data_sources]
+[data_sources.events_form_autocomplete]
+from_expression = "mozdata.telemetry.events WHERE event_category = 'form_autocomplete'"
+experiments_column_type = "native"
