@@ -6,8 +6,162 @@ description = "User exposed to logins dropdown on a login form"
 data_source = "events_form_autocomplete"
 select_expression = "event_name = 'show_logins'"
 
+[metrics]
+[metrics.relay_integration_shown_relay_offer]
+friendly_name = "Relay Optin: Relay offer shown to client"
+description = "Number of times Relay offer is shown"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'shown'
+         AND event_object = 'offer_relay'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_clicked_relay_offer]
+friendly_name = "Relay Optin: Relay offer clicked by client"
+description = "Number of times user clicked on Relay offer"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'clicked'
+         AND event_object = 'offer_relay'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_shown_opt_in_panel]
+friendly_name = "Relay Optin: Relay optin panel shown to client"
+description = "Number of times Relay optin panel is shown"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'shown'
+         AND event_object = 'opt_in_panel'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_enabled_opt_in_panel]
+friendly_name = "Relay Optin: Relay optin panel enabled by client"
+description = "Number of times Relay optin panel is enabled"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'enabled'
+         AND event_object = 'opt_in_panel'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_postponed_opt_in_panel]
+friendly_name = "Relay Optin: Relay optin panel postponed by client"
+description = "Number of times Relay optin panel is postponed"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'postponed'
+         AND event_object = 'opt_in_panel'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_disabled_opt_in_panel]
+friendly_name = "Relay Optin: Relay optin panel disabled by client"
+description = "Number of times Relay optin panel is disabled"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'disabled'
+         AND event_object = 'opt_in_panel'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_shown_fill_username]
+friendly_name = "Relay Engagement: Relay integration autocomplete popup shown"
+description = "Number of times the Relay UI is shown to fill in a new Relay mask"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'shown'
+         AND event_object = 'fill_username'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_integration_clicked_fill_username]
+friendly_name = "Relay Engagement: Relay integration autocomplete popup clicked"
+description = "Number of times the Relay UI is clicked to fill in a new Relay mask"
+select_expression = """
+      COALESCE(COUNTIF(
+         event_method = 'clicked'
+         AND event_object = 'fill_username'
+      ),0)
+"""
+data_source = "relay_integration_events"
+statistics = { linear_model_mean = {} }
+
+[metrics.relay_optin_rate]
+description = "Relay optin panel enabled by client / Relay optin panel shown to client "
+friendly_name = "Relay Optin: Relay Optin Rate"
+depends_on = [
+      "relay_integration_enabled_opt_in_panel",
+      "relay_integration_shown_opt_in_panel",
+]
+
+[metrics.relay_optin_rate.statistics.population_ratio]
+numerator = "relay_integration_enabled_opt_in_panel"
+denominator = "relay_integration_shown_opt_in_panel"
+
+[metrics.relay_optin_disabled_rate]
+description = "Relay optin panel disabled by client / Relay optin panel shown to client "
+friendly_name = "Relay Optin: Relay Optin disabled Rate"
+depends_on = [
+      "relay_integration_disabled_opt_in_panel",
+      "relay_integration_shown_opt_in_panel",
+]
+
+[metrics.relay_optin_disabled_rate.statistics.population_ratio]
+numerator = "relay_integration_disabled_opt_in_panel"
+denominator = "relay_integration_shown_opt_in_panel"
+
+[metrics.relay_offer_ctr]
+description = "Relay offer clicked by client / Relay offer shown to client"
+friendly_name = "Relay Optin: CTR on the Relay mask offer"
+depends_on = [
+      "relay_integration_clicked_relay_offer",
+      "relay_integration_shown_relay_offer",
+]
+
+[metrics.relay_offer_ctr.statistics.population_ratio]
+numerator = "relay_integration_clicked_relay_offer"
+denominator = "relay_integration_shown_relay_offer"
+
+[metrics.fill_username_ctr]
+description = "relay_integration_clicked_fill_username / relay_integration_shown_fill_username"
+friendly_name = "Relay Engagement: CTR on the Relay fill_username"
+depends_on = [
+      "relay_integration_clicked_fill_username",
+      "relay_integration_shown_fill_username",
+]
+
+[metrics.fill_username_ctr.statistics.population_ratio]
+numerator = "relay_integration_clicked_fill_username"
+denominator = "relay_integration_shown_fill_username"
+
 [data_sources]
 [data_sources.events_form_autocomplete]
 from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp) AS submission_date, event_name FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'form_autocomplete')"
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.relay_integration_events]
+from_expression = """(
+      SELECT * FROM `mozdata.telemetry.events`
+      WHERE event_category = 'relay_integration'
+)"""
+experiments_column_type = "native"
+friendly_name = "Relay Integration Events"
+description = "Events Ping filtered to relay_integration category"
