@@ -351,7 +351,7 @@ class TestAnalysisSpec:
             AnalysisBasis.ENROLLMENTS,
             AnalysisBasis.EXPOSURES,
         ]
-        assert spam.metric.analysis_units == [AnalysisUnit.CLIENT]
+        assert spam.metric.analysis_units == [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
         assert spam.statistic.name == "bootstrap_mean"
         assert spam.statistic.params["num_samples"] == 100
 
@@ -788,10 +788,10 @@ class TestAnalysisSpec:
         metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
             0
         ].metric
-        assert metric.analysis_units == [AnalysisUnit.CLIENT]
+        assert metric.analysis_units == [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
 
         data_source = metric.data_source
-        assert data_source.analysis_units == [AnalysisUnit.CLIENT]
+        assert data_source.analysis_units == [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
 
     def test_no_override_defined_analysis_units_with_defaults(self, experiments, config_collection):
         # ensure the resolve function does not override
