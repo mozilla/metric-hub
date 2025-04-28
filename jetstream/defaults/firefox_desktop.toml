@@ -13,6 +13,8 @@ weekly = [
   "qualified_cumulative_days_of_use",
   "is_default_browser",
   "client_level_daily_active_users_v1",
+  "sponsored_pocket_ctr",
+  "sponsored_tile_ctr"
 ]
 
 overall = [
@@ -28,6 +30,7 @@ overall = [
   "qualified_cumulative_days_of_use",
   "is_default_browser",
   "client_level_daily_active_users_v1",
+  ""
 ]
 
 week_preenrollment = [
