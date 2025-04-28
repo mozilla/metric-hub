@@ -1,0 +1,29 @@
+[experiment]
+[experiment.exposure_signal]
+description = "Exposure events from the messaging feature"
+name = "saw_message"
+friendly_name = "Saw Message"
+select_expression = """(
+    COALESCE(feature = 'featureCallout', false)
+)"""
+data_source = "exposure_events"
+window_start = 0
+window_end = 7
+
+[data_sources]
+[data_sources.exposure_events]
+from_expression = """(
+  SELECT
+      client_id,
+      `mozfun.map.get_key`(event_map_values, 'branchSlug') AS branch,
+      `mozfun.map.get_key`(event_map_values, 'featureId') AS feature,
+      submission_date
+  FROM
+      `moz-fx-data-shared-prod.telemetry.events`
+  WHERE
+      event_category = 'normandy'
+      AND (event_method = 'exposure' OR event_method = 'expose')
+      AND submission_date >= '2024-11-14'
+      AND event_string_value = 'onboarding-set-up-checklist-windows'
+)
+"""

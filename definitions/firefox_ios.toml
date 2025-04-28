@@ -51,13 +51,13 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.daily_active_users_v2]
-data_source = "active_users_aggregates_v1"
+data_source = "firefox_ios_active_users_aggregates_view"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Firefox iOS DAU"
 description = """
     This is the official DAU reporting definition. The logic is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/mobile_query.sql)
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     Whenever possible, this is the preferred DAU reporting definition to use for Firefox iOS.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
@@ -82,7 +82,7 @@ description = """
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
 
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
@@ -110,8 +110,22 @@ For more information, refer to [the DAU description in Confluence](https://mozil
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
-deprecated = false
+deprecated = true
 
+[metrics.client_level_daily_active_users_v3]
+friendly_name = "Firefox iOS Client-Level DAU"
+data_source = "firefox_ios_active_users_view"
+select_expression = """COUNTIF(is_dau)"""
+type = "scalar"
+description = """
+    Client-level DAU. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
+    similar to a "days of use" metric, and not DAU.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
 
 ## search metrics
 
@@ -133,6 +147,15 @@ owner = "xluo-all@mozilla.com"
 friendly_name = "Organic Ad Click Count"
 description = "Total number of Organic Ad Click Counts"
 select_expression = "{{agg_sum('ad_click_organic')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
+[metrics.searches_with_ads_organic]
+friendly_name = "Organic Search With Ads Count"
+description = "Total number of Organic Search With Ads Counts"
+select_expression = "{{agg_sum('search_with_ads_organic')}}"
 data_source = "mobile_search_clients_engines_sources_daily"
 category = "search"
 type = "scalar"
@@ -250,7 +273,7 @@ description = "Number of times Contile Sponsored Tiles setting is flipped."
 owner = "xluo-all@mozilla.com"
 
 [metrics.new_profile_activation]
-select_expression = "COALESCE(SUM(activated))"
+select_expression = "COUNTIF(is_activated)"
 data_source = "new_profile_activation"
 friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
@@ -315,12 +338,12 @@ deprecated = false
 
 [metrics.funnel_new_profiles]
 data_source = "funnel_retention"
-select_expression = "SUM(new_profiles)"
+select_expression = "SUM(new_profiles_metric_date)"
 type = "scalar"
 friendly_name = "Firefox iOS funnel new profiles"
 description = """
     This is the total number of new profiles created on a given date. We only count new profiles that came via release channel and we also filter out app version 107.2  data that was recieved after February 1st. The etl of the base table is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql).
     This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".
 """
@@ -329,12 +352,12 @@ deprecated = false
 
 [metrics.repeat_users]
 data_source = "funnel_retention"
-select_expression = "SUM(repeat_user)"
+select_expression = "SUM(repeat_profiles)"
 type = "scalar"
 friendly_name = "Firefox iOS funnel repeat users"
 description = """
     This is the total number of new profiles that visited more than once within their first 28 days. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql).
     This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".
 """
@@ -348,17 +371,80 @@ type = "scalar"
 friendly_name = "Firefox iOS funnel week 4 retained users"
 description = """
     This is the total number of new profiles that returned between between day 22 to day 28 after first seen. All the filters applied to new profile counts is applied to this calculation. The etl of the base table is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/funnel_retention_week_4_v1/query.sql).
+    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql).
     This metric needs to be aggregated by `first_seen_date` for daily aggregation. The underlying table have a lag of 28 days, this means the most recent completed first seen date will be 28 days from current date.
     For questions please contact "rbaffourawuah@mozilla.com".
 """
 owner = "rbaffourawuah@mozilla.com"
 deprecated = false
 
+[metrics.engagement_rate_v1]
+friendly_name = "Firefox iOS Engagement Rate"
+data_source = "firefox_ios_engagement_view"
+select_expression = "SUM(dau) / SUM(mau)"
+type = "scalar"
+description = """
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.retention_rate_v1]
+friendly_name = "Firefox iOS Retention Rate"
+data_source = "firefox_ios_retention_view"
+select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
+type = "scalar"
+description = """
+    The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.new_profile_retention_rate_v1]
+friendly_name = "Firefox iOS New Proflie Retention Rate"
+data_source = "firefox_ios_retention_view"
+select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
+type = "scalar"
+description = """
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.firefox_ios_share_button_tapped]
+friendly_name = "Firefox iOS toolbar share button tapped"
+data_source = "events"
+select_expression = """
+  COALESCE(SUM(CASE WHEN
+          event.category = 'toolbar'
+          AND event.name = 'share_button_tapped'
+	THEN 1 ELSE 0 END
+  ),0)
+"""
+description = "Number of times the toolbar share button is tapped."
+owner = "loines@mozilla.com"
+type = "scalar"
+deprecated = false
+
+[metrics.firefox_ios_page_action_menu_share_page_with]
+friendly_name = "Share page button in page action menu tapped"
+data_source = "metrics"
+select_expression = """
+    COALESCE(SUM(metrics.counter.page_action_menu_share_page_with), 0) 
+"""
+description = "Number of times Share page button in page action menu is tapped."
+owner = "loines@mozilla.com"
+type = "scalar"
+deprecated = false
 
 [data_sources]
 
-[data_sources.active_users_aggregates_v1]
+[data_sources.firefox_ios_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
@@ -441,7 +527,7 @@ client_id_column = "client_id"
 submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
-from_expression = "`moz-fx-data-shared-prod.firefox_ios.new_profile_activation`"
+from_expression = "`mozdata.firefox_ios.new_profile_activation_clients`"
 experiments_column_type = "none"
 
 [data_sources.special_onboarding_events]
@@ -511,13 +597,52 @@ friendly_name = "Appstore Funnel Metrics"
 description = "Top of the funnel metrics pulled from appstore api"
 submission_date_column = "submission_date"
 client_id_column = "NULL"
+columns_as_dimensions = true
 
 [data_sources.funnel_retention]
 from_expression = """(
     SELECT *
-     FROM `mozdata.firefox_ios.funnel_retention_week_4`
+    FROM `mozdata.firefox_ios.retention`
+    WHERE metric_date = first_seen_date
 )"""
 friendly_name = "iOS Funnel Retention Metrics"
 description = "Bottom of the funnel metrics pulled from clients telemetry table"
-submission_date_column = "submission_date"
+submission_date_column = "metric_date"
 client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.firefox_ios_engagement_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_ios.engagement`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Firefox iOS Engagement"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.firefox_ios_retention_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_ios.retention`
+    WHERE is_mobile
+)"""
+submission_date_column = "metric_date"
+description = "Aggregated 4th Week Retention Outcomes of Firefox iOS New and Existing Users."
+friendly_name = "Firefox iOS Retention"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.firefox_ios_active_users_view]
+friendly_name = "Firefox iOS Active Users"
+description = "Client-level table that indicates whether a client meets 'active user' criteria on a given submission_date."
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_ios.active_users`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+deprecated = false

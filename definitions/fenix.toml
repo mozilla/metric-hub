@@ -38,13 +38,13 @@ owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
 [metrics.daily_active_users_v2]
-data_source = "active_users_aggregates_v1"
+data_source = "fenix_active_users_aggregates_view"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Fenix DAU"
 description = """
     This is the official DAU reporting definition. The logic is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/blob/main/sql_generators/active_users/templates/mobile_query.sql)
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     Whenever possible, this is the preferred DAU reporting definition to use for Fenix.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
@@ -69,7 +69,7 @@ description = """
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
 
-    For more information, refer to [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
@@ -93,8 +93,23 @@ description = """
     needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
     similar to a "days of use" metric, and not DAU.
 
-For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
     For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = true
+
+[metrics.client_level_daily_active_users_v3]
+friendly_name = "Fenix Client-Level DAU"
+data_source = "fenix_active_users_view"
+select_expression = """COUNTIF(is_dau)"""
+type = "scalar"
+description = """
+    Client-level DAU. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
+    similar to a "days of use" metric, and not DAU.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
@@ -279,6 +294,15 @@ category = "search"
 type = "scalar"
 owner = "xluo-all@mozilla.com"
 
+[metrics.searches_with_ads_organic]
+friendly_name = "Organic Search With Ads Count"
+description = "Total number of Organic Search With Ads Counts"
+select_expression = "{{agg_sum('search_with_ads_organic')}}"
+data_source = "mobile_search_clients_engines_sources_daily"
+category = "search"
+type = "scalar"
+owner = "xluo-all@mozilla.com"
+
 [metrics.search_count]
 friendly_name = "SAP searches"
 description = """
@@ -404,7 +428,7 @@ description = "Number of times Contile Sponsored Tiles setting is flipped."
 owner = "xluo-all@mozilla.com"
 
 [metrics.new_profile_activation]
-select_expression = "COALESCE(SUM(activated))"
+select_expression = "COUNTIF(is_activated)"
 data_source = "new_profile_activation"
 friendly_name = "New Profile Activation"
 description = "A new profile is counted as activated one week after creation if it meets the following conditions: 1) at least 3 days of use during first week 2) at least one search between days 4-7."
@@ -419,28 +443,28 @@ owner = "loines@mozilla.com"
 
 [metrics.turn_on_notifications_ctr_onboarding]
 select_expression = "COALESCE(SUM(turn_on_notifications_flag))"
-data_source = "special_onboarding_events"
+data_source = "special_onboarding_events_v2"
 friendly_name = "Turn on Notification Click"
 description = "This metric looks at proportion of all new profiles that were exposed to the turn on notification card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.set_to_default_ctr_onboarding]
 select_expression = "COALESCE(SUM(set_to_default_flag))"
-data_source = "special_onboarding_events"
+data_source = "special_onboarding_events_v2"
 friendly_name = "Set to Default Click"
 description = "This metric looks at proportion of all new profiles that were exposed to the set to default card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.sign_in_ctr_onboarding]
 select_expression = "COALESCE(SUM(sign_in_flag))"
-data_source = "special_onboarding_events"
+data_source = "special_onboarding_events_v2"
 friendly_name = "Sign in Click"
 description = "This metric looks at proportion of all new profiles that were exposed to the sign-in card and clicked the action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
 
 [metrics.at_least_1_cta_ctr_onboarding]
 select_expression = "COALESCE(SUM(at_least_1_cta))"
-data_source = "special_onboarding_events"
+data_source = "special_onboarding_events_v2"
 friendly_name = "Clicked at least one CTA"
 description = "This metric looks at proportion of all new profiles that were exposed to onboarding cards and clicked at least one action during on-boarding."
 owner = "rbaffourawuah@mozilla.com"
@@ -473,9 +497,47 @@ friendly_name = "Deleted Bookmarks Users"
 description = "Number of Users that Deleted Bookmarks"
 owner = "rzhao@mozilla.com"
 
+[metrics.engagement_rate_v1]
+friendly_name = "Fenix Engagement Rate"
+data_source = "fenix_engagement_view"
+select_expression = "SUM(dau) / SUM(mau)"
+type = "scalar"
+description = """
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.retention_rate_v1]
+friendly_name = "Fenix Retention Rate"
+data_source = "fenix_retention_view"
+select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
+type = "scalar"
+description = """
+    The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.new_profile_retention_rate_v1]
+friendly_name = "Fenix New Proflie Retention Rate"
+data_source = "fenix_retention_view"
+select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
+type = "scalar"
+description = """
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
 [data_sources]
 
-[data_sources.active_users_aggregates_v1]
+[data_sources.fenix_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
@@ -558,7 +620,7 @@ client_id_column = "client_id"
 submission_date_column = "submission_date"
 
 [data_sources.new_profile_activation]
-from_expression = "`moz-fx-data-shared-prod.fenix.new_profile_activation`"
+from_expression = "`moz-fx-data-shared-prod.fenix.new_profile_activation_clients`"
 experiments_column_type = "none"
 
 [data_sources.special_onboarding_events]
@@ -614,6 +676,57 @@ GROUP BY 1, 2, 3, 4, 5, 6
 """
 experiments_column_type = "none"
 
+[data_sources.special_onboarding_events_v2]
+from_expression = """(
+SELECT
+    expo.submission_date
+    , expo.client_id
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) then 1
+           when (coalesce(conv.set_to_default, 0) = 0 AND expo.set_to_default_card >= 1) then 0 else null end as set_to_default_flag
+    , case when (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) then 1
+           when (coalesce(conv.turn_on_notifications, 0) = 0 AND expo.turn_on_notifications_card >= 1) then 0 else null end as turn_on_notifications_flag
+    , case when (conv.sign_in >= 1 AND expo.sign_in_card >= 1) then 1
+           when (coalesce(conv.sign_in,0) = 0 AND expo.sign_in_card >= 1) then 0 else null end as sign_in_flag
+    , case when (conv.set_to_default >= 1 AND expo.set_to_default_card >= 1) OR (conv.turn_on_notifications >= 1 AND expo.turn_on_notifications_card >= 1) OR (conv.sign_in >= 1 AND expo.sign_in_card >= 1)then 1
+           when (coalesce(conv.set_to_default, 0) = 0 AND coalesce(conv.turn_on_notifications, 0) = 0 AND coalesce(conv.sign_in,0) = 0)  AND (set_to_default_card >= 1 OR turn_on_notifications_card >= 1 OR sign_in_card >= 1) then 0 else null end as at_least_1_cta
+
+FROM (
+      SELECT
+            client_id as client_id
+            , min(DATE(submission_timestamp)) as submission_date
+            , count(case when event_name = "set_to_default_card" then DATE(submission_timestamp) END) as set_to_default_card
+            , count(case when event_name = "turn_on_notifications_card" then DATE(submission_timestamp) END) as turn_on_notifications_card
+            , count(case when event_name = "sign_in_card" then DATE(submission_timestamp) END) as sign_in_card
+      FROM
+        `mozdata.org_mozilla_firefox.events_stream` tm
+
+      WHERE event_category = "onboarding"
+        AND JSON_VALUE(event_extra, "$.action") = 'impression'
+        AND event_name in ("set_to_default_card", "turn_on_notifications_card", "sign_in_card")
+      AND DATE(submission_timestamp) >= "2023-01-01"
+      GROUP BY 1
+      ) expo
+LEFT JOIN (
+  SELECT
+      client_id as client_id
+            , count(case when event_name = "set_to_default" then DATE(submission_timestamp) END) as set_to_default
+            , count(case when event_name = "turn_on_notifications" then DATE(submission_timestamp) END) as turn_on_notifications
+            , count(case when event_name = "sign_in" then DATE(submission_timestamp) END) as sign_in
+  FROM
+    `mozdata.org_mozilla_firefox.events_stream` tm
+
+  WHERE event_category = "onboarding" 
+    AND JSON_QUERY(event_extra, "$.action") IS NOT NULL
+    AND event_name in  ("set_to_default", "turn_on_notifications", "sign_in")
+  AND DATE(submission_timestamp) >= "2023-01-01"
+  GROUP BY 1
+) conv
+ON expo.client_id = conv.client_id
+GROUP BY 1, 2, 3, 4, 5, 6
+)
+"""
+experiments_column_type = "none"
+
 
 [data_sources.feature_usage_metrics_v1]
 from_expression = """(
@@ -633,3 +746,39 @@ from_expression = """(
 client_id_column = "NULL"
 friendly_name = "Feature Usage Metrics"
 description = "Fenix feature usage metrics"
+
+[data_sources.fenix_engagement_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.fenix.engagement`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Fenix Engagement"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.fenix_retention_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.fenix.retention`
+    WHERE is_mobile
+)"""
+submission_date_column = "metric_date"
+description = "Aggregated 4th Week Retention Outcomes of Fenix New and Existing Users."
+friendly_name = "Fenix Retention"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.fenix_active_users_view]
+friendly_name = "Fenix Active Users"
+description = "Client-level table that indicates whether a client meets 'active user' criteria on a given submission_date."
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.fenix.active_users`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+deprecated = false

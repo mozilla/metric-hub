@@ -1,43 +1,80 @@
 [metrics]
 
 [metrics.mobile_daily_active_users_v1]
-data_source = "mobile_active_users_aggregates_v1"
+data_source = "mobile_active_users_aggregates_view"
 select_expression = "SUM(dau)"
 type = "scalar"
 friendly_name = "Mobile DAU"
 description = """
     This is the official DAU reporting definition. The logic is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/tree/main/sql_generators/active_users/templates)
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     Whenever possible, this is the preferred DAU reporting definition to use for Mobile products.
     This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`,
     it is similar to a "days of use" metric, and not DAU.
-    
-    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
-    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
+level = "silver"
 
 [metrics.mobile_dau_kpi_v1]
-data_source = "mobile_active_users_aggregates_v1"
+data_source = "mobile_active_users_aggregates_view"
 select_expression = "SUM(IF(FORMAT_DATE('%m-%d', submission_date) BETWEEN '11-18' AND '12-15', dau, 0)) / 28"
 type = "scalar"
 friendly_name = "Mobile DAU KPI"
 description = """
-    The average [Mobile DAU](https://mozilla.github.io/metric-hub/metrics/multi_product/#mobile_daily_active_users) in the 28-day period ending on December 15th. This is the official
-    Mobile DAU KPI reporting definition. The logic for calculating DAU is
-    [defined in `bigquery-etl`](https://github.com/mozilla/bigquery-etl/tree/main/sql_generators/active_users/templates)
+    The average [Mobile DAU](https://mozilla.acryl.io/glossaryTerm/urn:li:glossaryTerm:Metric%20Hub.multi_product.mobile_daily_active_users_v1/Documentation?is_lineage_mode=false)
+    in the 28-day period ending on December 15th. This is the official Mobile DAU KPI reporting definition. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
     and is automatically cross-checked, actively monitored, and change controlled.
     To reconstruct the annual Mobile DAU KPI, this metric needs to be aggregated by
-    `EXTRACT(YEAR FROM submission_date)`.  
-
-    For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
-    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+    `EXTRACT(YEAR FROM submission_date)`.
 """
 category = "KPI"
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
+level = "silver"
+
+[metrics.mobile_engagement_rate_v1]
+friendly_name = "Mobile Engagement Rate"
+data_source = "mobile_engagement_view"
+select_expression = "SUM(dau) / SUM(mau)"
+type = "scalar"
+description = """
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+level = "bronze"
+
+[metrics.mobile_retention_rate_v1]
+friendly_name = "Mobile Retention Rate"
+data_source = "mobile_retention_view"
+select_expression = "SUM(retained_week_4) / SUM(active_metric_date)"
+type = "scalar"
+description = """
+    The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+level = "bronze"
+
+[metrics.mobile_new_profile_retention_rate_v1]
+friendly_name = "Mobile New Proflie Retention Rate"
+data_source = "mobile_retention_view"
+select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
+type = "scalar"
+description = """
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    More information is provided on the
+    [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
+"""
+owner = ["vsabino@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+level = "bronze"
 
 ##### search revenue forecasting metrics
 
@@ -95,11 +132,21 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.search_forecasting_revenue_per_ad_click]
+data_source = "search_revenue_levers_monthly"
+select_expression = "SUM(revenue)/ SUM(ad_click)"
+friendly_name = "Revenue per Ad Click"
+description = """
+    Revenue paid to Mozilla per Ad Click.
+"""
+category = "search"
+type = "scalar"
+
 ######
 
 [data_sources]
 
-[data_sources.mobile_active_users_aggregates_v1]
+[data_sources.mobile_active_users_aggregates_view]
 from_expression = """(
     SELECT *
      FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
@@ -113,6 +160,35 @@ client_id_column = "NULL" # this table doesn't include client_id, and we don't n
 [data_sources.search_revenue_levers_daily]
 from_expression = "mozdata.search.search_revenue_levers_daily"
 submission_date_column = "submission_date"
-friendly_name = "Search Clients Engines Sources Daily"
-description = "Search Clients Engines Sources Daily"
-client_id_column = "NULL"                                      # aggregated by submission_date, partner, device, channel, country
+friendly_name = "Search Revenue Levers Daily"
+description = "Search Revenue Levers Daily"
+client_id_column = "NULL"  # aggregated by submission_date, partner, device, channel, country
+
+[data_sources.search_revenue_levers_monthly]
+from_expression = "mozdata.revenue.search_revenue_levers_monthly"
+submission_date_column = "submission_month"
+friendly_name = "Search Revenue Levers Monthly"
+description = "Search Revenue Levers Monthly"
+client_id_column = "NULL"  # aggregated by submission_month, partner, device, country
+
+[data_sources.mobile_engagement_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.mobile_engagement`
+    WHERE is_mobile
+)"""
+submission_date_column = "submission_date"
+description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
+friendly_name = "Mobile Engagement"
+client_id_column = "NULL"
+
+[data_sources.mobile_retention_view]
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.mobile_retention`
+    WHERE is_mobile
+)"""
+submission_date_column = "metric_date"
+description = "Aggregated 4th Week Retention Outcomes of Mobile New and Existing Users."
+friendly_name = "Mobile Retention"
+client_id_column = "NULL"

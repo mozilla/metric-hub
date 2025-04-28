@@ -1,0 +1,3 @@
+[project]
+# skip for now due to naming, Looker doesn't support tables starting with number
+skip = true

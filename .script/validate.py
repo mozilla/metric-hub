@@ -17,6 +17,10 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Any
+import google.auth
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.oauth2.id_token import fetch_id_token
+from urllib.request import Request, urlopen
 
 import click
 import requests
@@ -32,8 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 DRY_RUN_URL = (
-    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/"
-    "bigquery-etl-dryrun"
+    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
 )
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -57,12 +60,36 @@ class DryRunFailedError(Exception):
 def dry_run_query(sql: str) -> None:
     """Dry run the provided SQL query."""
     try:
-        r = requests.post(
-            DRY_RUN_URL,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"dataset": "mozanalysis", "query": sql}).encode("utf8"),
+        auth_req = GoogleAuthRequest()
+        creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
         )
-        response = r.json()
+        creds.refresh(auth_req)
+        if hasattr(creds, "id_token"):
+            # Get token from default credentials for the current environment created via Cloud SDK run
+            id_token = creds.id_token
+        else:
+            # If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set to service account JSON file,
+            # then ID token is acquired using this service account credentials.
+            id_token = fetch_id_token(auth_req, DRY_RUN_URL)
+
+        r = urlopen(
+            Request(
+                DRY_RUN_URL,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {id_token}",
+                },
+                data=json.dumps(
+                    {
+                         "dataset": "mozanalysis",
+                        "query": sql,
+                    }
+                ).encode("utf8"),
+                method="POST",
+            )
+        )
+        response = json.load(r)
     except Exception as e:
         # This may be a JSONDecode exception or something else.
         # If we got a HTTP exception, that's probably the most interesting thing to raise.
@@ -196,7 +223,7 @@ def validate(path, config_repos):
                                 segments=[],
                                 segment_data_sources=[],
                                 data_sources={
-                                    name: d.resolve(None)
+                                    name: d.resolve(entity.spec, entity, config_collection)
                                     for name, d in data_sources.items()
                                 },
                             )
@@ -225,7 +252,7 @@ def validate(path, config_repos):
                             segments=segment_definitions.values(),
                             segment_data_sources=entity.spec.segments.data_sources,
                             data_sources={
-                                name: d.resolve(None)
+                                name: d.resolve(None, entity, config_collection)
                                 for name, d in entity.spec.data_sources.definitions.items()
                             },
                         )

@@ -1,0 +1,16 @@
+friendly_name = "Outcome with parameter same across all branches"
+description = "Outcome that has a parameter that is the same across all branches"
+default_metrics = ["sample_id_count"]
+
+[metrics.sample_id_count]
+data_source = "main"
+select_expression = "COUNTIF(sample_id = {{ parameters.id }})"
+
+[metrics.sample_id_count.statistics.bootstrap_mean]
+
+[parameters.id]
+friendly_name = "Some random ID"
+description = "A random ID used to count samples"
+distinct_by_branch = true
+
+default.branch_1 = 1

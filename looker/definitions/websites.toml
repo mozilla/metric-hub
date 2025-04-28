@@ -1,0 +1,27 @@
+[data_sources]
+
+[data_sources.www_site_landing_page_metrics]
+from_expression = """
+(
+  SELECT
+    date,
+    operating_system,
+    downloads
+  FROM
+    `moz-fx-data-shared-prod.mozilla_org.www_site_landing_page_metrics`
+)
+"""
+submission_date_column = "date"
+client_id_column = "NULL"
+friendly_name = "WWW Site Landing Page Metrics"
+description = "Aggregated metrics for the www.mozilla.org landing page sourced from Google Analytics 4 (GA4)"
+
+[metrics]
+[metrics.firefox_downloads_v1]
+data_source = "www_site_landing_page_metrics"
+select_expression = "SUM(downloads)"
+type = "scalar"
+friendly_name = "Firefox Downloads"
+description = "The number of Firefox Desktop downloads"
+
+[metrics.firefox_downloads_v1.statistics.sum]

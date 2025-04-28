@@ -1,0 +1,98 @@
+friendly_name = "Pin Email and Calendar Tabs Existing User"
+description = "Usage metrics for tab pinning."
+
+[metrics]
+
+weekly = [
+    'any_pinned_tab_rate',
+    'more_than_one_pinned_tab_rate',
+    'tab_pinned_event_count',
+    'concurrent_pinned_tab_count',
+    'tab_reload_count',
+]
+
+overall = [
+    'any_pinned_tab_rate',
+    'more_than_one_pinned_tab_rate',
+    'tab_pinned_event_count',
+    'concurrent_pinned_tab_count',
+    'tab_reload_count',
+]
+
+[metrics.any_pinned_tab_rate]
+select_expression = """
+    CAST(COALESCE(SUM(browser_engagement_tab_pinned_event_count), 0) > 0 AS INT64)
+"""
+friendly_name = "Any pinned tab rate"
+description = "Proportion of sessions where at least one tab was pinned."
+data_source = "main_filtered"
+type = "scalar"
+
+[metrics.any_pinned_tab_rate.statistics.binomial]
+
+[metrics.more_than_one_pinned_tab_rate]
+select_expression = """
+    CAST(COALESCE(SUM(browser_engagement_tab_pinned_event_count), 0) > 1 AS INT64)
+"""
+friendly_name = "More than one pinned tab rate"
+description = "Proportion of sessions where more than one tab was pinned."
+data_source = "main_filtered"
+type = "scalar"
+
+[metrics.more_than_one_pinned_tab_rate.statistics.binomial]
+
+# The number of tab pin events within a subsession
+[metrics.tab_pinned_event_count]
+select_expression = """
+    COALESCE(SUM(browser_engagement_tab_pinned_event_count), 0)
+"""
+friendly_name = "More than one pinned tab rate"
+description = "Proportion of sessions where more than one tab was pinned."
+data_source = "main_filtered"
+type = "scalar"
+[metrics.tab_pinned_event_count.statistics.bootstrap_mean]
+#[metrics.tab_pinned_event_count.statistics.deciles]
+
+# The maximum number of pinned tabs open during a subsession.
+[metrics.concurrent_pinned_tab_count]
+select_expression = """
+    COALESCE(SUM(browser_engagement_max_concurrent_tab_pinned_count), 0)
+"""
+friendly_name = "More than one pinned tab rate"
+description = "Proportion of sessions where more than one tab was pinned."
+data_source = "main_filtered"
+type = "scalar"
+[metrics.concurrent_pinned_tab_count.statistics.bootstrap_mean]
+#[metrics.concurrent_pinned_tab_count.statistics.deciles]
+
+# The count of tab reload events by the user after unloaded -- a proxy for returning to pinned tabs.
+[metrics.tab_reload_count]
+select_expression = """
+    COALESCE(SUM(browser_engagement_tab_reload_count), 0)
+"""
+friendly_name = "More than one pinned tab rate"
+description = "Proportion of sessions where more than one tab was pinned."
+data_source = "main_filtered"
+type = "scalar"
+[metrics.tab_reload_count.statistics.bootstrap_mean]
+#[metrics.tab_reload_count.statistics.deciles]
+
+[data_sources]
+[data_sources.main_filtered]
+
+from_expression = """(
+    SELECT
+        client_id, 
+        payload.processes.parent.scalars.browser_engagement_tab_pinned_event_count AS browser_engagement_tab_pinned_event_count, 
+        payload.processes.parent.scalars.browser_engagement_max_concurrent_tab_pinned_count AS browser_engagement_max_concurrent_tab_pinned_count,
+        payload.processes.parent.scalars.browser_engagement_tab_reload_count AS browser_engagement_tab_reload_count,
+        DATE(submission_timestamp) AS submission_date,
+        environment.experiments
+    FROM `moz-fx-data-shared-prod.telemetry_stable.main_v5`
+    WHERE 
+        DATE(submission_timestamp) BETWEEN '2024-07-29' AND '2024-09-10'
+        AND normalized_channel = 'release'
+)"""
+experiments_column_type = "native"
+friendly_name = "Main"
+description = "Main ping table"

@@ -1,0 +1,7 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "lib/metric-config-parser"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99

@@ -5,16 +5,29 @@ platform = "firefox_ios"
 xaxis = "submission_date"
 start_date = "2023-01-01"
 skip_default_metrics = true
-metrics = ['dirty_startup', 'large_file_write']
+metrics = ['dirty_startup',
+           'large_file_write',
+           'hang_exception',
+           'cpu_exception',
+           'total_baseline_pings',
+           'tab_loss_detected']
 
 [project.population]
 data_source = "baseline_v2"
 monitor_entire_population = true
 channel = "release"
 
-[metrics.dirty_startup.statistics]
-sum = {}
-[metrics.large_file_write.statistics]
+[metrics.total_baseline_pings.statistics.sum]
+
+[metrics.large_file_write.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
+[metrics.hang_exception.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
+[metrics.cpu_exception.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
+[metrics.dirty_startup.statistics.total_ratio]
+denominator_metric = "total_baseline_pings"
+[metrics.tab_loss_detected.statistics]
 sum = {}
 
 [metrics.dirty_startup]
@@ -30,3 +43,29 @@ data_source = "events"
 friendly_name = "Large file write"
 description = "The amount of times a very large file was written to disk"
 owner = "efilho@mozilla.com"
+
+[metrics.hang_exception]
+select_expression = """COALESCE(COUNTIF(event.name = "hang_exception"), 0)"""
+data_source = "events"
+friendly_name = "Hang exception"
+description = "The amount of times the main thread hangs"
+owner = "omitchell@mozilla.com"
+
+[metrics.cpu_exception]
+select_expression = """COALESCE(COUNTIF(event.name = "cpu_exception"), 0)"""
+data_source = "events"
+friendly_name = "CPU exception"
+description = "The amount of times a CPU exception is thrown by the OS"
+owner = "omitchell@mozilla.com"
+
+[metrics.total_baseline_pings]
+select_expression = "COUNT(*)"
+data_source = "baseline_v2"
+friendly_name = "Total number of baseline pings"
+description = "Total number of baseline pings sent by clients"
+
+[metrics.tab_loss_detected]
+select_expression = "COUNTIF(app_version_major >= 134 AND event.name = 'tab_loss_detected')"
+data_source = "events"
+friendly_name = "Tab loss count"
+description = "Count of users who have lost tabs"

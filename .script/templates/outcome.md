@@ -2,7 +2,7 @@
 {{ outcome_description | trim }}
 {% endif %}
 
-[Source](https://github.com/mozilla/jetstream-config/blob/main/outcomes/{{ platform }}/{{ slug }}.toml)  |  [Edit](https://github.com/mozilla/jetstream-config/edit/main/outcomes/{{ platform }}/{{ slug }}.toml)
+[Source](https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/{{ platform }}/{{ slug }}.toml)  |  [Edit](https://github.com/mozilla/metric-hub/edit/main/jetstream/outcomes/{{ platform }}/{{ slug }}.toml)
 
 
 ## Metrics

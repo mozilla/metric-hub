@@ -1,0 +1,20 @@
+[experiment]
+
+enrollment_period = 7
+
+[metrics]
+
+overall = ['fxa_configured', 'synced_desktops']
+weekly = ['fxa_configured', 'synced_desktops']
+
+
+[metrics.fxa_configured]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(fxa_configured), FALSE) AS INT)'
+
+[metrics.synced_desktops]
+data_source = 'clients_daily'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(sync_count_desktop_mean > 1), FALSE) AS INT)'
+
+[metrics.fxa_configured.statistics.binomial]
+[metrics.synced_desktops.statistics.binomial]

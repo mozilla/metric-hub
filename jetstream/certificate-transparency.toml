@@ -1,0 +1,89 @@
+[metrics]
+
+overall = ["cert_errors", "tls_timing", "num_handshakes", "timing_ratio"]
+
+[metrics.cert_errors]
+friendly_name = "TLS certification errors"
+description = "Count of TLS certification errors"
+select_expression = """(
+    COALESCE(COUNTIF(event_category = 'security.ui.certerror' 
+        AND event_object = 'aboutcerterror' 
+        AND event_method = 'load'), 0)
+)"""
+data_source = "events_certerror"
+
+[metrics.cert_errors.statistics.bootstrap_mean]
+
+[metrics.tls_timing]
+friendly_name = "TLS timing"
+description = "Amount of time for TLS handshake in seconds"
+select_expression = "COALESCE(SUM(CAST(key AS INT64)/1000000), 0)"
+data_source = "tls_metrics"
+
+[metrics.tls_timing.statistics.bootstrap_mean]
+
+[metrics.num_handshakes]
+friendly_name = "Number of handshakes"
+description = "Number of handshakes computed by counting number of values in metrics.timing_distribution.network_tls_handshake.values"
+select_expression = "COALESCE(COUNT(key), 0)"
+data_source = "tls_metrics"
+
+[metrics.num_handshakes.statistics.bootstrap_mean]
+
+[metrics.timing_ratio]
+friendly_name = "TLS timing ratio"
+description = "TLS timing (in seconds) divided by number of handshakes"
+select_expression = "SAFE_DIVIDE(COALESCE(SUM(CAST(key AS INT64)/1000000), 0), COUNT(key))"
+data_source = "tls_metrics"
+
+[metrics.timing_ratio.statistics.bootstrap_mean]
+pre_treatments = ["remove_nulls"]
+
+[data_sources.tls_metrics]
+friendly_name = "TLS glean metrics"
+description = "The glean metric ping with metrics.timing_distribution.network_tls_handshake.values unnested"
+from_expression = """(
+    SELECT 
+        m.metrics.uuid.legacy_telemetry_client_id as client_id,
+        DATE(m.submission_timestamp) AS submission_date,
+        v.key,
+        m.ping_info
+    FROM `mozdata.firefox_desktop.metrics` AS m
+        CROSS JOIN UNNEST(metrics.timing_distribution.network_tls_handshake.values) AS v
+    WHERE
+        DATE(m.submission_timestamp) BETWEEN '2024-12-04' AND '2025-01-10'
+        AND m.normalized_channel = 'release'
+        AND `mozfun.map.get_key`(m.ping_info.experiments, 'certificate-transparency') IS NOT NULL
+)"""
+experiments_column_type = "glean"
+
+[data_sources.events_certerror]
+from_expression = """
+    (
+        SELECT
+            *
+        FROM `mozdata.telemetry.events`
+        WHERE 
+            event_category = 'security.ui.certerror'
+    )
+"""
+friendly_name = "Certerror events"
+description = "Cert Error related events"
+experiments_column_type = "native"
+
+# modified the data sources from this example in android review checker experiment
+# [data_sources.glean_metrics_ping]
+# friendly_name = "Glean's Metrics Ping"
+# from_expression = """(
+#     SELECT 
+#         m.client_info.client_id,
+#         DATE(m.submission_timestamp) AS submission_date,
+#         m.metrics.counter.shopping_product_page_visits AS product_page_visits, 
+#         m.ping_info
+#     FROM `moz-fx-data-shared-prod.org_mozilla_firefox.metrics` AS m
+#     WHERE
+#         DATE(m.submission_timestamp) >= "2023-11-28"
+#         AND m.normalized_channel = 'release'
+# )"""
+# experiments_column_type = "glean"
+# description = "Glean's metrics ping, filtered down to the necessary columns and date range for the exposure query"

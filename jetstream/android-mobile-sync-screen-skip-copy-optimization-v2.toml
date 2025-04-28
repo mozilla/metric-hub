@@ -1,0 +1,4 @@
+[experiment]
+start_date = '2024-10-21'
+enrollment_period = 35 # 5 weeks, enrollment end on 11/25
+end_date = '2024-12-24'

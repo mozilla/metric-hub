@@ -1,0 +1,2 @@
+[data_sources.'*']
+columns_as_dimensions = true

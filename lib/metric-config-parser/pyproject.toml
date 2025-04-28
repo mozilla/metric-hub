@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools", "pytest-runner"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mozilla-metric-config-parser"
+version = "2025.4.1"
+authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
+description = "Parses metric configuration files"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "attrs",
+  "cattrs",
+  "Click",
+  "GitPython",
+  "jinja2",
+  "mozilla-nimbus-schemas>=2024.9.3",
+  "pytz",
+  "requests",
+  "toml",
+]
+
+[project.scripts]
+metric-config-parser = "metric_config_parser.cli:cli"
+
+[project.urls]
+Repository = "https://github.com/mozilla/metric-hub/blob/main/lib/metric-config-parser"
+Documentation = "https://github.com/mozilla/metric-hub/blob/main/lib/metric-config-parser"
+
+[project.optional-dependencies]
+testing = [
+  "coverage",
+  "isort",
+  "jsonschema",
+  "mypy",
+  "pytest-black",
+  "pytest-cov",
+  "pytest-flake8",
+  "pytest",
+  "types-futures",
+  "types-protobuf",
+  "types-pytz",
+  "types-PyYAML",
+  "types-requests",
+  "types-setuptools",
+  "types-six",
+  "types-toml",
+]
+
+[tool.setuptools]
+packages = [
+  "metric_config_parser",
+  "metric_config_parser.tests",
+  "metric_config_parser.tests.integration",
+]
+[tool]
+[tool.setuptools.package-data]
+metric_config_parser = ["templates/*"]
+"metric_config_parser.tests" = ["data/*"]
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3

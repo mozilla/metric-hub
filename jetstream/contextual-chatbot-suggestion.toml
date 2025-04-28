@@ -1,0 +1,103 @@
+[experiment]
+enrollment_period = 14
+end_date = "2025-04-08"
+enrollment_query = """
+SELECT
+    e.client_id,
+    e.client_id as analysis_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date
+        BETWEEN "{{experiment.start_date_str}}" AND "{{experiment.last_enrollment_date_str}}"
+    AND e.event_string_value = '{{experiment.normandy_slug}}'
+    AND `mozfun.map.get_key`(e.event_map_values, 'branch') <> 'treatment-b'
+GROUP BY e.client_id, branch
+"""
+
+[experiment.exposure_signal]
+name = "contextual_reach"
+friendly_name = "Visited website for contextual message"
+description = "Clients eligible to receive contextual chatbot suggestion"
+data_source = "contextual_message"
+select_expression = "COALESCE(exposure, FALSE)"
+window_start = 0
+window_end = "analysis_window_end"
+
+[metrics]
+
+weekly = [
+    "chatbot_engagement",
+    "chatbot_adoption",
+    "chatbot_onboarding_start"
+]
+
+overall = [
+    "chatbot_engagement",
+    "chatbot_adoption",
+    "chatbot_onboarding_start"
+]
+
+[metrics.chatbot_engagement.statistics.binomial]
+[metrics.chatbot_adoption.statistics.binomial]
+[metrics.chatbot_onboarding_start.statistics.binomial]
+
+[metrics.chatbot_engagement]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'sidebar_toggle'), FALSE)"
+data_source = "chatbot"
+friendly_name = "Chatbot Sidebar Open"
+description = "Percentage of clients who opened the Chatbot panel in the sidebar"
+
+[metrics.chatbot_adoption]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_finish'), FALSE)"
+data_source = "chatbot"
+friendly_name = "Chatbot Onboarding Completed"
+description = "Percentage of clients who completed Chatbot onboarding"
+
+[metrics.chatbot_onboarding_start]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_provider_choice_displayed'), FALSE)"
+data_source = "chatbot"
+friendly_name = "Chatbot Onboarding Started"
+description = "Percentage of clients who start Chatbot onboarding"
+
+
+[data_sources.chatbot]
+from_expression = """(
+  SELECT 
+    legacy_telemetry_client_id as client_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('genai.chatbot')
+    AND ((event_name = 'sidebar_toggle' AND JSON_VALUE(event_extra.opened) = 'true')
+         OR event_name IN ('onboarding_finish', 'onboarding_provider_choice_displayed'))
+  GROUP BY 1, 2, 3
+)"""
+experiments_column_type = "none"
+friendly_name = "Chatbot Open"
+description = "Clients who open chatbot panel"
+
+[data_sources.contextual_message]
+from_expression = """(
+  SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    TRUE as exposure
+  FROM `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event = 'messaging_experiments.reach_fxms_message_4'
+    AND DATE(submission_timestamp) >= '2025-02-24'
+    AND JSON_VALUE(experiments.`contextual-chatbot-suggestion`.branch) IS NOT NULL
+    AND JSON_VALUE(event_extra.value) = 'contextual-chatbot-suggestion'
+  GROUP BY ALL
+)"""
+experiments_column_type = "none"
+friendly_name = "Contextual Suggestion"
+description = "Clients eligible to receive contextual chatbot suggestion"
