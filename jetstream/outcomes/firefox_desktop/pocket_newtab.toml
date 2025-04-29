@@ -15,9 +15,9 @@ description = "Usage and engagement metrics for Pocket content in New Tab."
 [metrics.any_organic_pocket_clicks.statistics.binomial]
 
 
-[metrics.sponsored_pocket_impressions.statistics.bootstrap_mean]
+[metrics.sponsored_pocket_impressions.statistics.sum]
 
-[metrics.organic_pocket_impressions.statistics.bootstrap_mean]
+[metrics.organic_pocket_impressions.statistics.sum]
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
 numerator='sponsored_topsite_clicks'
