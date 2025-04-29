@@ -86,10 +86,10 @@ pre_treatments = ["remove_nulls"]
 
 [metrics.separate_search_engine.statistics.binomial]
 
-[metrics.metrics.sponsored_tile_ctr.statistics.population_ratio]
+[metrics.sponsored_tile_ctr.statistics.population_ratio]
 numerator='sponsored_topsite_clicks'
 denominator='sponsored_topsite_impressions'
 
-[metrics.metrics.sponsored_pocket_ctr.statistics.population_ratio]
+[metrics.sponsored_pocket_ctr.statistics.population_ratio]
 numerator='sponsored_pocket_clicks'
 denominator='sponsored_pocket_impressions '
