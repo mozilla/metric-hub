@@ -1272,7 +1272,7 @@ Count of Clicks of Sponsored Tiles in the third and greater positions.
 """
 
 [metrics.sponsored_tile_ctr]
-data_source = "mozdata.telemetry.newtab_interactions"
+data_source = "newtab_interactions"
 depends_on=['sponsored_topsite_clicks', 'sponsored_topsite_impressions']
 friendly_name = "Sponsored Tile Click Through Rate"
 description = """
