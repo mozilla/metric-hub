@@ -18,5 +18,5 @@ Guardrail metrics for the New Tab. Includes user experience and revenue-related 
 [metrics.newtab_any_searches.statistics.binomial]
 [metrics.newtab_gt4_searches.statistics.binomial]
 
-[metrics.sponsored_pocket_ctr.statistics.bootstrap_mean]
-[metrics.sponsored_tile_ctr.statistics.bootstrap_mean]
+[metrics.metrics.sponsored_tile_ctr.statistics.population_ratio]
+[metrics.metrics.sponsored_pocket_ctr.statistics.population_ratio]
