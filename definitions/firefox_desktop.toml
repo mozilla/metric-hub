@@ -1116,7 +1116,6 @@ Count of impressions of Sponsored Pocket content.
 """
 
 [metrics.sponsored_pocket_ctr]
-data_source = "newtab_interactions"
 depends_on=['sponsored_pocket_clicks', 'sponsored_pocket_impressions']
 friendly_name = "Sponsored Pocket Click Through Rate"
 description = """
@@ -1272,8 +1271,7 @@ Count of Clicks of Sponsored Tiles in the third and greater positions.
 """
 
 [metrics.sponsored_tile_ctr]
-data_source = "newtab_interactions"
-depends_on=['sponsored_topsite_clicks', 'sponsored_topsite_impressions']
+depends_on=['sponsored_tile_clicks', 'sponsored_tile_impressions']
 friendly_name = "Sponsored Tile Click Through Rate"
 description = """
 Rate of Clicks per Impression Sponsored Tiles (aka Sponsored Topsites on New Tab) across all positions.
