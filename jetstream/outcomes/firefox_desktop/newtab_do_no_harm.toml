@@ -19,4 +19,9 @@ Guardrail metrics for the New Tab. Includes user experience and revenue-related 
 [metrics.newtab_gt4_searches.statistics.binomial]
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
+numerator='sponsored_topsite_clicks'
+denominator='sponsored_topsite_impressions'
+
 [metrics.sponsored_pocket_ctr.statistics.population_ratio]
+numerator='sponsored_pocket_clicks'
+denominator='sponsored_pocket_impressions '
