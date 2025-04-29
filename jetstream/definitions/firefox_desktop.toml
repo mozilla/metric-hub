@@ -85,11 +85,3 @@ pre_treatments = ["remove_nulls"]
 [metrics.fxa_signed_in.statistics.binomial]
 
 [metrics.separate_search_engine.statistics.binomial]
-
-[metrics.sponsored_tile_ctr.statistics.population_ratio]
-numerator='sponsored_tile_clicks'
-denominator='sponsored_tile_impressions'
-
-[metrics.sponsored_pocket_ctr.statistics.population_ratio]
-numerator='sponsored_pocket_clicks'
-denominator='sponsored_pocket_impressions'
