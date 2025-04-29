@@ -7,10 +7,10 @@ client_id_column = "NULL"
 columns_as_dimensions = false
 
 [data_sources.newtab_clients_daily_aggregates_base_fields]
-from_expression = '''SELECT 
-app_version, os, channel, locale, browser_version, country, newtab_homepage_category, newtab_newtab_category,
+from_expression = '''(SELECT 
+submission_date, app_version, os, channel, locale, browser_version, country, newtab_homepage_category, newtab_newtab_category,
 organic_content_enabled, sponsored_ads_enabled, sponsored_topsites_enabled, organic_topsites_enabled, newtab_search_enabled
-FROM moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2'''
+FROM moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2)'''
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
