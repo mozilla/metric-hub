@@ -19,16 +19,26 @@ Guardrail metrics for the New Tab. Includes user experience and revenue-related 
 [metrics.newtab_gt4_searches.statistics.binomial]
 
 [metrics.sponsored_tile_clicks.statistics.sum]
+[metrics.sponsored_tile_clicks.statistics.bootstrapped_mean]
 [metrics.sponsored_tile_impressions.statistics.sum]
+[metrics.sponsored_tile_impressions.statistics.bootstrapped_mean]
+
 
 [metrics.newtab_organic_topsite_clicks.statistics.sum]
+[metrics.newtab_organic_topsite_clicks.statistics.bootstrapped_mean]
 [metrics.newtab_organic_topsite_impressions.statistics.sum]
+[metrics.newtab_organic_topsite_impressions.statistics.bootstrapped_mean]
 
 [metrics.sponsored_pocket_clicks.statistics.sum]
+[metrics.sponsored_pocket_clicks.statistics.bootstrapped_mean]
 [metrics.sponsored_pocket_impressions.statistics.sum]
+[metrics.sponsored_pocket_impressions.statistics.bootstrapped_mean]
+
 
 [metrics.organic_pocket_clicks.statistics.sum]
+[metrics.organic_pocket_clicks.statistics.bootstrapped_mean]
 [metrics.organic_pocket_impressions.statistics.sum]
+[metrics.organic_pocket_impressions.statistics.bootstrapped_mean]
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
 numerator='sponsored_tile_clicks'
