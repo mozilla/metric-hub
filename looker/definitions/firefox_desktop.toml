@@ -156,8 +156,6 @@ columns_as_dimensions = true
 relationship = "one_to_many"
 on_expression = "newtab_clients_daily.country_code = countries.code"
 
-[data_sources]
-
 #HNT data model revamp data sources
 [data_sources.newtab_clients_daily_aggregates]
 from_expression = "moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2"
