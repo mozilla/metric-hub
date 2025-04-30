@@ -17,7 +17,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_clicked_relay_offer]
 friendly_name = "Relay Optin: Relay offer clicked by client"
@@ -29,7 +29,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_shown_opt_in_panel]
 friendly_name = "Relay Optin: Relay optin panel shown to client"
@@ -41,7 +41,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_enabled_opt_in_panel]
 friendly_name = "Relay Optin: Relay optin panel enabled by client"
@@ -53,7 +53,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_postponed_opt_in_panel]
 friendly_name = "Relay Optin: Relay optin panel postponed by client"
@@ -65,7 +65,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_disabled_opt_in_panel]
 friendly_name = "Relay Optin: Relay optin panel disabled by client"
@@ -77,7 +77,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_shown_fill_username]
 friendly_name = "Relay Engagement: Relay integration autocomplete popup shown"
@@ -89,7 +89,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_integration_clicked_fill_username]
 friendly_name = "Relay Engagement: Relay integration autocomplete popup clicked"
@@ -101,7 +101,7 @@ select_expression = """
       ),0)
 """
 data_source = "relay_integration_events"
-statistics = { linear_model_mean = {} }
+statistics = { bootstrap_mean = {} }
 
 [metrics.relay_optin_rate]
 description = "Relay optin panel enabled by client / Relay optin panel shown to client "
