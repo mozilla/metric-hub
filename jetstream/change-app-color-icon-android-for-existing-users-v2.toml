@@ -40,5 +40,5 @@ description = "app icon usage per client"
 
 [metrics.app_opened.statistics.binomial]
 [metrics.app_icon_used.statistics.binomial]
-[metrics.app_opens_per_client.bootstrap_mean]
-[metrics.app_icon_uses_per_client.bootstrap_mean]
+[metrics.app_opens_per_client.statistics.bootstrap_mean]
+[metrics.app_icon_uses_per_client.statistics.bootstrap_mean]
