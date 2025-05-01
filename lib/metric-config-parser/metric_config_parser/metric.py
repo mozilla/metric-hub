@@ -100,7 +100,7 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
+    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
 
 
 @attr.s(auto_attribs=True)
@@ -247,7 +247,8 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
-                    analysis_units=self.analysis_units or [AnalysisUnit.CLIENT],
+                    analysis_units=self.analysis_units
+                    or [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP],
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = (
@@ -260,7 +261,9 @@ class MetricDefinition:
                 )
                 metric_definition.statistics = self.statistics
                 metric_definition.analysis_units = (
-                    self.analysis_units or metric_definition.analysis_units or [AnalysisUnit.CLIENT]
+                    self.analysis_units
+                    or metric_definition.analysis_units
+                    or [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
                 )
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
@@ -272,7 +275,10 @@ class MetricDefinition:
 
             # ensure all of metric's analysis_units are supported by data_source
             resolved_ds = self.data_source.resolve(spec, conf, configs)
-            analysis_units = self.analysis_units or [AnalysisUnit.CLIENT]
+            analysis_units = self.analysis_units or [
+                AnalysisUnit.CLIENT,
+                AnalysisUnit.PROFILE_GROUP,
+            ]
             for agg_unit in analysis_units:
                 if agg_unit not in resolved_ds.analysis_units:
                     raise ValueError(

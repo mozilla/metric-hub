@@ -87,7 +87,7 @@ class DataSource:
         analysis_units (list[AnalysisUnit], optional): denotes which
             aggregations are supported by this data_source. At time
             of writing, this means 'client_id', 'profile_group_id',
-            or both. Defaults to 'client_id'.
+            or both. Defaults to both ['client_id', 'profile_group_id'].
         group_id_column (str, optional): Name of the column that
             contains the ``profile_group_id`` (join key). Defaults to
             'profile_group_id'.
@@ -104,7 +104,9 @@ class DataSource:
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
-    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
+    analysis_units = attr.ib(
+        default=[AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP], type=List[AnalysisUnit]
+    )
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
