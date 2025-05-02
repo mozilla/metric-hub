@@ -2,7 +2,7 @@
 friendly_name = "Awesomebar Engagement"
 description = "Number of times a user completed their search session by tapping a search result, or entering a URL or a search term."
 select_expression = """
-    COALESCE(COUNTIF(event.name = 'engagement'), 0)
+    COALESCE(COUNTIF(event_name = 'engagement'), 0)
 """
 data_source = "events_filtered"
 statistics = { sum = {}, bootstrap_mean = {}, deciles = {} }
@@ -11,7 +11,7 @@ statistics = { sum = {}, bootstrap_mean = {}, deciles = {} }
 friendly_name = "Awesomebar Abandonment"
 description = "Number of times a user dismissed the awesomebar without completing their search."
 select_expression = """
-    COALESCE(COUNTIF(event.name = 'abandonment'), 0)
+    COALESCE(COUNTIF(event_name = 'abandonment'), 0)
 """
 data_source = "events_filtered"
 statistics = { sum = {}, bootstrap_mean = {}, deciles = {} }
@@ -21,7 +21,7 @@ statistics = { sum = {}, bootstrap_mean = {}, deciles = {} }
 from_expression = """(
     SELECT *, DATE(submission_timestamp) AS submission_date
     FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
-    WHERE event.category IN ('urlbar', 'awesomebar')
+    WHERE event_category IN ('urlbar', 'awesomebar')
 )"""
 description = "Glean events_stream dataset (events ping unnested to a single row per event) filtered"
 friendly_name = "Glean Events Stream Filtered"
