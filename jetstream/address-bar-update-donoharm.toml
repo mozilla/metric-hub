@@ -171,7 +171,7 @@ description = "Clients in India"
 data_source = "clients_daily"
 
 [segments.row]
-select_expression = "COALESCE(LOGICAL_OR(country NOT IN ('JP', 'IN, 'CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
+select_expression = "COALESCE(LOGICAL_OR(country NOT IN ('JP', 'IN', 'CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
 description = "Clients in countries not covered by previous country segments"
 data_source = "clients_daily"
 
