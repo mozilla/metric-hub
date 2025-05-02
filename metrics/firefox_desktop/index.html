@@ -2304,6 +2304,62 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_tile_impressions" class="md-nav__link">
+    newtab_clients_with_sponsored_tile_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_tile_clicks" class="md-nav__link">
+    newtab_clients_with_sponsored_tile_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_tile_impressions" class="md-nav__link">
+    frac_users_with_sponsored_tile_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_tile_clicks" class="md-nav__link">
+    frac_users_with_sponsored_tile_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_content_impressions" class="md-nav__link">
+    newtab_clients_with_sponsored_content_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_content_clicks" class="md-nav__link">
+    newtab_clients_with_sponsored_content_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_content_impressions" class="md-nav__link">
+    frac_users_with_sponsored_content_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_content_clicks" class="md-nav__link">
+    frac_users_with_sponsored_content_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#imported_bookmarks" class="md-nav__link">
     imported_bookmarks
   </a>
@@ -4617,6 +4673,62 @@
           <li class="md-nav__item">
   <a href="#weather_widget_change_display_to_simple" class="md-nav__link">
     weather_widget_change_display_to_simple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_tile_impressions" class="md-nav__link">
+    newtab_clients_with_sponsored_tile_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_tile_clicks" class="md-nav__link">
+    newtab_clients_with_sponsored_tile_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_tile_impressions" class="md-nav__link">
+    frac_users_with_sponsored_tile_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_tile_clicks" class="md-nav__link">
+    frac_users_with_sponsored_tile_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_content_impressions" class="md-nav__link">
+    newtab_clients_with_sponsored_content_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#newtab_clients_with_sponsored_content_clicks" class="md-nav__link">
+    newtab_clients_with_sponsored_content_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_content_impressions" class="md-nav__link">
+    frac_users_with_sponsored_content_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frac_users_with_sponsored_content_clicks" class="md-nav__link">
+    frac_users_with_sponsored_content_clicks
   </a>
   
 </li>
@@ -7269,6 +7381,118 @@ a wallpaper.</p>
 
 
 <pre><code class="language-sql">COALESCE(SUM(weather_widget_change_display_to_simple), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="newtab_clients_with_sponsored_tile_impressions">newtab_clients_with_sponsored_tile_impressions</h3>
+<p><strong>Newtab Clients with Sponsored Tile Impressions</strong></p>
+<p>Count of clients with any sponsored tile impressions.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#newtab_clients_daily"><code>newtab_clients_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(sponsored_topsite_tile_impressions&gt;0), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="newtab_clients_with_sponsored_tile_clicks">newtab_clients_with_sponsored_tile_clicks</h3>
+<p><strong>Newtab Clients with Sponsored Tile Clicks</strong></p>
+<p>Count of clients with any sponsored tile clicks.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#newtab_clients_daily"><code>newtab_clients_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(sponsored_topsite_tile_clicks&gt;0), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="frac_users_with_sponsored_tile_impressions">frac_users_with_sponsored_tile_impressions</h3>
+<p><strong>Fraction of Users with Sponsored Tile Impressions</strong></p>
+<p>Fraction of users with sponsored tile impressions as a fraction of users with sponsored tiles enabled</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#">``</a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">None
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="frac_users_with_sponsored_tile_clicks">frac_users_with_sponsored_tile_clicks</h3>
+<p><strong>Fraction of Users with Sponsored Tile Impressions</strong></p>
+<p>Fraction of users with sponsored tile clicks as a fraction of users with sponsored tile impressions</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#">``</a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">None
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="newtab_clients_with_sponsored_content_impressions">newtab_clients_with_sponsored_content_impressions</h3>
+<p><strong>Newtab Clients with Sponsored Content Impressions</strong></p>
+<p>Count of clients with any sponsored content impressions.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#newtab_clients_daily"><code>newtab_clients_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(sponsored_pocket_impressions&gt;0), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="newtab_clients_with_sponsored_content_clicks">newtab_clients_with_sponsored_content_clicks</h3>
+<p><strong>Newtab Clients with Sponsored Content Clicks</strong></p>
+<p>Count of clients with any sponsored content clicks.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#newtab_clients_daily"><code>newtab_clients_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(sponsored_pocket_clicks&gt;0), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="frac_users_with_sponsored_content_impressions">frac_users_with_sponsored_content_impressions</h3>
+<p><strong>Fraction of Users with Sponsored Content Impressions</strong></p>
+<p>Fraction of users with sponsored content impressions as a fraction of users with sponsored content enabled</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#">``</a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">None
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="frac_users_with_sponsored_content_clicks">frac_users_with_sponsored_content_clicks</h3>
+<p><strong>Fraction of Users with Sponsored Content Clicks</strong></p>
+<p>Fraction of users with sponsored content clicks as a fraction of users with sponsored content impressions</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#">``</a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">None
 </code></pre>
 
 </details>
