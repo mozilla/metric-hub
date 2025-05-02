@@ -1,0 +1,38 @@
+name: "Validate jetstream"
+
+# on:
+#   pull_requests:
+#     branches:
+#       - main
+#     paths:
+#       - 'jetstream/**'
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'jetstream/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        jetstream/**.toml
+        jetstream/**.toml.example
+
+  validate-jetstream:
+    container:
+      image: gcr.io/moz-fx-data-experiments/jetstream:latest
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate jetstream config files
+        run: |
+          echo "Run validation on changed files: "
+          echo ${{ needs.changed.outputs.all_changed_files }}
+          jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
+
+
+

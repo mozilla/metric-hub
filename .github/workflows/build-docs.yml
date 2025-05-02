@@ -1,0 +1,26 @@
+name: "Build docs"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-docs:
+  container:
+    - image: python:3.10
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - add_ssh_keys:
+        fingerprints: "95:33:49:57:f9:11:81:75:a4:46:74:19:c6:89:f4:1c"
+    - name: Build and deploy docs
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install -r .script/requirements.txt
+        venv/bin/python3 .script/generate_docs.py \
+          --output_dir=generated_docs/
+        cd generated_docs/
+        PATH="../venv/bin:$PATH" mkdocs gh-deploy \
+          -m "[ci skip] Deployed {sha} with MkDocs version: {version}"

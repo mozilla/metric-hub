@@ -1,0 +1,38 @@
+name: "Validate OpMon"
+
+# on:
+#   pull_requests:
+#     branches:
+#       - main
+#     paths:
+#       - 'opmon/**'
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'opmon/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        opmon/**.toml
+        opmon/**.toml.example
+
+  validate-opmon:
+    container:
+      image: gcr.io/moz-fx-data-experiments/opmon:latest
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate OpMon config files
+        run: |
+          echo "Run validation on changed files: "
+          echo ${{ needs.changed.outputs.all_changed_files }}
+          opmon validate_config --config_repos='.' --config_repos=opmon/ ${{ needs.changed.outputs.all_changed_files }}
+
+
+

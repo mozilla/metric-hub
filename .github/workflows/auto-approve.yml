@@ -6,25 +6,13 @@ on:
 
 jobs:
   changed:
-    runs-on: ubuntu-latest 
-    name: Get changed metric definition files
-    permissions:
-      pull-requests: write
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Get changed files in the metrics definitions folder
-      id: changed-files-specific
-      uses: tj-actions/changed-files@v34
-      with:
-        files: |
-          definitions/*.toml
-          lib/
-          .github/
-          .circleci/
-    outputs:
-      any_changed: ${{ steps.changed-files-specific.outputs.any_changed }}
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        definitions/*.toml
+        lib/
+        .github/
+        .circleci/
 
   approve:
     name: Auto approve PR if no metrics definitions changed

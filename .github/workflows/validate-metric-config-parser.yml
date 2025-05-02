@@ -1,0 +1,76 @@
+name: "Validate metric-config-parser"
+
+# on:
+#   pull_requests:
+#     branches:
+#       - main
+#     paths:
+#       - 'lib/metric-config-parser/**'
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'lib/metric-config-parser/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        lib/metric-config-parser/**
+
+  build-metric-config-parser:
+    container:
+      image: python:3.10
+    working_directory: ~/project/lib/metric-config-parser
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ~/project
+      - restore_cache:
+          keys:
+            # when lock files change, use increasingly general patterns to restore cache
+            - &cache_key
+              python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+            - python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-
+            - python-packages-v2-{{ .Branch }}-
+            - python-packages-v2-
+      - name: Build
+        run: |
+          python3.10 -m venv venv/
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+      - name: PyTest
+        run: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+      - name: flake8
+        run: venv/bin/flake8 metric_config_parser
+      - name: isort
+        run: venv/bin/isort --check metric_config_parser
+      - name: Mypy
+        run: venv/bin/mypy metric_config_parser
+      - save_cache:
+          paths:
+          - venv/
+          key: *cache_key
+
+  integration-metric-config-parser:
+    container:
+      image: python:3.10
+    working_directory: ~/project/lib/metric-config-parser
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ~/project
+      - name: Build
+        run: |
+          python3.10 -m venv venv/
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+      - name: PyTest Integration Test
+        run: venv/bin/pytest --black metric_config_parser/tests/integration/
