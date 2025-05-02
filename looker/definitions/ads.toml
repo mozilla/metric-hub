@@ -1,36 +1,3 @@
-[metrics]
-
-### From firefox_desktop.toml
-[metrics.newtab_sponsored_tiles_enabled.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_impressions.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_clicks.dau_proportion]
-[metrics.newtab_sponsored_tiles_enabled.sum]
-[metrics.newtab_clients_with_sponsored_tile_impressions.sum]
-[metrics.newtab_clients_with_sponsored_tile_clicks.sum]
-[metrics.frac_users_with_sponsored_tile_impressions.ratio]
-numerator='newtab_clients_with_sponsored_tile_impressions'
-denominator='newtab_sponsored_tiles_enabled'
-
-[metrics.frac_users_with_sponsored_tile_clicks]
-numerator='newtab_clients_with_sponsored_tile_clicks'
-denominator='newtab_clients_with_sponsored_tile_impressions'
-
-[metrics.newtab_sponsored_pocket_stories_enabled.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_impressions.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_clicks.dau_proportion]
-[metrics.newtab_sponsored_pocket_stories_enabled.sum]
-[metrics.newtab_clients_with_sponsored_content_impressions.sum]
-[metrics.newtab_clients_with_sponsored_content_clicks.sum]
-[metrics.frac_users_with_sponsored_content_impressions.ratio]
-numerator='newtab_clients_with_sponsored_content_impressions'
-denominator='newtab_sponsored_pocket_stories_enabled'
-
-[metrics.frac_users_with_sponsored_content_clicks]
-numerator='newtab_clients_with_sponsored_content_clicks'
-denominator='newtab_clients_with_sponsored_content_impressions'
-
-
-
 ### data_sources.consolidated_ads_spocs
 [metrics.spoc_impressions]
 select_expression = "SUM(impressions)"
@@ -126,7 +93,37 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
-[data_sources]
+### Statistics rom firefox_desktop.toml
+[metrics.newtab_sponsored_tiles_enabled.statistics.dau_proportion]
+[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.dau_proportion]
+[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.dau_proportion]
+[metrics.newtab_sponsored_tiles_enabled.statistics.sum]
+[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.sum]
+[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.sum]
+
+[metrics.frac_users_with_sponsored_tile_impressions.statistics.ratio]
+numerator='newtab_clients_with_sponsored_tile_impressions'
+denominator='newtab_sponsored_tiles_enabled'
+
+[metrics.frac_users_with_sponsored_tile_clicks.statistics.ratio]
+numerator='newtab_clients_with_sponsored_tile_clicks'
+denominator='newtab_clients_with_sponsored_tile_impressions'
+
+[metrics.newtab_sponsored_pocket_stories_enabled.statistics.dau_proportion]
+[metrics.newtab_clients_with_sponsored_content_impressions.statistics.dau_proportion]
+[metrics.newtab_clients_with_sponsored_content_clicks.statistics.dau_proportion]
+[metrics.newtab_sponsored_pocket_stories_enabled.statistics.sum]
+[metrics.newtab_clients_with_sponsored_content_impressions.statistics.sum]
+[metrics.newtab_clients_with_sponsored_content_clicks.statistics.sum]
+
+[metrics.frac_users_with_sponsored_content_impressions.statistics.ratio]
+numerator='newtab_clients_with_sponsored_content_impressions'
+denominator='newtab_sponsored_pocket_stories_enabled'
+
+[metrics.frac_users_with_sponsored_content_clicks.statistics.ratio]
+numerator='newtab_clients_with_sponsored_content_clicks'
+denominator='newtab_clients_with_sponsored_content_impressions'
+
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
