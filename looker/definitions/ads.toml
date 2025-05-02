@@ -10,7 +10,7 @@ denominator='newtab_sponsored_tiles_enabled'
 numerator='newtab_clients_with_sponsored_tile_clicks'
 denominator='newtab_clients_with_sponsored_tile_impressions'
 
-[metrics.newtab_sponsored_contents_enabled.dau_proportion]
+[metrics.newtab_sponsored_pocket_stories_enabled.dau_proportion]
 [metrics.frac_users_with_sponsored_content_impressions.ratio]
 numerator='newtab_clients_with_sponsored_content_impressions'
 denominator='newtab_sponsored_pocket_stories_enabled'
