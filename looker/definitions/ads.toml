@@ -93,7 +93,7 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
-### Statistics rom firefox_desktop.toml
+### Statistics from firefox_desktop.toml
 [metrics.newtab_sponsored_tiles_enabled.statistics.dau_proportion]
 [metrics.newtab_clients_with_sponsored_tile_impressions.statistics.dau_proportion]
 [metrics.newtab_clients_with_sponsored_tile_clicks.statistics.dau_proportion]
