@@ -604,8 +604,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#events-events" class="md-nav__link">
-    events- Events
+  <a href="#events_stream_events" class="md-nav__link">
+    events_stream_events
   </a>
   
 </li>
@@ -2235,8 +2235,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#events-events" class="md-nav__link">
-    events- Events
+  <a href="#events_stream_events" class="md-nav__link">
+    events_stream_events
   </a>
   
 </li>
@@ -2272,13 +2272,13 @@ during the analysis window.
 This only opens a system UI that allows users to change their default browser,
 so not all of these clients will actually change their default browser.</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#events"><code>events</code></a></p>
+<p>Data Source: <a href="#events_stream_events"><code>events_stream_events</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNTIF(event.name = 'default_browser_changed') &gt; 0
+<pre><code class="language-sql">COUNTIF(event_name = 'default_browser_changed') &gt; 0
 </code></pre>
 
 </details>
@@ -2323,8 +2323,7 @@ browser set as their default are more likely to churn.</p>
 </details>
 
 <hr />
-<h3 id="events-events"><a href="#events"><code>events</code>- Events</a></h3>
-<p>Events Ping</p>
+<h3 id="events_stream_events"><a href="#events_stream_events"><code>events_stream_events</code></a></h3>
 <details>
 <summary>Definition:</summary>
 
