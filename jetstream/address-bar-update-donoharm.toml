@@ -1,5 +1,18 @@
 [experiment]
-end_date = "2025-03-31"
+end_date = "2025-05-02"
+
+segments = [
+  "google_default_search",
+  "bing_default_search",
+  "ddg_default_search",
+  "baidu_default_search",
+  "qwant_default_search",
+  "ecosia_default_search",
+  "us",
+  "marketing_tier1_countries",
+  "in",
+  "row",
+]
 
 [metrics]
 weekly = ['search_engine_default_change', 'non_default_search_engine_search']
@@ -23,10 +36,8 @@ select_expression = """
 data_source = "metrics_unnested_urlbar_searchmode_searchbutton"
 
 
-
 [metrics.search_engine_default_change.statistics.binomial]
 [metrics.non_default_search_engine_search.statistics.binomial]
-
 
 
 [data_sources.metrics_unnested_urlbar_searchmode_searchbutton]
@@ -51,3 +62,95 @@ description = "Glean events_stream dataset filtered to event_category 'search.en
 friendly_name = "Glean Events Stream filtered to event_category 'search.engine.default'"
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
+
+[segments]
+
+[segments.google_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Google'
+        ), FALSE
+    )"""
+description = "Clients with Google as default search engine"
+data_source = "clients_daily"
+
+[segments.bing_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Bing'
+        ), FALSE
+    )"""
+description = "Clients with Bing as default search engine"
+data_source = "clients_daily"
+
+[segments.ddg_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'DuckDuckGo'
+        ), FALSE
+    )"""
+description = "Clients with DDG as default search engine"
+data_source = "clients_daily"
+
+[segments.baidu_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Baidu'
+        ), FALSE
+    )"""
+description = "Clients with Baidu as default search engine"
+data_source = "clients_daily"
+
+[segments.qwant_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Qwant'
+        ), FALSE
+    )"""
+description = "Clients with Qwant as default search engine"
+data_source = "clients_daily"
+
+[segments.ecosia_default_search]
+select_expression = """
+    COALESCE(
+        LOGICAL_OR(
+            `moz-fx-data-shared-prod`.udf.normalize_search_engine(default_search_engine) = 'Ecosia'
+        ), FALSE
+    )"""
+description = "Clients with Ecosia as default search engine"
+data_source = "clients_daily"
+
+[segments.us]
+select_expression = "COALESCE(LOGICAL_OR(country = 'US'), FALSE)"
+description = "Clients in US"
+data_source = "clients_daily"
+
+[segments.marketing_tier1_countries]
+select_expression = "COALESCE(LOGICAL_OR(country IN ('CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
+description = "Clients in marketing Tier 1 countries"
+data_source = "clients_daily"
+
+[segments.jp]
+select_expression = "COALESCE(LOGICAL_OR(country = 'JP'), FALSE)"
+description = "Clients in Japan"
+data_source = "clients_daily"
+
+[segments.in]
+select_expression = "COALESCE(LOGICAL_OR(country = 'IN'), FALSE)"
+description = "Clients in India"
+data_source = "clients_daily"
+
+[segments.row]
+select_expression = "COALESCE(LOGICAL_OR(country NOT IN ('JP', 'IN, 'CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
+description = "Clients in countries not covered by previous country segments"
+data_source = "clients_daily"
+
+[segments.data_sources.clients_daily]
+from_expression = "mozdata.telemetry.clients_daily"
+window_start = 0
+window_end = 0
