@@ -10,8 +10,13 @@ segments = [
     "qwant_default_search",
     "ecosia_default_search",
     "us",
-    "marketing_tier1_countries",
+    "ca",
+    "fr",
+    "de",
+    "jp",
+    "gb",
     "india",
+    "marketing_tier1_countries",
     "row",
 ]
 
@@ -82,11 +87,6 @@ select_expression = "COALESCE(LOGICAL_OR(country = 'US'), FALSE)"
 description = "Clients in US"
 data_source = "clients_daily"
 
-[segments.marketing_tier1_countries]
-select_expression = "COALESCE(LOGICAL_OR(country IN ('CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
-description = "Clients in marketing Tier 1 countries"
-data_source = "clients_daily"
-
 [segments.jp]
 select_expression = "COALESCE(LOGICAL_OR(country = 'JP'), FALSE)"
 description = "Clients in Japan"
@@ -95,6 +95,31 @@ data_source = "clients_daily"
 [segments.india]
 select_expression = "COALESCE(LOGICAL_OR(country = 'IN'), FALSE)"
 description = "Clients in India"
+data_source = "clients_daily"
+
+[segments.ca]
+select_expression = "COALESCE(LOGICAL_OR(country = 'CA'), FALSE)"
+description = "Clients in Canada"
+data_source = "clients_daily"
+
+[segments.de]
+select_expression = "COALESCE(LOGICAL_OR(country = 'DE'), FALSE)"
+description = "Clients in Germany"
+data_source = "clients_daily"
+
+[segments.fr]
+select_expression = "COALESCE(LOGICAL_OR(country = 'FR'), FALSE)"
+description = "Clients in France"
+data_source = "clients_daily"
+
+[segments.gb]
+select_expression = "COALESCE(LOGICAL_OR(country = 'GB'), FALSE)"
+description = "Clients in GB"
+data_source = "clients_daily"
+
+[segments.marketing_tier1_countries]
+select_expression = "COALESCE(LOGICAL_OR(country IN ('CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
+description = "Clients in marketing Tier 1 countries"
 data_source = "clients_daily"
 
 [segments.row]
