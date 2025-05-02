@@ -11,7 +11,7 @@ segments = [
     "ecosia_default_search",
     "us",
     "marketing_tier1_countries",
-    "in",
+    "india",
     "row",
 ]
 
@@ -92,7 +92,7 @@ select_expression = "COALESCE(LOGICAL_OR(country = 'JP'), FALSE)"
 description = "Clients in Japan"
 data_source = "clients_daily"
 
-[segments.in]
+[segments.india]
 select_expression = "COALESCE(LOGICAL_OR(country = 'IN'), FALSE)"
 description = "Clients in India"
 data_source = "clients_daily"
