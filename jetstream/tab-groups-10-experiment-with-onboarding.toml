@@ -1,5 +1,7 @@
 [experiment]
 end_date = "2025-05-06"
+enrollment_period = 7
+segments = ["regular_users_v3", "new_or_resurrected_v3"]
 
 [experiment.exposure_signal]
 name = "contextual_reach"
