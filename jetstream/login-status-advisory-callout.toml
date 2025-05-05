@@ -51,10 +51,14 @@ select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALS
 [segments.not_signed_into_desktop_at_start]
 select_expression = 'COALESCE(LOGICAL_AND(sync_count_desktop_mean IS NULL), FALSE)'
 data_source = 'clients_daily'
+window_start = -1
+window_end = -1
 
 [segments.signed_into_desktop_at_start]
 select_expression = 'COALESCE(LOGICAL_OR(sync_count_desktop_mean > 0), FALSE)'
 data_source = 'clients_daily'
+window_start = -1
+window_end = -1
 
 [data_sources]
 

@@ -50,6 +50,45 @@ window_sizes = [1, 7, 28]
 [metrics.newtab_engaged_visits.statistics.sum]
 [metrics.newtab_ad_click_rate.statistics.average]
 
+#HNT data model visit metrics and statistics
+[metrics.nonsearch_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(nonsearch_engagement_visits)"
+friendly_name = "Nonsearch Engagement Visits"
+description = "Count of visits with nonsearch engagement"
+
+[metrics.default_ui_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(default_ui_visits)"
+friendly_name = "Default UI Visits"
+description = "Count of visits with default UI"
+
+[metrics.nonsearch_engagement_visits.statistics.sum]
+[metrics.default_ui_visits.statistics.sum]
+[metrics.nonsearch_engagement_visits.statistics.ratio]
+numerator = "nonsearch_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+
+
+#HNT data model client metrics and statistics
+[metrics.nonsearch_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(nonsearch_engagement_clients)"
+friendly_name = "Nonsearch Engagement Clients"
+description = "Count of clients with nonsearch engagement"
+
+[metrics.default_ui_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(default_ui_clients)"
+friendly_name = "Default UI Clients"
+description = "Count of clients with default UI"
+
+[metrics.nonsearch_engagement_clients.statistics.sum]
+[metrics.default_ui_clients.statistics.sum]
+[metrics.nonsearch_engagement_clients.statistics.ratio]
+numerator = "nonsearch_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+
 # Data sources
 
 [data_sources.looker_base_fields]
@@ -116,3 +155,38 @@ columns_as_dimensions = true
 [data_sources.newtab_clients_daily.joins.countries]
 relationship = "one_to_many"
 on_expression = "newtab_clients_daily.country_code = countries.code"
+
+#HNT data model revamp data sources
+[data_sources.newtab_clients_daily_aggregates]
+from_expression = "moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2"
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+columns_as_dimensions = false
+
+[data_sources.newtab_clients_daily_aggregates_base_fields]
+from_expression = '''(SELECT 
+submission_date, app_version, os, channel, locale, browser_version, country, newtab_homepage_category, newtab_newtab_category,
+organic_content_enabled, sponsored_content_enabled, sponsored_topsites_enabled, organic_topsites_enabled, newtab_search_enabled
+FROM moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2)'''
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.newtab_clients_daily_aggregates.joins.newtab_clients_daily_aggregates_base_fields]
+relationship = "one_to_one"
+on_expression = '''
+(newtab_clients_daily_aggregates.submission_date = newtab_clients_daily_aggregates_base_fields.submission_date OR (newtab_clients_daily_aggregates.submission_date IS NULL AND newtab_clients_daily_aggregates_base_fields.submission_date IS NULL )) 
+AND (newtab_clients_daily_aggregates.app_version = newtab_clients_daily_aggregates_base_fields.app_version OR (newtab_clients_daily_aggregates.app_version IS NULL AND newtab_clients_daily_aggregates_base_fields.app_version IS NULL ))
+AND (newtab_clients_daily_aggregates.os = newtab_clients_daily_aggregates_base_fields.os OR (newtab_clients_daily_aggregates.os IS NULL AND newtab_clients_daily_aggregates_base_fields.os IS NULL ))
+AND (newtab_clients_daily_aggregates.channel = newtab_clients_daily_aggregates_base_fields.channel OR (newtab_clients_daily_aggregates.channel IS NULL AND newtab_clients_daily_aggregates_base_fields.channel IS NULL ))
+AND (newtab_clients_daily_aggregates.locale = newtab_clients_daily_aggregates_base_fields.locale OR (newtab_clients_daily_aggregates.locale IS NULL AND newtab_clients_daily_aggregates_base_fields.locale IS NULL ))
+AND (newtab_clients_daily_aggregates.browser_version = newtab_clients_daily_aggregates_base_fields.browser_version OR (newtab_clients_daily_aggregates.browser_version IS NULL AND newtab_clients_daily_aggregates_base_fields.browser_version IS NULL ))
+AND (newtab_clients_daily_aggregates.country = newtab_clients_daily_aggregates_base_fields.country OR (newtab_clients_daily_aggregates.country IS NULL AND newtab_clients_daily_aggregates_base_fields.country IS NULL ))
+AND (newtab_clients_daily_aggregates.newtab_homepage_category = newtab_clients_daily_aggregates_base_fields.newtab_homepage_category OR (newtab_clients_daily_aggregates.newtab_homepage_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_homepage_category IS NULL ))
+AND (newtab_clients_daily_aggregates.newtab_newtab_category = newtab_clients_daily_aggregates_base_fields.newtab_newtab_category OR (newtab_clients_daily_aggregates.newtab_newtab_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_newtab_category IS NULL ))
+AND (newtab_clients_daily_aggregates.organic_content_enabled = newtab_clients_daily_aggregates_base_fields.organic_content_enabled OR (newtab_clients_daily_aggregates.organic_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_content_enabled IS NULL ))
+AND (newtab_clients_daily_aggregates.sponsored_content_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled OR (newtab_clients_daily_aggregates.sponsored_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled IS NULL ))
+AND (newtab_clients_daily_aggregates.sponsored_topsites_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled OR (newtab_clients_daily_aggregates.sponsored_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled IS NULL ))
+AND (newtab_clients_daily_aggregates.organic_topsites_enabled = newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled OR (newtab_clients_daily_aggregates.organic_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled IS NULL ))
+AND (newtab_clients_daily_aggregates.newtab_search_enabled = newtab_clients_daily_aggregates_base_fields.newtab_search_enabled OR (newtab_clients_daily_aggregates.newtab_search_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_search_enabled IS NULL ))
+'''

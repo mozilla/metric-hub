@@ -1,0 +1,44 @@
+
+[metrics]
+
+weekly = ["app_opened", "app_icon_used", "app_opens_per_client", "app_icon_uses_per_client"]
+
+# Metrics to compute for each 28 days long analysis window
+28_day = ["app_opened", "app_icon_used", "app_opens_per_client", "app_icon_uses_per_client"]
+
+# Metrics to compute only for the overall analysis window.
+overall = ["app_opened", "app_icon_used", "app_opens_per_client", "app_icon_uses_per_client"]
+
+[metrics.app_opened]
+select_expression = "CAST(SUM(IF(event.name = 'app_opened',1,0)) >0 AS INT)"
+data_source = "events"
+friendly_name = "app opened"
+description = "app opened"
+
+[metrics.app_opens_per_client]
+select_expression = "COALESCE(SUM(IF(event.name = 'app_opened',1,0)),0)"
+data_source = "events"
+friendly_name = "app open count per client"
+description = "number of app opens per client"
+
+
+
+[metrics.app_icon_used]
+select_expression = """CAST(SUM(IF(event.name = 'app_opened' AND STARTS_WITH(mozfun.map.get_key(event.extra,
+      'source'),'APP_ICON') ,1,0)) >0 AS INT)"""
+data_source = "events"
+friendly_name = "app icon used"
+description = "app icon used to open the app"
+
+[metrics.app_icon_uses_per_client]
+select_expression = """COALESCE(SUM(IF(event.name = 'app_opened' AND STARTS_WITH(mozfun.map.get_key(event.extra,
+      'source'),'APP_ICON') ,1,0)),0)"""
+data_source = "events"
+friendly_name = "app icon usage per client"
+description = "app icon usage per client"
+
+
+[metrics.app_opened.statistics.binomial]
+[metrics.app_icon_used.statistics.binomial]
+[metrics.app_opens_per_client.statistics.bootstrap_mean]
+[metrics.app_icon_uses_per_client.statistics.bootstrap_mean]

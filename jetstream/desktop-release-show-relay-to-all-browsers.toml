@@ -1,8 +1,12 @@
-friendly_name = "Relay"
-description = "Metrics for the Relay integration"
+[experiment]
+[experiment.exposure_signal]
+name = "show_logins_exposure"
+friendly_name = "Logins dropdown exposure"
+description = "User exposed to logins dropdown on a login form"
+data_source = "events_form_autocomplete"
+select_expression = "event_name = 'show_logins'"
 
-
-# Metric for tracking how many times the offer was shown
+[metrics]
 [metrics.relay_integration_shown_relay_offer]
 friendly_name = "Relay Optin: Relay offer shown to client"
 description = "Number of times Relay offer is shown"
@@ -146,6 +150,12 @@ depends_on = [
 [metrics.fill_username_ctr.statistics.population_ratio]
 numerator = "relay_integration_clicked_fill_username"
 denominator = "relay_integration_shown_fill_username"
+
+[data_sources]
+[data_sources.events_form_autocomplete]
+from_expression = "(SELECT legacy_telemetry_client_id, experiments, DATE(submission_timestamp) AS submission_date, event_name FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'form_autocomplete')"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
 
 [data_sources.relay_integration_events]
 from_expression = """(
