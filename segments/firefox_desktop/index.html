@@ -2414,7 +2414,7 @@
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(ANY_VALUE(first_seen_date) &gt;= submission_date, TRUE)
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(first_seen_date = submission_date), FALSE)
 </code></pre>
 
 </details>
