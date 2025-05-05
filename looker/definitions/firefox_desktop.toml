@@ -120,6 +120,14 @@ denominator='newtab_sponsored_pocket_stories_enabled'
 numerator='newtab_clients_with_sponsored_content_clicks'
 denominator='newtab_clients_with_sponsored_content_impressions'
 
+[metrics.sponsored_tile_ctr.statistics.population_ratio]
+numerator='sponsored_tile_clicks'
+denominator='sponsored_tile_impressions'
+
+[metrics.sponsored_pocket_ctr.statistics.population_ratio]
+numerator='sponsored_pocket_clicks'
+denominator='sponsored_pocket_impressions'
+
 # Data sources
 
 [data_sources.looker_base_fields]
