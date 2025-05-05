@@ -93,37 +93,6 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
-### Statistics from firefox_desktop.toml
-[metrics.newtab_sponsored_tiles_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_tiles_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.sum]
-
-[metrics.frac_users_with_sponsored_tile_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_impressions'
-denominator='newtab_sponsored_tiles_enabled'
-
-[metrics.frac_users_with_sponsored_tile_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_clicks'
-denominator='newtab_clients_with_sponsored_tile_impressions'
-
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.sum]
-
-[metrics.frac_users_with_sponsored_content_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_impressions'
-denominator='newtab_sponsored_pocket_stories_enabled'
-
-[metrics.frac_users_with_sponsored_content_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_clicks'
-denominator='newtab_clients_with_sponsored_content_impressions'
-
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -192,21 +161,4 @@ description = """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
-
-[data_sources.clients_daily_looker_base_fields]
-select_expression = """
-    SELECT
-        submission_date,
-        normalized_os,
-        country_code,
-        channel,
-        browser_version,
-        mozfun.norm.extract_version(browser_version, 'major') as major_version
-    FROM
-        moz-fx-data-shared-prod.telemetry.newtab_clients_daily
-"""
-columns_as_dimensions = true  # expose the selected fields as dimensions in Looker
-
-# Join onto clients daily
-[data_sources.newtab_clients_daily.joins.clients_daily_looker_base_fields]
 
