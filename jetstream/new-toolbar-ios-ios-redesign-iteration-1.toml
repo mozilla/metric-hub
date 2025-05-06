@@ -4,15 +4,15 @@ segments = ["week_one", "week_two", "week_three"]
 
 [segments.week_one]
 select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-03-25' AND '2025-04-01')"
-data_source = "segment_enrollments"
+data_source = "segmented_enrollments"
 
 [segments.week_two]
 select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-04-02' AND '2025-04-08')"
-data_source = "segment_enrollments"
+data_source = "segmented_enrollments"
 
 [segments.week_three]
 select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-04-09' AND '2025-04-15')"
-data_source = "segment_enrollments"
+data_source = "segmented_enrollments"
 
 
 [segments.data_sources.segmented_enrollments]
