@@ -1,6 +1,6 @@
 [experiment]
 enrollment_period = 7
-end_date = "2025-05-02"
+end_date = "2025-05-06"
 
 segments = [
     "google_default_search",
