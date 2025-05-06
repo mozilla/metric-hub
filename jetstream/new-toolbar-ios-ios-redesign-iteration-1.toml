@@ -1,2 +1,36 @@
 [experiment]
 enrollment_period = 21
+segments = ["week_one", "week_two", "week_three"]
+
+[segments.week_one]
+select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-03-25' AND '2025-04-01')"
+data_source = "segmented_enrollments"
+
+[segments.week_two]
+select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-04-02' AND '2025-04-08')"
+data_source = "segmented_enrollments"
+
+[segments.week_three]
+select_expression = "LOGICAL_OR(segment_enrollment_date BETWEEN '2025-04-09' AND '2025-04-15')"
+data_source = "segmented_enrollments"
+
+
+[segments.data_sources.segmented_enrollments]
+client_id_column = 'client_id'
+submission_date_column = 'segment_enrollment_date'
+from_expression = """(
+    SELECT
+        client_id,
+        JSON_VALUE(event_extra, '$.branch') AS branch,
+        DATE(MIN(submission_timestamp)) AS segment_enrollment_date,
+        COUNT(submission_timestamp) AS num_enrollment_events
+    FROM `moz-fx-data-shared-prod.firefox_ios.events_stream`
+    WHERE
+        client_id IS NOT NULL
+        AND DATE(submission_timestamp)
+            BETWEEN '2025-03-25' AND '2025-04-15'
+        AND event_category = "nimbus_events"
+        AND JSON_VALUE(event_extra, "$.experiment") = "new-toolbar-ios-ios-redesign-iteration-1"
+        AND event_name = "enrollment"
+    GROUP BY client_id, branch
+)"""
