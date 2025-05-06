@@ -18,7 +18,7 @@ data_source = "segmented_enrollments"
 [segments.data_sources.segmented_enrollments]
 client_id_column = 'client_id'
 submission_date_column = 'segment_enrollment_date'
-from_expression = """
+from_expression = """(
     SELECT
         client_id,
         JSON_VALUE(event_extra, '$.branch') AS branch,
@@ -33,4 +33,4 @@ from_expression = """
         AND JSON_VALUE(event_extra, "$.experiment") = "new-toolbar-ios-ios-redesign-iteration-1"
         AND event_name = "enrollment"
     GROUP BY client_id, branch
-"""
+)"""
