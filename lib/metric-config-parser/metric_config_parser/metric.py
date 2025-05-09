@@ -100,7 +100,7 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
+    analysis_units: List[AnalysisUnit] = None
 
 
 @attr.s(auto_attribs=True)
@@ -200,6 +200,10 @@ class MetricDefinition:
         metric = None
         upstream_metrics = None
 
+        default_analysis_units = [AnalysisUnit.CLIENT]
+        if conf.app_name == "firefox_desktop":
+            default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
+
         # check if metric depends on other metrics
         if self.depends_on:
             upstream_metrics = []
@@ -247,8 +251,7 @@ class MetricDefinition:
                     owner=[self.owner] if isinstance(self.owner, str) else self.owner,
                     deprecated=self.deprecated,
                     level=self.level,
-                    analysis_units=self.analysis_units
-                    or [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP],
+                    analysis_units=self.analysis_units or default_analysis_units,
                 )
             elif metric_definition:
                 metric_definition.analysis_bases = (
@@ -263,7 +266,7 @@ class MetricDefinition:
                 metric_definition.analysis_units = (
                     self.analysis_units
                     or metric_definition.analysis_units
-                    or [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
+                    or default_analysis_units
                 )
                 metric_summary = metric_definition.resolve(spec, conf, configs)
         else:
@@ -275,15 +278,13 @@ class MetricDefinition:
 
             # ensure all of metric's analysis_units are supported by data_source
             resolved_ds = self.data_source.resolve(spec, conf, configs)
-            analysis_units = self.analysis_units or [
-                AnalysisUnit.CLIENT,
-                AnalysisUnit.PROFILE_GROUP,
-            ]
+            analysis_units = self.analysis_units or default_analysis_units
             for agg_unit in analysis_units:
                 if agg_unit not in resolved_ds.analysis_units:
                     raise ValueError(
-                        f"data_source {resolved_ds.name} does not support "
-                        f"all analysis_units specified by metric {self.name}: "
+                        f"data_source {resolved_ds.name} (app: {conf.app_name})"
+                        " does not support all analysis_units specified by metric "
+                        f"{self.name}: "
                         f"analysis_units for metric: {analysis_units}, "
                         f"analysis_units for data_source: {resolved_ds.analysis_units}"
                     )

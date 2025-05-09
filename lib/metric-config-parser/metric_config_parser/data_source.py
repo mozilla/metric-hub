@@ -87,7 +87,8 @@ class DataSource:
         analysis_units (list[AnalysisUnit], optional): denotes which
             aggregations are supported by this data_source. At time
             of writing, this means 'client_id', 'profile_group_id',
-            or both. Defaults to both ['client_id', 'profile_group_id'].
+            or both. Defaults to both ['client_id', 'profile_group_id']
+            for firefox_desktop, ['client_id'] otherwise.
         group_id_column (str, optional): Name of the column that
             contains the ``profile_group_id`` (join key). Defaults to
             'profile_group_id'.
@@ -104,9 +105,7 @@ class DataSource:
     description = attr.ib(default=None, type=str)
     joins = attr.ib(default=None, type=List[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
-    analysis_units = attr.ib(
-        default=[AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP], type=List[AnalysisUnit]
-    )
+    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
@@ -199,6 +198,16 @@ class DataSourceDefinition:
                 + "Wildcard characters are only allowed if matching slug is defined."
             )
 
+        default_analysis_units = [AnalysisUnit.CLIENT]
+        app_name = ""
+        if conf and conf.app_name:
+            app_name = conf.app_name
+        elif conf and conf.experiment:
+            app_name = conf.experiment.app_name
+
+        if app_name == "firefox_desktop":
+            default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
+
         params: Dict[str, Any] = {
             "name": self.name,
             "from_expression": self.from_expression,
@@ -217,7 +226,11 @@ class DataSourceDefinition:
             "group_id_column",
         ):
             v = getattr(self, k)
-            if v:
+            # analysis_units is special: its default value is based on the app_name
+            # so we'll set it to default_analysis_units if it isn't already set
+            if k == "analysis_units":
+                params[k] = v or default_analysis_units
+            elif v:
                 params[k] = v
         # experiments_column_type is a little special, though!
         # `None` is a valid value, which means there isn't any `experiments` column in the
