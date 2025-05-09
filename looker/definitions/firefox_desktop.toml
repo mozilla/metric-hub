@@ -90,35 +90,14 @@ numerator = "nonsearch_engagement_clients.sum"
 denominator = "default_ui_clients.sum"
 
 ### Ads data funnel statistics
-[metrics.newtab_sponsored_tiles_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_tiles_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.sum]
+[metrics.newtab_sponsored_tiles_enabled.statistics.client_count]
+[metrics.sponsored_tile_impressions.statistics.client_count]
+[metrics.sponsored_tile_clicks.statistics.client_count]
 
-[metrics.frac_users_with_sponsored_tile_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_impressions'
-denominator='newtab_sponsored_tiles_enabled'
+[metrics.newtab_sponsored_pocket_stories_enabled.statistics.client_count]
+[metrics.sponsored_pocket_impressions.statistics.client_count]
+[metrics.sponsored_pocket_clicks.statistics.client_count]
 
-[metrics.frac_users_with_sponsored_tile_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_clicks'
-denominator='newtab_clients_with_sponsored_tile_impressions'
-
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.sum]
-
-[metrics.frac_users_with_sponsored_content_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_impressions'
-denominator='newtab_sponsored_pocket_stories_enabled'
-
-[metrics.frac_users_with_sponsored_content_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_clicks'
-denominator='newtab_clients_with_sponsored_content_impressions'
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
 numerator='sponsored_tile_clicks'
