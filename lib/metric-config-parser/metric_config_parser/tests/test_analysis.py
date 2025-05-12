@@ -448,7 +448,11 @@ class TestAnalysisSpec:
 
         assert cfg.experiment.exposure_signal == ExposureSignal(
             name="ad_exposure",
-            data_source=DataSource(name="main", from_expression="(SELECT 1)"),
+            data_source=DataSource(
+                name="main",
+                from_expression="(SELECT 1)",
+                analysis_units=[AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP],
+            ),
             select_expression="ad_click > 0",
             friendly_name="Ad exposure",
             description="Clients have clicked on ad",
