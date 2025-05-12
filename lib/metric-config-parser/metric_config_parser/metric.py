@@ -100,7 +100,8 @@ class Metric:
     owner: Optional[List[str]] = None
     deprecated: bool = False
     level: Optional[MetricLevel] = None
-    analysis_units: List[AnalysisUnit] = None
+    # Default to client for most apps, client+group for desktop (set elsewhere)
+    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
 
 
 @attr.s(auto_attribs=True)

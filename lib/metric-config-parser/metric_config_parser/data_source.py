@@ -200,9 +200,13 @@ class DataSourceDefinition:
 
         default_analysis_units = [AnalysisUnit.CLIENT]
         app_name = ""
-        if conf and conf.app_name:
+        if getattr(conf, "app_name", None):
+            if TYPE_CHECKING:
+                assert isinstance(conf, ProjectConfiguration)
             app_name = conf.app_name
-        elif conf and conf.experiment:
+        elif getattr(conf, "experiment", None):
+            if TYPE_CHECKING:
+                assert isinstance(conf, ExperimentConfiguration)
             app_name = conf.experiment.app_name
 
         if app_name == "firefox_desktop":
