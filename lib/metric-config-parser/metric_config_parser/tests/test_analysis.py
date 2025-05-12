@@ -919,6 +919,6 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
 
         with pytest.raises(
-            ValueError, match="data_source eggs \(app: firefox_desktop\) does not support"
+            ValueError, match=r"data_source eggs \(app: firefox_desktop\) does not support"
         ):
             spec.resolve(experiments[0], config_collection)
