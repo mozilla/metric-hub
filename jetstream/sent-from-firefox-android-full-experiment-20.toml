@@ -1,8 +1,5 @@
-friendly_name = "Sent From Firefox - Android (2.5% Rollout)"
+friendly_name = "Sent From Firefox - Android (Full Experiment)"
 description = "Track tab shares (total & WhatsApp) and feature interactions for the full 20% Android rollout."
-
-[experiment]
-enrollment_period = 8
 
 [metrics]
 overall = [
@@ -23,7 +20,7 @@ select_expression = """
 data_source = "android_events"
 friendly_name = "WhatsApp tab share count"
 description = "Times users shared a tab to WhatsApp."
-analysis_bases = ["enrollments", "exposures"]
+analysis_bases = ["enrollments","exposures"]
 bigger_is_better = true
 [metrics.whatsapp_share_count.statistics.bootstrap_mean]
 
@@ -86,4 +83,3 @@ from_expression = """
 """
 experiments_column_type = "none"
 analysis_units = ["client_id"]
->>>>>>> Stashed changes
