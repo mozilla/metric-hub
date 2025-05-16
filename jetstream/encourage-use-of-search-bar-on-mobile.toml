@@ -20,10 +20,10 @@ statistics = { sum = {}, bootstrap_mean = {}, deciles = {} }
 [data_sources.events_filtered]
 from_expression = """(
     SELECT *, DATE(submission_timestamp) AS submission_date
-    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    FROM `moz-fx-data-shared-prod.fenix.events_stream`
     WHERE event_category IN ('urlbar', 'awesomebar')
 )"""
 description = "Glean events_stream dataset (events ping unnested to a single row per event) filtered"
 friendly_name = "Glean Events Stream Filtered"
 experiments_column_type = "none"
-client_id_column = "legacy_telemetry_client_id"
+client_id_column = "client_id"
