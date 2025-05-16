@@ -21,6 +21,52 @@ description = "Daily SPOC revenue"
 [metrics.spoc_clicks.statistics.sum]
 [metrics.spoc_revenue.statistics.sum]
 
+### data_sources.native_desktop_ad_metrics_by_position
+[metrics.native_spend_pos]
+select_expression = "SUM(spend)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Spend"
+description ="Native Desktop Metrics spend"
+
+[metrics.native_dismisses_pos]
+select_expression = "SUM(dismisses)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Dismisses"
+description ="Native Desktop Metrics dismisses"
+
+[metrics.native_impressions_pos]
+select_expression = "SUM(impressions)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Impressions"
+description ="Native Desktop Metrics impressions"
+
+[metrics.native_clicks_pos]
+select_expression = "SUM(clicks)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Clicks"
+description ="Native Desktop Metrics clicks"
+
+[metrics.native_saves_pos]
+select_expression = "SUM(saves)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Saves"
+description ="Native Desktop Metrics saves"
+
+[metrics.native_spend_pos.statistics.sum]
+[metrics.native_dismisses_pos.statistics.sum]
+[metrics.native_impressions_pos.statistics.sum]
+[metrics.native_clicks_pos.statistics.sum]
+[metrics.native_saves_pos.statistics.sum]
+[metrics.native_dismisses_pos.statistics.ratio]
+numerator = "native_dismisses_pos.sum"
+denominator = "native_impressions_pos.sum"
+[metrics.native_clicks_pos.statistics.ratio]
+numerator = "native_clicks_pos.sum"
+denominator = "native_impressions_pos.sum"
+[metrics.native_saves_pos.statistics.ratio]
+numerator = "native_saves_pos.sum"
+denominator = "native_impressions_pos.sum"
+
 ### data_sources.native_desktop_ad_metrics
 [metrics.native_spend]
 select_expression = "SUM(spend)"
@@ -145,6 +191,24 @@ description = """
   Tracks Native Desktop Ad Metrics Across Days.
   Primarily used for AdOps Internal and External reporting.
   Data in this view is only available starting on April 1, 2025.
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.native_desktop_ad_metrics_by_position]
+from_expression = """
+(
+  SELECT
+    *,
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom,
+    REGEXP_EXTRACT(ad_url, r'ref=([^&]+)') AS campaign_name_custom_2
+  FROM `mozdata.ads.native_desktop_ad_metrics_by_position_hourly`
+)
+"""
+friendly_name = "Native Desktop Ads Metrics by Position Daily"
+description = """
+  Tracks Native Desktop Ad Metrics Across Days and Positions
 """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
