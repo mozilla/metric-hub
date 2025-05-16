@@ -2017,15 +2017,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#search_count" class="md-nav__link">
-    search_count
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2038,15 +2038,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#retained" class="md-nav__link">
-    retained
+  <a href="#search_count" class="md-nav__link">
+    search_count
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#retained" class="md-nav__link">
+    retained
   </a>
   
 </li>
@@ -2261,15 +2261,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#search_count" class="md-nav__link">
-    search_count
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2282,15 +2282,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#retained" class="md-nav__link">
-    retained
+  <a href="#search_count" class="md-nav__link">
+    search_count
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#retained" class="md-nav__link">
+    retained
   </a>
   
 </li>
@@ -2372,22 +2372,6 @@
 <h2 id="opmon-config">opmon-config</h2>
 <p><a href="https://github.com/mozilla/metric-hub/blob/main/defaults/klar_ios.toml">Source</a>  |  <a href="https://github.com/mozilla/metric-hub/edit/main/defaults/klar_ios.toml">Edit</a></p>
 <h3 id="metrics">Metrics</h3>
-<h4 id="search_count"><code>search_count</code></h4>
-<p><strong>SAP search count</strong></p>
-<p>Number of searches performed through a Search Access Point.</p>
-<p>Analysis Periods:  <code>daily</code>  </p>
-<p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>mean</code></p>
-<details>
-<summary>Definition:</summary>
-
-
-<pre><code class="language-sql">COALESCE(SUM(search_count), 0)
-</code></pre>
-
-</details>
-
-<hr />
 <h4 id="days_of_use"><code>days_of_use</code></h4>
 <p><strong>Days of use</strong></p>
 <p>The number of days in an observation window that clients used the browser.</p>
@@ -2399,6 +2383,22 @@
 
 
 <pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
+</code></pre>
+
+</details>
+
+<hr />
+<h4 id="active_hours"><code>active_hours</code></h4>
+<p><strong>Active Hours</strong></p>
+<p>Total time Firefox was active</p>
+<p>Analysis Periods:  <code>daily</code>  </p>
+<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
+<p>Statistics: <code>mean</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
 </code></pre>
 
 </details>
@@ -2421,6 +2421,22 @@ partner tag.</p>
 </details>
 
 <hr />
+<h4 id="search_count"><code>search_count</code></h4>
+<p><strong>SAP search count</strong></p>
+<p>Number of searches performed through a Search Access Point.</p>
+<p>Analysis Periods:  <code>daily</code>  </p>
+<p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p>Statistics: <code>mean</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(SUM(search_count), 0)
+</code></pre>
+
+</details>
+
+<hr />
 <h4 id="retained"><code>retained</code></h4>
 <p><strong>Retained</strong></p>
 <p>Records whether a client submitted any pings (i.e. used Firefox).</p>
@@ -2437,27 +2453,11 @@ partner tag.</p>
 </details>
 
 <hr />
-<h4 id="active_hours"><code>active_hours</code></h4>
-<p><strong>Active Hours</strong></p>
-<p>Total time Firefox was active</p>
-<p>Analysis Periods:  <code>daily</code>  </p>
-<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>mean</code></p>
-<details>
-<summary>Definition:</summary>
-
-
-<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
-</code></pre>
-
-</details>
-
-<hr />
 <h2 id="jetstream-config">jetstream-config</h2>
 <p><a href="https://github.com/mozilla/metric-hub/blob/main/defaults/klar_ios.toml">Source</a>  |  <a href="https://github.com/mozilla/metric-hub/edit/main/defaults/klar_ios.toml">Edit</a></p>
 <h3 id="metrics_1">Metrics</h3>
 <h4 id="retained_1"><code>retained</code></h4>
-<p>Analysis Periods:  <code>weekly</code> ,   <code>daily</code>  </p>
+<p>Analysis Periods:  <code>daily</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
@@ -2475,7 +2475,7 @@ partner tag.</p>
 <p>The number of days in an observation window that clients used the browser.</p>
 <p>Analysis Periods:  <code>overall</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>empirical_cdf</code>, <code>bootstrap_mean</code></p>
+<p>Statistics: <code>empirical_cdf</code>, <code>deciles</code>, <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
