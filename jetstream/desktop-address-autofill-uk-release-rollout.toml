@@ -1,0 +1,27 @@
+[experiment]
+
+[experiment.exposure_signal]
+name = "address_form_detect"
+friendly_name = "Address Form Detected"
+description = "Clients who have address form detected"
+data_source = "address_autofill"
+select_expression = "COALESCE(event_name = 'detected_address_form', FALSE)"
+window_start = 0
+window_end = "analysis_window_end"
+
+[data_sources.address_autofill]
+from_expression = """(
+  SELECT 
+    client_info.client_id as client_id,
+    DATE(submission_timestamp) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_unnested`
+  WHERE
+    event_category IN ('address')
+    AND event_name IN ('detected_address_form', 'filled_address_form', 'submitted_address_form')
+  GROUP BY 1, 2, 3
+)"""
+experiments_column_type = "none"
+friendly_name = "Address Autofill"
+description = "Clients who have used the address autofill feature"
