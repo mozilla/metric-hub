@@ -328,6 +328,39 @@ denominator = "organic_topsite_impression_count.sum"
 numerator = "sponsored_topsite_click_count.sum"
 denominator = "sponsored_topsite_impression_count.sum"
 
+#HNT data model visit WIDGET reporting metrics  - visits and clients
+[metrics.widget_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(widget_engagement_visits)"
+friendly_name = "Widget Engagement Visits"
+description = "Count of visits with widget engagement"
+
+[metrics.widget_engagement_visits.statistics.sum]
+
+[metrics.widget_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(widget_engagement_clients)"
+friendly_name = "Widget Engagement Clients"
+description = "Count of clients with widget engagement"
+
+[metrics.widget_engagement_clients.statistics.sum]
+
+#HNT data model visit OTHERS reporting metrics  - visits and clients
+[metrics.others_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(others_engagement_visits)"
+friendly_name = "Others Engagement Visits"
+description = "Count of visits with others engagement"
+
+[metrics.others_engagement_visits.statistics.sum]
+
+[metrics.others_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(others_engagement_clients)"
+friendly_name = "Others Engagement Clients"
+description = "Count of clients with others engagement"
+
+
 ### Ads data funnel statistics
 [metrics.newtab_sponsored_tiles_enabled.statistics.client_count]
 [metrics.sponsored_tile_impressions.statistics.client_count]
