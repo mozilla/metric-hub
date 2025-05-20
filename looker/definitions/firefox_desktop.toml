@@ -198,13 +198,13 @@ description = "Sum of sponsored content clicks"
 [metrics.organic_content_click_count.statistics.sum]
 [metrics.sponsored_content_click_count.statistics.sum]
 
-[metrics.any_content_ctr.statistics.ratio]
+[metrics.any_content_click_count.statistics.ratio]
 numerator = "any_content_click_count.sum"
 denominator = "any_content_impression_count.sum"
-[metrics.organic_content_ctr.statistics.ratio]
+[metrics.organic_content_click_count.statistics.ratio]
 numerator = "organic_content_click_count.sum"
 denominator = "organic_content_impression_count.sum"
-[metrics.sponsored_content_ctr.statistics.ratio]
+[metrics.sponsored_content_click_count.statistics.ratio]
 numerator = "sponsored_content_click_count.sum"
 denominator = "sponsored_content_impression_count.sum"
 
@@ -318,13 +318,13 @@ description = "Sum of sponsored topsite clicks"
 [metrics.organic_topsite_click_count.statistics.sum]
 [metrics.sponsored_topsite_click_count.statistics.sum]
 
-[metrics.any_topsites_ctr.statistics.ratio]
+[metrics.any_topsite_click_count.statistics.ratio]
 numerator = "any_topsite_click_count.sum"
 denominator = "any_topsite_impression_count.sum"
-[metrics.organic_topsites_ctr.statistics.ratio]
+[metrics.organic_topsite_click_count.statistics.ratio]
 numerator = "organic_topsite_click_count.sum"
 denominator = "organic_topsite_impression_count.sum"
-[metrics.sponsored_topsites_ctr.statistics.ratio]
+[metrics.sponsored_topsite_click_count.statistics.ratio]
 numerator = "sponsored_topsite_click_count.sum"
 denominator = "sponsored_topsite_impression_count.sum"
 
