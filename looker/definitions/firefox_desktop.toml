@@ -212,7 +212,7 @@ denominator = "sponsored_content_impression_count.sum"
 #HNT data model visit TOPSITE reporting metrics  - visits and clients
 [metrics.any_topsite_engagement_visits]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(any_topsites_engagement_visits)"
+select_expression = "SUM(any_topsite_engagement_visits)"
 friendly_name = "Any Topsite Engagement Visits"
 description = "Count of visits with topsite engagement, both sponsored and organic"
 
@@ -244,7 +244,7 @@ denominator = "default_ui_visits.sum"
 
 [metrics.any_topsite_engagement_clients]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(any_topsites_engagement_clients)"
+select_expression = "SUM(any_topsite_engagement_clients)"
 friendly_name = "Any Topsite Engagement clients"
 description = "Count of clients with topsite engagement, both sponsored and organic"
 
@@ -276,37 +276,37 @@ denominator = "default_ui_clients.sum"
 
 [metrics.any_topsite_impression_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(any_topsites_impression_count)"
+select_expression = "SUM(any_topsite_impression_count)"
 friendly_name = "Sum of all Topsite Impressions "
 description = "Sum of topsite impressions, both sponsored and organic"
 
 [metrics.organic_topsite_impression_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(organic_topsites_impression_count)"
+select_expression = "SUM(organic_topsite_impression_count)"
 friendly_name = "Sum of Organic Topsite Impressions "
 description = "Sum of organic topsite impressions"
 
 [metrics.sponsored_topsite_impression_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(sponsored_topsites_impression_count)"
+select_expression = "SUM(sponsored_topsite_impression_count)"
 friendly_name = "Sum of Sponsored Topsite Impressions "
 description = "Sum of sponsored topsite impressions"
 
 [metrics.any_topsite_click_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(any_topsites_click_count)"
+select_expression = "SUM(any_topsite_click_count)"
 friendly_name = "Sum of all Topsite clicks "
 description = "Sum of topsite clicks, both sponsored and organic"
 
 [metrics.organic_topsite_click_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(organic_topsites_click_count)"
+select_expression = "SUM(organic_topsite_click_count)"
 friendly_name = "Sum of Organic Topsite Clicks "
 description = "Sum of organic topsite clicks"
 
 [metrics.sponsored_topsite_click_count]
 data_source = "newtab_clients_daily_aggregates"
-select_expression = "SUM(sponsored_topsites_click_count)"
+select_expression = "SUM(sponsored_topsite_click_count)"
 friendly_name = "Sum of Sponsored Topsite Clicks "
 description = "Sum of sponsored topsite clicks"
 
@@ -448,16 +448,16 @@ on_expression = "newtab_clients_daily.country_code = countries.code"
 
 #HNT data model revamp data sources
 [data_sources.newtab_clients_daily_aggregates]
-from_expression = "moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2"
+from_expression = "moz-fx-data-shared-prod.firefox_desktop_derived.newtab_clients_daily_aggregates_v2"
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = false
 
 [data_sources.newtab_clients_daily_aggregates_base_fields]
 from_expression = '''(SELECT 
-submission_date, app_version, os, channel, locale, country, newtab_homepage_category, newtab_newtab_category,
+submission_date, app_version, os, channel, locale, country, homepage_category, newtab_category,
 organic_content_enabled, sponsored_content_enabled, sponsored_topsites_enabled, organic_topsites_enabled, newtab_search_enabled
-FROM moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2)'''
+FROM moz-fx-data-shared-prod.firefox_desktop_derived.newtab_clients_daily_aggregates_v2)'''
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
@@ -471,8 +471,8 @@ AND (newtab_clients_daily_aggregates.os = newtab_clients_daily_aggregates_base_f
 AND (newtab_clients_daily_aggregates.channel = newtab_clients_daily_aggregates_base_fields.channel OR (newtab_clients_daily_aggregates.channel IS NULL AND newtab_clients_daily_aggregates_base_fields.channel IS NULL ))
 AND (newtab_clients_daily_aggregates.locale = newtab_clients_daily_aggregates_base_fields.locale OR (newtab_clients_daily_aggregates.locale IS NULL AND newtab_clients_daily_aggregates_base_fields.locale IS NULL ))
 AND (newtab_clients_daily_aggregates.country = newtab_clients_daily_aggregates_base_fields.country OR (newtab_clients_daily_aggregates.country IS NULL AND newtab_clients_daily_aggregates_base_fields.country IS NULL ))
-AND (newtab_clients_daily_aggregates.newtab_homepage_category = newtab_clients_daily_aggregates_base_fields.newtab_homepage_category OR (newtab_clients_daily_aggregates.newtab_homepage_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_homepage_category IS NULL ))
-AND (newtab_clients_daily_aggregates.newtab_newtab_category = newtab_clients_daily_aggregates_base_fields.newtab_newtab_category OR (newtab_clients_daily_aggregates.newtab_newtab_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_newtab_category IS NULL ))
+AND (newtab_clients_daily_aggregates.homepage_category = clients_daily_aggregates_base_fields.homepage_category OR (newtab_clients_daily_aggregates.homepage_category IS NULL AND newtab_clients_daily_aggregates_base_fields.homepage_category IS NULL ))
+AND (newtab_clients_daily_aggregates.newtab_category = clients_daily_aggregates_base_fields.newtab_category OR (newtab_clients_daily_aggregates.newtab_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_category IS NULL ))
 AND (newtab_clients_daily_aggregates.organic_content_enabled = newtab_clients_daily_aggregates_base_fields.organic_content_enabled OR (newtab_clients_daily_aggregates.organic_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_content_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.sponsored_content_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled OR (newtab_clients_daily_aggregates.sponsored_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.sponsored_topsites_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled OR (newtab_clients_daily_aggregates.sponsored_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled IS NULL ))
