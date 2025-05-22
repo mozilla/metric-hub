@@ -1,9 +1,9 @@
 [metrics]
 weekly = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions", 
-"history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmarks_ctr", 
+"history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmark_ctr", 
 "search_suggestion_ctr", "history_impression_rate", "bookmark_impression_rate", "search_suggestion_impression_rate"]
 overall = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions",
-"history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmarks_ctr", 
+"history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmark_ctr", 
 "search_suggestion_ctr", "history_impression_rate", "bookmark_impression_rate", "search_suggestion_impression_rate"]
 
 ## Impressions
@@ -49,7 +49,7 @@ numerator = "history_clicks"
 denominator = "history_impressions"
 
 [metrics.bookmark_ctr]
-depends_on = ["bookmark_clicks", "bookmarks_impressions"]
+depends_on = ["bookmark_clicks", "bookmark_impressions"]
 friendly_name = "Bookmark CTR"
 description = "Proportion of urlbar sessions where suggestion from the user's bookmarks was clicked, out of all urlbar sessions where one was shown (not available on control)"
 
