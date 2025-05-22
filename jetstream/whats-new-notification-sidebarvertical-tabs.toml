@@ -1,13 +1,6 @@
 
 [experiment]
 
-start_date = "2025-04-08"
-end_date = "2025-05-15"
-enrollment_period = 9
-
-# The two branches "control", "treatment-a"
-reference_branch = "control"
-
 enrollment_query = """
 SELECT * FROM
 (
@@ -33,27 +26,23 @@ SELECT * FROM
 
 (
 SELECT
-    events.metrics.uuid.background_update_client_id AS analysis_id,
-    mozfun.map.get_key(event.extra, 'branch') AS branch,
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
     MIN(DATE(events.submission_timestamp)) AS enrollment_date,
     COUNT(events.submission_timestamp) AS num_enrollment_events
--- We need to query from the Glean `background_update` table because pre-[Bug
--- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
--- Firefox 109) we don't have the legacy client ID in
--- `mozdata.firefox_desktop_background_update.events`.
-FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.background_update` events,
-UNNEST(events.events) AS event
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
 WHERE
     DATE(submission_timestamp) BETWEEN
         '{{experiment.start_date_str}}' AND
         -- Here we can restrict to the last enrollment date range.
         '{{experiment.last_enrollment_date_str}}'
-    AND event.category = 'nimbus_events'
-    AND event.name = 'enrollment'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
     -- The background update experiment slug is exact.
-    AND mozfun.map.get_key(event.extra, 'experiment') = '{{experiment.normandy_slug}}'
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
     -- This should never happen, but belt-and-braces.
-    AND events.metrics.uuid.background_update_client_id IS NOT NULL
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
 GROUP BY analysis_id, branch
 )
 
