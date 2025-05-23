@@ -32,7 +32,6 @@ jobs:
       with:
         path: ~/project
     - name: restore_cache
-      working-directory: ~/project/lib/metric-config-parser
       uses: actions/cache@v3
       with:
         key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
