@@ -1,10 +1,6 @@
 friendly_name = "FxA Account Metrics"
 description = "Metrics for FxA and Multi Device"
 
-[metrics]
-weekly = ['fxa_configured','fxa_signed_in','multi_device_signin' ]
-overall = ['fxa_configured','fxa_signed_in','multi_device_signin' ]
-
 [metrics.fxa_signed_in.statistics.binomial]
 
 [metrics.fxa_configured]
