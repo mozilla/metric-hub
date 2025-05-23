@@ -24,9 +24,6 @@ jobs:
   deploy-metric-config-parser:
     container:
       image: python:3.10
-    defaults:
-      run:
-        working-directory: ~/project/lib/metric-config-parser
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
@@ -35,6 +32,7 @@ jobs:
       with:
         path: ~/project
     - name: Check for package version change in last commit before proceeding.
+      working-directory: ~/project/lib/metric-config-parser
       run: |
         if git diff main HEAD~1 pyproject.toml | grep 'version'
           then
@@ -44,12 +42,15 @@ jobs:
             circleci-agent step halt
         fi
     - name: Install deployment tools
+      working-directory: ~/project/lib/metric-config-parser
       run: |
         pip install --upgrade build setuptools wheel twine
     - name: Create the distribution files
+      working-directory: ~/project/lib/metric-config-parser
       run: |
         python3.10 -m build --sdist
     - name: Upload to PyPI
+      working-directory: ~/project/lib/metric-config-parser
       run: |
         # Relies on the TWINE_USERNAME and TWINE_PASSWORD environment variables configured at:
         #   https://circleci.com/gh/mozilla/metric-config-parser/edit#env-vars
