@@ -1,6 +1,4 @@
 [experiment]
-enrollment_period = 14
-end_date = "2025-05-19"
 
 [experiment.exposure_signal]
 name = "onboarding_start"

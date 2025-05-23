@@ -1,0 +1,88 @@
+friendly_name = "Sent From Firefox - Android (2.5% Rollout)"
+description = "Track tab shares (total & WhatsApp) and feature interactions for the full 20% Android rollout."
+
+[experiment]
+enrollment_period = 8
+
+[metrics]
+overall = [
+  "whatsapp_share_count",
+  "any_whatsapp_share",
+  "toggle_count",
+  "snackbar_click_count"
+]
+
+[metrics.whatsapp_share_count]
+select_expression = """
+  COUNTIF(
+    event_name = 'share_to_app'
+    AND JSON_EXTRACT_SCALAR(event_extra, '$.sent_from_firefox_enabled') = 'true'
+    AND JSON_EXTRACT_SCALAR(event_extra, '$.app_package') = 'com.whatsapp'
+  )
+"""
+data_source = "android_events"
+friendly_name = "WhatsApp tab share count"
+description = "Times users shared a tab to WhatsApp."
+analysis_bases = ["enrollments", "exposures"]
+bigger_is_better = true
+[metrics.whatsapp_share_count.statistics.bootstrap_mean]
+
+[metrics.any_whatsapp_share]
+select_expression = """
+  CAST(
+    COUNTIF(
+      event_name = 'share_to_app'
+      AND JSON_EXTRACT_SCALAR(event_extra, '$.sent_from_firefox_enabled') = 'true'
+      AND JSON_EXTRACT_SCALAR(event_extra, '$.app_package') = 'com.whatsapp'
+    ) > 0
+    AS INT64
+  )
+"""
+data_source = "android_events"
+friendly_name = "Any WhatsApp tab share"
+description = "Proportion of enrolled users who used the CTA to share a tab to WhatsApp."
+analysis_bases = ["enrollments","exposures"]
+[metrics.any_whatsapp_share.statistics.binomial]
+
+[metrics.toggle_count]
+select_expression = """
+  COUNTIF(
+    event = 'sent_from_firefox.settings_toggled'
+    AND JSON_EXTRACT_SCALAR(event_extra, '$.enabled') = 'false'
+  )
+"""
+data_source = "android_events"
+friendly_name = "Feature toggle events"
+description = "How many times users turned the ‘Sent From Firefox’ footer off."
+analysis_bases = ["enrollments","exposures"]
+[metrics.toggle_count.statistics.bootstrap_mean]
+
+[metrics.snackbar_click_count]
+select_expression = """
+  COUNTIF(
+    event = 'sent_from_firefox.snackbar_clicked'
+    AND JSON_EXTRACT_SCALAR(event_extra, '$.enabled') = 'false'
+  )
+"""
+data_source = "android_events"
+friendly_name = "Snackbar click count"
+description = "How many times users clicked the post-share snackbar (Treatment C)."
+analysis_bases = ["enrollments","exposures"]
+[metrics.snackbar_click_count.statistics.bootstrap_mean]
+
+[data_sources.android_events]
+from_expression = """
+  (
+    SELECT
+      client_id,
+      submission_timestamp,
+      DATE(submission_timestamp) AS submission_date,
+      event,
+      event_name,
+      event_extra
+    FROM `mozdata.org_mozilla_firefox.events_stream`
+    WHERE event_name = 'share_to_app' OR event IN('sent_from_firefox.settings_toggled', 'sent_from_firefox.snackbar_clicked')
+  )
+"""
+experiments_column_type = "none"
+analysis_units = ["client_id"]

@@ -448,7 +448,11 @@ class TestAnalysisSpec:
 
         assert cfg.experiment.exposure_signal == ExposureSignal(
             name="ad_exposure",
-            data_source=DataSource(name="main", from_expression="(SELECT 1)"),
+            data_source=DataSource(
+                name="main",
+                from_expression="(SELECT 1)",
+                analysis_units=[AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP],
+            ),
             select_expression="ad_click > 0",
             friendly_name="Ad exposure",
             description="Clients have clicked on ad",
@@ -914,5 +918,7 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
 
-        with pytest.raises(ValueError, match="data_source eggs does not support"):
+        with pytest.raises(
+            ValueError, match=r"data_source eggs \(app: firefox_desktop\) does not support"
+        ):
             spec.resolve(experiments[0], config_collection)

@@ -1,24 +1,70 @@
 [experiment]
-enrollment_period = 7
-end_date = "2025-05-06"
-
 segments = [
-    "google_default_search",
-    "bing_default_search",
-    "ddg_default_search",
-    "baidu_default_search",
-    "qwant_default_search",
-    "ecosia_default_search",
-    "us",
-    "ca",
-    "fr",
-    "de",
-    "jp",
-    "gb",
-    "india",
-    "marketing_tier1_countries",
-    "row",
+  "google_default_search",
+  "bing_default_search",
+  "ddg_default_search",
+  "baidu_default_search",
+  "qwant_default_search",
+  "ecosia_default_search",
+  "us",
+  "ca",
+  "fr",
+  "de",
+  "jp",
+  "gb",
+  "india",
+  "marketing_tier1_countries",
+  "row",
 ]
+
+[metrics]
+weekly = ['search_engine_default_change', 'non_default_search_engine_search']
+overall = ['search_engine_default_change', 'non_default_search_engine_search']
+
+
+[metrics.search_engine_default_change]
+friendly_name = "Search Engine Default Changed"
+description = "If the Search Engine Default Changed"
+select_expression = """
+      CAST(COALESCE(LOGICAL_OR(IF(event_name= 'changed' AND event_category = 'search.engine.default', TRUE, FALSE)), FALSE) AS INT)
+"""
+data_source = "glean_events_stream_filtered"
+
+[metrics.non_default_search_engine_search]
+friendly_name = "Search with Non-Default Search Engine"
+description = "If Client Searched with Non-Default Search Engine"
+select_expression = """
+      CAST(COALESCE(LOGICAL_OR(IF(metrics.string.search_engine_default_display_name != urlbar_searchmode_searchbutton_search_engine AND urlbar_searchmode_searchbutton_search_engine_search_count > 0, TRUE, FALSE)), FALSE) AS INT)
+"""
+data_source = "metrics_unnested_urlbar_searchmode_searchbutton"
+
+
+[metrics.search_engine_default_change.statistics.binomial]
+[metrics.non_default_search_engine_search.statistics.binomial]
+
+
+[data_sources.metrics_unnested_urlbar_searchmode_searchbutton]
+friendly_name = "Glean Metrics"
+description = "The Glean metrics ping"
+from_expression = """(
+    SELECT
+      p.*, u.key AS urlbar_searchmode_searchbutton_search_engine, u.value AS urlbar_searchmode_searchbutton_search_engine_search_count,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p, UNNEST(metrics.labeled_counter.urlbar_searchmode_searchbutton) u
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
+
+
+[data_sources.glean_events_stream_filtered]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` WHERE event_category = 'search.engine.default'
+)"""
+description = "Glean events_stream dataset filtered to event_category 'search.engine.default'"
+friendly_name = "Glean Events Stream filtered to event_category 'search.engine.default'"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
 
 [segments]
 
@@ -87,16 +133,6 @@ select_expression = "COALESCE(LOGICAL_OR(country = 'US'), FALSE)"
 description = "Clients in US"
 data_source = "clients_daily"
 
-[segments.jp]
-select_expression = "COALESCE(LOGICAL_OR(country = 'JP'), FALSE)"
-description = "Clients in Japan"
-data_source = "clients_daily"
-
-[segments.india]
-select_expression = "COALESCE(LOGICAL_OR(country = 'IN'), FALSE)"
-description = "Clients in India"
-data_source = "clients_daily"
-
 [segments.ca]
 select_expression = "COALESCE(LOGICAL_OR(country = 'CA'), FALSE)"
 description = "Clients in Canada"
@@ -120,6 +156,16 @@ data_source = "clients_daily"
 [segments.marketing_tier1_countries]
 select_expression = "COALESCE(LOGICAL_OR(country IN ('CA', 'DE', 'FR', 'GB', 'US')), FALSE)"
 description = "Clients in marketing Tier 1 countries"
+data_source = "clients_daily"
+
+[segments.jp]
+select_expression = "COALESCE(LOGICAL_OR(country = 'JP'), FALSE)"
+description = "Clients in Japan"
+data_source = "clients_daily"
+
+[segments.india]
+select_expression = "COALESCE(LOGICAL_OR(country = 'IN'), FALSE)"
+description = "Clients in India"
 data_source = "clients_daily"
 
 [segments.row]

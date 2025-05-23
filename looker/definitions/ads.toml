@@ -21,6 +21,52 @@ description = "Daily SPOC revenue"
 [metrics.spoc_clicks.statistics.sum]
 [metrics.spoc_revenue.statistics.sum]
 
+### data_sources.native_desktop_ad_metrics_by_position
+[metrics.native_spend_pos]
+select_expression = "SUM(spend)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Spend"
+description ="Native Desktop Metrics spend"
+
+[metrics.native_dismisses_pos]
+select_expression = "SUM(dismisses)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Dismisses"
+description ="Native Desktop Metrics dismisses"
+
+[metrics.native_impressions_pos]
+select_expression = "SUM(impressions)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Impressions"
+description ="Native Desktop Metrics impressions"
+
+[metrics.native_clicks_pos]
+select_expression = "SUM(clicks)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Clicks"
+description ="Native Desktop Metrics clicks"
+
+[metrics.native_saves_pos]
+select_expression = "SUM(saves)"
+data_source = "native_desktop_ad_metrics_by_position"
+friendly_name = "Native Saves"
+description ="Native Desktop Metrics saves"
+
+[metrics.native_spend_pos.statistics.sum]
+[metrics.native_dismisses_pos.statistics.sum]
+[metrics.native_impressions_pos.statistics.sum]
+[metrics.native_clicks_pos.statistics.sum]
+[metrics.native_saves_pos.statistics.sum]
+[metrics.native_dismisses_pos.statistics.ratio]
+numerator = "native_dismisses_pos.sum"
+denominator = "native_impressions_pos.sum"
+[metrics.native_clicks_pos.statistics.ratio]
+numerator = "native_clicks_pos.sum"
+denominator = "native_impressions_pos.sum"
+[metrics.native_saves_pos.statistics.ratio]
+numerator = "native_saves_pos.sum"
+denominator = "native_impressions_pos.sum"
+
 ### data_sources.native_desktop_ad_metrics
 [metrics.native_spend]
 select_expression = "SUM(spend)"
@@ -93,37 +139,6 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
-### Statistics from firefox_desktop.toml
-[metrics.newtab_sponsored_tiles_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_tiles_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_tile_clicks.statistics.sum]
-
-[metrics.frac_users_with_sponsored_tile_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_impressions'
-denominator='newtab_sponsored_tiles_enabled'
-
-[metrics.frac_users_with_sponsored_tile_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_tile_clicks'
-denominator='newtab_clients_with_sponsored_tile_impressions'
-
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.dau_proportion]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.dau_proportion]
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_impressions.statistics.sum]
-[metrics.newtab_clients_with_sponsored_content_clicks.statistics.sum]
-
-[metrics.frac_users_with_sponsored_content_impressions.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_impressions'
-denominator='newtab_sponsored_pocket_stories_enabled'
-
-[metrics.frac_users_with_sponsored_content_clicks.statistics.ratio]
-numerator='newtab_clients_with_sponsored_content_clicks'
-denominator='newtab_clients_with_sponsored_content_impressions'
-
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -181,6 +196,24 @@ columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
+[data_sources.native_desktop_ad_metrics_by_position]
+from_expression = """
+(
+  SELECT
+    *,
+    REGEXP_EXTRACT(ad_url, r'utm_campaign=([^&]+)') AS campaign_name_custom,
+    REGEXP_EXTRACT(ad_url, r'ref=([^&]+)') AS campaign_name_custom_2
+  FROM `mozdata.ads.native_desktop_ad_metrics_by_position_hourly`
+)
+"""
+friendly_name = "Native Desktop Ads Metrics by Position Daily"
+description = """
+  Tracks Native Desktop Ad Metrics Across Days and Positions
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
 [data_sources.ad_mmm_metrics_daily]
 from_expression = "mozdata.ads.campaign_metrics_daily"
 friendly_name = "Ad Campaign Metrics Daily (MMM)"
@@ -192,21 +225,4 @@ description = """
 columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
-
-[data_sources.clients_daily_looker_base_fields]
-select_expression = """
-    SELECT
-        submission_date,
-        normalized_os,
-        country_code,
-        channel,
-        browser_version,
-        mozfun.norm.extract_version(browser_version, 'major') as major_version
-    FROM
-        moz-fx-data-shared-prod.telemetry.newtab_clients_daily
-"""
-columns_as_dimensions = true  # expose the selected fields as dimensions in Looker
-
-# Join onto clients daily
-[data_sources.newtab_clients_daily.joins.clients_daily_looker_base_fields]
 
