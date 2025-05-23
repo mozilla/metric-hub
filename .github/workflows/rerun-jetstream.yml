@@ -1,11 +1,11 @@
 name: "Rerun jetstream"
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'jetstream/**'
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
 
 jobs:
   changed:
@@ -20,80 +20,88 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Authorize gcloud CLI
-        run: |
-          # required for parsing kubectl pod statuses
-          apt-get install jq -y
-          apt-get install uuid-runtime
-          export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-          export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
-          echo "$JETSTREAM_GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
-          gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-          gcloud config set project $GCLOUD_PROJECT
-          gcloud container clusters get-credentials jetstream --zone us-central1-a --project $GCLOUD_PROJECT
-      - name: Rerun jetstream
-        run: |
-          changed_files=${{ needs.changed.outputs.all_changed_files }}
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        apt-get install jq -y
+        apt-get install uuid-runtime
+    - name: Authorize gcloud CLI
+      uses: 'google-github-actions/auth@v2'
+      id: google_auth
+      name: Authenticate to GCP
+      with:
+        workload_identity_provider: projects/${{ vars.GCPV2_WORKLOAD_IDENTITY_POOL_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+        token_format: id_token
+    - name: Rerun jetstream
+      run: |
+        changed_files=${{ needs.changed.outputs.all_changed_files }}
 
-          # determine slugs of configs that got changed; filter out outcomes and defaults
-          params=""
-          for config in $changed_files; do
-            slug=${config##*/}
-            slug="${slug%.*}"
-            if [ -e jetstream/"$slug".toml ]; then
-              params+="--experiment_slug=${slug} "
-            fi
-          done
-
-          echo "Latest change affected these experiments:"
-          echo $params
-
-          # stop running instances so that they do not interfere
-          uuid=`uuidgen`
-          pod_identifier="jetstream-${uuid}"
-          kubectl delete pod -l app=$pod_identifier
-
-          commit_message=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
-          if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
-            echo "Skip rerun for files:"
-            echo $changed_files
-
-            # start a new instance
-            kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $(echo $params)
-          else
-            echo "Rerun changed files: "
-            echo $changed_files
-
-            # start a new instance
-            kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $(echo $params)
-            # link to logs
-            cur_date=`date -u +%FT%TZ`
-            echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22moz-fx-data-experiments%22%0Aresource.labels.location%3D%22us-central1-a%22%0Aresource.labels.cluster_name%3D%22jetstream%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
-            echo "Analysis Errors can be accessed via Redash: https://sql.telemetry.mozilla.org/dashboard/jetstream-errors?p_experiment=%25"
-            # wait for pod to finish and check status
+        # determine slugs of configs that got changed; filter out outcomes and defaults
+        params=""
+        for config in $changed_files; do
+          slug=${config##*/}
+          slug="${slug%.*}"
+          if [ -e jetstream/"$slug".toml ]; then
+            params+="--experiment_slug=${slug} "
           fi
+        done
 
-          running=true
-          while [ $running = true ]
-          do
-            echo "Wait for jetstream to finish"
-            pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
-            if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
-              running=false
-            fi
-            sleep 10
-          done
-          # delete pod
-          kubectl delete pod -l app=$pod_identifier
-          if [ $pod_status = 'Failed' ]; then
-            echo "Error when running jetstream. Check the logs for more information."
-            exit 1
-          elif [ $pod_status = 'Succeeded' ]; then
-            echo "Jetstream successfully completed."
-          else
-            echo "Jetstream completed in unknown status. Please check the logs."
-            echo "Analysis Errors can be accessed via Redash: https://sql.telemetry.mozilla.org/dashboard/jetstream-errors?p_experiment=%25"
-            exit 1
+        echo "Latest change affected these experiments:"
+        echo $params
+
+        # stop running instances so that they do not interfere
+        uuid=`uuidgen`
+        pod_identifier="jetstream-${uuid}"
+        echo "Deleting pod [$pod_identifier]"
+        echo
+        # kubectl delete pod -l app=$pod_identifier
+        # TODO: deleteme
+        kubectl config get-contexts
+
+        commit_message=$(git log --format=oneline -n 1 ${{ github.sha }})
+        if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
+          echo "Skip rerun for files:"
+          echo $changed_files
+
+          # start a new instance
+          # kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $(echo $params)
+        else
+          echo "Rerun changed files: "
+          echo $changed_files
+
+          # start a new instance
+          # kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $(echo $params)
+          # link to logs
+          cur_date=`date -u +%FT%TZ`
+          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22moz-fx-data-experiments%22%0Aresource.labels.location%3D%22us-central1-a%22%0Aresource.labels.cluster_name%3D%22jetstream%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
+          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+          # wait for pod to finish and check status
+        fi
+
+        # running=true
+        # TODO: changeme
+        running=false
+        while [ $running = true ]
+        do
+          echo "Wait for jetstream to finish"
+          pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
+          if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
+            running=false
           fi
+          sleep 10
+        done
+        # delete pod
+        echo "Deleting pod [$pod_identifier]"
+        echo
+        # kubectl delete pod -l app=$pod_identifier
+        if [ $pod_status = 'Failed' ]; then
+          echo "Error when running jetstream. Check the logs for more information."
+          exit 1
+        elif [ $pod_status = 'Succeeded' ]; then
+          echo "Jetstream successfully completed."
+        else
+          echo "Jetstream completed in unknown status. Please check the logs."
+          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+          exit 1
+        fi

@@ -26,22 +26,22 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        run: |
-          python3 -m pip install -r ./script/requirements.txt
-      - run:
-        name: Authenticate to GCP
-        run: |
-          export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
-          echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
-          echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
-      - name: Validate Looker config files
-        run: |
-          echo "Run validation on changed files: "
-          echo ${{ needs.changed.outputs.all_changed_files }}
-          python3 .script/validate.py --config_repos='.' --config_repos=looker/ ${{ needs.changed.outputs.all_changed_files }}
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build
+      run: |
+        python3 -m pip install -r ./script/requirements.txt
+    - run:
+      name: Authenticate to GCP
+      run: |
+        export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
+        echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
+        echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
+    - name: Validate Looker config files
+      run: |
+        echo "Run validation on changed files: "
+        echo ${{ needs.changed.outputs.all_changed_files }}
+        python3 .script/validate.py --config_repos='.' --config_repos=looker/ ${{ needs.changed.outputs.all_changed_files }}
 
 
 

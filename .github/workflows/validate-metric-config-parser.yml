@@ -26,34 +26,34 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ~/project
-      - name: restore_cache
-        uses: actions/cache@v3
-        with:
-          key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-          path: venv/
-          # when lock files change, use increasingly general patterns to restore cache
-          restore-keys: |-
-            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
-            python-packages-v1-{{ .Branch }}-
-            python-packages-v1-
-      - name: Build
-        run: |
-          python3.10 -m venv venv/
-          venv/bin/python -m pip install --upgrade pip
-          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
-      - name: PyTest
-        run: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
-      - name: flake8
-        run: venv/bin/flake8 metric_config_parser
-      - name: isort
-        run: venv/bin/isort --check metric_config_parser
-      - name: Mypy
-        run: venv/bin/mypy metric_config_parser
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: ~/project
+    - name: restore_cache
+      uses: actions/cache@v3
+      with:
+        key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+        path: venv/
+        # when lock files change, use increasingly general patterns to restore cache
+        restore-keys: |-
+          python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+          python-packages-v1-{{ .Branch }}-
+          python-packages-v1-
+    - name: Build
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - name: PyTest
+      run: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+    - name: flake8
+      run: venv/bin/flake8 metric_config_parser
+    - name: isort
+      run: venv/bin/isort --check metric_config_parser
+    - name: Mypy
+      run: venv/bin/mypy metric_config_parser
 
   integration-metric-config-parser:
     container:
@@ -62,14 +62,14 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ~/project
-      - name: Build
-        run: |
-          python3.10 -m venv venv/
-          venv/bin/python -m pip install --upgrade pip
-          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
-      - name: PyTest Integration Test
-        run: venv/bin/pytest --black metric_config_parser/tests/integration/
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: ~/project
+    - name: Build
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - name: PyTest Integration Test
+      run: venv/bin/pytest --black metric_config_parser/tests/integration/

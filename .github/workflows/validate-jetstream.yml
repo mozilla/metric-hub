@@ -26,13 +26,13 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Validate jetstream config files
-        run: |
-          echo "Run validation on changed files: "
-          echo ${{ needs.changed.outputs.all_changed_files }}
-          jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Validate jetstream config files
+      run: |
+        echo "Run validation on changed files: "
+        echo ${{ needs.changed.outputs.all_changed_files }}
+        jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
 
 
 
