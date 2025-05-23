@@ -1,16 +1,16 @@
 name: "Validate Metrics"
 
-# on:
-#   pull_requests:
-#     branches:
-#       - main
-#     paths:
-#       - 'definitions/**'
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'definitions/**'
+on:
+  pull_requests:
+    branches:
+      - main
+    paths:
+      - 'definitions/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'definitions/**'
 
 jobs:
   changed:

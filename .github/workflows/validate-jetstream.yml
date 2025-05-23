@@ -1,16 +1,16 @@
 name: "Validate jetstream"
 
-# on:
-#   pull_requests:
-#     branches:
-#       - main
-#     paths:
-#       - 'jetstream/**'
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'jetstream/**'
+on:
+  pull_requests:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
 
 jobs:
   changed:

@@ -1,16 +1,16 @@
 name: "Validate Looker"
 
-# on:
-#   pull_requests:
-#     branches:
-#       - main
-#     paths:
-#       - 'looker/**'
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'looker/**'
+on:
+  pull_requests:
+    branches:
+      - main
+    paths:
+      - 'looker/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'looker/**'
 
 jobs:
   changed:

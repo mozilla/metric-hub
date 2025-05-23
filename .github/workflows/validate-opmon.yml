@@ -1,16 +1,16 @@
 name: "Validate OpMon"
 
-# on:
-#   pull_requests:
-#     branches:
-#       - main
-#     paths:
-#       - 'opmon/**'
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'opmon/**'
+on:
+  pull_requests:
+    branches:
+      - main
+    paths:
+      - 'opmon/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'opmon/**'
 
 jobs:
   changed:
