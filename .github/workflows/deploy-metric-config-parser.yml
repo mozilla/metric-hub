@@ -24,7 +24,9 @@ jobs:
   deploy-metric-config-parser:
     container:
       image: python:3.10
-    working_directory: ~/project/lib/metric-config-parser
+    defaults:
+      run:
+        working-directory: ~/project/lib/metric-config-parser
     needs: changed
     if: needs.changed.outputs.any_changed == 'true'
     steps:
