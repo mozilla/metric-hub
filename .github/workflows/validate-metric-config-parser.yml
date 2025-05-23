@@ -3,12 +3,13 @@ name: "Validate metric-config-parser"
 on:
   pull_request:
     branches:
-      - gh-actions-migration
+      - main
     paths:
       - 'lib/metric-config-parser/**'
   push:
     branches:
       - main
+      - gh-actions-migration
     paths:
       - 'lib/metric-config-parser/**'
 
