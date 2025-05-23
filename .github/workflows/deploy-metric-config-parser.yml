@@ -1,11 +1,11 @@
 name: "Deploy metric-config-parser"
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'lib/metric-config-parser/pyproject.yaml'
+on:
+  push:
+    branches:
+      - gh-actions-migration
+    paths:
+      - 'lib/metric-config-parser/pyproject.yaml'
 
 jobs:
   changed:
