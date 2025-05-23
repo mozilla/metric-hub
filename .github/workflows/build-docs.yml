@@ -7,18 +7,18 @@ on:
 
 jobs:
   build-docs:
-  container:
-    image: python:3.10
-  steps:
-  - name: Checkout
-    uses: actions/checkout@v4
-  - name: Build and deploy docs
-    run: |
-      python3.10 -m venv venv/
-      venv/bin/python -m pip install --upgrade pip
-      venv/bin/pip install -r .script/requirements.txt
-      venv/bin/python3 .script/generate_docs.py \
-        --output_dir=generated_docs/
-      cd generated_docs/
-      PATH="../venv/bin:$PATH" mkdocs gh-deploy \
-        -m "[ci skip] Deployed {sha} with MkDocs version: {version}"
+    container:
+      image: python:3.10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build and deploy docs
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install -r .script/requirements.txt
+        venv/bin/python3 .script/generate_docs.py \
+          --output_dir=generated_docs/
+        cd generated_docs/
+        PATH="../venv/bin:$PATH" mkdocs gh-deploy \
+          -m "[ci skip] Deployed {sha} with MkDocs version: {version}"
