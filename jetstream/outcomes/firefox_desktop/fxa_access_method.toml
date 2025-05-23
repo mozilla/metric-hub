@@ -1,5 +1,6 @@
 friendly_name = "FxA Access Method"
 description = "Did they use the Account Icon or Menu to open FxA"
+default_metrics = ["fxa_toolbar_menu_button_users_clicks", "fxa_avatar_menu_clicks"]
 
 [metrics.fxa_toolbar_menu_button_users_clicks]
 select_expression = """(
