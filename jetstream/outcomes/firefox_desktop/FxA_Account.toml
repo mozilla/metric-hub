@@ -1,5 +1,6 @@
 friendly_name = "FxA Account Metrics"
 description = "Metrics for FxA and Multi Device"
+default_metrics = ["fxa_signed_in", "multi_device_signin", "fxa_configured"]
 
 [metrics.fxa_signed_in.statistics.binomial]
 
