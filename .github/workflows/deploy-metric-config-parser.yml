@@ -12,14 +12,14 @@ on:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/**'
+      - 'lib/metric-config-parser/pyproject.yaml'
 
 jobs:
   changed:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        lib/metric-config-parser/pyproject.yaml
+        lib/metric-config-parser/*.yaml
 
   deploy-metric-config-parser:
     runs-on: ubuntu-latest
