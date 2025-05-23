@@ -47,6 +47,12 @@ class SegmentDataSource:
         group_id_column (str, optional): Name of the column that
             contains the ``profile_group_id`` (join key). Defaults to
             'profile_group_id'.
+        glean_client_id_column (str, optional): Name of the column that
+            contains the *glean* telemetry ``client_id`` (join key).
+            This is also used to specify that the data source supports glean.
+        legacy_client_id_column (str, optional): Name of the column that
+            contains the *legacy* telemetry ``client_id`` (join key).
+            This is also used to specify that the data source supports legacy.
     """
 
     name = attr.ib(validator=attr.validators.instance_of(str))
@@ -57,6 +63,8 @@ class SegmentDataSource:
     submission_date_column = attr.ib(default="submission_date", type=str)
     default_dataset = attr.ib(default=None, type=Optional[str])
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
+    glean_client_id_column = attr.ib(default=None, type=str)
+    legacy_client_id_column = attr.ib(default=None, type=str)
 
 
 @attr.s(frozen=True, slots=True)
@@ -113,6 +121,8 @@ class SegmentDataSourceDefinition:
     submission_date_column: Optional[str] = "submission_date"
     default_dataset: Optional[str] = None
     group_id_column: Optional[str] = AnalysisUnit.PROFILE_GROUP.value
+    glean_client_id_column: Optional[str] = None
+    legacy_client_id_column: Optional[str] = None
 
     def resolve(
         self,
@@ -128,7 +138,13 @@ class SegmentDataSourceDefinition:
             "window_start": self.window_start,
             "window_end": self.window_end,
         }
-        for k in ("client_id_column", "submission_date_column", "group_id_column"):
+        for k in (
+            "client_id_column",
+            "submission_date_column",
+            "group_id_column",
+            "glean_client_id_column",
+            "legacy_client_id_column",
+        ):
             v = getattr(self, k)
             if v:
                 kwargs[k] = v
