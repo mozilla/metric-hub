@@ -21,6 +21,7 @@ jobs:
         looker/**.toml.example
 
   validate-looker:
+    runs-on: ubuntu-latest
     container:
       image: python:3.10
     needs: changed

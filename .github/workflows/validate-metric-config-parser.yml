@@ -21,6 +21,7 @@ jobs:
         lib/metric-config-parser/**
 
   build-metric-config-parser:
+    runs-on: ubuntu-latest
     container:
       image: python:3.10
     needs: changed
@@ -62,6 +63,7 @@ jobs:
       run: venv/bin/mypy metric_config_parser
 
   integration-metric-config-parser:
+    runs-on: ubuntu-latest
     container:
       image: python:3.10
     needs: changed

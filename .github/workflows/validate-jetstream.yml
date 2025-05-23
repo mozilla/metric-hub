@@ -21,6 +21,7 @@ jobs:
         jetstream/**.toml.example
 
   validate-jetstream:
+    runs-on: ubuntu-latest
     container:
       image: gcr.io/moz-fx-data-experiments/jetstream:latest
     needs: changed

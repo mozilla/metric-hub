@@ -21,6 +21,7 @@ jobs:
         definitions/**.toml.example
 
   validate-metrics:
+    runs-on: ubuntu-latest
     container:
       image: python:3.10
     needs: changed

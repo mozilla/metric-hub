@@ -21,6 +21,7 @@ jobs:
         opmon/**.toml.example
 
   validate-opmon:
+    runs-on: ubuntu-latest
     container:
       image: gcr.io/moz-fx-data-experiments/opmon:latest
     needs: changed

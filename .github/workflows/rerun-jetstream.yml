@@ -15,6 +15,7 @@ jobs:
         jetstream/**
 
   rerun-jetstream:
+    runs-on: ubuntu-latest
     container:
       image: google/cloud-sdk
     needs: changed
