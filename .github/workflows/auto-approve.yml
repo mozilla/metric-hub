@@ -32,3 +32,9 @@ jobs:
             pull_number: context.issue.number,
             event: "APPROVE"
           })
+    - name: Skip
+      if: needs.changed.outputs.any_changed == 'true'
+      run: |
+        echo "Metric definitions changed, needs manual review"
+        echo ${{ needs.changed.outputs.all_changed_files }}
+

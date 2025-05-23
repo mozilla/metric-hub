@@ -37,7 +37,7 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
           echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
           echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
-      - name: Validate Looker config files
+      - name: Validate metric config files
         run: |
           echo "Run validation on changed files: "
           echo ${{ needs.changed.outputs.all_changed_files }}

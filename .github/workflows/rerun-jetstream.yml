@@ -1,4 +1,4 @@
-name: "Deploy metric-config-parser"
+name: "Rerun jetstream"
 
 # on:
 #   push:

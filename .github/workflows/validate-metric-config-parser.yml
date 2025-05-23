@@ -30,14 +30,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ~/project
-      - restore_cache:
-          keys:
-            # when lock files change, use increasingly general patterns to restore cache
-            - &cache_key
-              python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-            - python-packages-v2-{{ .Branch }}-{{ checksum "requirements.in" }}-
-            - python-packages-v2-{{ .Branch }}-
-            - python-packages-v2-
+      - name: restore_cache
+        uses: actions/cache@v3
+        with:
+          key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          path: venv/
+          # when lock files change, use increasingly general patterns to restore cache
+          restore-keys: |-
+            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+            python-packages-v1-{{ .Branch }}-
+            python-packages-v1-
       - name: Build
         run: |
           python3.10 -m venv venv/
@@ -51,10 +54,6 @@ jobs:
         run: venv/bin/isort --check metric_config_parser
       - name: Mypy
         run: venv/bin/mypy metric_config_parser
-      - save_cache:
-          paths:
-          - venv/
-          key: *cache_key
 
   integration-metric-config-parser:
     container:
