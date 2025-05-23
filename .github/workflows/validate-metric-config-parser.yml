@@ -1,7 +1,7 @@
 name: "Validate metric-config-parser"
 
 on:
-  pull_requests:
+  pull_request:
     branches:
       - gh-actions-migration
     paths:

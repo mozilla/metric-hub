@@ -6,7 +6,8 @@ on:
       - main
     paths:
       - 'lib/metric-config-parser/pyproject.yaml'
-  pull_requests:
+  # DELETEME
+  pull_request:
     branches:
       - gh-actions-migration
     paths:
