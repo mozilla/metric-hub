@@ -28,3 +28,11 @@ select_expression = """
 """
 data_source = "fxa_avatar_menu_events"
 statistics = { bootstrap_mean = {} }
+
+[data_sources]
+
+[data_sources.fxa_avatar_menu_events]
+from_expression = '''(SELECT * FROM `mozdata.telemetry.events` WHERE event_category = 'fxa_avatar_menu')'''
+experiments_column_type = "native"
+friendly_name = "FxA Avatar Menu Events"
+description = "Events Ping filtered to only include FxA Avatar Menu event category"
