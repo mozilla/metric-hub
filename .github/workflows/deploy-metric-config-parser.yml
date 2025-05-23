@@ -6,13 +6,13 @@ on:
       - main
       - gh-actions-migration
     paths:
-      - 'lib/metric-config-parser/pyproject.yaml'
+      - 'lib/metric-config-parser/*.yaml'
   # DELETEME
   pull_request:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/pyproject.yaml'
+      - 'lib/metric-config-parser/*.yaml'
 
 jobs:
   changed:
