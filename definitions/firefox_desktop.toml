@@ -21,6 +21,15 @@ description = """
 select_expression = '{{agg_sum("active_hours_sum")}}'
 data_source = "clients_daily"
 
+[metrics.active_hours_glean]
+friendly_name = "Active hours"
+description = """
+    Measures the amount of time (in 5-second increments) during which
+    Firefox received user input from a keyboard or mouse. The Firefox
+    window does not need to be focused.
+"""
+select_expression = '{{agg_sum("active_hours_sum")}}'
+data_source = "baseline_clients_daily"
 
 [metrics.uri_count]
 data_source = "clients_daily"
@@ -2200,6 +2209,18 @@ description = "Glean events_stream dataset (events ping unnested to a single row
 friendly_name = "Glean Events Stream"
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.baseline_clients_daily]
+from_expression = """(
+    SELECT
+        p.*,
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline_clients_daily` p
+)"""
+client_id_column = "client_info.client_id"
+experiments_column_type = "glean"
+default_dataset = "firefox_desktop"
+friendly_name = "Baseline Clients Daily"
+description = "Daily Aggregate of the Baseline Ping"
 
 [data_sources.firefox_desktop_active_users_view]
 friendly_name = "Firefox Desktop Active Users"
