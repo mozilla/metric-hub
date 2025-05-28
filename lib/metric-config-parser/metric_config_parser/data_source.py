@@ -92,6 +92,12 @@ class DataSource:
         group_id_column (str, optional): Name of the column that
             contains the ``profile_group_id`` (join key). Defaults to
             'profile_group_id'.
+        glean_client_id_column (str, optional): Name of the column that
+            contains the *glean* telemetry ``client_id`` (join key).
+            This is also used to specify that the data source supports glean.
+        legacy_client_id_column (str, optional): Name of the column that
+            contains the *legacy* telemetry ``client_id`` (join key).
+            This is also used to specify that the data source supports legacy.
     """
 
     name = attr.ib(validator=attr.validators.instance_of(str))
@@ -107,6 +113,8 @@ class DataSource:
     columns_as_dimensions = attr.ib(default=False, type=bool)
     analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
+    glean_client_id_column = attr.ib(default=None, type=str)
+    legacy_client_id_column = attr.ib(default=None, type=str)
 
     EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
 
@@ -181,6 +189,8 @@ class DataSourceDefinition:
     columns_as_dimensions: Optional[bool] = None
     analysis_units: Optional[list[AnalysisUnit]] = None
     group_id_column: Optional[str] = None
+    glean_client_id_column: Optional[str] = None
+    legacy_client_id_column: Optional[str] = None
 
     def resolve(
         self,
@@ -228,6 +238,8 @@ class DataSourceDefinition:
             "columns_as_dimensions",
             "analysis_units",
             "group_id_column",
+            "glean_client_id_column",
+            "legacy_client_id_column",
         ):
             v = getattr(self, k)
             # analysis_units is special: its default value is based on the app_name
