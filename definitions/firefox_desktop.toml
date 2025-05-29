@@ -2094,6 +2094,7 @@ from_expression = """(
     FROM `mozdata.firefox_desktop.metrics` p
     )"""
 client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+group_id_column = "metrics.uuid.legacy_telemetry_profile_group_id"
 experiments_column_type = "glean"
 
 [data_sources.newtab_visits_topsite_tile_interactions]
