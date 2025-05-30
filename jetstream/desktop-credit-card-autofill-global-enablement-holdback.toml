@@ -12,11 +12,11 @@ window_end = "analysis_window_end"
 [data_sources.credit_card_autofill]
 from_expression = """(
   SELECT 
-    client_info.client_id as client_id,
+    legacy_telemetry_client_id as client_id,
     DATE(submission_timestamp) as submission_date,
     event_name
   FROM
-    `mozdata.firefox_desktop.events_unnested`
+    `mozdata.firefox_desktop.events_stream`
   WHERE
     event_category IN ('creditcard')
     AND event_name IN ('detected_cc_form_v2', 'filled_cc_form_v2', 'submitted_cc_form_v2')
