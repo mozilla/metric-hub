@@ -64,6 +64,12 @@ class DataSource:
               (experiment_slug:str -> struct) map, where the struct
               contains a ``branch`` field, which is the branch as a
               string.
+            * 'glean': There is an ``experiments`` column inside ping_info,
+              which is an (experiment_slug:str -> struct) map, where the
+              struct contains a ``branch`` field, which is the branch as a
+              string.
+            * 'events_stream': There is an ``experiment`` within a JSON
+              column ``event_extra``. ``branch`` is in the same column.
             * None: There is no ``experiments`` column, so skip the
               sanity checks that rely on it. We'll also be unable to
               filter out pre-enrollment data from day 0 in the
@@ -116,7 +122,7 @@ class DataSource:
     glean_client_id_column = attr.ib(default=None, type=str)
     legacy_client_id_column = attr.ib(default=None, type=str)
 
-    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean")
+    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean", "events_stream")
 
     @experiments_column_type.validator
     def _check_experiments_column_type(self, attribute, value):
