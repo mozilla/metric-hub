@@ -28,7 +28,7 @@ description = """
     Firefox received user input from a keyboard or mouse. The Firefox
     window does not need to be focused.
 """
-select_expression = '{{agg_sum("active_hours_sum")}}'
+select_expression = '{{agg_sum("browser_engagement_active_ticks/(3600/5)")}}'
 data_source = "baseline_clients_daily"
 
 [metrics.uri_count]
