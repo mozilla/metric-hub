@@ -1,0 +1,17 @@
+# This is a sample Python script.
+[experiment]
+reference_branch = "control"
+
+#overwriting metrics that likely caused crash
+#(ones that use the main ping) with a no-op
+
+[metrics]
+
+[metrics.newtab_sessions]
+select_expression = 'SUM(0)'
+[metrics.saw_newtab]
+select_expression = 'SUM(0)'
+[metrics.new_tab_enabled_in_new_windows]
+select_expression = 'SUM(0)'
+[metrics.new_tab_enabled_on_new_tabs]
+select_expression = 'SUM(0)'
