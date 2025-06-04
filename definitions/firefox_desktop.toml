@@ -33,7 +33,7 @@ data_source = "baseline_clients_daily"
 
 [metrics.uri_count]
 data_source = "clients_daily"
-select_expression = '{{agg_sum("scalar_parent_browser_engagement_total_uri_count_sum")}}'
+select_expression = '{{agg_sum("scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum")}}'
 friendly_name = "URIs visited"
 description = """
     Counts the total number of URIs visited.
@@ -42,6 +42,16 @@ description = """
 category = "performance"
 type = "scalar"
 
+[metrics.uri_count_glean]
+data_source = "baseline_clients_daily"
+select_expression = '{{agg_sum("COALESCE(browser_engagement_uri_count,0)")}}'
+friendly_name = "URIs visited"
+description = """
+    Counts the total number of URIs visited.
+    Includes within-page navigation events (e.g. to anchors).
+"""
+category = "performance"
+type = "scalar"
 
 [metrics.search_count]
 data_source = "search_clients_engines_sources_daily"
@@ -1813,8 +1823,8 @@ data_source = "desktop_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
-    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
-    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a
     28-day moving average of this number. More information is provided on the
     [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
 """
@@ -1840,7 +1850,7 @@ data_source = "desktop_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """
-    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date.
     More information is provided on the
     [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
 """
