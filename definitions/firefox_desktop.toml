@@ -1063,6 +1063,15 @@ description = """
 Was Firefox the default browser at any point during the interval?
 """
 
+[metrics.is_default_browser_glean]
+data_source = "baseline_clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+friendly_name = "Is Default Browser"
+type = "scalar"
+description = """
+Was Firefox the default browser at any point during the interval?
+"""
+
 [metrics.is_default_pdf_handler]
 data_source = "main"
 select_expression = "COALESCE(LOGICAL_OR(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_is_default_handler, '.pdf')), FALSE)"
