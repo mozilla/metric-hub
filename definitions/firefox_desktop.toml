@@ -1850,7 +1850,7 @@ data_source = "desktop_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """
-    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date.
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
     More information is provided on the
     [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
 """
