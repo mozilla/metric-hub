@@ -285,6 +285,11 @@ select_expression = "COUNT(submission_date)"
 friendly_name = "Days of use"
 description = "The number of days in the interval that each client sent a main ping."
 
+[metrics.days_of_use_glean]
+data_source = "baseline_clients_daily"
+select_expression = "COUNT(submission_date)"
+friendly_name = "Days of use"
+description = "The number of days in the interval that each client sent a main ping."
 
 [metrics.qualified_cumulative_days_of_use]
 data_source = "clients_daily"
@@ -298,6 +303,17 @@ description = """
     given that the client had >0 active hours and >0 URIs loaded.
 """
 
+[metrics.qualified_cumulative_days_of_use_glean]
+data_source = "baseline_clients_daily"
+select_expression = """COUNTIF(
+    browser_engagement_active_ticks > 0 AND
+    COALESCE(browser_engagement_uri_count,0) > 0
+)"""
+friendly_name = "QCDOU"
+description = """
+    The number of days in the interval that each client sent a main ping,
+    given that the client had >0 active hours and >0 URIs loaded.
+"""
 
 [metrics.daily_active_users]
 data_source = "clients_daily"
