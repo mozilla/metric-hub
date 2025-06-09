@@ -2667,6 +2667,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#urlbar_impressions" class="md-nav__link">
+    urlbar_impressions
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4981,6 +4988,13 @@
           <li class="md-nav__item">
   <a href="#etp_disablement" class="md-nav__link">
     etp_disablement
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#urlbar_impressions" class="md-nav__link">
+    urlbar_impressions
   </a>
   
 </li>
@@ -7997,6 +8011,19 @@ a wallpaper.</p>
 
 
 <pre><code class="language-sql">COALESCE(COUNTIF(event_name  = 'click_etp_toggle_off'), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="urlbar_impressions">urlbar_impressions</h3>
+<p><strong>URL Bar Impressions</strong></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#urlbar_events"><code>urlbar_events</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(COUNTIF(is_terminal), 0)
 </code></pre>
 
 </details>
