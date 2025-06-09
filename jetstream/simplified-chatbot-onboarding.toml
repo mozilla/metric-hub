@@ -50,18 +50,18 @@ analysis_bases = ["exposures"]
 
 [data_sources.chatbot]
 from_expression = """(
-  SELECT 
+  SELECT DISTINCT
     legacy_telemetry_client_id as client_id,
     CAST(submission_timestamp as DATE) as submission_date,
-    event_name
+    CASE WHEN JSON_VALUE(experiments.`simplified-chatbot-onboarding`.branch) LIKE '%-1-step' AND event_name = 'onboarding_continue' THEN 'onboarding_finish'
+         ELSE event_name END as event_name
   FROM
     `mozdata.firefox_desktop.events_stream`
   WHERE
     event_category IN ('genai.chatbot')
     AND ((event_name = 'sidebar_toggle' AND JSON_VALUE(event_extra.opened) = 'true' AND JSON_VALUE(event_extra.provider) <> 'none')
-         OR event_name IN ('onboarding_finish', 'onboarding_provider_choice_displayed'))
-  GROUP BY 1, 2, 3
+         OR event_name IN ('onboarding_finish', 'onboarding_continue', 'onboarding_provider_choice_displayed'))
 )"""
 experiments_column_type = "none"
-friendly_name = "Chatbot Open"
-description = "Clients who open chatbot panel after provider selected"
+friendly_name = "Chatbot Events"
+description = "Events for chatbot open and onboarding"
