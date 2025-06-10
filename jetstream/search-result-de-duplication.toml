@@ -2,7 +2,7 @@
 name = "exposed_session"
 friendly_name = "Exposed"
 description = "The set of clients that typed 5+ characters to trigger an AMP result"
-select_expression = "COALESCE(LOGICAL_OR(product_result_type = 'history', false)"
+select_expression = "COALESCE(LOGICAL_OR(product_result_type = 'history'), false)"
 data_source =  "urlbar_events_unnested_results"
 window_end = "analysis_window_end"
 
@@ -30,7 +30,7 @@ select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_typ
 data_source = "urlbar_events_unnested_results"
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
-[metrics.urlbar_impressions.statistics.bootstrap_mean]
+[metrics.urlbar_impressions_suggest.statistics.bootstrap_mean]
 
 ## Clicks
 [metrics.history_clicks]
@@ -78,28 +78,28 @@ denominator = "search_suggestion_impressions"
 
 ## Impression Rate
 [metrics.history_impression_rate]
-depends_on = ["history_impressions", "urlbar_impressions"]
+depends_on = ["history_impressions", "urlbar_impressions_suggest"]
 friendly_name = "History Impression Rate"
 description = "Proportion of history impressions out of all urlbar sessions (not available on control)"
 
 [metrics.history_impression_rate.statistics.population_ratio]
 numerator = "history_impressions"
-denominator = "urlbar_impressions"
+denominator = "urlbar_impressions_suggest"
 
 [metrics.bookmark_impression_rate]
-depends_on = ["bookmark_impressions", "urlbar_impressions"]
+depends_on = ["bookmark_impressions", "urlbar_impressions_suggest"]
 friendly_name = "Bookmark Impression Rate"
 description = "Proportion of bookmark impressions out of all urlbar sessions (not available on control)"
 
 [metrics.bookmark_impression_rate.statistics.population_ratio]
 numerator = "bookmark_impressions"
-denominator = "urlbar_impressions"
+denominator = "urlbar_impressions_suggest"
 
 [metrics.search_suggestion_impression_rate]
-depends_on = ["search_suggestion_impressions", "urlbar_impressions"]
+depends_on = ["search_suggestion_impressions", "urlbar_impressions_suggest"]
 friendly_name = "Search suggestion Impression Rate"
 description = "Proportion of search suggestion impressions out of all urlbar sessions (not available on control)"
 
-[metrics.bsearch_suggestion_impression_rate.statistics.population_ratio]
+[metrics.search_suggestion_impression_rate.statistics.population_ratio]
 numerator = "search_suggestion_impressions"
-denominator = "urlbar_impressions"
+denominator = "urlbar_impressions_suggest"
