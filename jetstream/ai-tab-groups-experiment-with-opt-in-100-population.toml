@@ -1,0 +1,73 @@
+[experiment]
+
+[experiment.exposure_signal]
+name = "tab_group_created"
+friendly_name = "Tab Group Created"
+description = "Clients who create a tab group"
+data_source = "tab_group_create"
+select_expression = "COALESCE(groups_created > 0, FALSE)"
+window_start = 0
+window_end = "analysis_window_end"
+
+[metrics]
+
+weekly = [
+    "tabgroup_creation_frequency",
+    "tabgroup_interaction",
+    "tabgroup_quantity"
+]
+
+overall = [
+    "tabgroup_creation_frequency",
+    "tabgroup_interaction",
+    "tabgroup_quantity"
+]
+
+[metrics.tabgroup_creation_frequency.statistics.bootstrap_mean]
+[metrics.tabgroup_interaction.statistics.bootstrap_mean]
+[metrics.tabgroup_quantity.statistics.bootstrap_mean]
+
+[metrics.tabgroup_creation_frequency]
+friendly_name = "Tab Group Creation Frequency"
+description = "Average number of times clients create a new group"
+select_expression = "COALESCE(SUM(groups_created), 0)"
+data_source = "tab_group_create"
+analysis_bases = ["exposures"]
+
+[metrics.tabgroup_interaction]
+friendly_name = "Tab Group Usage"
+description = "Average number of times clients interact with tabs in a group"
+select_expression = """(
+  SUM( COALESCE( mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.tabgroup_tab_interactions), 0 ) ) 
+)"""
+data_source = "metrics"
+analysis_bases = ["exposures"]
+
+[metrics.tabgroup_quantity]
+friendly_name = "Number of Tab Groups"
+description = "Average number of tab groups, including saved, collapsed and expanded"
+select_expression = """(
+  COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'expanded'), submission_date), 0)
+  + COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'collapsed'), submission_date), 0)
+  + COALESCE(MAX_BY(metrics.quantity.tabgroup_saved_groups, submission_date), 0)
+)"""
+data_source = "metrics"
+analysis_bases = ["exposures"]
+
+[data_sources.tab_group_create]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    COUNT(1) as groups_created
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'tabgroup'
+    AND event_name = 'create_group'
+  GROUP BY ALL
+)"""
+experiments_column_type = "none"
+friendly_name = "Tab Group Create events"
+description = "Clients who create a tab group"

@@ -6,6 +6,10 @@ webcompat reporting panel impressions,
 and webcompat reporting panel uses.
 """
 
+[metrics]
+weekly = ["etp_disablement", "tab_reload_count", "site_breakage_impressions", "site_breakage_uses"]
+overall = ["etp_disablement", "tab_reload_count", "site_breakage_impressions", "site_breakage_uses"]
+
 [metrics.etp_disablement.statistics.bootstrap_mean]
 [metrics.etp_disablement.statistics.deciles]
 

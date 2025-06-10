@@ -89,6 +89,278 @@ description = "Count of clients with default UI"
 numerator = "nonsearch_engagement_clients.sum"
 denominator = "default_ui_clients.sum"
 
+#HNT data model visit CONTENT reporting metrics  - visits and clients
+[metrics.any_content_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_content_engagement_visits)"
+friendly_name = "Any Content Engagement Visits"
+description = "Count of visits with content engagement, both sponsored and organic"
+
+[metrics.organic_content_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_content_engagement_visits)"
+friendly_name = "Organic Content Engagement Visits"
+description = "Count of visits with organic content engagement"
+
+[metrics.sponsored_content_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_content_engagement_visits)"
+friendly_name = "Sponsored Content Engagement Visits"
+description = "Count of visits with sponsored content engagement"
+
+[metrics.any_content_engagement_visits.statistics.sum]
+[metrics.organic_content_engagement_visits.statistics.sum]
+[metrics.sponsored_content_engagement_visits.statistics.sum]
+
+[metrics.any_content_engagement_visits.statistics.ratio]
+numerator = "any_content_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+[metrics.organic_content_engagement_visits.statistics.ratio]
+numerator = "organic_content_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+[metrics.sponsored_content_engagement_visits.statistics.ratio]
+numerator = "sponsored_content_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+
+[metrics.any_content_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_content_engagement_clients)"
+friendly_name = "Any Content Engagement clients"
+description = "Count of clients with content engagement, both sponsored and organic"
+
+[metrics.organic_content_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_content_engagement_clients)"
+friendly_name = "Organic Content Engagement clients"
+description = "Count of clients with organic content engagement"
+
+[metrics.sponsored_content_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_content_engagement_clients)"
+friendly_name = "Sponsored Content Engagement clients"
+description = "Count of clients with sponsored content engagement"
+
+[metrics.any_content_engagement_clients.statistics.sum]
+[metrics.organic_content_engagement_clients.statistics.sum]
+[metrics.sponsored_content_engagement_clients.statistics.sum]
+
+[metrics.any_content_engagement_clients.statistics.ratio]
+numerator = "any_content_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+[metrics.organic_content_engagement_clients.statistics.ratio]
+numerator = "organic_content_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+[metrics.sponsored_content_engagement_clients.statistics.ratio]
+numerator = "sponsored_content_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+
+[metrics.any_content_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_content_impression_count)"
+friendly_name = "Sum of all Content Impressions "
+description = "Sum of content impressions, both sponsored and organic"
+
+[metrics.organic_content_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_content_impression_count)"
+friendly_name = "Sum of Organic Content Impressions "
+description = "Sum of organic content impressions"
+
+[metrics.sponsored_content_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_content_impression_count)"
+friendly_name = "Sum of Sponsored Content Impressions "
+description = "Sum of sponsored content impressions"
+
+[metrics.any_content_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_content_click_count)"
+friendly_name = "Sum of all Content clicks "
+description = "Sum of content clicks, both sponsored and organic"
+
+[metrics.organic_content_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_content_click_count)"
+friendly_name = "Sum of Organic Content Clicks "
+description = "Sum of organic content clicks"
+
+[metrics.sponsored_content_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_content_click_count)"
+friendly_name = "Sum of Sponsored Content Clicks "
+description = "Sum of sponsored content clicks"
+
+[metrics.any_content_impression_count.statistics.sum]
+[metrics.organic_content_impression_count.statistics.sum]
+[metrics.sponsored_content_impression_count.statistics.sum]
+
+[metrics.any_content_click_count.statistics.sum]
+[metrics.organic_content_click_count.statistics.sum]
+[metrics.sponsored_content_click_count.statistics.sum]
+
+[metrics.any_content_click_count.statistics.ratio]
+numerator = "any_content_click_count.sum"
+denominator = "any_content_impression_count.sum"
+[metrics.organic_content_click_count.statistics.ratio]
+numerator = "organic_content_click_count.sum"
+denominator = "organic_content_impression_count.sum"
+[metrics.sponsored_content_click_count.statistics.ratio]
+numerator = "sponsored_content_click_count.sum"
+denominator = "sponsored_content_impression_count.sum"
+
+
+#HNT data model visit TOPSITE reporting metrics  - visits and clients
+[metrics.any_topsite_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_topsite_engagement_visits)"
+friendly_name = "Any Topsite Engagement Visits"
+description = "Count of visits with topsite engagement, both sponsored and organic"
+
+[metrics.organic_topsite_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_topsite_engagement_visits)"
+friendly_name = "Organic Topsite Engagement Visits"
+description = "Count of visits with organic topsite engagement"
+
+[metrics.sponsored_topsite_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_topsite_engagement_visits)"
+friendly_name = "Sponsored Topsite Engagement Visits"
+description = "Count of visits with sponsored topsite engagement"
+
+[metrics.any_topsite_engagement_visits.statistics.sum]
+[metrics.organic_topsite_engagement_visits.statistics.sum]
+[metrics.sponsored_topsite_engagement_visits.statistics.sum]
+
+[metrics.any_topsite_engagement_visits.statistics.ratio]
+numerator = "any_topsite_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+[metrics.organic_topsite_engagement_visits.statistics.ratio]
+numerator = "organic_topsite_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+[metrics.sponsored_topsite_engagement_visits.statistics.ratio]
+numerator = "sponsored_topsite_engagement_visits.sum"
+denominator = "default_ui_visits.sum"
+
+[metrics.any_topsite_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_topsite_engagement_clients)"
+friendly_name = "Any Topsite Engagement clients"
+description = "Count of clients with topsite engagement, both sponsored and organic"
+
+[metrics.organic_topsite_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_topsite_engagement_clients)"
+friendly_name = "Organic Topsite Engagement clients"
+description = "Count of clients with organic topsite engagement"
+
+[metrics.sponsored_topsite_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_topsite_engagement_clients)"
+friendly_name = "Sponsored Topsite Engagement clients"
+description = "Count of clients with sponsored topsite engagement"
+
+[metrics.any_topsite_engagement_clients.statistics.sum]
+[metrics.organic_topsite_engagement_clients.statistics.sum]
+[metrics.sponsored_topsite_engagement_clients.statistics.sum]
+
+[metrics.any_topsite_engagement_clients.statistics.ratio]
+numerator = "any_topsite_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+[metrics.organic_topsite_engagement_clients.statistics.ratio]
+numerator = "organic_topsite_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+[metrics.sponsored_topsite_engagement_clients.statistics.ratio]
+numerator = "sponsored_topsite_engagement_clients.sum"
+denominator = "default_ui_clients.sum"
+
+[metrics.any_topsite_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_topsite_impression_count)"
+friendly_name = "Sum of all Topsite Impressions "
+description = "Sum of topsite impressions, both sponsored and organic"
+
+[metrics.organic_topsite_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_topsite_impression_count)"
+friendly_name = "Sum of Organic Topsite Impressions "
+description = "Sum of organic topsite impressions"
+
+[metrics.sponsored_topsite_impression_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_topsite_impression_count)"
+friendly_name = "Sum of Sponsored Topsite Impressions "
+description = "Sum of sponsored topsite impressions"
+
+[metrics.any_topsite_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(any_topsite_click_count)"
+friendly_name = "Sum of all Topsite clicks "
+description = "Sum of topsite clicks, both sponsored and organic"
+
+[metrics.organic_topsite_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(organic_topsite_click_count)"
+friendly_name = "Sum of Organic Topsite Clicks "
+description = "Sum of organic topsite clicks"
+
+[metrics.sponsored_topsite_click_count]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(sponsored_topsite_click_count)"
+friendly_name = "Sum of Sponsored Topsite Clicks "
+description = "Sum of sponsored topsite clicks"
+
+[metrics.any_topsite_impression_count.statistics.sum]
+[metrics.organic_topsite_impression_count.statistics.sum]
+[metrics.sponsored_topsite_impression_count.statistics.sum]
+
+[metrics.any_topsite_click_count.statistics.sum]
+[metrics.organic_topsite_click_count.statistics.sum]
+[metrics.sponsored_topsite_click_count.statistics.sum]
+
+[metrics.any_topsite_click_count.statistics.ratio]
+numerator = "any_topsite_click_count.sum"
+denominator = "any_topsite_impression_count.sum"
+[metrics.organic_topsite_click_count.statistics.ratio]
+numerator = "organic_topsite_click_count.sum"
+denominator = "organic_topsite_impression_count.sum"
+[metrics.sponsored_topsite_click_count.statistics.ratio]
+numerator = "sponsored_topsite_click_count.sum"
+denominator = "sponsored_topsite_impression_count.sum"
+
+#HNT data model visit WIDGET reporting metrics  - visits and clients
+[metrics.widget_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(widget_engagement_visits)"
+friendly_name = "Widget Engagement Visits"
+description = "Count of visits with widget engagement"
+
+[metrics.widget_engagement_visits.statistics.sum]
+
+[metrics.widget_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(widget_engagement_clients)"
+friendly_name = "Widget Engagement Clients"
+description = "Count of clients with widget engagement"
+
+[metrics.widget_engagement_clients.statistics.sum]
+
+#HNT data model visit OTHERS reporting metrics  - visits and clients
+[metrics.others_engagement_visits]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(others_engagement_visits)"
+friendly_name = "Others Engagement Visits"
+description = "Count of visits with others engagement"
+
+[metrics.others_engagement_visits.statistics.sum]
+
+[metrics.others_engagement_clients]
+data_source = "newtab_clients_daily_aggregates"
+select_expression = "SUM(others_engagement_clients)"
+friendly_name = "Others Engagement Clients"
+description = "Count of clients with others engagement"
+
+
 ### Ads data funnel statistics
 [metrics.newtab_sponsored_tiles_enabled.statistics.client_count]
 [metrics.sponsored_tile_impressions.statistics.client_count]
@@ -176,16 +448,16 @@ on_expression = "newtab_clients_daily.country_code = countries.code"
 
 #HNT data model revamp data sources
 [data_sources.newtab_clients_daily_aggregates]
-from_expression = "moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2"
+from_expression = "moz-fx-data-shared-prod.firefox_desktop_derived.newtab_clients_daily_aggregates_v2"
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = false
 
 [data_sources.newtab_clients_daily_aggregates_base_fields]
 from_expression = '''(SELECT 
-submission_date, app_version, os, channel, locale, country, newtab_homepage_category, newtab_newtab_category,
+submission_date, app_version, os, channel, locale, country, homepage_category, newtab_category,
 organic_content_enabled, sponsored_content_enabled, sponsored_topsites_enabled, organic_topsites_enabled, newtab_search_enabled
-FROM moz-fx-data-shared-prod.analysis.gkatre__newtab_clients_daily_aggregates_v2)'''
+FROM moz-fx-data-shared-prod.firefox_desktop_derived.newtab_clients_daily_aggregates_v2)'''
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
@@ -199,8 +471,8 @@ AND (newtab_clients_daily_aggregates.os = newtab_clients_daily_aggregates_base_f
 AND (newtab_clients_daily_aggregates.channel = newtab_clients_daily_aggregates_base_fields.channel OR (newtab_clients_daily_aggregates.channel IS NULL AND newtab_clients_daily_aggregates_base_fields.channel IS NULL ))
 AND (newtab_clients_daily_aggregates.locale = newtab_clients_daily_aggregates_base_fields.locale OR (newtab_clients_daily_aggregates.locale IS NULL AND newtab_clients_daily_aggregates_base_fields.locale IS NULL ))
 AND (newtab_clients_daily_aggregates.country = newtab_clients_daily_aggregates_base_fields.country OR (newtab_clients_daily_aggregates.country IS NULL AND newtab_clients_daily_aggregates_base_fields.country IS NULL ))
-AND (newtab_clients_daily_aggregates.newtab_homepage_category = newtab_clients_daily_aggregates_base_fields.newtab_homepage_category OR (newtab_clients_daily_aggregates.newtab_homepage_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_homepage_category IS NULL ))
-AND (newtab_clients_daily_aggregates.newtab_newtab_category = newtab_clients_daily_aggregates_base_fields.newtab_newtab_category OR (newtab_clients_daily_aggregates.newtab_newtab_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_newtab_category IS NULL ))
+AND (newtab_clients_daily_aggregates.homepage_category = newtab_clients_daily_aggregates_base_fields.homepage_category OR (newtab_clients_daily_aggregates.homepage_category IS NULL AND newtab_clients_daily_aggregates_base_fields.homepage_category IS NULL ))
+AND (newtab_clients_daily_aggregates.newtab_category = newtab_clients_daily_aggregates_base_fields.newtab_category OR (newtab_clients_daily_aggregates.newtab_category IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_category IS NULL ))
 AND (newtab_clients_daily_aggregates.organic_content_enabled = newtab_clients_daily_aggregates_base_fields.organic_content_enabled OR (newtab_clients_daily_aggregates.organic_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_content_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.sponsored_content_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled OR (newtab_clients_daily_aggregates.sponsored_content_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_content_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.sponsored_topsites_enabled = newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled OR (newtab_clients_daily_aggregates.sponsored_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.sponsored_topsites_enabled IS NULL ))

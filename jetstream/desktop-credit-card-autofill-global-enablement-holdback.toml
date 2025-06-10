@@ -1,0 +1,27 @@
+[experiment]
+
+[experiment.exposure_signal]
+name = "credit_card_form_detect"
+friendly_name = "Credit Card Form Detected"
+description = "Clients who have credit card form detected"
+data_source = "credit_card_autofill"
+select_expression = "COALESCE(event_name = 'detected_cc_form_v2', FALSE)"
+window_start = 0
+window_end = "analysis_window_end"
+
+[data_sources.credit_card_autofill]
+from_expression = """(
+  SELECT 
+    legacy_telemetry_client_id as client_id,
+    DATE(submission_timestamp) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('creditcard')
+    AND event_name IN ('detected_cc_form_v2', 'filled_cc_form_v2', 'submitted_cc_form_v2')
+  GROUP BY 1, 2, 3
+)"""
+experiments_column_type = "none"
+friendly_name = "Credit Card Autofill"
+description = "Clients who have used the credit card autofill feature"
