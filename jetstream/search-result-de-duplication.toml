@@ -4,7 +4,7 @@ friendly_name = "Exposed"
 description = "The set of clients that typed 5+ characters to trigger an AMP result"
 select_expression = "COALESCE(LOGICAL_OR(product_result_type
  = ‘history’, false)"
-data_source = "urlbar_events_unnested_results"
+data_source =  "urlbar_events_unnested_results"
 window_end = "analysis_window_end"
 
 [metrics]
