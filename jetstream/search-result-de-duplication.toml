@@ -30,7 +30,7 @@ select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_typ
 data_source = "urlbar_events_unnested_results"
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
-[metrics.urlbar_impressions.bootstrap_mean]
+[metrics.urlbar_impressions.statistics.bootstrap_mean]
 
 ## Clicks
 [metrics.history_clicks]
