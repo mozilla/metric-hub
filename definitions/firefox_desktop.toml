@@ -2241,7 +2241,7 @@ from_expression = """(
         DATE(submission_timestamp) AS submission_date,
         experiments,
         event_name,
-    FROM `mozdata.firefox_desktop.events`
+    FROM `mozdata.firefox_desktop.events_stream`
     WHERE
         event_category = 'security.ui.protectionspopup'
 )"""
