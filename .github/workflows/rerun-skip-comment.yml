@@ -11,7 +11,7 @@ jobs:
       path_filter: |
         jetstream/defaults/*.toml
 
-  approve:
+  rerun_skip_comment:
     name: Leave a comment if defaults have been changed
     permissions:
       pull-requests: write
