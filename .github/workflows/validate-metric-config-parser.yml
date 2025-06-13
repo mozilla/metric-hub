@@ -25,7 +25,7 @@ jobs:
     container:
       image: python:3.10
     needs: changed
-    if: needs.changed.outputs.any_changed == 'true'
+    if: needs.changed.outputs.any_changed != 'false'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
