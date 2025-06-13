@@ -11,10 +11,10 @@ on:
     outputs:
       any_changed:
         description: 'Did any file matching optional path filter change? [true|false]'
-        value: ${{ jobs.changed.any_changed }}
+        value: ${{ jobs.changed.outputs.any_changed }}
       all_changed_files:
         description: 'List of changed files matching optional path filter'
-        value: ${{ jobs.changed.all_changed_files }}
+        value: ${{ jobs.changed.outputs.all_changed_files }}
 
 jobs:
   changed:
@@ -36,10 +36,3 @@ jobs:
       run: |
         echo "Did files change?: ${{ steps.changed-files-specific.outputs.any_changed }}"
         echo "All changed files: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
-
-  test_changed:
-    runs-on: ubuntu-latest
-    name: Test 'changed' job
-    needs: changed
-    steps:
-      - run: echo ${{ needs.changed.outputs.any_changed }} ${{ needs.changed.outputs.all_changed_files }}
