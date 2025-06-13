@@ -27,6 +27,8 @@ jobs:
     needs: changed
     if: needs.changed.outputs.any_changed != 'false'
     steps:
+    - name: Changed Files tests
+      run: echo {{ needs.changed.outputs.any_changed }}
     - name: Checkout
       uses: actions/checkout@v4
       with:
