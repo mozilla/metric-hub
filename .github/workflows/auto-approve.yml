@@ -22,7 +22,7 @@ jobs:
     needs: changed
     steps:
     - uses: actions/github-script@v6
-      if: ${{ needs.changed.outputs.any_changed }} == 'false'
+      if: needs.changed.outputs.any_changed == 'false'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -33,8 +33,8 @@ jobs:
             event: "APPROVE"
           })
     - name: Skip
-      if: ${{ needs.changed.outputs.any_changed }} == 'true'
+      if: needs.changed.outputs.any_changed == 'true'
       run: |
         echo "Metric definitions changed, needs manual review"
-        echo ${{ needs.changed.outputs.all_changed_files }}
+        echo "Changed files: ${{ needs.changed.outputs.all_changed_files }}"
 

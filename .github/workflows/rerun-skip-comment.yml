@@ -17,9 +17,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest 
     needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
     steps:
     - uses: actions/github-script@v6
-      if: needs.changed.outputs.any_changed == 'true'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
