@@ -25,7 +25,7 @@ jobs:
     container:
       image: python:3.10
     needs: changed
-    if: ${{ ! needs.changed.outputs.any_changed }}
+    if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Changed Files tests
       run: echo ${{ needs.changed.outputs.any_changed }} && echo ${{ needs.changed.outputs.all_changed_files }}
