@@ -36,3 +36,10 @@ jobs:
       run: |
         echo "Did files change?: ${{ steps.changed-files-specific.outputs.any_changed }}"
         echo "All changed files: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+
+  test_changed:
+    runs-on: ubuntu-latest
+    name: Test 'changed' job
+    needs: changed
+    steps:
+      - run: echo ${{ needs.changed.outputs.any_changed }} ${{ needs.changed.outputs.all_changed_files }}
