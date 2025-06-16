@@ -12,10 +12,10 @@ window_end = "analysis_window_end"
 [metrics]
 weekly = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions", 
 "history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmark_ctr", 
-"search_suggestion_ctr", "history_impression_rate", "bookmark_impression_rate", "search_suggestion_impression_rate"]
+"search_suggestion_ctr"]
 overall = ["history_impressions", "bookmark_impressions", "search_suggestion_impressions",
 "history_clicks", "bookmark_clicks", "search_suggestion_clicks", "history_ctr", "bookmark_ctr", 
-"search_suggestion_ctr", "history_impression_rate", "bookmark_impression_rate", "search_suggestion_impression_rate"]
+"search_suggestion_ctr"]
 
 ## Impressions
 [metrics.history_impressions]
