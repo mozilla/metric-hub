@@ -78,31 +78,3 @@ description = "Proportion of urlbar sessions where suggestion from the default s
 [metrics.search_suggestion_ctr.statistics.population_ratio]
 numerator = "search_suggestion_clicks"
 denominator = "search_suggestion_impressions"
-
-## Impression Rate
-[metrics.history_impression_rate]
-depends_on = ["history_impressions", "urlbar_impressions_suggest"]
-friendly_name = "History Impression Rate"
-description = "Proportion of history impressions out of all urlbar sessions (not available on control)"
-
-[metrics.history_impression_rate.statistics.population_ratio]
-numerator = "history_impressions"
-denominator = "urlbar_impressions_suggest"
-
-[metrics.bookmark_impression_rate]
-depends_on = ["bookmark_impressions", "urlbar_impressions_suggest"]
-friendly_name = "Bookmark Impression Rate"
-description = "Proportion of bookmark impressions out of all urlbar sessions (not available on control)"
-
-[metrics.bookmark_impression_rate.statistics.population_ratio]
-numerator = "bookmark_impressions"
-denominator = "urlbar_impressions_suggest"
-
-[metrics.search_suggestion_impression_rate]
-depends_on = ["search_suggestion_impressions", "urlbar_impressions_suggest"]
-friendly_name = "Search suggestion Impression Rate"
-description = "Proportion of search suggestion impressions out of all urlbar sessions (not available on control)"
-
-[metrics.search_suggestion_impression_rate.statistics.population_ratio]
-numerator = "search_suggestion_impressions"
-denominator = "urlbar_impressions_suggest"
