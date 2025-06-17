@@ -1,4 +1,5 @@
 [experiment]
+end_date = "2025-06-16"
 segments = [
   "google_default_search",
   "bing_default_search",
