@@ -13,8 +13,8 @@ data, we proxy the queries through the dry run service endpoint.
 
 import json
 import logging
+import multiprocessing
 import sys
-from multiprocessing import Pool
 from pathlib import Path
 from typing import Any
 import google.auth
@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+NUM_QUERIES_PER_REQUEST = 1
 
 
 @click.group()
@@ -207,7 +208,10 @@ def validate(path, config_repos):
                             if metric.data_source.name not in data_sources:
                                 data_sources[metric.data_source.name] = data_source
 
-                        if i % 10 == 0 or i == len(entity.spec.metrics.definitions.keys()) - 1:
+                        if (
+                            i % NUM_QUERIES_PER_REQUEST == 0
+                            or i == len(entity.spec.metrics.definitions.keys()) - 1
+                        ):
                             sql = env.render(
                                 metrics=metrics,
                                 dimensions=[],
@@ -218,10 +222,11 @@ def validate(path, config_repos):
                                     for name, d in data_sources.items()
                                 },
                             )
-                            sql_to_validate.append(sql)
-                            i = 0
-                            metrics = []
-                            progress += 1
+                            if len(sql.strip()) > 0:
+                                sql_to_validate.append(sql)
+                                i = 0
+                                metrics = []
+                                progress += 1
 
                     segment_definitions = None
                     for (
@@ -249,8 +254,8 @@ def validate(path, config_repos):
                         )
                         sql_to_validate.append(sql)
 
-    print(f"Dry running {len(sql_to_validate)} SQL queries")
-    with Pool(8) as p:
+    print(f"Dry running {len(sql_to_validate)} SQL query batches")
+    with multiprocessing.Pool(multiprocessing.cpu_count()) as p:
         result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
     if not all(result):
         sys.exit(1)
