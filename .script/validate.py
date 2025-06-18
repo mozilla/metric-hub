@@ -35,9 +35,7 @@ from metric_config_parser.function import FunctionsSpec
 logger = logging.getLogger(__name__)
 
 
-DRY_RUN_URL = (
-    "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
-)
+DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
@@ -61,9 +59,7 @@ def dry_run_query(sql: str) -> None:
     """Dry run the provided SQL query."""
     try:
         auth_req = GoogleAuthRequest()
-        creds, _ = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
+        creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
         creds.refresh(auth_req)
         if hasattr(creds, "id_token"):
             # Get token from default credentials for the current environment created via Cloud SDK run
@@ -82,7 +78,7 @@ def dry_run_query(sql: str) -> None:
                 },
                 data=json.dumps(
                     {
-                         "dataset": "mozanalysis",
+                        "dataset": "mozanalysis",
                         "query": sql,
                     }
                 ).encode("utf8"),
@@ -97,6 +93,8 @@ def dry_run_query(sql: str) -> None:
             r.raise_for_status()
         except requests.exceptions.RequestException as request_exception:
             e = request_exception
+        except UnboundLocalError:
+            pass
         raise DryRunFailedError(e, sql)
 
     if response["valid"]:
@@ -120,9 +118,7 @@ def dry_run_query(sql: str) -> None:
         logger.info("Dry run OK")
         return
 
-    raise DryRunFailedError(
-        (error and error.get("message", None)) or response["errors"], sql=sql
-    )
+    raise DryRunFailedError((error and error.get("message", None)) or response["errors"], sql=sql)
 
 
 def _is_sql_valid(sql):
@@ -131,7 +127,7 @@ def _is_sql_valid(sql):
     except DryRunFailedError as e:
         print("Error evaluating SQL:")
         for i, line in enumerate(e.sql.split("\n")):
-            print(f"{i+1: 4d} {line.rstrip()}")
+            print(f"{i + 1: 4d} {line.rstrip()}")
         print("")
         print(str(e))
         return False
@@ -178,9 +174,7 @@ def validate(path, config_repos):
                 print(e)
             else:
                 if not isinstance(entity, FunctionsSpec):
-                    validation_template = (
-                        Path(TEMPLATES_DIR) / "validation_query.sql"
-                    ).read_text()
+                    validation_template = (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
                     env = config_collection.get_env().from_string(validation_template)
 
                     i = 0
@@ -213,10 +207,7 @@ def validate(path, config_repos):
                             if metric.data_source.name not in data_sources:
                                 data_sources[metric.data_source.name] = data_source
 
-                        if (
-                            i % 10 == 0
-                            or i == len(entity.spec.metrics.definitions.keys()) - 1
-                        ):
+                        if i % 10 == 0 or i == len(entity.spec.metrics.definitions.keys()) - 1:
                             sql = env.render(
                                 metrics=metrics,
                                 dimensions=[],
@@ -258,6 +249,7 @@ def validate(path, config_repos):
                         )
                         sql_to_validate.append(sql)
 
+    print(f"Dry running {len(sql_to_validate)} SQL queries")
     with Pool(8) as p:
         result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
     if not all(result):
