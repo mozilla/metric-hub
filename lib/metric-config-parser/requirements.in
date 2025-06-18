@@ -105,7 +105,7 @@ referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.3
+requests==2.32.4
     # via mozilla-metric-config-parser
 rpds-py==0.24.0
     # via
