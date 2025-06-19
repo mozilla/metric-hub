@@ -1,0 +1,74 @@
+[experiment]
+
+segments = ["us", "de", "gb", "existing_users", "new_users"]
+
+[metrics]
+
+weekly = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+
+overall = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+
+[metrics.switch_to_perplexity]
+friendly_name = "Switch to perplexity"
+description = "Number of clients that switched to perplexity as their default search engine"
+select_expression = """(
+    COALESCE(COUNTIF(event = 'search.engine.default.changed' 
+    AND JSON_VALUE(event_extra.new_display_name) = 'Perplexity'), 0)
+)"""
+data_source = "glean_events_stream"
+
+[metrics.switch_to_perplexity.statistics.bootstrap_mean]
+
+[metrics.perplexity_sap_count]
+friendly_name = "Number of Perplexity searches"
+description = "Number of searches conducted via Perplexity"
+select_expression = """(
+   COALESCE(COUNTIF(event = 'sap.counts' 
+   AND JSON_VALUE(event_extra.provider_name) = 'Perplexity'), 0)
+)"""
+data_source = "glean_events_stream"
+
+[metrics.perplexity_sap_count.statistics.bootstrap_mean]
+
+[metrics.google_sap_count]
+friendly_name = "Number of Google searches"
+description = "Number of searches conducted via Google"
+select_expression = """(
+   COALESCE(COUNTIF(event = 'sap.counts' 
+   AND JSON_VALUE(event_extra.provider_name) = 'Google'), 0)
+)"""
+data_source = "glean_events_stream"
+
+[metrics.google_sap_count.statistics.bootstrap_mean]
+
+[segments]
+
+[segments.us]
+select_expression = "COALESCE(LOGICAL_OR(country = 'US'), FALSE)"
+description = "Clients in US"
+data_source = "clients_daily"
+
+[segments.de]
+select_expression = "COALESCE(LOGICAL_OR(country = 'DE'), FALSE)"
+description = "Clients in Germany"
+data_source = "clients_daily"
+
+[segments.gb]
+select_expression = "COALESCE(LOGICAL_OR(country = 'GB'), FALSE)"
+description = "Clients in GB"
+data_source = "clients_daily"
+
+[segments.existing_users]
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 27), FALSE)"
+description = "Clients first seen date > 27 days"
+data_source = "clients_last_seen"
+
+[segments.new_users]
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 27), FALSE)"
+description = "Clients first seen date <= 27 days"
+data_source = "clients_last_seen"
+
+[segments.data_sources.clients_daily]
+from_expression = "mozdata.telemetry.clients_daily"
+window_start = 0
+window_end = 0
