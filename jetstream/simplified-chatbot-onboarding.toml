@@ -20,7 +20,7 @@ overall = ["onboarding_complete", "chatbot_engagement", "chatbot_frequency"]
 [metrics.chatbot_frequency.statistics.bootstrap_mean]
 
 [metrics.onboarding_complete]
-select_expression = "COALESCE(LOGICAL_OR(event.name = 'onboarding_finish'), FALSE)"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_finish'), FALSE)"
 data_source = "chatbot"
 friendly_name = "Chatbot Onboarding Completed"
 description = "Percentage of clients who completed Chatbot onboarding"

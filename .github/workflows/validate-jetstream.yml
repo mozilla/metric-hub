@@ -33,6 +33,7 @@ jobs:
         ref: ${{ github.head_ref }}
     - name: Set safe directory
       # workaround because actions/checkout's `set-safe-directory` flag doesn't work in containers
+      # this and `ref` above are needed because jetstream performs git operations
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Validate jetstream config files
       run: |
