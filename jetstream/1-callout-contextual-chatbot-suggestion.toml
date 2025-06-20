@@ -39,7 +39,7 @@ friendly_name = "Chatbot Onboarding Started"
 description = "Percentage of clients who started Chatbot onboarding"
 
 [metrics.chatbot_onboarding_complete]
-select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_finish'), FALSE)"
+select_expression = "COALESCE(LOGICAL_OR(event_name IN ('onboarding_finish', 'onboarding_continue')), FALSE)"
 data_source = "chatbot"
 friendly_name = "Chatbot Onboarding Completed"
 description = "Percentage of clients who completed Chatbot onboarding"
