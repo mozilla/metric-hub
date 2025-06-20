@@ -33,6 +33,7 @@ jobs:
       run: |
         echo "Run validation on changed files: "
         echo ${{ needs.changed.outputs.all_changed_files }}
+        echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
 
 
