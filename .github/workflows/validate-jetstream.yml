@@ -29,8 +29,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Validate jetstream config files
-      working-directory: ./jetstream
       run: |
         echo "Run validation on changed files: "
         echo ${{ needs.changed.outputs.all_changed_files }}
