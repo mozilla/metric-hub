@@ -11,9 +11,17 @@ window_end = "analysis_window_end"
 
 [metrics]
 
-weekly = ["onboarding_complete", "chatbot_engagement", "chatbot_frequency"]
+weekly = [
+    "onboarding_complete",
+    "chatbot_engagement",
+    "chatbot_frequency"
+]
 
-overall = ["onboarding_complete", "chatbot_engagement", "chatbot_frequency"]
+overall = [
+    "onboarding_complete",
+    "chatbot_engagement",
+    "chatbot_frequency"
+]
 
 [metrics.onboarding_complete.statistics.binomial]
 [metrics.chatbot_engagement.statistics.binomial]
