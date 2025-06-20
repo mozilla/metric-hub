@@ -30,7 +30,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        ref: ${{ github.head_ref }}
     - name: Validate jetstream config files
       run: |
         echo "Run validation on changed files: "
