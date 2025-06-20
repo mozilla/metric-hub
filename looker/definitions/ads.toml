@@ -210,11 +210,6 @@ select_expression = "SUM(impression_sponsored_native_count)"
 data_source = "ads_clients_daily"
 friendly_name = "Count of all sponsored native impressions."
 
-[metrics.impression_sponsored_native_count]
-select_expression = "SUM(impression_sponsored_native_count)"
-data_source = "ads_clients_daily"
-friendly_name = "Count of all sponsored native impressions."
-
 [metrics.impression_sponsored_suggest_count]
 select_expression = "SUM(impression_sponsored_suggest_count)"
 data_source = "ads_clients_daily"
