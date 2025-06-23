@@ -397,7 +397,7 @@ deprecated = false
 
 [metrics.client_level_daily_active_users_v2_glean]
 friendly_name = "Firefox Desktop Client-Level DAU"
-data_source = "firefox_desktop_active_users_view"
+data_source = "firefox_desktop_baseline_active_users_view"
 select_expression = """COUNTIF(is_dau)"""
 type = "scalar"
 description = """
