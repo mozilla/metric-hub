@@ -379,6 +379,17 @@ denominator='sponsored_tile_impressions'
 numerator='sponsored_pocket_clicks'
 denominator='sponsored_pocket_impressions'
 
+[metrics.sponsored_pocket_per_client.statistics.population_ratio]
+numerator='sponsored_pocket_impressions'
+denominator='client_count'
+
+[metrics.sponsored_topsite_tile_per_client.statistics.population_ratio]
+numerator='sponsored_topsite_tile_impressions'
+denominator='client_count'
+
+[metrics.ad_impression_per_client.statistics.population_ratio]
+numerator="sponsored_pocket_impressions + sponsored_topsite_tile_impressions"
+denominator='client_count'
 # Data sources
 
 [data_sources.looker_base_fields]
