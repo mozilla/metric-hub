@@ -87,7 +87,7 @@ pydantic-core==2.33.1
     # via pydantic
 pyflakes==3.3.2
     # via flake8
-pytest==8.3.5
+pytest==8.4.1
     # via
     #   mozilla-metric-config-parser
     #   pytest-black
