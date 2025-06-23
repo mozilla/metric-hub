@@ -344,24 +344,6 @@ description = """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = true
 
-[metrics.daily_active_users_glean]
-data_source = "baseline_clients_daily"
-select_expression = "COUNTIF(browser_engagement_active_ticks > 0 AND COALESCE(browser_engagement_uri_count,0) > 0)"
-type = "scalar"
-friendly_name = "DAU"
-description = """
-    The number of unique clients with >0 active hours and >0 URIs loaded that
-    we received a main ping from each day. To be comparable to DAU used for KPI
-    tracking, this metric needs to be aggregated by `submission_date`. If the
-    metric is NOT aggregated by `submission_date`, the metric is similar to a
-    "days of use" metric. For more details, refer to
-    [the DAU description in the Mozilla Data Documentation](https://docs.telemetry.mozilla.org/concepts/terminology.html#dau).
-
-    For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
-"""
-owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
-deprecated = true
-
 [metrics.daily_active_users_v2]
 data_source = "firefox_desktop_active_users_aggregates_view"
 select_expression = "SUM(dau)"
@@ -1804,7 +1786,7 @@ description = "Firefox was launched afresh (i.e., was not already running) to ha
 
 [metrics.pdf_launched_or_invoked_to_handle]
 select_expression = """(
-    (COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE) OR 
+    (COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE) OR
     COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) > 0, FALSE))
 )"""
 data_source = "main"
@@ -1877,8 +1859,8 @@ data_source = "desktop_engagement_view"
 select_expression = "SUM(dau) / SUM(mau)"
 type = "scalar"
 description = """
-    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide 
-    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a
     28-day moving average of this number. More information is provided on the
     [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate).
 """
@@ -1904,7 +1886,7 @@ data_source = "desktop_retention_view"
 select_expression = "SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)"
 type = "scalar"
 description = """
-    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date. 
+    The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date.
     More information is provided on the
     [New Profiles, Retention and Engagement Rate Confluence Page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention).
 """
