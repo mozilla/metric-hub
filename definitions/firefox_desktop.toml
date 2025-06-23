@@ -395,6 +395,21 @@ description = """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
+[metrics.client_level_daily_active_users_v2_glean]
+friendly_name = "Firefox Desktop Client-Level DAU"
+data_source = "firefox_desktop_active_users_view"
+select_expression = """COUNTIF(is_dau)"""
+type = "scalar"
+description = """
+    Client-level DAU. The logic is
+    [detailed on the Confluence DAU page](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric)
+    and is automatically cross-checked, actively monitored, and change controlled.
+    This metric needs to be aggregated by `submission_date`. If it is not aggregated by `submission_date`, it is
+    similar to a "days of use" metric, and not DAU.
+"""
+owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
 [metrics.desktop_dau_kpi]
 data_source = "clients_daily"
 select_expression = """COUNTIF(
@@ -2280,6 +2295,21 @@ from_expression = """(
 )"""
 submission_date_column = "submission_date"
 client_id_column = "client_id"
+experiments_column_type = "none"
+deprecated = false
+
+[data_sources.firefox_desktop_baseline_active_users_view]
+friendly_name = "Firefox Desktop Baseline Active Users"
+description = "Client-level table that indicates whether a client meets 'active user' criteria on a given submission_date."
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_active_users`
+    WHERE is_desktop
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+glean_client_id_column = "client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "none"
 deprecated = false
 
