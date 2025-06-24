@@ -12,11 +12,11 @@ window_end = "analysis_window_end"
 [data_sources.address_autofill]
 from_expression = """(
   SELECT 
-    client_info.client_id as client_id,
+    legacy_telemetry_client_id as client_id,
     DATE(submission_timestamp) as submission_date,
     event_name
   FROM
-    `mozdata.firefox_desktop.events_unnested`
+    `mozdata.firefox_desktop.events_stream`
   WHERE
     event_category IN ('address')
     AND event_name IN ('detected_address_form', 'filled_address_form', 'submitted_address_form')

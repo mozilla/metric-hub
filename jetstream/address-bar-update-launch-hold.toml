@@ -1,20 +1,8 @@
 [experiment]
+end_date = "2025-06-18"
 segments = [
   "google_default_search",
-  "bing_default_search",
-  "ddg_default_search",
-  "baidu_default_search",
-  "qwant_default_search",
-  "ecosia_default_search",
-  "us",
-  "ca",
-  "fr",
-  "de",
-  "jp",
-  "gb",
-  "india",
-  "marketing_tier1_countries",
-  "row",
+  "marketing_tier1_countries"
 ]
 
 [metrics]
