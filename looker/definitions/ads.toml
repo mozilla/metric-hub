@@ -234,7 +234,7 @@ client_id_column = "NULL"
 
 #Temporary reporting requirement while HNT P2 metrics are finalized
 [data_sources.newtab_visit_duration]
-from_expression = "moz-fx-data-shared-prod.ads.newtab_visit_duration"
+from_expression = "mozdata.ads.newtab_visit_duration"
 submission_date_column = "week"
 client_id_column = "NULL"
 columns_as_dimensions = true
