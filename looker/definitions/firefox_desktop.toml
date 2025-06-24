@@ -379,7 +379,7 @@ description = "Count of clients with others engagement"
 [metrics.newtab_sponsored_pocket_stories_enabled.statistics.client_count]
 [metrics.sponsored_pocket_impressions.statistics.client_count]
 [metrics.sponsored_pocket_clicks.statistics.client_count]
-
+[metrics.sponsored_impressions.statistics.client_count]
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
 numerator='sponsored_tile_clicks'
