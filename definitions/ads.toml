@@ -85,6 +85,12 @@ type = "scalar"
 friendly_name = "Click Through Rate"
 description = "Ratio of ad clicks to ad impressions"
 
+[metrics.milli_impressions]
+select_expression = "SUM(impressions)/1000"
+data_source = "ad_metrics_daily"
+friendly_name = "Milli Impressions"
+description = "Impressions in thousands"
+
 [data_sources]
 
 [data_sources.admarketplace]

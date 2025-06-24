@@ -151,7 +151,7 @@ description ="Home Newtab (HNT) average visit duration in seconds"
 [metrics.revenue.statistics.sum]
 [metrics.ecpm.statistics.ratio]
 numerator = 'revenue'
-denominator = 'impressions/1000'
+denominator = 'milli_impressions'
 [metrics.click_through_rate.statistics.ratio]
 numerator = 'clicks'
 denominator = 'impressions'
