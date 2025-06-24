@@ -72,7 +72,7 @@ friendly_name = "Revenue"
 description = "Ad revenue"
 
 [metrics.ecpm]
-depends_on = ['revenue', 'impressions']
+depends_on = ['revenue', 'milli_impressions']
 data_source = "ad_metrics_daily"
 type = "scalar"
 friendly_name = "eCPM"
