@@ -139,6 +139,12 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
+### data_sources.newtab_visit_duration
+[metrics.avg_visit_duration]
+select_expression = "AVG(avg_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "HNT visit duration (seconds)"
+description ="Home Newtab (HNT) average visit duration in seconds"
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -226,3 +232,9 @@ columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
+#Temporary reporting requirement while HNT P2 metrics are finalized
+[data_sources.newtab_visit_duration]
+from_expression = "mozdata.ads.newtab_visit_duration"
+submission_date_column = "week"
+client_id_column = "NULL"
+columns_as_dimensions = true
