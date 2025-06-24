@@ -144,7 +144,7 @@ denominator = "ad_impressions.sum"
 select_expression = "AVG(avg_duration_seconds)"
 data_source = "newtab_visit_duration"
 friendly_name = "HNT visit duration (seconds)"
-description ="HNT visit duration in seconds"
+description ="Home Newtab (HNT) average visit duration in seconds"
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
