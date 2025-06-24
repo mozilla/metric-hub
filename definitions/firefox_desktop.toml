@@ -212,7 +212,7 @@ type = "scalar"
 
 [metrics.organic_search_count_glean]
 data_source = "serp_events"
-select_expression =  ‘COUNTIF(is_tagged = FALSE)’
+select_expression =  "COUNTIF(is_tagged = FALSE)"
 friendly_name = "Organic searches"
 description = """
     Counts organic searches, which are searches that are _not_ performed
