@@ -310,9 +310,19 @@ select_expression = "SUM(sponsored_topsite_click_count)"
 friendly_name = "Sum of Sponsored Topsite Clicks "
 description = "Sum of sponsored topsite clicks"
 
+[metrics.sponsored_impressions]
+data_source = "newtab_clients_daily"
+select_expression = "SUM(sponsored_pocket_impressions) + SUM(sponsored_topsite_tile_impressions)"
+friendly_name = "Sponsored Impressions"
+type = "scalar"
+description = """
+Total number of sponsored impressions across content and tiles on New Tab
+"""
+
 [metrics.any_topsite_impression_count.statistics.sum]
 [metrics.organic_topsite_impression_count.statistics.sum]
 [metrics.sponsored_topsite_impression_count.statistics.sum]
+[metrics.sponsored_impressions.statistics.sum]
 
 [metrics.any_topsite_click_count.statistics.sum]
 [metrics.organic_topsite_click_count.statistics.sum]
@@ -379,16 +389,22 @@ denominator='sponsored_tile_impressions'
 numerator='sponsored_pocket_clicks'
 denominator='sponsored_pocket_impressions'
 
-[metrics.sponsored_pocket_per_client.statistics.population_ratio]
+[metrics.client_count]
+data_source = "newtab_clients_daily"
+select_expression = "COUNT(DISTINCT client_id)"
+friendly_name = "Client Count"
+description = "Count of clients"
+
+[metrics.sponsored_pocket_impression_per_client.statistics.population_ratio]
 numerator='sponsored_pocket_impressions'
 denominator='client_count'
 
-[metrics.sponsored_topsite_tile_per_client.statistics.population_ratio]
+[metrics.sponsored_topsite_tile_impression_per_client.statistics.population_ratio]
 numerator='sponsored_topsite_tile_impressions'
 denominator='client_count'
 
-[metrics.ad_impression_per_client.statistics.population_ratio]
-numerator="sponsored_pocket_impressions + sponsored_topsite_tile_impressions"
+[metrics.sponsored_impression_per_client.statistics.population_ratio]
+numerator='sponsored_impressions'
 denominator='client_count'
 # Data sources
 
