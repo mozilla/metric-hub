@@ -2152,6 +2152,8 @@ friendly_name = "SERP Events"
 description = "SERP Events table with 1 row per SERP impression"
 submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
+glean_client_id_column = "client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
 [data_sources.metrics]
