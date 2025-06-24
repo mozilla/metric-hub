@@ -77,6 +77,32 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.search_count]
+data_source = "search_clients_engines_sources_daily"
+select_expression = '{{agg_sum("sap")}}'
+friendly_name = "SAP searches"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
+
+[metrics.search_count_glean]
+data_source = "serp_events"
+select_expression = 'COUNT(*)'
+friendly_name = "SAP searches in Glean"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
+
 [metrics.tagged_search_count]
 data_source = "search_clients_engines_sources_daily"
 select_expression = '{{agg_sum("tagged_sap")}}'
@@ -91,6 +117,19 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.tagged_search_count_glean]
+data_source = "serp_events"
+select_expression = 'COUNTIF(is_tagged)'
+friendly_name = "Tagged SAP searches in Glean"
+description = """
+    Counts the number of searches a user performed through Firefox's
+    Search Access Points that were submitted with a partner code
+    and were potentially revenue-generating.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
 
 [metrics.tagged_follow_on_search_count]
 data_source = "search_clients_engines_sources_daily"
@@ -106,6 +145,19 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.tagged_follow_on_search_count_glean]
+data_source = "serp_events"
+select_expression = 'COUNTIF((is_tagged = TRUE) AND (sap_source = 'follow_on_from_refine_on_incontent_search' OR sap_source = 'follow_on_from_refine_on_SERP'))'
+friendly_name = "Tagged follow-on searches in Glean"
+description = """
+    Counts the number of follow-on searches with a Mozilla partner tag.
+    These are additional searches that users performed from a search engine
+    results page after executing a tagged search through a SAP.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
 
 [metrics.ad_clicks]
 data_source = "search_clients_engines_sources_daily"
@@ -132,6 +184,19 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.searches_with_ads_glean]
+data_source = "serp_events"
+select_expression = 'COUNTIF(is_tagged = TRUE AND num_ads_visible > 0)'
+friendly_name = "Search result pages with ads in Glean"
+description = """
+    Counts search result pages served with advertising.
+    Users may not actually see these ads thanks to e.g. ad-blockers.
+    Learn more in the
+    [search analysis documentation](https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html).
+"""
+category = "search"
+type = "scalar"
+
 [metrics.organic_search_count]
 data_source = "search_clients_engines_sources_daily"
 select_expression = '{{agg_sum("organic")}}'
@@ -145,6 +210,18 @@ description = """
 category = "search"
 type = "scalar"
 
+[metrics.organic_search_count_glean]
+data_source = "serp_events"
+select_expression =  ‘COUNTIF(is_tagged IS FALSE)’
+friendly_name = "Organic searches"
+description = """
+    Counts organic searches, which are searches that are _not_ performed
+    through a Firefox SAP and which are not monetizable.
+    Learn more in the
+    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
+"""
+category = "search"
+type = "scalar"
 
 [metrics.search_with_ads_organic]
 data_source = "search_clients_engines_sources_daily"
@@ -1032,6 +1109,14 @@ data_source = "search_clients_engines_sources_daily"
 select_expression = "SUM(ad_click)"
 friendly_name = "Ad Clicks"
 description = "Total number of Ad Clicks"
+category = "search"
+type = "scalar"
+
+[metrics.ad_click_glean]
+data_source = "searp_events"
+select_expression = "SUM(num_ad_clicks)"
+friendly_name = "Num Ad Clicks"
+description = "Total number of Ad Clicks From Serp Events in Glean "
 category = "search"
 type = "scalar"
 
