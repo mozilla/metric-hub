@@ -77,19 +77,6 @@ description = """
 category = "search"
 type = "scalar"
 
-[metrics.search_count]
-data_source = "search_clients_engines_sources_daily"
-select_expression = '{{agg_sum("sap")}}'
-friendly_name = "SAP searches"
-description = """
-    Counts the number of searches a user performed through Firefox's
-    Search Access Points.
-    Learn more in the
-    [search data documentation](https://docs.telemetry.mozilla.org/datasets/search.html).
-"""
-category = "search"
-type = "scalar"
-
 [metrics.search_count_glean]
 data_source = "serp_events"
 select_expression = 'COUNT(*)'
