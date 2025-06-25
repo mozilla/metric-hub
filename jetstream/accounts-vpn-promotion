@@ -3,7 +3,7 @@
 [parameters.message_id]
 friendly_name = "Message ID associated with the experiment"
 description = "ID of the spotlight message associated with this experiment"
-# only used for validation; needs to be specified for each experiment
+# same value for all branches
 default = "SYNC_AND_VPN_SPOTLIGHT"
 distinct_by_branch = false
 
