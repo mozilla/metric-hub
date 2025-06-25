@@ -4,13 +4,8 @@
 friendly_name = "Message ID associated with the experiment"
 description = "ID of the spotlight message associated with this experiment"
 # only used for validation; needs to be specified for each experiment
-default = {
-  control = "SYNC_AND_VPN_SPOTLIGHT",
-  "treatment-a" = "SYNC_AND_VPN_SPOTLIGHT",
-  "treatment-b" = "SYNC_AND_VPN_SPOTLIGHT",
-  "treatment-c" = "SYNC_AND_VPN_SPOTLIGHT"
-}
-distinct_by_branch = true
+default = "SYNC_AND_VPN_SPOTLIGHT"
+distinct_by_branch = false
 
 
 [metrics]
