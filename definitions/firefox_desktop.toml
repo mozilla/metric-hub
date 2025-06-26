@@ -364,7 +364,7 @@ description = "The number of days in the interval that each client sent a main p
 data_source = "baseline_clients_daily"
 select_expression = "COUNT(submission_date)"
 friendly_name = "Days of use in Glean"
-description = "The number of days in the interval that each client sent a main ping."
+description = "The number of days in the interval that each client sent a baseline ping."
 
 [metrics.qualified_cumulative_days_of_use]
 data_source = "clients_daily"
@@ -381,12 +381,12 @@ description = """
 [metrics.qualified_cumulative_days_of_use_glean]
 data_source = "baseline_clients_daily"
 select_expression = """COUNTIF(
-    browser_engagement_active_ticks > 0 AND
+    COALESCE(browser_engagement_active_ticks, 0) > 0 AND
     COALESCE(browser_engagement_uri_count,0) > 0
 )"""
 friendly_name = "QCDOU in Glean"
 description = """
-    The number of days in the interval that each client sent a main ping,
+    The number of days in the interval that each client sent a baseline ping,
     given that the client had >0 active hours and >0 URIs loaded.
 """
 
@@ -1100,7 +1100,7 @@ category = "search"
 type = "scalar"
 
 [metrics.ad_click_glean]
-data_source = "searp_events"
+data_source = "serp_events"
 select_expression = "SUM(IF(is_tagged = TRUE, num_ad_clicks, 0))"
 friendly_name = "Num Ad Clicks in Glean"
 description = "Total number of Ad Clicks From Serp Events in Glean "
