@@ -144,7 +144,33 @@ denominator = "ad_impressions.sum"
 select_expression = "AVG(avg_duration_seconds)"
 data_source = "newtab_visit_duration"
 friendly_name = "HNT visit duration (seconds)"
-description ="HNT visit duration in seconds"
+description ="Home Newtab (HNT) average visit duration in seconds"
+
+### data_sources.ad_metrics_daily
+[metrics.ads_count]
+select_expression = "COUNT(DISTINCT ad_id)"
+data_source = "ad_metrics_daily"
+friendly_name = "Ads Count"
+description = "Number of unique ads served"
+
+[metrics.revenue_per_ad]
+depends_on = ['ads_count', 'revenue']
+data_source = "ad_metrics_daily"
+friendly_name =  "Revenue Per Ad"
+description = "Revenue Per Ad"
+
+[metrics.ad_metrics_ad_impressions.statistics.sum]
+[metrics.ad_metrics_ad_clicks.statistics.sum]
+[metrics.revenue.statistics.sum]
+[metrics.ecpm.statistics.ratio]
+numerator = 'revenue'
+denominator = 'milli_impressions'
+[metrics.click_through_rate.statistics.ratio]
+numerator = 'clicks'
+denominator = 'impressions'
+[metrics.revenue_per_ad.statistics.ratio]
+numerator = 'revenue'
+denominator = 'ads_count'
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -234,7 +260,7 @@ client_id_column = "NULL"
 
 #Temporary reporting requirement while HNT P2 metrics are finalized
 [data_sources.newtab_visit_duration]
-from_expression = "moz-fx-data-shared-prod.ads.newtab_visit_duration"
+from_expression = "mozdata.ads.newtab_visit_duration"
 submission_date_column = "week"
 client_id_column = "NULL"
 columns_as_dimensions = true
