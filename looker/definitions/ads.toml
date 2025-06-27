@@ -143,8 +143,20 @@ denominator = "ad_impressions.sum"
 [metrics.avg_visit_duration]
 select_expression = "AVG(avg_duration_seconds)"
 data_source = "newtab_visit_duration"
-friendly_name = "HNT visit duration (seconds)"
+friendly_name = "Avg HNT visit duration (seconds)"
 description ="Home Newtab (HNT) average visit duration in seconds"
+
+[metrics.p50_visit_duration]
+select_expression = "AVG(p50_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "Median HNT visit duration (seconds)"
+description ="Home Newtab (HNT) median / p50 visit duration in seconds"
+
+[metrics.p95_visit_duration]
+select_expression = "AVG(p95_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "P95 HNT visit duration (seconds)"
+description ="Home Newtab (HNT) p95 visit duration in seconds"
 
 ### data_sources.ad_metrics_daily
 [metrics.ads_count]
