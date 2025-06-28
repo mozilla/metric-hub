@@ -1,4 +1,3 @@
-# This is a sample Python script.
 [experiment]
 reference_branch = "control"
 
@@ -15,6 +14,64 @@ select_expression = 'SUM(0)'
 select_expression = 'SUM(0)'
 [metrics.new_tab_enabled_on_new_tabs]
 select_expression = 'SUM(0)'
+
+[metrics.organic_pocket_clicks]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_clicks]
+select_expression = 'SUM(0)'
+[metrics.newtab_searches]
+select_expression = 'SUM(0)'
+[metrics.newtab_pocket_enabled]
+select_expression = 'SUM(0)'
+[metrics.newtab_sponsored_pocket_stories_enabled]
+select_expression = 'SUM(0)'
+[metrics.any_organic_pocket_clicks]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_impressions]
+select_expression = 'SUM(0)'
+[metrics.organic_pocket_impressions]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_ctr]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tiles_disabled]
+select_expression = 'SUM(0)'
+[metrics.any_sponsored_tiles_dismissals]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tiles_dismissals]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tiles_dismissals_pos1_2]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tile_clicks]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tile_impressions]
+select_expression = 'SUM(0)'
+[metrics.newtab_any_searches]
+select_expression = 'SUM(0)'
+[metrics.newtab_gt4_searches]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tile_clicks]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tile_impressions]
+select_expression = 'SUM(0)'
+[metrics.newtab_organic_topsite_clicks]
+select_expression = 'SUM(0)'
+[metrics.newtab_organic_topsite_impressions]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_clicks]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_impressions]
+select_expression = 'SUM(0)'
+[metrics.organic_pocket_clicks]
+select_expression = 'SUM(0)'
+[metrics.organic_pocket_impressions]
+select_expression = 'SUM(0)'
+[metrics.sponsored_tile_ctr]
+select_expression = 'SUM(0)'
+[metrics.sponsored_pocket_ctr]
+select_expression = 'SUM(0)'
+
+
+data_source = "main"
 
 
 [data_sources.main]
