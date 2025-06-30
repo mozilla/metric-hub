@@ -23,8 +23,6 @@ select_expression = 'SUM(0)'
 select_expression = 'SUM(0)'
 [metrics.newtab_sponsored_pocket_stories_enabled]
 select_expression = 'SUM(0)'
-[metrics.any_organic_pocket_clicks]
-select_expression = 'SUM(0)'
 [metrics.organic_pocket_impressions]
 select_expression = 'SUM(0)'
 [metrics.sponsored_pocket_ctr]
@@ -52,10 +50,6 @@ select_expression = 'SUM(0)'
 [metrics.sponsored_pocket_clicks]
 select_expression = 'SUM(0)'
 [metrics.sponsored_pocket_impressions]
-select_expression = 'SUM(0)'
-[metrics.organic_pocket_clicks]
-select_expression = 'SUM(0)'
-[metrics.organic_pocket_impressions]
 select_expression = 'SUM(0)'
 [metrics.sponsored_tile_ctr]
 select_expression = 'SUM(0)'
