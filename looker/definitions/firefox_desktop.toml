@@ -381,13 +381,13 @@ description = "Count of clients with others engagement"
 [metrics.sponsored_pocket_clicks.statistics.client_count]
 [metrics.sponsored_impressions.statistics.client_count]
 
-[metrics.sponsored_tile_ctr.statistics.population_ratio]
-numerator='sponsored_tile_clicks'
-denominator='sponsored_tile_impressions'
+[metrics.sponsored_tile_ctr.statistics.ratio]
+numerator='sponsored_tile_clicks.sum'
+denominator='sponsored_tile_impressions.sum'
 
-[metrics.sponsored_pocket_ctr.statistics.population_ratio]
-numerator='sponsored_pocket_clicks'
-denominator='sponsored_pocket_impressions'
+[metrics.sponsored_pocket_ctr.statistics.ratio]
+numerator='sponsored_pocket_clicks.sum'
+denominator='sponsored_pocket_impressions.sum'
 
 [metrics.client_count]
 data_source = "newtab_clients_daily"
@@ -416,17 +416,17 @@ description = """
 Number of sponsored impressions (content and tiles on New Tab) divided by number of clients
 """
 
-[metrics.sponsored_pocket_impressions_per_client.statistics.population_ratio]
-numerator='sponsored_pocket_impressions'
-denominator='client_count'
+[metrics.sponsored_pocket_impressions_per_client.statistics.ratio]
+numerator='sponsored_pocket_impressions.sum'
+denominator='client_count.sum'
 
-[metrics.sponsored_topsite_tile_impressions_per_client.statistics.population_ratio]
-numerator='sponsored_topsite_tile_impressions'
-denominator='client_count'
+[metrics.sponsored_topsite_tile_impressions_per_client.statistics.ratio]
+numerator='sponsored_topsite_tile_impressions.sum'
+denominator='client_count.sum'
 
-[metrics.sponsored_impressions_per_client.statistics.population_ratio]
-numerator='sponsored_impressions'
-denominator='client_count'
+[metrics.sponsored_impressions_per_client.statistics.ratio]
+numerator='sponsored_impressions.sum'
+denominator='client_count.sum'
 # Data sources
 
 [data_sources.looker_base_fields]
