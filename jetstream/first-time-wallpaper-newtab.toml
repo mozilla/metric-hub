@@ -41,8 +41,6 @@ select_expression = 'SUM(0)'
 select_expression = 'SUM(0)'
 [metrics.sponsored_tiles_dismissals_pos1_2]
 select_expression = 'SUM(0)'
-[metrics.sponsored_tile_clicks]
-select_expression = 'SUM(0)'
 [metrics.sponsored_tile_impressions]
 select_expression = 'SUM(0)'
 [metrics.newtab_any_searches]
