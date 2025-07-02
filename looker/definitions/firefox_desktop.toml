@@ -389,12 +389,6 @@ denominator="sponsored_tile_impressions.sum"
 numerator="sponsored_pocket_clicks.sum"
 denominator="sponsored_pocket_impressions.sum"
 
-[metrics.client_count]
-data_source = "newtab_clients_daily"
-select_expression = "COUNT(DISTINCT client_id)"
-friendly_name = "Client Count"
-description = "Count of clients"
-
 [metrics.sponsored_pocket_impressions_per_client]
 depends_on=['sponsored_pocket_impressions', 'client_count']
 friendly_name = "Sponsored Pocket Impressions Per Client"
@@ -418,15 +412,15 @@ Number of sponsored impressions (content and tiles on New Tab) divided by number
 
 [metrics.sponsored_pocket_impressions_per_client.statistics.ratio]
 numerator="sponsored_pocket_impressions.sum"
-denominator="client_count.sum"
+denominator="sponsored_pocket_impressions.client_count"
 
 [metrics.sponsored_topsite_tile_impressions_per_client.statistics.ratio]
 numerator="sponsored_topsite_tile_impressions.sum"
-denominator="client_count.sum"
+denominator="csponsored_topsite_tile_impressions.client_count"
 
 [metrics.sponsored_impressions_per_client.statistics.ratio]
 numerator="sponsored_impressions.sum"
-denominator="client_count.sum"
+denominator="sponsored_impressions.client_count"
 # Data sources
 
 [data_sources.looker_base_fields]
