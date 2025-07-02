@@ -411,16 +411,16 @@ Number of sponsored impressions (content and tiles on New Tab) divided by number
 """
 
 [metrics.sponsored_pocket_impressions_per_client.statistics.ratio]
-numerator="sponsored_pocket_impressions.sum"
-denominator="sponsored_pocket_impressions.client_count"
+numerator = "sponsored_pocket_impressions.sum"
+denominator = "sponsored_pocket_impressions.client_count"
 
 [metrics.sponsored_topsite_tile_impressions_per_client.statistics.ratio]
-numerator="sponsored_topsite_tile_impressions.sum"
-denominator="csponsored_topsite_tile_impressions.client_count"
+numerator = "sponsored_topsite_tile_impressions.sum"
+denominator = "csponsored_topsite_tile_impressions.client_count"
 
 [metrics.sponsored_impressions_per_client.statistics.ratio]
-numerator="sponsored_impressions.sum"
-denominator="sponsored_impressions.client_count"
+numerator = "sponsored_impressions.sum"
+denominator = "sponsored_impressions.client_count"
 # Data sources
 
 [data_sources.looker_base_fields]
