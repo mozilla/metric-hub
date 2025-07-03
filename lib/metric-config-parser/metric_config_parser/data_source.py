@@ -153,25 +153,6 @@ class DataSource:
                 ) from e
         return self.from_expression.format(dataset=effective_dataset)
 
-    def __hash__(self):
-        return hash((
-            self.name,
-            self.from_expression,
-            self.experiments_column_type,
-            self.client_id_column,
-            self.submission_date_column,
-            self.default_dataset,
-            self.build_id_column,
-            self.friendly_name,
-            self.description,
-            tuple(self.joins) if self.joins is not None else None,
-            self.columns_as_dimensions,
-            tuple(self.analysis_units) if self.analysis_units is not None else None,
-            self.group_id_column,
-            self.glean_client_id_column,
-            self.legacy_client_id_column,
-        ))
-
 
 @attr.s(auto_attribs=True)
 class DataSourceReference:
