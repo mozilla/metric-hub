@@ -62,7 +62,7 @@ analysis_bases = ["exposures"]
 
 [data_sources.chatbot]
 from_expression = """(
-  SELECT DISTINCT
+  SELECT
     legacy_telemetry_client_id as client_id,
     CAST(submission_timestamp as DATE) as submission_date,
     event_name
