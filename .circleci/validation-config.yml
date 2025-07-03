@@ -101,6 +101,7 @@ jobs:
         name: Build
         command: |
           pip install -r .script/requirements.txt
+          pip install lib/metric-config-parser
     - *authenticate
     - run:
         name: Validate config files

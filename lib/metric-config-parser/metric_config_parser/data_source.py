@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .experiment import ExperimentConfiguration
     from .definition import DefinitionSpecSub
     from .project import ProjectConfiguration
+    from .config import DefinitionConfig
 
 from . import AnalysisUnit
 from .util import converter, is_valid_slug
@@ -161,25 +162,17 @@ class DataSourceReference:
     def resolve(
         self,
         spec: "DefinitionSpecSub",
-        conf: Union["ExperimentConfiguration", "ProjectConfiguration"],
+        conf: Union["ExperimentConfiguration", "ProjectConfiguration", "DefinitionConfig"],
         configs: "ConfigCollection",
     ) -> DataSource:
         if self.name in spec.data_sources.definitions:
             return spec.data_sources.definitions[self.name].resolve(spec, conf, configs)
 
-        app_name = ""
-        if getattr(conf, "app_name", None):
-            if TYPE_CHECKING:
-                assert isinstance(conf, ProjectConfiguration)
-            app_name = conf.app_name
-        elif getattr(conf, "experiment", None):
-            if TYPE_CHECKING:
-                assert isinstance(conf, ExperimentConfiguration)
-            app_name = conf.experiment.app_name
-
-        data_source_definition = configs.get_data_source_definition(self.name, app_name)
+        data_source_definition = configs.get_data_source_definition(self.name, conf.app_name)
         if data_source_definition is None:
-            raise DefinitionNotFound(f"No default definition for data source '{self.name}' found")
+            raise DefinitionNotFound(
+                f"No default definition for data source '{self.name}' [{conf.app_name}] found"
+            )
         return data_source_definition.resolve(spec, conf, configs)
 
 

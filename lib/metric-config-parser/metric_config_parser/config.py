@@ -184,6 +184,10 @@ class DefinitionConfig(Config):
 
     platform: str = "firefox_desktop"
 
+    @property
+    def app_name(self) -> str:
+        return self.platform
+
     def validate(self, configs: "ConfigCollection", _experiment: Experiment = None) -> None:
         dummy_experiment = Experiment(
             experimenter_slug="dummy-experiment",
