@@ -45,6 +45,7 @@ jobs:
         name: Build
         command: |
           pip install -r .script/requirements.txt
+          pip install lib/metric-config-parser
     - &authenticate
       run:
         name: Authenticate to GCP
@@ -169,6 +170,7 @@ jobs:
             python3.10 -m venv venv/
             venv/bin/python -m pip install --upgrade pip
             venv/bin/pip install -r .script/requirements.txt
+            venv/bin/pip install lib/metric-config-parser
             venv/bin/python3 .script/generate_docs.py \
               --output_dir=generated_docs/
             cd generated_docs/
