@@ -1099,15 +1099,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#protections_popup_events-protections-popup-events" class="md-nav__link">
-    protections_popup_events- Protections popup events
+  <a href="#main-main" class="md-nav__link">
+    main- Main
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#main-main" class="md-nav__link">
-    main- Main
+  <a href="#protections_popup_events-protections-popup-events" class="md-nav__link">
+    protections_popup_events- Protections popup events
   </a>
   
 </li>
@@ -2298,15 +2298,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#protections_popup_events-protections-popup-events" class="md-nav__link">
-    protections_popup_events- Protections popup events
+  <a href="#main-main" class="md-nav__link">
+    main- Main
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#main-main" class="md-nav__link">
-    main- Main
+  <a href="#protections_popup_events-protections-popup-events" class="md-nav__link">
+    protections_popup_events- Protections popup events
   </a>
   
 </li>
@@ -2342,12 +2342,12 @@ and webcompat reporting panel uses.</p>
 <p>**Webcompat Reporting Panel Uses **</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
 <p>Data Source: <a href="#site_breakage_events"><code>site_breakage_events</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
+<p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(event_name = 'send' OR event_name = 'send_more_info'), 0)
+<pre><code class="language-sql">CAST(COALESCE(LOGICAL_OR(event_name = 'send' OR event_name = 'send_more_info'), FALSE) AS INT64)
 </code></pre>
 
 </details>
@@ -2357,12 +2357,12 @@ and webcompat reporting panel uses.</p>
 <p>**Webcompat Reporting Panel Impressions **</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
 <p>Data Source: <a href="#site_breakage_events"><code>site_breakage_events</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
+<p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(event_name = 'opened'), 0)
+<pre><code class="language-sql">CAST(COALESCE(LOGICAL_OR(event_name = 'opened'), FALSE) AS INT64)
 </code></pre>
 
 </details>
@@ -2373,7 +2373,7 @@ and webcompat reporting panel uses.</p>
 <p>The count of tab reload events by the user after unloaded.</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
 <p>Data Source: <a href="#main"><code>main</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2388,12 +2388,12 @@ and webcompat reporting panel uses.</p>
 <p>**ETP Disablement **</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
 <p>Data Source: <a href="#protections_popup_events"><code>protections_popup_events</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code></p>
+<p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(event_name  = 'click_etp_toggle_off'), 0)
+<pre><code class="language-sql">CAST(COALESCE(LOGICAL_OR(event_name  = 'click_etp_toggle_off'), FALSE) AS INT64)
 </code></pre>
 
 </details>
@@ -2412,8 +2412,8 @@ and webcompat reporting panel uses.</p>
 </details>
 
 <hr />
-<h3 id="protections_popup_events-protections-popup-events"><a href="#protections_popup_events"><code>protections_popup_events</code>- Protections popup events</a></h3>
-<p>Sheild icon 'Protections Popup' pings</p>
+<h3 id="main-main"><a href="#main"><code>main</code>- Main</a></h3>
+<p>Main ping table</p>
 <details>
 <summary>Definition:</summary>
 
@@ -2424,8 +2424,8 @@ and webcompat reporting panel uses.</p>
 </details>
 
 <hr />
-<h3 id="main-main"><a href="#main"><code>main</code>- Main</a></h3>
-<p>Main ping table</p>
+<h3 id="protections_popup_events-protections-popup-events"><a href="#protections_popup_events"><code>protections_popup_events</code>- Protections popup events</a></h3>
+<p>Sheild icon 'Protections Popup' pings</p>
 <details>
 <summary>Definition:</summary>
 

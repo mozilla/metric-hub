@@ -1699,8 +1699,29 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#glean_sap_events_stream" class="md-nav__link">
+    glean_sap_events_stream
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#baseline_clients_daily" class="md-nav__link">
+    baseline_clients_daily
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#firefox_desktop_active_users_view" class="md-nav__link">
     firefox_desktop_active_users_view
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox_desktop_baseline_active_users_view" class="md-nav__link">
+    firefox_desktop_baseline_active_users_view
   </a>
   
 </li>
@@ -2627,8 +2648,29 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#glean_sap_events_stream" class="md-nav__link">
+    glean_sap_events_stream
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#baseline_clients_daily" class="md-nav__link">
+    baseline_clients_daily
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#firefox_desktop_active_users_view" class="md-nav__link">
     firefox_desktop_active_users_view
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firefox_desktop_baseline_active_users_view" class="md-nav__link">
+    firefox_desktop_baseline_active_users_view
   </a>
   
 </li>
@@ -3155,6 +3197,44 @@
 </details>
 
 <hr />
+<h3 id="glean_sap_events_stream"><a href="#glean_sap_events_stream">glean_sap_events_stream</a></h3>
+<p>Client ID column: <code>legacy_telemetry_client_id</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT
+  *,  DATE(submission_timestamp) AS submission_date
+FROM
+  `mozdata.firefox_desktop.events_stream`
+WHERE
+  event_category = 'sap'
+  AND event_name = 'counts'
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="baseline_clients_daily"><a href="#baseline_clients_daily">baseline_clients_daily</a></h3>
+<p>Client ID column: <code>client_id</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT
+        p.*,
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline_clients_daily` p
+)
+</code></pre>
+
+</details>
+
+<hr />
 <h3 id="firefox_desktop_active_users_view"><a href="#firefox_desktop_active_users_view">firefox_desktop_active_users_view</a></h3>
 <p>Client ID column: <code>client_id</code></p>
 <p>Submission Date column: <code>submission_date</code></p>
@@ -3172,6 +3252,23 @@
 </details>
 
 <hr />
+<h3 id="firefox_desktop_baseline_active_users_view"><a href="#firefox_desktop_baseline_active_users_view">firefox_desktop_baseline_active_users_view</a></h3>
+<p>Client ID column: <code>client_id</code></p>
+<p>Submission Date column: <code>submission_date</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_active_users`
+    WHERE is_desktop
+)
+</code></pre>
+
+</details>
+
+<hr />
 <h3 id="site_breakage_events"><a href="#site_breakage_events">site_breakage_events</a></h3>
 <p>Client ID column: <code>None</code></p>
 <p>Submission Date column: <code>None</code></p>
@@ -3181,14 +3278,15 @@
 
 <pre><code class="language-sql">(
     SELECT
-        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        legacy_telemetry_client_id as client_id,
+        profile_group_id,
         DATE(submission_timestamp) AS submission_date,
-        ping_info.experiments AS experiments,
-        event.name AS event_name,
-    FROM `mozdata.firefox_desktop.events`
-    CROSS JOIN UNNEST(events) AS event
+        experiments,
+        event_name,
+        event_extra,
+    FROM `mozdata.firefox_desktop.events_stream`
     WHERE
-        event.category = 'webcompatreporting'
+        event_category = 'webcompatreporting'
 )
 </code></pre>
 
@@ -3204,14 +3302,15 @@
 
 <pre><code class="language-sql">(
     SELECT
-        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        legacy_telemetry_client_id as client_id,
+        profile_group_id,
         DATE(submission_timestamp) AS submission_date,
-        ping_info.experiments AS experiments,
-        event.name AS event_name,
-    FROM `mozdata.firefox_desktop.events`
-    CROSS JOIN UNNEST(events) AS event
+        experiments,
+        event_name,
+        event_extra,
+    FROM `mozdata.firefox_desktop.events_stream`
     WHERE
-        event.category = 'security.ui.protectionspopup'
+        event_category = 'security.ui.protectionspopup'
 )
 </code></pre>
 

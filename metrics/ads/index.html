@@ -1295,6 +1295,41 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_impressions" class="md-nav__link">
+    ad_metrics_ad_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_clicks" class="md-nav__link">
+    ad_metrics_ad_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_reports" class="md-nav__link">
+    ad_metrics_ad_reports
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revenue" class="md-nav__link">
+    revenue
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#milli_impressions" class="md-nav__link">
+    milli_impressions
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2297,6 +2332,41 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_impressions" class="md-nav__link">
+    ad_metrics_ad_impressions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_clicks" class="md-nav__link">
+    ad_metrics_ad_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_metrics_ad_reports" class="md-nav__link">
+    ad_metrics_ad_reports
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revenue" class="md-nav__link">
+    revenue
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#milli_impressions" class="md-nav__link">
+    milli_impressions
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2427,6 +2497,76 @@
 
 
 <pre><code class="language-sql">SUM(alternative_revenue)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="ad_metrics_ad_impressions">ad_metrics_ad_impressions</h3>
+<p><strong>Ad Impressions</strong></p>
+<p>Ad impressions</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/ads/#ad_metrics_daily"><code>ad_metrics_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">SUM(impressions)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="ad_metrics_ad_clicks">ad_metrics_ad_clicks</h3>
+<p><strong>Ad Clicks</strong></p>
+<p>Ad clicks</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/ads/#ad_metrics_daily"><code>ad_metrics_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">SUM(clicks)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="ad_metrics_ad_reports">ad_metrics_ad_reports</h3>
+<p><strong>Ads Reported</strong></p>
+<p>Number of time ad was reported</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/ads/#ad_metrics_daily"><code>ad_metrics_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">SUM(reports)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="revenue">revenue</h3>
+<p><strong>Revenue</strong></p>
+<p>Ad revenue</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/ads/#ad_metrics_daily"><code>ad_metrics_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">SUM(revenue)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="milli_impressions">milli_impressions</h3>
+<p><strong>Milli Impressions</strong></p>
+<p>Impressions in thousands</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/ads/#ad_metrics_daily"><code>ad_metrics_daily</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">SUM(impressions)/1000
 </code></pre>
 
 </details>

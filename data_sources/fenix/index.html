@@ -1503,6 +1503,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#events_stream_awesomebar" class="md-nav__link">
+    events_stream_awesomebar
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metrics" class="md-nav__link">
     metrics
   </a>
@@ -2305,6 +2312,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#events_stream_awesomebar" class="md-nav__link">
+    events_stream_awesomebar
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metrics" class="md-nav__link">
     metrics
   </a>
@@ -2459,6 +2473,26 @@
         `moz-fx-data-shared-prod.{dataset}.events` p
     CROSS JOIN
         UNNEST(p.events) AS event
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="events_stream_awesomebar"><a href="#events_stream_awesomebar">events_stream_awesomebar</a></h3>
+<p>Client ID column: <code>None</code></p>
+<p>Submission Date column: <code>None</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM
+        `moz-fx-data-shared-prod.{dataset}.events_stream` p
+    WHERE event_category IN ('urlbar', 'awesomebar')
 )
 </code></pre>
 
