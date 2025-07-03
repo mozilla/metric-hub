@@ -166,24 +166,38 @@ friendly_name = "Ads Count"
 description = "Number of unique ads served"
 
 [metrics.revenue_per_ad]
-depends_on = ['ads_count', 'revenue']
+select_expression = "SUM(1)"
 data_source = "ad_metrics_daily"
 friendly_name =  "Revenue Per Ad"
 description = "Revenue Per Ad"
+
+[metrics.ecpm]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "eCPM"
+description = "effective CPM, calculated as average revenue per thousand impressions"
+
+[metrics.click_through_rate]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Click Through Rate"
+description = "Ratio of ad clicks to ad impressions"
 
 [metrics.ad_metrics_ad_impressions.statistics.sum]
 [metrics.ad_metrics_ad_clicks.statistics.sum]
 [metrics.revenue.statistics.sum]
 [metrics.milli_impressions.statistics.sum]
 [metrics.ecpm.statistics.ratio]
-numerator = 'revenue.sum'
-denominator = 'milli_impressions.sum'
+numerator = "revenue.sum"
+denominator = "milli_impressions.sum"
 [metrics.click_through_rate.statistics.ratio]
-numerator = 'clicks.sum'
-denominator = 'impressions.sum'
+numerator = "clicks.sum"
+denominator = "impressions.sum"
 [metrics.revenue_per_ad.statistics.ratio]
-numerator = 'revenue.sum'
-denominator = 'ads_count.sum'
+numerator = "revenue.sum"
+denominator = "ads_count.sum"
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
