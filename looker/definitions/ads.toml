@@ -175,7 +175,7 @@ description = "Revenue Per Ad"
 [metrics.ad_metrics_ad_clicks.statistics.sum]
 [metrics.revenue.statistics.sum]
 [metrics.milli_impressions.statistics.sum]
-[metrics.ecpm.statistics.ratio]
+[metrics.revenue.statistics.ratio]
 numerator = 'revenue.sum'
 denominator = 'milli_impressions.sum'
 [metrics.click_through_rate.statistics.ratio]
@@ -277,7 +277,3 @@ from_expression = "mozdata.ads.newtab_visit_duration"
 submission_date_column = "week"
 client_id_column = "NULL"
 columns_as_dimensions = true
-
-
-
-[metrics.ad_metrics_ad_reports.statistics.sum]
