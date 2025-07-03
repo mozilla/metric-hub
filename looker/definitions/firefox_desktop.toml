@@ -392,7 +392,7 @@ denominator = "sponsored_pocket_impressions.sum"
 
 [metrics.sponsored_pocket_impressions_per_client]
 data_source = "newtab_clients_daily"
-select_expression = SUM(1)
+select_expression = "SUM(1)"
 friendly_name = "Sponsored Pocket Impressions Per Client"
 description = """
 Number of sponsored content impressions divided by number of clients
@@ -400,7 +400,7 @@ Number of sponsored content impressions divided by number of clients
 
 [metrics.sponsored_topsite_tile_impressions_per_client]
 data_source = "newtab_clients_daily"
-select_expression = SUM(1)
+select_expression = "SUM(1)"
 friendly_name = "Sponsored Topsite Tile Impressions Per Client"
 description = """
 Number of sponsored topsite tile impressions divided by number of clients
@@ -408,7 +408,7 @@ Number of sponsored topsite tile impressions divided by number of clients
 
 [metrics.sponsored_impressions_per_client]
 data_source = "newtab_clients_daily"
-select_expression = SUM(1)
+select_expression = "SUM(1)"
 friendly_name = "Sponsored Impressions Per Client"
 description = """
 Number of sponsored impressions (content and tiles on New Tab) divided by number of clients
