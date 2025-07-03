@@ -190,3 +190,12 @@ data_source = "admarketplace"
 select_expression = "position"
 friendly_name = "Ad Position"
 description = "Position in which the content was shown."
+
+
+
+[metrics.ad_metrics_ad_reports]
+select_expression = "SUM(reports)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Ads Reported"
+description = "Number of time ad was reported"

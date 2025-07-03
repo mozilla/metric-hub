@@ -277,3 +277,7 @@ from_expression = "mozdata.ads.newtab_visit_duration"
 submission_date_column = "week"
 client_id_column = "NULL"
 columns_as_dimensions = true
+
+
+
+[metrics.ad_metrics_ad_reports.statistics.sum]
