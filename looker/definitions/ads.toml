@@ -175,7 +175,7 @@ description = "Revenue Per Ad"
 [metrics.ad_metrics_ad_clicks.statistics.sum]
 [metrics.revenue.statistics.sum]
 [metrics.milli_impressions.statistics.sum]
-[metrics.revenue.statistics.ratio]
+[metrics.ecpm.statistics.ratio]
 numerator = 'revenue.sum'
 denominator = 'milli_impressions.sum'
 [metrics.click_through_rate.statistics.ratio]
