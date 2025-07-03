@@ -382,18 +382,13 @@ description = "Count of clients with others engagement"
 [metrics.sponsored_impressions.statistics.client_count]
 
 [metrics.sponsored_tile_clicks.statistics.ratio]
-numerator = "sponsored_tile_clicks.sum'
-denominator = "sponsored_tile_impressions.sum'
+numerator = "sponsored_tile_clicks.sum"
+denominator = "sponsored_tile_impressions.sum"
 
 [metrics.sponsored_pocket_clicks.statistics.ratio]
-numerator = "sponsored_pocket_clicks.sum'
-denominator = "sponsored_pocket_impressions.sum'
+numerator = "sponsored_pocket_clicks.sum"
+denominator = "sponsored_pocket_impressions.sum"
 
-[metrics.client_count]
-data_source = "newtab_clients_daily"
-select_expression = "COUNT(DISTINCT client_id)"
-friendly_name = "Client Count"
-description = "Count of clients"
 
 [metrics.sponsored_pocket_impressions_per_client]
 data_source = "newtab_clients_daily"
