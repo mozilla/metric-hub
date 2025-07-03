@@ -1,0 +1,46 @@
+name: "Validate jetstream"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        jetstream/**.toml
+        jetstream/**.toml.example
+
+  validate-jetstream:
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/moz-fx-data-experiments/jetstream:latest
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Set safe directory
+      # workaround because actions/checkout's `set-safe-directory` flag doesn't work in containers
+      # this and `ref` above are needed because jetstream performs git operations
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    - name: Validate jetstream config files
+      run: |
+        echo "Run validation on changed files: "
+        echo ${{ needs.changed.outputs.all_changed_files }}
+        echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}"
+        jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
+
+
+
