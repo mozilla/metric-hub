@@ -204,7 +204,7 @@ class DataSourceDefinition:
     def resolve(
         self,
         spec: "DefinitionSpecSub",
-        conf: Union["ExperimentConfiguration", "ProjectConfiguration"],
+        conf: Union["ExperimentConfiguration", "ProjectConfiguration", "DefinitionConfig"],
         configs: "ConfigCollection",
     ) -> DataSource:
         if not is_valid_slug(self.name):
