@@ -190,12 +190,13 @@ description = "Ratio of ad clicks to ad impressions"
 [metrics.ad_metrics_ad_reports.statistics.sum]
 [metrics.revenue.statistics.sum]
 [metrics.milli_impressions.statistics.sum]
+[metrics.ads_count.statistics.sum]
 [metrics.ecpm.statistics.ratio]
 numerator = "revenue.sum"
 denominator = "milli_impressions.sum"
 [metrics.click_through_rate.statistics.ratio]
-numerator = "clicks.sum"
-denominator = "impressions.sum"
+numerator = "ad_metrics_ad_clicks.sum"
+denominator = "ad_metrics_ad_impressions.sum"
 [metrics.revenue_per_ad.statistics.ratio]
 numerator = "revenue.sum"
 denominator = "ads_count.sum"

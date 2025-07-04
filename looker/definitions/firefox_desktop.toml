@@ -372,6 +372,11 @@ description = "Count of clients with others engagement"
 
 
 ### Ads data funnel statistics
+[metrics.sponsored_pocket_clicks.statistics.sum]
+[metrics.sponsored_pocket_impressions.statistics.sum]
+[metrics.sponsored_tile_clicks.statistics.sum]
+[metrics.sponsored_tile_impressions.statistics.sum]
+
 [metrics.newtab_sponsored_tiles_enabled.statistics.client_count]
 [metrics.sponsored_tile_impressions.statistics.client_count]
 [metrics.sponsored_tile_clicks.statistics.client_count]
@@ -398,7 +403,7 @@ description = """
 Number of sponsored content impressions divided by number of clients
 """
 
-[metrics.sponsored_topsite_tile_impressions_per_client]
+[metrics.sponsored_tile_impressions_per_client]
 data_source = "newtab_clients_daily"
 select_expression = "SUM(1)"
 friendly_name = "Sponsored Topsite Tile Impressions Per Client"
@@ -418,8 +423,8 @@ Number of sponsored impressions (content and tiles on New Tab) divided by number
 numerator = "sponsored_pocket_impressions.sum"
 denominator = "sponsored_impressions.client_count"
 
-[metrics.sponsored_topsite_tile_impressions_per_client.statistics.ratio]
-numerator = "sponsored_topsite_tile_impressions.sum"
+[metrics.sponsored_tile_impressions_per_client.statistics.ratio]
+numerator = "sponsored_tile_impressions.sum"
 denominator = "sponsored_impressions.client_count"
 
 [metrics.sponsored_impressions_per_client.statistics.ratio]
