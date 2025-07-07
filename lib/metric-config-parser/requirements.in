@@ -139,7 +139,7 @@ types-six==1.17.0.20250403
     # via mozilla-metric-config-parser
 types-toml==0.10.8.20240310
     # via mozilla-metric-config-parser
-typing-extensions==4.13.2
+typing-extensions==4.14.1
     # via
     #   black
     #   cattrs
