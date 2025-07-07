@@ -2584,6 +2584,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pdf_stamp" class="md-nav__link">
+    pdf_stamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_signature" class="md-nav__link">
+    pdf_signature
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pdf_print" class="md-nav__link">
     pdf_print
   </a>
@@ -4995,6 +5009,20 @@
           <li class="md-nav__item">
   <a href="#pdf_ink" class="md-nav__link">
     pdf_ink
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_stamp" class="md-nav__link">
+    pdf_stamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_signature" class="md-nav__link">
+    pdf_signature
   </a>
   
 </li>
@@ -8044,6 +8072,34 @@ a wallpaper.</p>
 
 <pre><code class="language-sql">(
     COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, &quot;ink&quot;)) &gt; 0, FALSE)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="pdf_stamp">pdf_stamp</h3>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, &quot;stamp&quot;)) &gt; 0, FALSE)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="pdf_signature">pdf_signature</h3>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, &quot;signature&quot;)) &gt; 0, FALSE)
 )
 </code></pre>
 

@@ -883,6 +883,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pdf_stamp" class="md-nav__link">
+    pdf_stamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_signature" class="md-nav__link">
+    pdf_signature
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pdf_free_highlight" class="md-nav__link">
     pdf_free_highlight
   </a>
@@ -2264,6 +2278,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pdf_stamp" class="md-nav__link">
+    pdf_stamp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_signature" class="md-nav__link">
+    pdf_signature
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pdf_free_highlight" class="md-nav__link">
     pdf_free_highlight
   </a>
@@ -2363,6 +2391,40 @@
 <p>Usage and engagement metrics for PDFs</p>
 <p><a href="https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/pdf.toml">Source</a>  |  <a href="https://github.com/mozilla/metric-hub/edit/main/jetstream/outcomes/firefox_desktop/pdf.toml">Edit</a></p>
 <h2 id="metrics">Metrics</h2>
+<h3 id="pdf_stamp"><code>pdf_stamp</code></h3>
+<hr />
+<p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
+<p>Statistics: <code>binomial</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, &quot;stamp&quot;)) &gt; 0, FALSE)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="pdf_signature"><code>pdf_signature</code></h3>
+<hr />
+<p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
+<p>Statistics: <code>binomial</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_editing, &quot;signature&quot;)) &gt; 0, FALSE)
+)
+</code></pre>
+
+</details>
+
+<hr />
 <h3 id="pdf_free_highlight"><code>pdf_free_highlight</code></h3>
 <hr />
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
