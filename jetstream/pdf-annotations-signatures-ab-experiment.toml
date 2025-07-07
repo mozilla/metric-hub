@@ -44,6 +44,6 @@ overall = [
 
 [segments.opened_pdf]
 select_expression = """(
-    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
+    LOGICAL_OR(COALESCE(metrics.counter.pdfjs_used > 0, FALSE))
 )"""
 data_source = "metrics"
