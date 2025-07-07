@@ -1,0 +1,23 @@
+[metrics]
+
+weekly = [
+    "pdf_signature",
+    "pdf_stamp"
+]
+
+overall = [
+    "pdf_signature",
+    "pdf_stamp"
+]
+
+
+[metrics.pdf_signature.statistics.binomial]
+[metrics.pdf_stamp.statistics.binomial]
+
+[segments]
+
+[segments.opened_pdf]
+select_expression = """(
+    COALESCE(LOGICAL_OR(COALESCE(metrics.counter.pdfjs_used > 0, FALSE)), FALSE)
+)"""
+data_source = "metrics"
