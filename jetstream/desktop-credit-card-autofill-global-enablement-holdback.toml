@@ -1,4 +1,39 @@
 [experiment]
+enrollment_query = """
+WITH enrollments_raw AS (
+  SELECT
+      e.client_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch')
+          AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+  FROM
+      `moz-fx-data-shared-prod.telemetry.events` e
+  WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date
+          BETWEEN '2025-01-21' AND '2025-03-15'
+      AND e.event_string_value = 'desktop-credit-card-autofill-global-enablement-holdback'
+      AND e.sample_id < 10
+  GROUP BY e.client_id, branch
+), non_dupes AS (
+  SELECT 
+      client_id, COUNT(*) AS n_rows
+  FROM enrollments_raw
+  GROUP BY 1
+  HAVING n_rows = 1
+), cleaned AS (
+  SELECT er.*
+  FROM enrollments_raw er
+  INNER JOIN non_dupes
+  USING(client_id)            
+  WHERE num_enrollment_events = 1  
+)
+SELECT *
+FROM cleaned
+"""
+
 
 [experiment.exposure_signal]
 name = "credit_card_form_detect"
