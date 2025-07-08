@@ -125,7 +125,7 @@ tomli==2.2.1
     #   pytest
 types-futures==3.3.8
     # via mozilla-metric-config-parser
-types-protobuf==6.30.2.20250516
+types-protobuf==6.30.2.20250703
     # via mozilla-metric-config-parser
 types-pytz==2025.2.0.20250326
     # via mozilla-metric-config-parser
