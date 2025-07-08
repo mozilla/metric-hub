@@ -2,7 +2,7 @@
 enrollment_query = """
 WITH enrollments_raw AS (
   SELECT
-      e.client_id,
+      e.client_id AS analysis_id,
       `mozfun.map.get_key`(e.event_map_values, 'branch')
           AS branch,
       MIN(e.submission_date) AS enrollment_date,
@@ -19,7 +19,7 @@ WITH enrollments_raw AS (
   GROUP BY e.client_id, branch
 ), non_dupes AS (
   SELECT 
-      client_id, COUNT(*) AS n_rows
+      analysis_id, COUNT(*) AS n_rows
   FROM enrollments_raw
   GROUP BY 1
   HAVING n_rows = 1
@@ -27,7 +27,7 @@ WITH enrollments_raw AS (
   SELECT er.*
   FROM enrollments_raw er
   INNER JOIN non_dupes
-  USING(client_id)            
+  USING(analysis_id)            
   WHERE num_enrollment_events = 1  
 )
 SELECT *
