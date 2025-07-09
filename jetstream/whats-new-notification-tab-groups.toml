@@ -112,13 +112,13 @@ segments = ["new_or_resurrected_v3", "regular_users_v3"]
 
 [metrics]
 # Metrics to compute for each weekly analysis window.
-weekly = ["used_vertical_tab"]
+weekly = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
 
 # Metrics to compute for each 28 days long analysis window
-28_day = ["used_vertical_tab"]
+28_day = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
 
 # Metrics to compute only for the overall analysis window.
-overall = ["used_vertical_tab"]
+overall = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
 
 [metrics.tabgroup_quantity]
 friendly_name = "Number of Tab Groups"
