@@ -150,5 +150,6 @@ select_expression = """(
 data_source = "metrics"
 analysis_bases = ["exposures"]
 
-
-
+[metrics.tabgroup_quantity.statistics.bootstrap_mean]
+[metrics.saved_tabgroup_quantity.statistics.bootstrap_mean]
+[metrics.active_tabgroup_quantity.statistics.bootstrap_mean]
