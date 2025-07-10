@@ -1,3 +1,6 @@
+[experiment]
+enrollment_period = 7
+
 [parameters]
 
 [parameters.message_id]
