@@ -13,7 +13,7 @@ WITH enrollments_raw AS (
       e.event_category = 'normandy'
       AND e.event_method = 'enroll'
       AND e.submission_date
-          BETWEEN '2025-01-21' AND '2025-03-15'
+          BETWEEN '2025-01-21' AND '2025-02-13'
       AND e.event_string_value = 'desktop-credit-card-autofill-global-enablement-holdback'
       AND e.sample_id < 10
   GROUP BY e.client_id, branch
@@ -42,7 +42,7 @@ description = "Clients who have credit card form detected"
 data_source = "credit_card_autofill"
 select_expression = "COALESCE(event_name = 'detected_cc_form_v2', FALSE)"
 window_start = 0
-window_end = "analysis_window_end"
+window_end = 7
 
 [data_sources.credit_card_autofill]
 from_expression = """(
@@ -54,7 +54,7 @@ from_expression = """(
     `mozdata.firefox_desktop.events_stream`
   WHERE
     event_category IN ('creditcard')
-    AND event_name IN ('detected_cc_form_v2', 'filled_cc_form_v2', 'submitted_cc_form_v2', 'popup_shown_cc_form_v2')
+    AND event_name IN ('detected_cc_form_v2') --, 'filled_cc_form_v2', 'submitted_cc_form_v2', 'popup_shown_cc_form_v2')
   GROUP BY 1, 2, 3
 )"""
 experiments_column_type = "none"
