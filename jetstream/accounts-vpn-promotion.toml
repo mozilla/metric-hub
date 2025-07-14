@@ -7,9 +7,11 @@ enrollment_period = 7
 friendly_name = "Message ID associated with the experiment"
 description = "ID of the spotlight message associated with this experiment"
 # same value for all branches
-default = "SYNC_AND_VPN_SPOTLIGHT"
-distinct_by_branch = false
-
+# default = "SYNC_AND_VPN_SPOTLIGHT"
+# distinct_by_branch = false
+# listing explicitly to work around incorrect parsing error
+default = { control = "SYNC_AND_VPN_SPOTLIGHT", treatment-a = "SYNC_AND_VPN_SPOTLIGHT", treatment-b = "SYNC_AND_VPN_SPOTLIGHT", treatment-c = "SYNC_AND_VPN_SPOTLIGHT" }
+distinct_by_branch = true
 
 [metrics]
 
