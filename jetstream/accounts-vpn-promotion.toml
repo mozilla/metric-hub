@@ -47,10 +47,13 @@ select_expression = 'CAST(COALESCE(LOGICAL_OR((sync_count_desktop_mean)>1), FALS
 
 [metrics.multi_device_signin.statistics.binomial]
 
+# this won't work with this experiment due to group_id randomization
+# but it needs `profile_group_id` to construct a valid query
 [data_sources.spotlight]
 from_expression = """
 (SELECT
     client_id,
+    'NULL' AS profile_group_id,
     event,
     message_id,
     experiments,
@@ -59,6 +62,7 @@ FROM
     mozdata.messaging_system.spotlight
 CROSS JOIN
     UNNEST(experiments) AS experiment
+WHERE DATE(submission_timestamp) > '2025-06-23'
 )
 """
 experiments_column_type = "native"
