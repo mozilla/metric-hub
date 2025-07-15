@@ -1,0 +1,3 @@
+[experiment]
+
+segments = ["new_users", "new_and_repeat_users"]
