@@ -2220,7 +2220,7 @@ experiments_column_type = "native"
 
 [data_sources.urlbar_events_daily_engagement_by_product_result_type_v1]
 from_expression = """(
-    SELECT * FROM `moz-fx-data-shared-prod.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type_v1`
+    SELECT * FROM `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
 )"""
 analysis_units = ["profile_group_id", "client_id"]
 friendly_name = "Urlbar Events Clients Daily"
