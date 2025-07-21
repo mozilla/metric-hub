@@ -4,9 +4,9 @@ segments = ["us", "de", "gb", "existing_users", "new_users"]
 
 [metrics]
 
-weekly = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+weekly = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count", "serp_impressions"]
 
-overall = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+overall = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count", "serp_impressions"]
 
 [metrics.switch_to_perplexity]
 friendly_name = "Switch to perplexity"
@@ -40,6 +40,26 @@ select_expression = """(
 data_source = "glean_events_stream"
 
 [metrics.google_sap_count.statistics.bootstrap_mean]
+
+[metrics.serp_impressions]
+friendly_name = "no-op serp impressions"
+description = "zeroing out serp impressions to prevent timeouts with outcome metric"
+select_expression = "SUM(0)"
+data_source = "noop_ds"
+
+[metrics.serp_impressions.statistics.bootstrap_mean]
+
+[data_sources]
+
+[data_sources.noop_ds]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
 
 [segments]
 
