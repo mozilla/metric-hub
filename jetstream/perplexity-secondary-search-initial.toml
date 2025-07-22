@@ -55,7 +55,7 @@ data_source = "noop_ds"
 from_expression = """(
     SELECT
         '1234' AS client_id,
-        '12345' AS profile_group_id',
+        '12345' AS profile_group_id,
         DATE('2022-01-01') AS submission_date
 )"""
 experiments_column_type = "none"
