@@ -60,7 +60,7 @@ from_expression = """(
 experiments_column_type = "none"
 friendly_name = "No-Op"
 description = "No-op that creates the required columns"
-profile_group_id = '12345'
+profile_group_id = "12345"
 
 [segments]
 
