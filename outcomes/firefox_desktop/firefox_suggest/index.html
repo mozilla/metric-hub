@@ -812,8 +812,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#urlbar_events-urlbar-events" class="md-nav__link">
-    urlbar_events- Urlbar Events
+  <a href="#urlbar_events_daily_engagement_by_product_result_type_v1-urlbar-events-clients-daily" class="md-nav__link">
+    urlbar_events_daily_engagement_by_product_result_type_v1- Urlbar Events Clients Daily
   </a>
   
 </li>
@@ -2368,8 +2368,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#urlbar_events-urlbar-events" class="md-nav__link">
-    urlbar_events- Urlbar Events
+  <a href="#urlbar_events_daily_engagement_by_product_result_type_v1-urlbar-events-clients-daily" class="md-nav__link">
+    urlbar_events_daily_engagement_by_product_result_type_v1- Urlbar Events Clients Daily
   </a>
   
 </li>
@@ -2425,18 +2425,16 @@
 <p>**Urlbar sessions ending on a SERP **</p>
 <p>Count of clicks on a result shown in the urlbar dropdown menu leading to a SERP</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#urlbar_events"><code>urlbar_events</code></a></p>
+<p>Data Source: <a href="#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code></a></p>
 <p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNTIF(
-  is_terminal
-  AND event_action = 'engaged'
-  AND (
-    product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
-    OR selected_result IN ('recent_search')
+<pre><code class="language-sql">SUM(
+  IF(
+    product_result_type IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion', 'recent_search'), 
+    urlbar_clicks, 0
   )
 )
 </code></pre>
@@ -2448,13 +2446,13 @@
 <p>**Urlbar annoyances **</p>
 <p>Count of clicks on annoyance signals across all results shown in the urlbar dropdown menu</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#urlbar_events"><code>urlbar_events</code></a></p>
+<p>Data Source: <a href="#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code></a></p>
 <p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNTIF(event_action = 'annoyance')
+<pre><code class="language-sql">SUM(urlbar_annoyances)
 </code></pre>
 
 </details>
@@ -2480,13 +2478,13 @@
 <p>**Urlbar search sessions **</p>
 <p>The number of times a user exits the urlbar dropdown menu, either by abandoning the urlbar, engaging with a urlbar result, or selecting an annoyance signal that closes the urlbar dropdown menu</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#urlbar_events"><code>urlbar_events</code></a></p>
+<p>Data Source: <a href="#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code></a></p>
 <p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNTIF(is_terminal)
+<pre><code class="language-sql">SUM(urlbar_impressions)
 </code></pre>
 
 </details>
@@ -2496,13 +2494,13 @@
 <p>**Urlbar engagements **</p>
 <p>Count of clicks on any result shown in the urlbar dropdown menu</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#urlbar_events"><code>urlbar_events</code></a></p>
+<p>Data Source: <a href="#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code></a></p>
 <p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNTIF(is_terminal and event_action = 'engaged')
+<pre><code class="language-sql">SUM(urlbar_clicks)
 </code></pre>
 
 </details>
@@ -2544,8 +2542,8 @@ population.</p>
 
 <hr />
 <h2 id="data-sources">Data Sources</h2>
-<h3 id="urlbar_events-urlbar-events"><a href="#urlbar_events"><code>urlbar_events</code>- Urlbar Events</a></h3>
-<p>Urlbar Events</p>
+<h3 id="urlbar_events_daily_engagement_by_product_result_type_v1-urlbar-events-clients-daily"><a href="#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code>- Urlbar Events Clients Daily</a></h3>
+<p>Urlbar Events Clients Daily</p>
 <details>
 <summary>Definition:</summary>
 

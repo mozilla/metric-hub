@@ -8495,12 +8495,12 @@ a wallpaper.</p>
 <hr />
 <h3 id="urlbar_impressions">urlbar_impressions</h3>
 <p><strong>URL Bar Impressions</strong></p>
-<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#urlbar_events"><code>urlbar_events</code></a></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#urlbar_events_daily_engagement_by_product_result_type_v1"><code>urlbar_events_daily_engagement_by_product_result_type_v1</code></a></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(COUNTIF(is_terminal), 0)
+<pre><code class="language-sql">SUM(urlbar_impressions)
 </code></pre>
 
 </details>
