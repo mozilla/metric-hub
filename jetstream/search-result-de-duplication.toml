@@ -7,7 +7,6 @@ friendly_name = "Exposed"
 description = "The set of clients that typed 5+ characters to trigger an AMP result"
 select_expression = "product_result_type = 'history'"
 data_source =  "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 window_end = "analysis_window_end"
 
 [metrics]
@@ -22,19 +21,16 @@ overall = ["history_impressions", "bookmark_impressions", "search_suggestion_imp
 [metrics.history_impressions]
 select_expression = "SUM(IF(product_result_type = 'history', urlbar_impressions, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.history_impressions.statistics.bootstrap_mean]
 
 [metrics.bookmark_impressions]
 select_expression = "SUM(IF(product_result_type = 'bookmark', urlbar_impressions, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.bookmark_impressions.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_impressions]
 select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_impressions, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
 [metrics.urlbar_impressions_suggest.statistics.bootstrap_mean]
@@ -43,19 +39,16 @@ analysis_units = ['profile_group_id', 'client_id']
 [metrics.history_clicks]
 select_expression = "SUM(IF(product_result_type = 'history', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.history_clicks.statistics.bootstrap_mean]
 
 [metrics.bookmark_clicks]
 select_expression = "SUM(IF(product_result_type = 'bookmark', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.bookmark_clicks.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_clicks]
 select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-analysis_units = ['profile_group_id', 'client_id']
 [metrics.search_suggestion_clicks.statistics.bootstrap_mean]
 
 ## CTR
@@ -63,7 +56,6 @@ analysis_units = ['profile_group_id', 'client_id']
 depends_on = ["history_clicks", "history_impressions"]
 friendly_name = "History CTR"
 description = "Proportion of urlbar sessions where suggestion from the user's browsing history was clicked, out of all urlbar sessions where one was shown (not available on control)"
-analysis_units = ['profile_group_id', 'client_id']
 
 [metrics.history_ctr.statistics.population_ratio]
 numerator = "history_clicks"
@@ -73,7 +65,6 @@ denominator = "history_impressions"
 depends_on = ["bookmark_clicks", "bookmark_impressions"]
 friendly_name = "Bookmark CTR"
 description = "Proportion of urlbar sessions where suggestion from the user's bookmarks was clicked, out of all urlbar sessions where one was shown (not available on control)"
-analysis_units = ['profile_group_id', 'client_id']
 
 [metrics.bookmark_ctr.statistics.population_ratio]
 numerator = "bookmark_clicks"
@@ -83,7 +74,6 @@ denominator = "bookmark_impressions"
 depends_on = ["search_suggestion_clicks", "search_suggestion_impressions"]
 friendly_name = "Search Suggestion CTR"
 description = "Proportion of urlbar sessions where suggestion from the default search engine was clicked, out of all urlbar sessions where one was shown (not available on control)"
-analysis_units = ['profile_group_id', 'client_id']
 
 [metrics.search_suggestion_ctr.statistics.population_ratio]
 numerator = "search_suggestion_clicks"
