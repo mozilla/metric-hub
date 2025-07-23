@@ -1989,15 +1989,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#search_count" class="md-nav__link">
+    search_count
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#ad_clicks" class="md-nav__link">
-    ad_clicks
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -2017,15 +2017,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#search_count" class="md-nav__link">
-    search_count
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2387,15 +2387,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#active_hours" class="md-nav__link">
-    active_hours
+  <a href="#search_count" class="md-nav__link">
+    search_count
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#ad_clicks" class="md-nav__link">
-    ad_clicks
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
   </a>
   
 </li>
@@ -2415,15 +2415,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#search_count" class="md-nav__link">
-    search_count
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#days_of_use" class="md-nav__link">
-    days_of_use
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
   </a>
   
 </li>
@@ -2568,26 +2568,12 @@
 <h2 id="opmon-config">opmon-config</h2>
 <p><a href="https://github.com/mozilla/metric-hub/blob/main/defaults/fenix.toml">Source</a>  |  <a href="https://github.com/mozilla/metric-hub/edit/main/defaults/fenix.toml">Edit</a></p>
 <h3 id="metrics">Metrics</h3>
-<h4 id="active_hours"><code>active_hours</code></h4>
-<p><strong>Active Hours</strong></p>
-<p>Total time Firefox was active</p>
-<p>Analysis Periods:  <code>daily</code>  </p>
-<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>mean</code></p>
-<details>
-<summary>Definition:</summary>
-
-
-<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
-</code></pre>
-
-</details>
-
-<hr />
-<h4 id="ad_clicks"><code>ad_clicks</code></h4>
-<p><strong>Ad clicks</strong></p>
-<p>Counts clicks on ads on search engine result pages with a Mozilla
-partner tag.</p>
+<h4 id="search_count"><code>search_count</code></h4>
+<p><strong>SAP searches</strong></p>
+<p>Counts the number of searches a user performed through Firefox's
+Search Access Points.
+Learn more in the
+<a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
 <p>Statistics: <code>mean</code></p>
@@ -2595,7 +2581,23 @@ partner tag.</p>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(SUM(ad_click), 0)
+<pre><code class="language-sql">COALESCE(SUM(search_count), 0)
+</code></pre>
+
+</details>
+
+<hr />
+<h4 id="days_of_use"><code>days_of_use</code></h4>
+<p><strong>Days of use</strong></p>
+<p>The number of days in an observation window that clients used the browser.</p>
+<p>Analysis Periods:  <code>daily</code>  </p>
+<p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
+<p>Statistics: <code>mean</code></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
 </code></pre>
 
 </details>
@@ -2633,12 +2635,10 @@ partner tag.</p>
 </details>
 
 <hr />
-<h4 id="search_count"><code>search_count</code></h4>
-<p><strong>SAP searches</strong></p>
-<p>Counts the number of searches a user performed through Firefox's
-Search Access Points.
-Learn more in the
-<a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
+<h4 id="ad_clicks"><code>ad_clicks</code></h4>
+<p><strong>Ad clicks</strong></p>
+<p>Counts clicks on ads on search engine result pages with a Mozilla
+partner tag.</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
 <p>Statistics: <code>mean</code></p>
@@ -2646,15 +2646,15 @@ Learn more in the
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(SUM(search_count), 0)
+<pre><code class="language-sql">COALESCE(SUM(ad_click), 0)
 </code></pre>
 
 </details>
 
 <hr />
-<h4 id="days_of_use"><code>days_of_use</code></h4>
-<p><strong>Days of use</strong></p>
-<p>The number of days in an observation window that clients used the browser.</p>
+<h4 id="active_hours"><code>active_hours</code></h4>
+<p><strong>Active Hours</strong></p>
+<p>Total time Firefox was active</p>
 <p>Analysis Periods:  <code>daily</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>mean</code></p>
@@ -2662,7 +2662,7 @@ Learn more in the
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
+<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
 </code></pre>
 
 </details>
@@ -2714,7 +2714,7 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.</p
 
 <hr />
 <h4 id="retained_1"><code>retained</code></h4>
-<p>Analysis Periods:  <code>weekly</code> ,   <code>daily</code>  </p>
+<p>Analysis Periods:  <code>daily</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
@@ -2730,9 +2730,9 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.</p
 <h4 id="days_of_use_1"><code>days_of_use</code></h4>
 <p><strong>Days of use</strong></p>
 <p>The number of days in an observation window that clients used the browser.</p>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>empirical_cdf</code>, <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>empirical_cdf</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2744,9 +2744,9 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.</p
 
 <hr />
 <h4 id="total_uri_count"><code>total_uri_count</code></h4>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2764,9 +2764,9 @@ Search Access Points that were submitted with a partner code
 and were potentially revenue-generating.
 Learn more in the
 <a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2778,9 +2778,9 @@ Learn more in the
 
 <hr />
 <h4 id="serp_ad_clicks"><code>serp_ad_clicks</code></h4>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2797,9 +2797,9 @@ Learn more in the
 Search Access Points.
 Learn more in the
 <a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2813,9 +2813,9 @@ Learn more in the
 <h4 id="active_hours_1"><code>active_hours</code></h4>
 <p><strong>Active Hours</strong></p>
 <p>Total time Firefox was active</p>
-<p>Analysis Periods:  <code>preenrollment_weekly</code> ,   <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code> ,   <code>weekly</code>  </p>
 <p>Data Source: <a href="#baseline"><code>baseline</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2827,9 +2827,9 @@ Learn more in the
 
 <hr />
 <h4 id="tagged_follow_on_searches"><code>tagged_follow_on_searches</code></h4>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2841,9 +2841,9 @@ Learn more in the
 
 <hr />
 <h4 id="searches_with_ads"><code>searches_with_ads</code></h4>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
@@ -2855,9 +2855,9 @@ Learn more in the
 
 <hr />
 <h4 id="organic_searches"><code>organic_searches</code></h4>
-<p>Analysis Periods:  <code>preenrollment_days28</code> ,   <code>overall</code> ,   <code>preenrollment_weekly</code>  </p>
+<p>Analysis Periods:  <code>overall</code> ,   <code>preenrollment_days28</code> ,   <code>preenrollment_weekly</code>  </p>
 <p>Data Source: <a href="#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
-<p>Statistics: <code>deciles</code>, <code>bootstrap_mean</code>, <code>linear_model_mean</code></p>
+<p>Statistics: <code>bootstrap_mean</code>, <code>deciles</code>, <code>linear_model_mean</code></p>
 <details>
 <summary>Definition:</summary>
 
