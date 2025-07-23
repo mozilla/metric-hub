@@ -1,15 +1,3 @@
-[experiment]
-[experiment.exposure_signal]
-description = "filters to clients that opened a PDF at all during the observation period"
-name = "opened_pdf"
-friendly_name = "Opened PDF"
-select_expression = """(
-    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
-)"""
-data_source = "metrics"
-window_start = 0
-window_end = 7
-
 [metrics]
 
 weekly = [
@@ -22,9 +10,30 @@ overall = [
     "pdf_stamp"
 ]
 
+
 [metrics.pdf_signature.statistics.binomial]
 [metrics.pdf_stamp.statistics.binomial]
 
+[segments]
 
+[segments.opened_pdf]
+select_expression = """(
+    COALESCE(LOGICAL_OR(COALESCE(metrics.counter.pdfjs_used > 0, FALSE)), FALSE)
+)"""
+data_source = "metrics_pdf"
 
+[segments.data_sources]
 
+[segments.data_sources.metrics_pdf]
+from_expression = """(
+    SELECT
+      p.*,
+      p.metrics.uuid.legacy_telemetry_profile_group_id as profile_group_id,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
+
+[experiment]
+segments = ['opened_pdf']
