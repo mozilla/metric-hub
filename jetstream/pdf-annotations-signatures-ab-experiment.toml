@@ -21,3 +21,6 @@ select_expression = """(
     COALESCE(LOGICAL_OR(COALESCE(metrics.counter.pdfjs_used > 0, FALSE)), FALSE)
 )"""
 data_source = "metrics"
+
+[experiment]
+segments = ['opened_pdf']
