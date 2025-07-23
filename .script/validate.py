@@ -12,6 +12,7 @@ data, we proxy the queries through the dry run service endpoint.
 """
 
 import json
+import random
 import logging
 import multiprocessing
 import sys
@@ -39,6 +40,29 @@ DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bi
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 NUM_QUERIES_PER_REQUEST = 1
+BILLING_PROJECTS = [
+    "moz-fx-data-backfill-10",
+    "moz-fx-data-backfill-11",
+    "moz-fx-data-backfill-12",
+    "moz-fx-data-backfill-13",
+    "moz-fx-data-backfill-14",
+    "moz-fx-data-backfill-15",
+    "moz-fx-data-backfill-16",
+    "moz-fx-data-backfill-17",
+    "moz-fx-data-backfill-18",
+    "moz-fx-data-backfill-19",
+    "moz-fx-data-backfill-20",
+    "moz-fx-data-backfill-21",
+    "moz-fx-data-backfill-22",
+    "moz-fx-data-backfill-23",
+    "moz-fx-data-backfill-24",
+    "moz-fx-data-backfill-25",
+    "moz-fx-data-backfill-26",
+    "moz-fx-data-backfill-27",
+    "moz-fx-data-backfill-28",
+    "moz-fx-data-backfill-29",
+    "moz-fx-data-backfill-31",
+]
 
 
 @click.group()
@@ -70,6 +94,7 @@ def dry_run_query(sql: str) -> None:
             # then ID token is acquired using this service account credentials.
             id_token = fetch_id_token(auth_req, DRY_RUN_URL)
 
+        billing_project = random.choice(BILLING_PROJECTS)
         r = urlopen(
             Request(
                 DRY_RUN_URL,
@@ -81,6 +106,7 @@ def dry_run_query(sql: str) -> None:
                     {
                         "dataset": "mozanalysis",
                         "query": sql,
+                        "billing_project": billing_project,
                     }
                 ).encode("utf8"),
                 method="POST",
