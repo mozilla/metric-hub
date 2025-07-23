@@ -40,7 +40,7 @@ DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bi
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 NUM_QUERIES_PER_REQUEST = 1
-BILLING_PROJECTS = {
+BILLING_PROJECTS = [
     "moz-fx-data-backfill-10",
     "moz-fx-data-backfill-11",
     "moz-fx-data-backfill-12",
@@ -62,7 +62,7 @@ BILLING_PROJECTS = {
     "moz-fx-data-backfill-28",
     "moz-fx-data-backfill-29",
     "moz-fx-data-backfill-31",
-}
+]
 
 
 @click.group()
