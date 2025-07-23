@@ -1,3 +1,15 @@
+[experiment]
+[experiment.exposure_signal]
+description = "filters to clients that opened a PDF at all during the observation period"
+name = "opened_pdf"
+friendly_name = "Opened PDF"
+select_expression = """(
+    COALESCE(metrics.counter.pdfjs_used > 0, FALSE)
+)"""
+data_source = "metrics"
+window_start = 0
+window_end = 7
+
 [metrics]
 
 weekly = [
@@ -10,17 +22,9 @@ overall = [
     "pdf_stamp"
 ]
 
-
 [metrics.pdf_signature.statistics.binomial]
 [metrics.pdf_stamp.statistics.binomial]
 
-[segments]
 
-[segments.opened_pdf]
-select_expression = """(
-    COALESCE(LOGICAL_OR(COALESCE(metrics.counter.pdfjs_used > 0, FALSE)), FALSE)
-)"""
-data_source = "metrics"
 
-[experiment]
-segments = ['opened_pdf']
+
