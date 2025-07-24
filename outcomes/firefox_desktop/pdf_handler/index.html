@@ -938,8 +938,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#main-main" class="md-nav__link">
-    main- Main
+  <a href="#metrics-glean-metrics" class="md-nav__link">
+    metrics- Glean Metrics
   </a>
   
 </li>
@@ -2305,8 +2305,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#main-main" class="md-nav__link">
-    main- Main
+  <a href="#metrics-glean-metrics" class="md-nav__link">
+    metrics- Glean Metrics
   </a>
   
 </li>
@@ -2339,13 +2339,13 @@
 <p>**Is Default PDF Handler (Windows) **</p>
 <p>Was Firefox the default PDF Handler at any point during the interval?</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#main"><code>main</code></a></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(LOGICAL_OR(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_is_default_handler, '.pdf')), FALSE)
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(mozfun.map.get_key(metrics.labeled_boolean.os_environment_is_default_handler, '.pdf')), FALSE)
 </code></pre>
 
 </details>
@@ -2355,14 +2355,14 @@
 <p>**PDF Launched to Handle **</p>
 <p>Firefox was launched afresh (i.e., was not already running) to handle a pdf file</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#main"><code>main</code></a></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE)
+    COALESCE(SUM(mozfun.map.get_key( metrics.labeled_counter.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE)
 )
 </code></pre>
 
@@ -2373,14 +2373,14 @@
 <p>**PDF Invoked to Handle **</p>
 <p>Firefox was invoked (i.e., was already running and was not launched) to handle a pdf file</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#main"><code>main</code></a></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE)
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE)
 )
 </code></pre>
 
@@ -2391,15 +2391,15 @@
 <p>**PDF Launched or Invoked **</p>
 <p>Firefox was launched or invoked to handle a pdf file</p>
 <p>Analysis Period: <code>weekly</code>, <code>overall</code></p>
-<p>Data Source: <a href="#main"><code>main</code></a></p>
+<p>Data Source: <a href="#metrics"><code>metrics</code></a></p>
 <p>Statistics: <code>binomial</code></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    (COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE) OR
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE))
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE))
 )
 </code></pre>
 
@@ -2407,8 +2407,8 @@
 
 <hr />
 <h2 id="data-sources">Data Sources</h2>
-<h3 id="main-main"><a href="#main"><code>main</code>- Main</a></h3>
-<p>Main ping table</p>
+<h3 id="metrics-glean-metrics"><a href="#metrics"><code>metrics</code>- Glean Metrics</a></h3>
+<p>The Glean metrics ping</p>
 <details>
 <summary>Definition:</summary>
 

@@ -6994,12 +6994,12 @@ For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
 <h3 id="is_default_pdf_handler">is_default_pdf_handler</h3>
 <p><strong>Is Default PDF Handler (Windows)</strong></p>
 <p>Was Firefox the default PDF Handler at any point during the interval?</p>
-<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#main"><code>main</code></a></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
 <details>
 <summary>Definition:</summary>
 
 
-<pre><code class="language-sql">COALESCE(LOGICAL_OR(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_is_default_handler, '.pdf')), FALSE)
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(mozfun.map.get_key(metrics.labeled_boolean.os_environment_is_default_handler, '.pdf')), FALSE)
 </code></pre>
 
 </details>
@@ -8207,13 +8207,13 @@ a wallpaper.</p>
 <h3 id="pdf_invoked_to_handle">pdf_invoked_to_handle</h3>
 <p><strong>PDF Invoked to Handle</strong></p>
 <p>Firefox was invoked (i.e., was already running and was not launched) to handle a pdf file</p>
-<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#main"><code>main</code></a></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE)
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE)
 )
 </code></pre>
 
@@ -8223,13 +8223,13 @@ a wallpaper.</p>
 <h3 id="pdf_launched_to_handle">pdf_launched_to_handle</h3>
 <p><strong>PDF Launched to Handle</strong></p>
 <p>Firefox was launched afresh (i.e., was not already running) to handle a pdf file</p>
-<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#main"><code>main</code></a></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE)
+    COALESCE(SUM(mozfun.map.get_key( metrics.labeled_counter.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE)
 )
 </code></pre>
 
@@ -8239,14 +8239,14 @@ a wallpaper.</p>
 <h3 id="pdf_launched_or_invoked_to_handle">pdf_launched_or_invoked_to_handle</h3>
 <p><strong>PDF Launched or Invoked</strong></p>
 <p>Firefox was launched or invoked to handle a pdf file</p>
-<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#main"><code>main</code></a></p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#metrics"><code>metrics</code></a></p>
 <details>
 <summary>Definition:</summary>
 
 
 <pre><code class="language-sql">(
-    (COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE) OR
-    COALESCE(SUM(mozfun.map.get_key(payload.processes.parent.keyed_scalars.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE))
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) &gt; 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_launched_to_handle, '.pdf')) &gt; 0, FALSE))
 )
 </code></pre>
 
