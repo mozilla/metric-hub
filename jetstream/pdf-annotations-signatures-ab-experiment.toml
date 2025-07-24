@@ -10,9 +10,57 @@ overall = [
     "pdf_stamp"
 ]
 
+[metrics.pdf_invoked_to_handle]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE)
+)"""
+data_source = "metrics_pdf"
+friendly_name = "PDF Invoked to Handle"
+description = "Firefox was invoked (i.e., was already running and was not launched) to handle a pdf file"
+
+[metrics.pdf_launched_to_handle]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key( metrics.labeled_counter.os_environment_launched_to_handle, '.pdf')) > 0, FALSE)
+)"""
+data_source = "metrics_pdf"
+friendly_name = "PDF Launched to Handle"
+description = "Firefox was launched afresh (i.e., was not already running) to handle a pdf file"
+
+[metrics.pdf_launched_or_invoked_to_handle]
+select_expression = """(
+    (COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_invoked_to_handle, '.pdf')) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.os_environment_launched_to_handle , '.pdf')) > 0, FALSE))
+)"""
+data_source = "metrics_pdf"
+friendly_name = "PDF Launched or Invoked"
+description = "Firefox was launched or invoked to handle a pdf file"
+
+[metrics.is_default_pdf_handler]
+data_source = "metrics_pdf"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.map.get_key(metrics.labeled_boolean.os_environment_is_default_handler, '.pdf')), FALSE)"
+friendly_name = "Is Default PDF Handler (Windows)"
+type = "scalar"
+description = """
+Was Firefox the default PDF Handler at any point during the interval?
+"""
 
 [metrics.pdf_signature.statistics.binomial]
 [metrics.pdf_stamp.statistics.binomial]
+[metrics.pdf_invoked_to_handle.statistics.binomial]
+[metrics.pdf_launched_to_handle.statistics.binomial]
+[metrics.pdf_launched_or_invoked_to_handle.statistics.binomial]
+[metrics.is_default_pdf_handler.statistics.binomial]
+
+[metrics.data_sources.metrics_pdf]
+from_expression = """(
+    SELECT
+      p.*,
+      p.metrics.uuid.legacy_telemetry_profile_group_id as profile_group_id,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.metrics` p
+    )"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
 
 [segments]
 
