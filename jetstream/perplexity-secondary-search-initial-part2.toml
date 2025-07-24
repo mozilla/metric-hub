@@ -1,6 +1,6 @@
 [experiment]
 
-segments = ["us", "de", "gb", "existing_users", "new_users"]
+segments = ["us", "de", "gb"]
 
 [metrics]
 
@@ -70,7 +70,8 @@ from_expression = """(
    FROM `mozdata.firefox_desktop.events_stream`
    WHERE
       event_category = 'sap'
-      AND event_name = 'sap.counts'
+    AND event_name = 'sap.counts'
+    AND DATE(submission_timestamp) BETWEEN DATE("2025-06-10") AND DATE("2025-07-16")
 )"""
 analysis_units = ["profile_group_id", "client_id"]
 description = "Glean events_stream dataset filtered for SAP count events"
@@ -88,6 +89,7 @@ from_expression = """(
    FROM `mozdata.firefox_desktop.events_stream`
    WHERE
       event = 'search.engine.default.changed'
+   AND DATE(submission_timestamp) BETWEEN DATE("2025-06-10") AND DATE("2025-07-16") 
 )"""
 analysis_units = ["profile_group_id", "client_id"]
 description = "Glean events_stream dataset filtered for engine default changed"
@@ -114,15 +116,15 @@ select_expression = "COALESCE(LOGICAL_OR(country = 'GB'), FALSE)"
 description = "Clients in GB"
 data_source = "clients_daily"
 
-[segments.existing_users]
-select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 27), FALSE)"
-description = "Clients first seen date > 27 days"
-data_source = "clients_last_seen"
+# [segments.existing_users]
+# select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 27), FALSE)"
+# description = "Clients first seen date > 27 days"
+# data_source = "clients_last_seen"
 
-[segments.new_users]
-select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 27), FALSE)"
-description = "Clients first seen date <= 27 days"
-data_source = "clients_last_seen"
+# [segments.new_users]
+# select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 27), FALSE)"
+# description = "Clients first seen date <= 27 days"
+# data_source = "clients_last_seen"
 
 [segments.data_sources.clients_daily]
 from_expression = "mozdata.telemetry.clients_daily"
