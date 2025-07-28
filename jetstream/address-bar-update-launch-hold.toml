@@ -14,7 +14,7 @@ friendly_name = "no-op serp impressions"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[data_sources.noop_ds]
+[data_sources.noop_source]
 from_expression = """(
     SELECT
         '1234' AS client_id,
