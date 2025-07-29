@@ -40,6 +40,11 @@ friendly_name = "no-op serp impressions"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
+[metrics.any_sponsored_tiles_dismissals]
+friendly_name = "no-op any sponsored tile dismissals"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
 [metrics.sponsored_tiles_disabled]
 friendly_name = "no-op tiles disabled"
 select_expression = 'SUM(0)'
