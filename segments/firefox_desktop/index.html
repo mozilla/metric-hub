@@ -1696,6 +1696,41 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#activity_core" class="md-nav__link">
+    activity_core
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_regular" class="md-nav__link">
+    activity_regular
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_casual" class="md-nav__link">
+    activity_casual
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_infrequent" class="md-nav__link">
+    activity_infrequent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_infrequent_or_casual" class="md-nav__link">
+    activity_infrequent_or_casual
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#regular_users_v3" class="md-nav__link">
     regular_users_v3
   </a>
@@ -2298,6 +2333,41 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#activity_core" class="md-nav__link">
+    activity_core
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_regular" class="md-nav__link">
+    activity_regular
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_casual" class="md-nav__link">
+    activity_casual
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_infrequent" class="md-nav__link">
+    activity_infrequent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activity_infrequent_or_casual" class="md-nav__link">
+    activity_infrequent_or_casual
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#regular_users_v3" class="md-nav__link">
     regular_users_v3
   </a>
@@ -2404,6 +2474,76 @@
 
 <h2 id="metric-hub">metric-hub</h2>
 <p>Pre-defined segments for <code>firefox_desktop</code>. These segments are defined in <a href="https://github.com/mozilla/metric-hub/blob/main/definitions/firefox_desktop.toml">metric-hub</a></p>
+<h3 id="activity_core">activity_core</h3>
+<p><strong>Core Users</strong></p>
+<p>Clients that browsed at least 1 URI in at least 21 of the past 28 days.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_last_seen"><code>clients_last_seen</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(activity_segments_v1 = &quot;core_user&quot;), FALSE)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="activity_regular">activity_regular</h3>
+<p><strong>Regular Users</strong></p>
+<p>Clients that browsed at least 1 URI in at least 14 and up to 20 days in the past 28 days.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_last_seen"><code>clients_last_seen</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(activity_segments_v1 = &quot;regular_user&quot;), FALSE)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="activity_casual">activity_casual</h3>
+<p><strong>Casual Users</strong></p>
+<p>Clients that browsed at least 1 URI in at least 7 and up to 13 days in the past 28 days.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_last_seen"><code>clients_last_seen</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(activity_segments_v1 = &quot;casual_user&quot;), FALSE)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="activity_infrequent">activity_infrequent</h3>
+<p><strong>Infrequent Users</strong></p>
+<p>Clients that browsed at least 1 URI in at least 1 and up to 6 days in the past 28 days.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_last_seen"><code>clients_last_seen</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(activity_segments_v1 = &quot;infrequent_user&quot;), FALSE)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="activity_infrequent_or_casual">activity_infrequent_or_casual</h3>
+<p><strong>Infrequent or Casual Users</strong></p>
+<p>Clients that browsed at least 1 URI in at least 1 and up to 13 days in the past 28 days.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/firefox_desktop/#clients_last_seen"><code>clients_last_seen</code></a></p>
+<details>
+<summary>Definition:</summary>
+
+
+<pre><code class="language-sql">COALESCE(LOGICAL_OR(activity_segments_v1 = &quot;infrequent_user&quot; OR activity_segments_v1 = &quot;casual_user&quot;), FALSE)
+</code></pre>
+
+</details>
+
+<hr />
 <h3 id="regular_users_v3">regular_users_v3</h3>
 <p><strong>Regular users (v3)</strong></p>
 <p>Clients who used Firefox on at least 14 of the 27 days prior to enrolling.
