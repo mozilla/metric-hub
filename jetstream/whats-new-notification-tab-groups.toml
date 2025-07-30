@@ -151,5 +151,10 @@ data_source = "metrics"
 analysis_bases = ["exposures"]
 
 [metrics.tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0
+
 [metrics.saved_tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0
+
 [metrics.active_tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0
