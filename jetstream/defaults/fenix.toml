@@ -13,6 +13,7 @@ weekly = [
 overall = [
     "active_hours",
     "serp_ad_clicks",
+    "tagged_search_count",
     "organic_searches",
     "search_count",
     "searches_with_ads",
