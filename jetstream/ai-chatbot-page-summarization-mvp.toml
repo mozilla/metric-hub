@@ -1,0 +1,72 @@
+[experiment]
+enrollment_period = 7
+end_date = "2025-08-19"
+
+segments = ["regular_users_v3", "new_or_resurrected_v3", "new_unique_profiles"]
+
+[metrics]
+
+weekly = [
+    "chatbot_onboarding_start",
+    "chatbot_onboarding_complete",
+    "chatbot_usage",
+    "chatbot_frequency"
+]
+
+overall = [
+    "chatbot_onboarding_start",
+    "chatbot_onboarding_complete",
+    "chatbot_usage",
+    "chatbot_frequency"
+]
+
+[metrics.chatbot_onboarding_start.statistics.binomial]
+[metrics.chatbot_onboarding_complete.statistics.binomial]
+[metrics.chatbot_usage.statistics.binomial]
+[metrics.chatbot_frequency.statistics.bootstrap_mean]
+
+[metrics.chatbot_onboarding_start]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_provider_choice_displayed'), FALSE)"
+data_source = "chatbot"
+friendly_name = "Chatbot Onboarding Started"
+description = "Percentage of clients who started Chatbot onboarding"
+
+[metrics.chatbot_onboarding_complete]
+select_expression = "COALESCE(LOGICAL_OR(event_name IN ('onboarding_finish', 'onboarding_continue')), FALSE)"
+data_source = "chatbot"
+friendly_name = "Chatbot Onboarding Completed"
+description = "Percentage of clients who completed Chatbot onboarding"
+analysis_bases = ["exposures"]
+
+[metrics.chatbot_usage]
+friendly_name = "Chatbot Usage"
+description = "Percentage of clients who opened the chatbot panel in the sidebar after provider is selected"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'sidebar_toggle'), FALSE)"
+data_source = "chatbot"
+analysis_bases = ["exposures"]
+
+[metrics.chatbot_frequency]
+friendly_name = "Chatbot Frequency"
+description = "Average number of times clients open chatbot panel in the sidebar after provider is selected"
+select_expression = "COALESCE(COUNTIF(event_name = 'sidebar_toggle'), 0)"
+data_source = "chatbot"
+analysis_bases = ["exposures"]
+
+
+[data_sources.chatbot]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('genai.chatbot')
+    AND ((event_name = 'sidebar_toggle' AND JSON_VALUE(event_extra.opened) = 'true' AND JSON_VALUE(event_extra.provider) <> 'none')
+         OR event_name IN ('onboarding_finish', 'onboarding_continue', 'onboarding_provider_choice_displayed'))
+)"""
+experiments_column_type = "none"
+friendly_name = "Chatbot Events"
+description = "Events for chatbot open and onboarding"
