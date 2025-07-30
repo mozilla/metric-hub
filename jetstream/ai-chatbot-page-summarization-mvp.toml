@@ -36,21 +36,18 @@ select_expression = "COALESCE(LOGICAL_OR(event_name IN ('onboarding_finish', 'on
 data_source = "chatbot"
 friendly_name = "Chatbot Onboarding Completed"
 description = "Percentage of clients who completed Chatbot onboarding"
-analysis_bases = ["exposures"]
 
 [metrics.chatbot_usage]
 friendly_name = "Chatbot Usage"
 description = "Percentage of clients who opened the chatbot panel in the sidebar after provider is selected"
 select_expression = "COALESCE(LOGICAL_OR(event_name = 'sidebar_toggle'), FALSE)"
 data_source = "chatbot"
-analysis_bases = ["exposures"]
 
 [metrics.chatbot_frequency]
 friendly_name = "Chatbot Frequency"
 description = "Average number of times clients open chatbot panel in the sidebar after provider is selected"
 select_expression = "COALESCE(COUNTIF(event_name = 'sidebar_toggle'), 0)"
 data_source = "chatbot"
-analysis_bases = ["exposures"]
 
 
 [data_sources.chatbot]
