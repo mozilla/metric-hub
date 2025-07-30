@@ -57,6 +57,7 @@ analysis_bases = ["exposures"]
 from_expression = """(
   SELECT
     legacy_telemetry_client_id as client_id,
+    profile_group_id,
     CAST(submission_timestamp as DATE) as submission_date,
     event_name
   FROM
