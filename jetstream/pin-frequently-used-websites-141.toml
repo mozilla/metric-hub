@@ -11,7 +11,7 @@ weekly = [
 overall = [
     "tried_pinned_tabs",
     "kept_pinned_tabs",
-    "chatbot_onboarding_complete",
+    "number_pinned_tabs",
 ]
 
 [metrics.tried_pinned_tabs.statistics.binomial]
