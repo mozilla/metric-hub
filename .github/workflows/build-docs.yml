@@ -8,18 +8,33 @@ on:
 jobs:
   build-docs:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.10
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Build and deploy docs
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+    - name: Build docs
       run: |
-        python3.10 -m venv venv/
-        venv/bin/python -m pip install --upgrade pip
-        venv/bin/pip install -r .script/requirements.txt
-        venv/bin/python3 .script/generate_docs.py \
+        python -m pip install --upgrade pip
+        python -m pip install -r .script/requirements.txt
+        python .script/generate_docs.py \
           --output_dir=generated_docs/
-        cd generated_docs/
-        PATH="../venv/bin:$PATH" mkdocs gh-deploy \
-          -m "[ci skip] Deployed {sha} with MkDocs version: {version}"
+    - name: Upload docs artifacts
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: generated_docs/
+  
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: build-docs
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+    - name: Deploy docs
+      uses: actions/deploy-pages@v4
