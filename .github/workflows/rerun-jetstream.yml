@@ -27,10 +27,9 @@ jobs:
       run: |
         apt-get install jq -y
         apt-get install uuid-runtime
-    - name: Authorize gcloud CLI
+    - name: Authenticate to GCP
       uses: 'google-github-actions/auth@v2'
       id: google_auth
-      name: Authenticate to GCP
       with:
         workload_identity_provider: projects/${{ vars.GCPV2_WORKLOAD_IDENTITY_POOL_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
         token_format: id_token

@@ -32,8 +32,7 @@ jobs:
     - name: Build
       run: |
         python3 -m pip install -r ./script/requirements.txt
-    - run:
-      name: Authenticate to GCP
+    - name: Authenticate to GCP
       run: |
         export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
         echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
