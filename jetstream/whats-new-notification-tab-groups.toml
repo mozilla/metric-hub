@@ -129,7 +129,7 @@ select_expression = """(
   + COALESCE(MAX_BY(metrics.quantity.tabgroup_saved_groups, submission_date), 0)
 )"""
 data_source = "metrics"
-analysis_bases = ["exposures"]
+analysis_bases = ["enrollments", "exposures"]
 
 [metrics.saved_tabgroup_quantity]
 friendly_name = "Number of Saved Tab Groups"
@@ -138,7 +138,7 @@ select_expression = """(
  COALESCE(MAX_BY(metrics.quantity.tabgroup_saved_groups, submission_date), 0)
 )"""
 data_source = "metrics"
-analysis_bases = ["exposures"]
+analysis_bases = ["enrollments", "exposures"]
 
 [metrics.active_tabgroup_quantity]
 friendly_name = "Number of Saved Tab Groups"
@@ -148,7 +148,7 @@ select_expression = """(
   + COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'collapsed'), submission_date), 0)
 )"""
 data_source = "metrics"
-analysis_bases = ["exposures"]
+analysis_bases = ["enrollments", "exposures"]
 
 [metrics.tabgroup_quantity.statistics.bootstrap_mean]
 drop_highest = 0.0
