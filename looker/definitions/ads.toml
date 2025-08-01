@@ -139,6 +139,67 @@ description ="Ad spend"
 numerator = "ad_clicks.sum"
 denominator = "ad_impressions.sum"
 
+### data_sources.newtab_visit_duration
+[metrics.avg_visit_duration]
+select_expression = "AVG(avg_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "Avg HNT visit duration (seconds)"
+description ="Home Newtab (HNT) average visit duration in seconds"
+
+[metrics.p50_visit_duration]
+select_expression = "AVG(p50_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "Median HNT visit duration (seconds)"
+description ="Home Newtab (HNT) median / p50 visit duration in seconds"
+
+[metrics.p95_visit_duration]
+select_expression = "AVG(p95_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "P95 HNT visit duration (seconds)"
+description ="Home Newtab (HNT) p95 visit duration in seconds"
+
+### data_sources.ad_metrics_daily
+[metrics.ads_count]
+select_expression = "COUNT(DISTINCT ad_id)"
+data_source = "ad_metrics_daily"
+friendly_name = "Ads Count"
+description = "Number of unique ads served"
+
+[metrics.revenue_per_ad]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+friendly_name =  "Revenue Per Ad"
+description = "Revenue Per Ad"
+
+[metrics.ecpm]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "eCPM"
+description = "effective CPM, calculated as average revenue per thousand impressions"
+
+[metrics.click_through_rate]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Click Through Rate"
+description = "Ratio of ad clicks to ad impressions"
+
+[metrics.ad_metrics_ad_impressions.statistics.sum]
+[metrics.ad_metrics_ad_clicks.statistics.sum]
+[metrics.ad_metrics_ad_reports.statistics.sum]
+[metrics.revenue.statistics.sum]
+[metrics.milli_impressions.statistics.sum]
+[metrics.ads_count.statistics.sum]
+[metrics.ecpm.statistics.ratio]
+numerator = "revenue.sum"
+denominator = "milli_impressions.sum"
+[metrics.click_through_rate.statistics.ratio]
+numerator = "ad_metrics_ad_clicks.sum"
+denominator = "ad_metrics_ad_impressions.sum"
+[metrics.revenue_per_ad.statistics.ratio]
+numerator = "revenue.sum"
+denominator = "ads_count.sum"
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """
@@ -226,3 +287,9 @@ columns_as_dimensions = true
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 
+#Temporary reporting requirement while HNT P2 metrics are finalized
+[data_sources.newtab_visit_duration]
+from_expression = "mozdata.ads.newtab_visit_duration"
+submission_date_column = "week"
+client_id_column = "NULL"
+columns_as_dimensions = true

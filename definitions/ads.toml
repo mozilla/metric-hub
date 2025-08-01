@@ -49,6 +49,41 @@ friendly_name = "Alternative Revenue"
 description = "Potential Revenue from the other report. Note that this is zero for all revenue coming from CPC since we don't get data for RPM for mobile tiles or instant suggestions."
 
 
+### data_sources.ad_metrics_daily
+[metrics.ad_metrics_ad_impressions]
+select_expression = "SUM(impressions)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Ad Impressions"
+description = "Ad impressions"
+
+[metrics.ad_metrics_ad_clicks]
+select_expression = "SUM(clicks)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Ad Clicks"
+description = "Ad clicks"
+
+[metrics.ad_metrics_ad_reports]
+select_expression = "SUM(reports)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Ads Reported"
+description = "Number of time ad was reported"
+
+[metrics.revenue]
+select_expression = "SUM(revenue)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Revenue"
+description = "Ad revenue"
+
+[metrics.milli_impressions]
+select_expression = "SUM(impressions)/1000"
+data_source = "ad_metrics_daily"
+friendly_name = "Milli Impressions"
+description = "Impressions in thousands"
+
 [data_sources]
 
 [data_sources.admarketplace]
@@ -57,6 +92,29 @@ client_id_column = "advertiser"
 friendly_name = "AdMarketplace"
 description = "Data source for AdMarketplace metrics. Includes dimensions such as advertiser, device, country, and more."
 submission_date_column = "adm_date"
+
+[data_sources.ad_metrics_daily]
+from_expression = "mozdata.ads.ad_metrics_daily"
+friendly_name = "Ad Metrics Daily"
+descriptions = """
+  Daily ad metrics, at the ad_id level. Joined to ad provider metadata to
+  pull in additional fields (including pricing and total revenue)
+"""
+columns_as_dimensions = true 
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.countries]
+from_expression = "mozdata.static.country_codes_v1"
+client_id_column = "code"
+friendly_name = "Countries"
+description = "Countries"
+columns_as_dimensions = true
+submission_date_column = "NULL"
+
+[data_sources.ad_metrics_daily.joins.countries]
+relationship = "one_to_many"
+on_expression = "ad_metrics_daily.country = countries.code"
 
 [dimensions]
 

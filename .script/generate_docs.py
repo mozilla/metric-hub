@@ -289,7 +289,12 @@ def generate_outcome_docs(out_dir: Path):
                 deduplicated_metrics.append(metric)
         metrics = deduplicated_metrics
 
-        data_sources = {m.data_source for m in metrics}
+        # deduplicate data source objects by name, but keep the object
+        data_sources = {}
+        for m in metrics:
+            if m.data_source is not None:
+                data_sources[m.data_source.name] = m.data_source
+        data_sources = list(data_sources.values())
 
         statistics_per_metric = {}
         for metric in metrics:
@@ -377,7 +382,12 @@ def generate_default_config_docs(out_dir: Path):
                 if metric.metric not in metrics:
                     metrics.append(metric.metric)
 
-            data_sources = {m.data_source for m in metrics}
+            # deduplicate data source objects by name, but keep the object
+            data_sources = {}
+            for m in metrics:
+                if m.data_source is not None:
+                    data_sources[m.data_source.name] = m.data_source
+            data_sources = list(data_sources.values())
 
             statistics_per_metric = {}
             for metric in metrics:
