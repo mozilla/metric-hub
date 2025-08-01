@@ -1,3 +1,6 @@
+# This workflow is based on the GH Actions docs on publishing python artifacts:
+# https://docs.github.com/en/actions/tutorials/build-and-test-code/python#publishing-to-package-registries
+
 name: "Deploy metric-config-parser"
 
 on:
@@ -7,6 +10,9 @@ on:
     paths:
       - 'lib/metric-config-parser/*.yaml'
 
+permissions:
+  contents: read
+
 jobs:
   changed:
     uses: ./.github/workflows/changed-files.yml
@@ -14,40 +20,69 @@ jobs:
       path_filter: |
         lib/metric-config-parser/*.yaml
 
-  deploy-metric-config-parser:
+  check-version-change:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.10
     needs: changed
+    outputs:
+      proceed: ${{ steps.version_change.outputs.proceed }}
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        path: ~/project
-    - name: Check for package version change in last commit before proceeding.
+      uses: actions/checkout@v4    
+    - id: version_change
+      name: Check for package version change in last commit before proceeding.
       working-directory: ~/project/lib/metric-config-parser
       run: |
         if git diff main HEAD~1 pyproject.toml | grep 'version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
+            echo "proceed=true" >> "GITHUB_OUTPUT"
           else
             echo "No changes in package version. Skipping metric-config-parser deployment."
-            circleci-agent step halt
+            echo "proceed=false" >> "GITHUB_OUTPUT"
         fi
+
+  build-metric-config-parser:
+    runs-on: ubuntu-latest
+    needs: check-version-change
+    if: needs.check-version-change.outputs.proceed == 'true'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: ~/project
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
     - name: Install deployment tools
       working-directory: ~/project/lib/metric-config-parser
       run: |
-        pip install --upgrade build setuptools wheel twine
+        python -m pip install --upgrade pip build setuptools wheel
     - name: Create the distribution files
       working-directory: ~/project/lib/metric-config-parser
       run: |
         python3.10 -m build --sdist
-    - name: Upload to PyPI
+    - name: Upload distribution
       working-directory: ~/project/lib/metric-config-parser
-      run: |
-        # Relies on the TWINE_USERNAME and TWINE_PASSWORD environment variables configured at:
-        #   https://circleci.com/gh/mozilla/metric-config-parser/edit#env-vars
-        # For more on twine, see:
-        #   https://twine.readthedocs.io/en/latest/
-        twine upload --skip-existing dist/*
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-dist
+        path: dist/
+
+  deploy-metric-config-parser:
+    runs-on: ubuntu-latest
+    needs: build-metric-config-parser
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+    steps:
+    - name: Retrieve release distribution
+      uses: actions/download-artifact@v4
+      with:
+        name: release-dist
+        path: dist/
+    - name: Publish to PyPi
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
