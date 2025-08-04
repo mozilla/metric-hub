@@ -1,9 +1,14 @@
 [metrics.serp_impressions]
 friendly_name = "no-op serp impressions"
-select_expression = 'SUM(0)'
-data_source = "noop_source"
+description = "zeroing out serp impressions to prevent timeouts with outcome metric"
+select_expression = "SUM(0)"
+data_source = "noop_ds"
 
-[data_sources.noop_source]
+[metrics.serp_impressions.statistics.bootstrap_mean]
+
+[data_sources]
+
+[data_sources.noop_ds]
 from_expression = """(
     SELECT
         '1234' AS client_id,
@@ -11,4 +16,5 @@ from_expression = """(
         DATE('2022-01-01') AS submission_date
 )"""
 experiments_column_type = "none"
+friendly_name = "No-Op"
 description = "No-op that creates the required columns"
