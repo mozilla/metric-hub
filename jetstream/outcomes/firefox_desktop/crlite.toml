@@ -71,7 +71,7 @@ denominator = "revocation_check_counter"
 [metrics.crlite_revoked_in_filter]
 data_source = "metrics"
 select_expression = """
-        COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.cert_verifier_crlite_status, 'revoked_in_filter')), 1)
+        COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.cert_verifier_crlite_status, 'revoked_in_filter')), 0)
 """
 friendly_name = "CRLite filter hits"
 description = "Number of revoked certificates detected by the CRLite filter."
