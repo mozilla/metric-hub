@@ -32,6 +32,7 @@ jobs:
       id: google_auth
       with:
         workload_identity_provider: projects/${{ vars.GCPV2_WORKLOAD_IDENTITY_POOL_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+        service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
         token_format: id_token
     - name: Rerun jetstream
       run: |

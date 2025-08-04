@@ -59,7 +59,7 @@ jobs:
     - name: Install deployment tools
       working-directory: ~/project/lib/metric-config-parser
       run: |
-        python -m pip install --upgrade pip build setuptools wheel
+        python3 -m pip install --upgrade pip build setuptools wheel
     - name: Create the distribution files
       working-directory: ~/project/lib/metric-config-parser
       run: |

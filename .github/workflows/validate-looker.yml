@@ -22,21 +22,27 @@ jobs:
 
   validate-looker:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.10
     needs: changed
+    permissions:
+      id-token: write
+      content: read
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
     - name: Build
       run: |
         python3 -m pip install -r ./script/requirements.txt
     - name: Authenticate to GCP
-      run: |
-        export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
-        echo 'export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"' >> "$BASH_ENV"
-        echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
     - name: Validate Looker config files
       run: |
         echo "Run validation on changed files: "
