@@ -1,5 +1,15 @@
-friendly_name = "SERP Metrics"
-description = "Metrics for SERP interactions derived from Glean SERP events"
+[metrics.serp_impressions]
+friendly_name = "no-op serp impressions"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
 
-[metrics.serp_impressions.statistics.bootstrap_mean]
-[metrics.serp_impressions.statistics.deciles]
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
