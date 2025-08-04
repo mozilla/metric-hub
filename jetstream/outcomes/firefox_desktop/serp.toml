@@ -1,5 +1,5 @@
 friendly_name = "DO NOT USE - SERP Metrics"
-description = "Metrics for SERP interactions derived from Glean SERP events - this outcome has been deprecated, do not use"
+description = "Metrics for SERP interactions derived from Glean SERP events - this outcome has been deprecated, do not use!"
 
 [metrics.serp_impressions]
 friendly_name = "no-op serp impressions"
