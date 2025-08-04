@@ -37,6 +37,7 @@ jobs:
     - name: Build
       run: |
         python3 -m pip install -r .script/requirements.txt
+        python3 -m pip install lib/metric-config-parser
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       with:
