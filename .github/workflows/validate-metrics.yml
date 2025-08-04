@@ -25,6 +25,7 @@ jobs:
     needs: changed
     permissions:
       id-token: write
+      contents: read
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout

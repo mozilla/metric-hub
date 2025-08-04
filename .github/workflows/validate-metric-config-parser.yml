@@ -23,6 +23,8 @@ jobs:
   build-metric-config-parser:
     runs-on: ubuntu-latest
     needs: changed
+    permissions:
+      contents: read
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Changed Files tests
@@ -69,6 +71,8 @@ jobs:
   integration-metric-config-parser:
     runs-on: ubuntu-latest
     needs: changed
+    permissions:
+      contents: read
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
