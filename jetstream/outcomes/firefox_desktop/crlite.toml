@@ -92,3 +92,12 @@ type = "scalar"
 
 [metrics.crlite_revoked_in_stash.statistics.sum]
 [metrics.crlite_revoked_in_stash.statistics.count]
+
+
+[metrics.testing]
+data_source = "test_ds_deleteme"
+select_expressions = "SUM(0)"
+
+[data_sources.test_ds_deleteme]
+from_expression = "SELECT 'test' AS thing"
+experiments_column_type = "none"
