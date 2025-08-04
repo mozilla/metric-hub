@@ -65,11 +65,10 @@ jobs:
       run: |
         python3.10 -m build --sdist
     - name: Upload distribution
-      working-directory: ~/project/lib/metric-config-parser
       uses: actions/upload-artifact@v4
       with:
         name: release-dist
-        path: dist/
+        path: ~/project/lib/metric-config-parser/dist
 
   deploy-metric-config-parser:
     runs-on: ubuntu-latest
