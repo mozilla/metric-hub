@@ -16,7 +16,7 @@ black==25.1.0
     # via pytest-black
 cattrs==25.1.1
     # via mozilla-metric-config-parser
-certifi==2025.7.14
+certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.2
     # via requests
