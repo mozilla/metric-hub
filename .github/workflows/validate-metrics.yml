@@ -22,8 +22,7 @@ jobs:
 
   checkout-and-auth:
     uses: ./.github/workflows/checkout-and-auth.yml
-    with:
-      service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
+    secrets: inherit
 
   validate-metrics:
     runs-on: ubuntu-latest
