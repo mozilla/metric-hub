@@ -23,7 +23,7 @@ jobs:
   checkout-and-auth:
     uses: ./.github/workflows/checkout-and-auth.yml
     with:
-      token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+      service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
 
   validate-metrics:
     runs-on: ubuntu-latest

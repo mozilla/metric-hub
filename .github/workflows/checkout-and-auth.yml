@@ -9,6 +9,9 @@ on:
         description: 'ID Token Audience'
         required: false
         default: 'https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun'
+    secrets:
+      service_account:
+        required: true
     outputs:
       id_token:
         description: 'ID Token'
@@ -38,7 +41,7 @@ jobs:
       id: auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
-        service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
+        service_account: ${{ secrets.service_account }}
         token_format: id_token
         id_token_audience: ${{ inputs.token_audience }}
         id_token_include_email: true

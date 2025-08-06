@@ -22,6 +22,8 @@ jobs:
 
   checkout-and-auth:
     uses: ./.github/workflows/checkout-and-auth.yml
+    with:
+      service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
 
   validate-looker:
     runs-on: ubuntu-latest
