@@ -33,6 +33,7 @@ jobs:
         cache: 'pip'
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
+      id: auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
