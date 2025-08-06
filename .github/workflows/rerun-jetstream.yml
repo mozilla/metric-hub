@@ -38,6 +38,7 @@ jobs:
     - name: Rerun jetstream
       run: |
         changed_files=${{ needs.changed.outputs.all_changed_files }}
+        # Token is available in '${{ steps.google_auth.outputs.id_token }}'
 
         # determine slugs of configs that got changed; filter out outcomes and defaults
         params=""

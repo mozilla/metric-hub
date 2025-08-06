@@ -52,6 +52,8 @@ jobs:
         service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
         token_format: id_token
         id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+    - name: Export ID Token for Python
+      run: echo "GOOGLE_GHA_ID_TOKEN=${{ steps.auth.outputs.id_token }}" >> $GITHUB_ENV
     - name: Validate Looker config files
       run: |
         echo "Run validation on changed files: "
