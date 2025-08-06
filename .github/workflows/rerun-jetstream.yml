@@ -31,9 +31,10 @@ jobs:
       uses: 'google-github-actions/auth@v2'
       id: google_auth
       with:
-        workload_identity_provider: projects/${{ vars.GCPV2_WORKLOAD_IDENTITY_POOL_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+        workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
-        token_format: 'id_token'
+        token_format: id_token
+        id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
     - name: Rerun jetstream
       run: |
         changed_files=${{ needs.changed.outputs.all_changed_files }}
