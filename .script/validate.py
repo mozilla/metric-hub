@@ -87,7 +87,6 @@ def dry_run_query(sql: str) -> None:
         # look for token created by the GitHub Actions workflow
         id_token = os.environ.get("GOOGLE_GHA_ID_TOKEN")
         if not id_token:
-            print("id_token not found in env var, refreshing auth...")
             auth_req = GoogleAuthRequest()
             creds, _ = google.auth.default(
                 scopes=["https://www.googleapis.com/auth/cloud-platform"]
@@ -164,7 +163,6 @@ def _is_sql_valid(sql):
             print(f"{i + 1: 4d} {line.rstrip()}")
         print("")
         print(str(e))
-        logger.exception(e)
         return False
     return True
 
