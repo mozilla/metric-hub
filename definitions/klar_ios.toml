@@ -37,7 +37,7 @@ data_source = "mobile_search_clients_engines_sources_daily"
 friendly_name = "Ad Clicks"
 description = """
     Counts clicks on ads on search engine result pages with a Mozilla
-    partner tag. 
+    partner tag.
 """
 category = "search"
 type = "scalar"
