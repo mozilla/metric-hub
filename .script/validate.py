@@ -163,6 +163,7 @@ def _is_sql_valid(sql):
             print(f"{i + 1: 4d} {line.rstrip()}")
         print("")
         print(str(e))
+        logger.exception(e)
         return False
     return True
 
