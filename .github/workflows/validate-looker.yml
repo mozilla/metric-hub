@@ -1,0 +1,62 @@
+name: "Validate Looker"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'looker/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'looker/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        looker/**.toml
+        looker/**.toml.example
+
+  validate-looker:
+    runs-on: ubuntu-latest
+    needs: changed
+    permissions:
+      id-token: write
+      contents: read
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+    - name: Build
+      run: |
+        python3 -m pip install -r .script/requirements.txt
+        python3 -m pip install lib/metric-config-parser
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      id: auth
+      with:
+        workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_DRYRUN_SERVICE_ACCOUNT_EMAIL }}
+        token_format: id_token
+        id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+        id_token_include_email: true
+    - name: Export ID Token for Python
+      run: echo "GOOGLE_GHA_ID_TOKEN=${{ steps.auth.outputs.id_token }}" >> $GITHUB_ENV
+    - name: Validate Looker config files
+      run: |
+        echo "Run validation on changed files: "
+        echo ${{ needs.changed.outputs.all_changed_files }}
+        python3 .script/validate.py --config_repos='.' --config_repos=looker/ ${{ needs.changed.outputs.all_changed_files }}
+
+
+

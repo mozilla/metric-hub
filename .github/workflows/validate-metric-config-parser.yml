@@ -1,0 +1,95 @@
+name: "Validate metric-config-parser"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lib/metric-config-parser/**'
+  push:
+    branches:
+      - main
+      - gh-actions-migration
+    paths:
+      - 'lib/metric-config-parser/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        lib/metric-config-parser/**
+
+  build-metric-config-parser:
+    runs-on: ubuntu-latest
+    needs: changed
+    permissions:
+      contents: read
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+    - name: Changed Files tests
+      run: echo ${{ needs.changed.outputs.any_changed }} && echo ${{ needs.changed.outputs.all_changed_files }}
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: ~/project
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+    - name: restore_cache
+      uses: actions/cache@v3
+      with:
+        key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+        path: venv/
+        # when lock files change, use increasingly general patterns to restore cache
+        restore-keys: |-
+          python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+          python-packages-v1-{{ .Branch }}-
+          python-packages-v1-
+    - name: Build
+      working-directory: ~/project/lib/metric-config-parser
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - name: PyTest
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+    - name: flake8
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/flake8 metric_config_parser
+    - name: isort
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/isort --check metric_config_parser
+    - name: Mypy
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/mypy metric_config_parser
+
+  integration-metric-config-parser:
+    runs-on: ubuntu-latest
+    needs: changed
+    permissions:
+      contents: read
+    if: needs.changed.outputs.any_changed == 'true'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: ~/project
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+    - name: Build
+      working-directory: ~/project/lib/metric-config-parser
+      run: |
+        python3.10 -m venv venv/
+        venv/bin/python -m pip install --upgrade pip
+        venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - name: PyTest Integration Test
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/pytest --black metric_config_parser/tests/integration/

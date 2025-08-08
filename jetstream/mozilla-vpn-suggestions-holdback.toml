@@ -1,0 +1,63 @@
+[experiment]
+enrollment_period = 7
+
+[experiment.exposure_signal]
+name = "exposed_session"
+friendly_name = "Exposed"
+description = "The set of clients that would have seen VPN"
+select_expression = "product_result_type = 'rust_vpn'"
+data_source =  "urlbar_events_daily_engagement_by_product_result_type_v1"
+window_end = "analysis_window_end"
+
+[metrics]
+weekly = ["vpn_impressions", "search_suggestion_impressions", 
+"vpn_clicks", "search_suggestion_clicks", "vpn_ctr",  
+"search_suggestion_ctr"]
+overall = ["vpn_impressions", "search_suggestion_impressions",
+"vpn_clicks", "search_suggestion_clicks", "vpn_ctr", 
+"search_suggestion_ctr"]
+
+## Impressions
+[metrics.vpn_impressions]
+select_expression = "SUM(IF(product_result_type = 'rust_vpn', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.vpn_impressions.statistics.bootstrap_mean]
+
+
+[metrics.search_suggestion_impressions]
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.search_suggestion_impressions.statistics.bootstrap_mean]
+
+[metrics.urlbar_impressions_suggest.statistics.bootstrap_mean]
+
+## Clicks
+[metrics.vpn_clicks]
+select_expression = "SUM(IF(product_result_type = 'rust_vpn', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.vpn_clicks.statistics.bootstrap_mean]
+
+[metrics.search_suggestion_clicks]
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.search_suggestion_clicks.statistics.bootstrap_mean]
+
+## CTR
+[metrics.vpn_ctr]
+depends_on = ["vpn_clicks", "vpn_impressions"]
+friendly_name = "VPN CTR"
+description = "Proportion of urlbar sessions where suggestion from VPN, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.vpn_ctr.statistics.population_ratio]
+numerator = "vpn_clicks"
+denominator = "vpn_impressions"
+
+
+[metrics.search_suggestion_ctr]
+depends_on = ["search_suggestion_clicks", "search_suggestion_impressions"]
+friendly_name = "Search Suggestion CTR"
+description = "Proportion of urlbar sessions where suggestion from the default search engine was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.search_suggestion_ctr.statistics.population_ratio]
+numerator = "search_suggestion_clicks"
+denominator = "search_suggestion_impressions"
