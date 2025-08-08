@@ -94,8 +94,8 @@ class TestMonitoringSpec:
         )
         spec = MonitoringSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiment=None, configs=config_collection)
-        test = [p for p in cfg.metrics if p.metric.name == "test"][0]
-        test2 = [p for p in cfg.metrics if p.metric.name == "test2"][0]
+        test = next(p for p in cfg.metrics if p.metric.name == "test")
+        test2 = next(p for p in cfg.metrics if p.metric.name == "test2")
         assert test.metric.data_source.name == "eggs"
         assert "camelot" in test.metric.data_source.from_expression
         assert test2.metric.data_source.name == "silly_knight"
@@ -156,8 +156,8 @@ class TestMonitoringSpec:
         cfg = spec.resolve(experiment=None, configs=config_collection)
 
         assert cfg.project.name == "foo"
-        test = [p for p in cfg.metrics if p.metric.name == "test"][0]
-        test2 = [p for p in cfg.metrics if p.metric.name == "test2"][0]
+        test = next(p for p in cfg.metrics if p.metric.name == "test")
+        test2 = next(p for p in cfg.metrics if p.metric.name == "test2")
         assert test.metric.select_expression == "SELECT 'd'"
         assert test.metric.data_source.name == "foo"
         assert test.metric.data_source.from_expression == "bar"
@@ -195,7 +195,7 @@ class TestMonitoringSpec:
         cfg = spec.resolve(experiment=None, configs=config_collection)
 
         assert cfg.project.name == "foo"
-        test = [p for p in cfg.metrics if p.metric.name == "test"][0]
+        test = next(p for p in cfg.metrics if p.metric.name == "test")
         assert test.metric.select_expression == "SELECT 1"
         assert test.metric.data_source.name == "foo"
         assert test.metric.type == "histogram"
@@ -243,7 +243,7 @@ class TestMonitoringSpec:
 
         cfg = spec.resolve(experiment=None, configs=config_collection)
 
-        test = [p for p in cfg.metrics if p.metric.name == "test"][0]
+        test = next(p for p in cfg.metrics if p.metric.name == "test")
         assert test.metric.data_source.name == "foo"
         assert test.metric.data_source.from_expression == "foo"
 
@@ -268,8 +268,6 @@ class TestMonitoringSpec:
             """
         )
 
-        with pytest.raises(ValueError) as e:
-            spec = MonitoringSpec.from_dict(toml.loads(config_str))
+        spec = MonitoringSpec.from_dict(toml.loads(config_str))
+        with pytest.raises(ValueError, match="No definition for metric test2."):
             spec.resolve(experiment=None, configs=config_collection)
-
-        assert "No definition for metric test2." in str(e)

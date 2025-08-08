@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Any, Dict, Mapping, Optional, Union
+from collections.abc import Mapping
+from typing import Any
 
 import attr
 
@@ -16,11 +17,11 @@ class ParameterDefinition:
     """
 
     name: str  # implicit in configuration
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
-    value: Optional[Union[str, Dict[str, str]]] = None
-    distinct_by_branch: Optional[bool] = False
-    default: Optional[Union[str, Dict[str, Any]]] = None
+    friendly_name: str | None = None
+    description: str | None = None
+    value: str | dict[str, str] | None = None
+    distinct_by_branch: bool | None = False
+    default: str | dict[str, Any] | None = None
 
     def validate(self) -> "ParameterDefinition":
         """
@@ -70,7 +71,7 @@ class ParameterSpec:
     Object for holding definitions of all parameters.
     """
 
-    definitions: Dict[str, ParameterDefinition] = attr.Factory(dict)
+    definitions: dict[str, ParameterDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "ParameterSpec":
@@ -81,13 +82,13 @@ class ParameterSpec:
 
         """
 
-        params: Dict[str, Any] = {"definitions": defaultdict()}
+        params: dict[str, Any] = {"definitions": defaultdict()}
 
         for param_name, param_config in d.items():
             params["definitions"][param_name] = converter.structure(
                 {
                     "name": param_name,
-                    **dict((kk.lower(), vv) for kk, vv in param_config.items()),
+                    **{kk.lower(): vv for kk, vv in param_config.items()},
                 },
                 ParameterDefinition,
             )

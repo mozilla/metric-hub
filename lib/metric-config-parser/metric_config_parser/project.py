@@ -1,19 +1,19 @@
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 
-if TYPE_CHECKING:
-    from metric_config_parser.config import ConfigCollection
-    from metric_config_parser.monitoring import MonitoringSpec
-
 from metric_config_parser.alert import AlertReference
-from metric_config_parser.experiment import Experiment
 from metric_config_parser.metric import MetricReference
 from metric_config_parser.metric_group import MetricGroup, MetricGroupsSpec
 from metric_config_parser.population import PopulationConfiguration, PopulationSpec
 from metric_config_parser.util import converter, parse_date
+
+if TYPE_CHECKING:
+    from metric_config_parser.config import ConfigCollection
+    from metric_config_parser.experiment import Experiment
+    from metric_config_parser.monitoring import MonitoringSpec
 
 
 class MonitoringPeriod(enum.Enum):
@@ -33,16 +33,16 @@ class ProjectConfiguration:
 
     reference_branch: str = "control"
     app_name: str = "firefox_desktop"
-    name: Optional[str] = None
+    name: str | None = None
     xaxis: MonitoringPeriod = attr.ib(default=MonitoringPeriod.DAY)
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     population: PopulationConfiguration = attr.Factory(PopulationConfiguration)
     compact_visualization: bool = False
     skip_default_metrics: bool = False
     skip: bool = False
     is_rollout: bool = False
-    metric_groups: List[MetricGroup] = attr.Factory(list)
+    metric_groups: list[MetricGroup] = attr.Factory(list)
 
 
 def _validate_yyyy_mm_dd(instance: Any, attribute: Any, value: Any) -> None:
@@ -53,14 +53,14 @@ def _validate_yyyy_mm_dd(instance: Any, attribute: Any, value: Any) -> None:
 class ProjectSpec:
     """Describes the interface for defining the project."""
 
-    name: Optional[str] = None
-    platform: Optional[str] = None
-    xaxis: Optional[MonitoringPeriod] = None
-    start_date: Optional[str] = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
-    end_date: Optional[str] = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
-    metrics: List[MetricReference] = attr.Factory(list)
-    alerts: List[AlertReference] = attr.Factory(list)
-    reference_branch: Optional[str] = None
+    name: str | None = None
+    platform: str | None = None
+    xaxis: MonitoringPeriod | None = None
+    start_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
+    end_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
+    metrics: list[MetricReference] = attr.Factory(list)
+    alerts: list[AlertReference] = attr.Factory(list)
+    reference_branch: str | None = None
     population: PopulationSpec = attr.Factory(PopulationSpec)
     compact_visualization: bool = False
     skip_default_metrics: bool = False
@@ -71,7 +71,7 @@ class ProjectSpec:
     @classmethod
     def from_dict(cls, d: dict) -> "ProjectSpec":
         """Create a new `ProjectSpec` from a dictionary."""
-        d = dict((k.lower(), v) for k, v in d.items())
+        d = {k.lower(): v for k, v in d.items()}
         return converter.structure(d, cls)
 
     def resolve(

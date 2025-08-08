@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -18,8 +18,8 @@ class Dimension:
     name: str
     data_source: DataSource
     select_expression: str
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    friendly_name: str | None = None
+    description: str | None = None
 
 
 @attr.s(auto_attribs=True)
@@ -29,8 +29,8 @@ class DimensionDefinition:
     name: str  # implicit in configuration
     select_expression: str
     data_source: DataSourceReference
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    friendly_name: str | None = None
+    description: str | None = None
 
     def resolve(
         self,
@@ -57,12 +57,12 @@ class DimensionDefinition:
 class DimensionsSpec:
     """Describes the interface for defining custom dimensions."""
 
-    definitions: Dict[str, DimensionDefinition] = attr.Factory(dict)
+    definitions: dict[str, DimensionDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "DimensionsSpec":
         """Create a `DimensionsSpec` from a dictionary."""
-        d = dict((k.lower(), v) for k, v in d.items())
+        d = {k.lower(): v for k, v in d.items()}
 
         definitions = {
             k: converter.structure({"name": k, **v}, DimensionDefinition) for k, v in d.items()

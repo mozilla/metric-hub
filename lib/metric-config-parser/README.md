@@ -11,12 +11,12 @@ This package parses configuration files that are compatible with [jetstream](htt
 
 ### Pytest
 ```
-pytest --black --ignore=metric_config_parser/tests/integration/
+pytest --ruff --ignore=metric_config_parser/tests/integration/
 ```
 
 ### Linting and formatting
 ```
-flake8 metric_config_parser
-isort --check metric_config_parser
+ruff check metric_config_parser
+ruff format --check metric_config_parser
 mypy metric_config_parser
 ```

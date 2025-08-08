@@ -1,16 +1,16 @@
 import enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 
+from metric_config_parser.metric import MetricReference, Summary
+from metric_config_parser.monitoring import MonitoringSpec
+from metric_config_parser.util import converter
+
 if TYPE_CHECKING:
     from metric_config_parser.config import ConfigCollection
-    from metric_config_parser.monitoring import MonitoringSpec
     from metric_config_parser.definition import DefinitionSpecSub
     from metric_config_parser.project import ProjectConfiguration
-
-from metric_config_parser.metric import MetricReference, Summary
-from metric_config_parser.util import converter
 
 
 # todo: probably should just be a string
@@ -33,15 +33,15 @@ class Alert:
 
     name: str
     type: AlertType
-    metrics: List[Summary]
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
-    parameters: Optional[List[Any]] = []
-    min: Optional[List[int]] = None
-    max: Optional[List[int]] = None
-    window_size: Optional[int] = None
-    max_relative_change: Optional[float] = None
-    statistics: Optional[List[str]] = None
+    metrics: list[Summary]
+    friendly_name: str | None = None
+    description: str | None = None
+    parameters: list[Any] | None = attr.Factory(list)
+    min: list[int] | None = None
+    max: list[int] | None = None
+    window_size: int | None = None
+    max_relative_change: float | None = None
+    statistics: list[str] | None = None
 
 
 @attr.s(auto_attribs=True)
@@ -75,15 +75,15 @@ class AlertDefinition:
 
     name: str  # implicit in configuration
     type: AlertType
-    metrics: List[MetricReference]
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
-    parameters: Optional[List[Any]] = None
-    min: Optional[List[int]] = None
-    max: Optional[List[int]] = None
-    window_size: Optional[int] = None
-    max_relative_change: Optional[float] = None
-    statistics: Optional[List[str]] = None
+    metrics: list[MetricReference]
+    friendly_name: str | None = None
+    description: str | None = None
+    parameters: list[Any] | None = None
+    min: list[int] | None = None
+    max: list[int] | None = None
+    window_size: int | None = None
+    max_relative_change: float | None = None
+    statistics: list[str] | None = None
 
     def __attrs_post_init__(self):
         """Validate that the right parameters have been set depending on the alert type."""
@@ -115,7 +115,7 @@ class AlertDefinition:
         for field in none_fields:
             if getattr(self, field) is not None:
                 raise ValueError(
-                    f"For alert of type {str(self.type)}, the parameter {field} must not be set"
+                    f"For alert of type {self.type!s}, the parameter {field} must not be set"
                 )
 
     def resolve(
@@ -152,12 +152,12 @@ class AlertDefinition:
 class AlertsSpec:
     """Describes the interface for defining custom alerts."""
 
-    definitions: Dict[str, AlertDefinition] = attr.Factory(dict)
+    definitions: dict[str, AlertDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "AlertsSpec":
         """Create a `AlertsSpec` from a dictionary."""
-        d = dict((k.lower(), v) for k, v in d.items())
+        d = {k.lower(): v for k, v in d.items()}
 
         definitions = {
             k: converter.structure({"name": k, **v}, AlertDefinition) for k, v in d.items()

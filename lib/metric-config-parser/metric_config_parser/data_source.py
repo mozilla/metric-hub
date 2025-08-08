@@ -1,7 +1,7 @@
 import fnmatch
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import attr
 
@@ -9,10 +9,11 @@ from metric_config_parser.errors import DefinitionNotFound
 
 if TYPE_CHECKING:
     from metric_config_parser.config import ConfigCollection
-    from .experiment import ExperimentConfiguration
-    from .definition import DefinitionSpecSub
-    from .project import ProjectConfiguration
+
     from .config import DefinitionConfig
+    from .definition import DefinitionSpecSub
+    from .experiment import ExperimentConfiguration
+    from .project import ProjectConfiguration
 
 from . import AnalysisUnit
 from .util import converter, is_valid_slug
@@ -42,8 +43,8 @@ class DataSourceJoinRelationship(Enum):
 @attr.s(auto_attribs=True)
 class DataSourceJoin:
     data_source: "DataSource"
-    relationship: Optional[DataSourceJoinRelationship]
-    on_expression: Optional[str]
+    relationship: DataSourceJoinRelationship | None
+    on_expression: str | None
 
 
 @attr.s(frozen=True, slots=True)
@@ -112,13 +113,13 @@ class DataSource:
     experiments_column_type = attr.ib(default="simple", type=str)
     client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
-    default_dataset = attr.ib(default=None, type=Optional[str])
+    default_dataset = attr.ib(default=None, type=str | None)
     build_id_column = attr.ib(default="SAFE.SUBSTR(application.build_id, 0, 8)", type=str)
     friendly_name = attr.ib(default=None, type=str)
     description = attr.ib(default=None, type=str)
-    joins = attr.ib(default=None, type=List[DataSourceJoin])
+    joins = attr.ib(default=None, type=list[DataSourceJoin])
     columns_as_dimensions = attr.ib(default=False, type=bool)
-    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=List[AnalysisUnit])
+    analysis_units = attr.ib(default=[AnalysisUnit.CLIENT], type=list[AnalysisUnit])
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
     glean_client_id_column = attr.ib(default=None, type=str)
     legacy_client_id_column = attr.ib(default=None, type=str)
@@ -129,15 +130,15 @@ class DataSource:
     def _check_experiments_column_type(self, attribute, value):
         if value not in self.EXPERIMENT_COLUMN_TYPES:
             raise ValueError(
-                f"experiments_column_type {repr(value)} must be one of: "
-                f"{repr(self.EXPERIMENT_COLUMN_TYPES)}"
+                f"experiments_column_type {value!r} must be one of: "
+                f"{self.EXPERIMENT_COLUMN_TYPES!r}"
             )
 
     @default_dataset.validator
     def _check_default_dataset_provided_if_needed(self, attribute, value):
         self.from_expr_for(None)
 
-    def from_expr_for(self, dataset: Optional[str]) -> str:
+    def from_expr_for(self, dataset: str | None) -> str:
         """Expands the ``from_expression`` template for the given dataset.
         If ``from_expression`` is not a template, returns ``from_expression``.
         Args:
@@ -186,20 +187,20 @@ class DataSourceDefinition:
     """Describes the interface for defining a data source in configuration."""
 
     name: str  # implicit in configuration
-    from_expression: Optional[str] = None
-    experiments_column_type: Optional[str] = None
-    client_id_column: Optional[str] = None
-    submission_date_column: Optional[str] = None
-    default_dataset: Optional[str] = None
-    build_id_column: Optional[str] = None
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
-    joins: Optional[Dict[str, Dict[str, Any]]] = None
-    columns_as_dimensions: Optional[bool] = None
-    analysis_units: Optional[list[AnalysisUnit]] = None
-    group_id_column: Optional[str] = None
-    glean_client_id_column: Optional[str] = None
-    legacy_client_id_column: Optional[str] = None
+    from_expression: str | None = None
+    experiments_column_type: str | None = None
+    client_id_column: str | None = None
+    submission_date_column: str | None = None
+    default_dataset: str | None = None
+    build_id_column: str | None = None
+    friendly_name: str | None = None
+    description: str | None = None
+    joins: dict[str, dict[str, Any]] | None = None
+    columns_as_dimensions: bool | None = None
+    analysis_units: list[AnalysisUnit] | None = None
+    group_id_column: str | None = None
+    glean_client_id_column: str | None = None
+    legacy_client_id_column: str | None = None
 
     def resolve(
         self,
@@ -231,7 +232,7 @@ class DataSourceDefinition:
         if app_name == "firefox_desktop":
             default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
 
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "name": self.name,
             "from_expression": self.from_expression,
         }
@@ -288,9 +289,8 @@ class DataSourceDefinition:
         for key in attr.fields_dict(type(self)):
             if key != "name":
                 setattr(self, key, getattr(other, key) or getattr(self, key))
-            if key == "joins":
-                if getattr(other, key) is not None:
-                    setattr(self, key, getattr(other, key))
+            if key == "joins" and getattr(other, key) is not None:
+                setattr(self, key, getattr(other, key))
 
 
 @attr.s(auto_attribs=True)
@@ -301,13 +301,13 @@ class DataSourcesSpec:
     because it's just a container for the definitions, and we don't need it after the spec phase.
     """
 
-    definitions: Dict[str, DataSourceDefinition] = attr.Factory(dict)
+    definitions: dict[str, DataSourceDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "DataSourcesSpec":
         definitions = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                {"name": k, **{kk.lower(): vv for kk, vv in v.items()}},
                 DataSourceDefinition,
             )
             for k, v in d.items()

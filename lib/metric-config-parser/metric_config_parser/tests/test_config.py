@@ -1,4 +1,5 @@
 import datetime
+import re
 import shutil
 from pathlib import Path
 from textwrap import dedent
@@ -6,7 +7,9 @@ from textwrap import dedent
 import pytest
 import pytz
 import toml
+from cattrs.errors import ClassValidationError
 from git import Repo
+from git.exc import InvalidGitRepositoryError
 
 from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
@@ -354,16 +357,22 @@ class TestConfigIntegration:
         assert len(config_collection_1.configs) == 1
         assert config_collection_1.configs[0].slug == "cool_experiment"
 
-        assert [
-            m
-            for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
-            if slug == "active_hours"
-        ][0].select_expression == "4"
-        assert [
-            m
-            for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
-            if slug == "unenroll"
-        ][0].select_expression == "3"
+        assert (
+            next(
+                m
+                for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
+                if slug == "active_hours"
+            ).select_expression
+            == "4"
+        )
+        assert (
+            next(
+                m
+                for slug, m in config_collection_1.definitions[0].spec.metrics.definitions.items()
+                if slug == "unenroll"
+            ).select_expression
+            == "3"
+        )
 
     def test_config_collection_from_subdir(self, local_tmp_repo):
         config_collection = ConfigCollection.from_github_repo(
@@ -386,7 +395,7 @@ class TestConfigIntegration:
     def test_config_from_subdir_too_deep(self, local_tmp_repo):
         nested_path = Path(local_tmp_repo) / "metrics" / "jetstream"
 
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidGitRepositoryError):
             ConfigCollection.from_github_repo(nested_path, depth=1)
 
     def test_as_of_broken_commit(self, tmp_path):
@@ -418,10 +427,14 @@ class TestConfigIntegration:
         r.git.add(".")
         r.git.commit("-m", "commit", "--date", "Mon 20 Aug 2020 20:19:19 UTC")
 
-        with pytest.raises(Exception):
+        with pytest.raises(
+            AttributeError, match=re.escape("'list' object has no attribute 'items'")
+        ):
             ConfigCollection.from_github_repo(tmp_path / "jetstream")
 
-        with pytest.raises(Exception):
+        with pytest.raises(
+            AttributeError, match=re.escape("'list' object has no attribute 'items'")
+        ):
             ConfigCollection.from_github_repo(tmp_path / "jetstream").as_of(
                 pytz.UTC.localize(datetime.datetime(2023, 5, 21))
             )
@@ -500,7 +513,7 @@ class TestConfigIntegration:
             """
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(ClassValidationError):
             DefinitionConfig(
                 slug="firefox_desktop",
                 platform="firefox_desktop",
@@ -564,13 +577,13 @@ class TestConfigIntegration:
         ]
 
     @pytest.mark.parametrize(
-        "metric_units,ds_units",
-        (
+        ("metric_units", "ds_units"),
+        [
             ("analysis_units = 'client_id'", ""),
             ("analysis_units = ['invalid']", ""),
             ("", "analysis_units = 'client_id'"),
             ("", "analysis_units = ['invalid']"),
-        ),
+        ],
     )
     def test_invalid_analysis_units(self, metric_units, ds_units):
         config_str = dedent(
@@ -586,7 +599,7 @@ class TestConfigIntegration:
             {ds_units}
             """
         )
-        with pytest.raises(Exception):
+        with pytest.raises(ClassValidationError):
             DefinitionConfig(
                 slug="firefox_desktop",
                 platform="firefox_desktop",
@@ -660,7 +673,9 @@ class TestConfigIntegration:
             configs=[], outcomes=[], defaults=[], definitions=[definition]
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(
+            AttributeError, match=re.escape("'NoneType' object has no attribute 'app_name'")
+        ):
             config_collection.get_data_source_definition("baseline", "firefox_desktop").resolve(
                 definition.spec, None, config_collection
             )
@@ -692,7 +707,7 @@ class TestConfigIntegration:
             configs=[], outcomes=[], defaults=[], definitions=[definition]
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(RecursionError, match="maximum recursion depth exceeded"):
             config_collection.get_data_source_definition("baseline", "firefox_desktop").resolve(
                 definition.spec, None, config_collection
             )
@@ -707,7 +722,12 @@ class TestConfigIntegration:
             """
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Invalid group name 'baseline_*'. Try quoting it. (line 2 column 1 char 1)"
+            ),
+        ):
             DefinitionConfig(
                 slug="firefox_desktop",
                 platform="firefox_desktop",
@@ -763,9 +783,10 @@ class TestConfigIntegration:
             configs=[], outcomes=[], defaults=[], definitions=[definition]
         )
 
-        config_collection_1.get_metric_definition(
-            "test_metric", "firefox_desktop"
-        ).data_source is None
+        assert (
+            config_collection_1.get_metric_definition("test_metric", "firefox_desktop").data_source
+            is None
+        )
         assert (
             config_collection_1.get_data_source_definition(
                 "baseline", "firefox_desktop"

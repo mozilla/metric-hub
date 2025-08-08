@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 from textwrap import dedent
 
 import pytest
@@ -60,7 +61,12 @@ class TestOutcomes:
             """
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Default metric MetricReference(name='spam') is not defined in outcome."
+            ),
+        ):
             OutcomeSpec.from_dict(toml.loads(config_str))
 
     def test_resolving_outcomes(self, experiments, config_collection):
@@ -127,11 +133,7 @@ class TestOutcomes:
         assert "my_cool_metric" in weekly_metrics
 
         outcome_metric = next(
-            (
-                m.metric
-                for m in cfg.metrics[AnalysisPeriod.WEEK]
-                if m.metric.name == "sample_id_count"
-            )
+            m.metric for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "sample_id_count"
         )
         assert outcome_metric.select_expression == "COUNTIF(sample_id = 123)"
 
@@ -179,11 +181,7 @@ class TestOutcomes:
         assert "my_cool_metric" in weekly_metrics
 
         outcome_metric = next(
-            (
-                m.metric
-                for m in cfg.metrics[AnalysisPeriod.WEEK]
-                if m.metric.name == "sample_id_count"
-            )
+            m.metric for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "sample_id_count"
         )
         assert outcome_metric.select_expression == (
             """COUNTIF(sample_id = CASE e.branch """
@@ -225,11 +223,7 @@ class TestOutcomes:
         assert "my_cool_metric" in weekly_metrics
 
         outcome_metric = next(
-            (
-                m.metric
-                for m in cfg.metrics[AnalysisPeriod.WEEK]
-                if m.metric.name == "sample_id_count"
-            )
+            m.metric for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "sample_id_count"
         )
         assert outcome_metric.select_expression == "COUNTIF(sample_id = 700)"
 
@@ -281,11 +275,7 @@ class TestOutcomes:
         assert "my_cool_metric" in weekly_metrics
 
         outcome_metric = next(
-            (
-                m.metric
-                for m in cfg.metrics[AnalysisPeriod.WEEK]
-                if m.metric.name == "sample_id_count"
-            )
+            m.metric for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "sample_id_count"
         )
         assert outcome_metric.select_expression == (
             """COUNTIF(sample_id = CASE e.branch """
@@ -343,5 +333,7 @@ class TestOutcomes:
             app_name="fenix",
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=re.escape("Outcome performance doesn't support the platform 'fenix'")
+        ):
             spec.resolve(experiment, config_collection)

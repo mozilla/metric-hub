@@ -1,3 +1,4 @@
+import re
 from textwrap import dedent
 
 import pytest
@@ -34,7 +35,12 @@ class TestProjectSpec:
 
         spec = MonitoringSpec.from_dict(toml.loads(config_str))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "DimensionReference(name='os') not listed as dimension, but used for grouping"
+            ),
+        ):
             spec.resolve(experiment=None, configs=config_collection)
 
     def test_bad_project_dates(self):

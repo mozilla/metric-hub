@@ -1,12 +1,12 @@
 import enum
 from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Type, Union
+from typing import TYPE_CHECKING, Any
 
 import attr
 
 if TYPE_CHECKING:
-    from .config import ConfigCollection
     from .analysis import AnalysisSpec
+    from .config import ConfigCollection
     from .experiment import ExperimentConfiguration
 
 from .data_source import DataSource, DataSourceReference
@@ -25,10 +25,10 @@ class AnalysisWindow(enum.Enum):
     ENROLLMENT_END = "enrollment_end"
 
 
-WindowLimit = Union[int, AnalysisWindow, None]
+WindowLimit = int | AnalysisWindow | None
 
 
-def structure_window_limit(value: Any, _klass: Type) -> WindowLimit:
+def structure_window_limit(value: Any, _klass: type) -> WindowLimit:
     try:
         return AnalysisWindow(value)
     except Exception:

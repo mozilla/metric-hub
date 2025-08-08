@@ -50,9 +50,9 @@ class TestAnalysisSpec:
         )
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "my_cool_metric"][
-            0
-        ].metric
+        metric = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "my_cool_metric"
+        ).metric
         assert "agg_histogram_mean" not in metric.select_expression
         assert "hist.extract" in metric.select_expression
 
@@ -123,10 +123,10 @@ class TestAnalysisSpec:
         )
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        spam = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
-        taunts = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "taunts"][
-            0
-        ].metric
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+        taunts = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "taunts"
+        ).metric
         assert spam.data_source.name == "eggs"
         assert "camelot" in spam.data_source.from_expression
         assert "client_info" in spam.data_source.client_id_column
@@ -148,9 +148,9 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         spec.merge(default_spec)
         cfg = spec.resolve(experiments[0], config_collection)
-        stock = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
-            0
-        ].metric
+        stock = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"
+        ).metric
 
         config_str = dedent(
             """
@@ -165,9 +165,9 @@ class TestAnalysisSpec:
         )
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        custom = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
-            0
-        ].metric
+        custom = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"
+        ).metric
 
         assert stock != custom
         assert custom.select_expression == "spam"
@@ -190,9 +190,9 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        bootstrap_mean = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
-            0
-        ].statistic
+        bootstrap_mean = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).statistic
         bootstrap_mean.name = "bootstrap_mean"
 
         assert bootstrap_mean.params["num_samples"] == 10
@@ -212,9 +212,9 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         default_spec.merge(spec)
         cfg = default_spec.resolve(experiments[0], config_collection)
-        bootstrap_mean = [
+        bootstrap_mean = next(
             m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"
-        ][0].statistic
+        ).statistic
         bootstrap_mean.name = "deciles"
 
         assert bootstrap_mean.params["num_samples"] == 10
@@ -237,9 +237,9 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        pre_treatments = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
-            0
-        ].pre_treatments
+        pre_treatments = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).pre_treatments
 
         assert len(pre_treatments) == 1
         assert pre_treatments[0].name == "remove_nulls"
@@ -296,9 +296,9 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(custom_conf))
         cfg = spec.resolve(experiments[5], config_collection)
 
-        meals_eaten = [
+        meals_eaten = next(
             m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "meals_eaten"
-        ][0]
+        )
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 2
         assert meals_eaten.metric.name == "meals_eaten"
@@ -342,7 +342,7 @@ class TestAnalysisSpec:
         spec.merge(AnalysisSpec.from_dict(toml.loads(custom_conf)))
         cfg = spec.resolve(experiments[0], config_collection)
 
-        spam = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0]
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam")
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 1
         assert spam.metric.data_source.name == "main"
@@ -372,7 +372,7 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
+        metric = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
 
         assert AnalysisBasis.EXPOSURES in metric.analysis_bases
         assert AnalysisBasis.ENROLLMENTS not in metric.analysis_bases
@@ -394,7 +394,7 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
+        metric = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
 
         assert AnalysisBasis.EXPOSURES in metric.analysis_bases
         assert AnalysisBasis.ENROLLMENTS in metric.analysis_bases
@@ -415,9 +415,9 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
-            0
-        ].metric
+        metric = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"
+        ).metric
 
         assert AnalysisBasis.EXPOSURES in metric.analysis_bases
         assert cfg.experiment.exposure_signal is None
@@ -502,7 +502,7 @@ class TestAnalysisSpec:
             """
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(ClassValidationError):
             AnalysisSpec.from_dict(toml.loads(config_str))
 
     def test_merge_parameters(self):
@@ -537,8 +537,8 @@ class TestAnalysisSpec:
         assert not spec.parameters.definitions["param"].distinct_by_branch
 
     @pytest.mark.parametrize(
-        "input,expected",
-        (
+        ("input", "expected"),
+        [
             (
                 [
                     ParameterDefinition(name="test", value="1"),
@@ -567,7 +567,7 @@ class TestAnalysisSpec:
                 ],
                 ParameterDefinition(name="test", friendly_name="friendly", value="2", default="10"),
             ),
-        ),
+        ],
     )
     def test__merge_param(self, input, expected):
         param_definition_1, param_definition_2 = input
@@ -576,7 +576,7 @@ class TestAnalysisSpec:
 
     @pytest.mark.parametrize(
         "input",
-        (
+        [
             (
                 [
                     ParameterDefinition(name="test"),
@@ -602,7 +602,7 @@ class TestAnalysisSpec:
                     ParameterDefinition(name="test"),
                 ]
             ),
-        ),
+        ],
     )
     def test__merge_param_raises(self, input):
         param_definition_1, param_definition_2 = input
@@ -640,9 +640,9 @@ class TestAnalysisSpec:
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 3
 
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam_ham"][
-            0
-        ].metric
+        metric = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam_ham"
+        ).metric
         assert metric.select_expression is None
         assert metric.data_source is None
         assert len(metric.depends_on) == 2
@@ -669,9 +669,9 @@ class TestAnalysisSpec:
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 3
 
-        metric = [
+        metric = next(
             m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "combined_metric"
-        ][0].metric
+        ).metric
         assert metric.select_expression is None
         assert metric.data_source is None
         assert len(metric.depends_on) == 2
@@ -767,7 +767,7 @@ class TestAnalysisSpec:
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 3
 
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "wham"][0].metric
+        metric = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "wham").metric
         assert metric.select_expression is None
         assert metric.data_source is None
         assert len(metric.depends_on) == 1
@@ -789,9 +789,9 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
 
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"][
-            0
-        ].metric
+        metric = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "active_hours"
+        ).metric
         assert metric.analysis_units == [AnalysisUnit.CLIENT, AnalysisUnit.PROFILE_GROUP]
 
         data_source = metric.data_source
@@ -815,9 +815,9 @@ class TestAnalysisSpec:
         spec = AnalysisSpec.from_dict(toml.loads(custom_conf))
         cfg = spec.resolve(experiments[0], config_collection)
 
-        spam = [
+        spam = next(
             m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "test_active_hours"
-        ][0]
+        )
 
         assert len(cfg.metrics[AnalysisPeriod.WEEK]) == 1
         assert spam.metric.data_source.name == "test_main"
@@ -825,8 +825,8 @@ class TestAnalysisSpec:
         assert spam.metric.analysis_units == [AnalysisUnit.PROFILE_GROUP]
 
     @pytest.mark.parametrize(
-        "metric_units, ds_units",
-        (
+        ("metric_units", "ds_units"),
+        [
             (
                 "analysis_units = ['profile_group_id']",
                 "analysis_units = ['profile_group_id']",
@@ -847,7 +847,7 @@ class TestAnalysisSpec:
                 "analysis_units = ['client_id', 'profile_group_id']",
                 "analysis_units = ['profile_group_id', 'client_id']",
             ),
-        ),
+        ],
     )
     def test_valid_analysis_units_combinations(
         self, metric_units, ds_units, experiments, config_collection
@@ -873,15 +873,15 @@ class TestAnalysisSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        metric = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][0].metric
+        metric = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
         assert metric.analysis_units is not None
         assert metric.data_source.analysis_units is not None
         for unit in metric.analysis_units:
             assert unit in metric.data_source.analysis_units
 
     @pytest.mark.parametrize(
-        "metric_units,ds_units",
-        (
+        ("metric_units", "ds_units"),
+        [
             ("analysis_units = ['client_id']", "analysis_units = ['profile_group_id']"),
             (
                 "analysis_units = ['client_id', 'profile_group_id']",
@@ -892,7 +892,7 @@ class TestAnalysisSpec:
                 "analysis_units = ['client_id', 'profile_group_id']",
                 "analysis_units = ['client_id']",
             ),
-        ),
+        ],
     )
     def test_invalid_analysis_units_combinations(
         self, metric_units, ds_units, experiments, config_collection
