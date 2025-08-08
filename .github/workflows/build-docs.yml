@@ -14,8 +14,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ssh-key: "95:33:49:57:f9:11:81:75:a4:46:74:19:c6:89:f4:1c"
     - name: Setup python
       uses: actions/setup-python@v5
       with:
