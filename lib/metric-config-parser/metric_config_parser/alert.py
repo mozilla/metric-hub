@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 import attr
 
 from metric_config_parser.metric import MetricReference, Summary
-from metric_config_parser.monitoring import MonitoringSpec
 from metric_config_parser.util import converter
 
 if TYPE_CHECKING:
@@ -56,14 +55,19 @@ class AlertReference:
         conf: "ProjectConfiguration",
         configs: "ConfigCollection",
     ) -> Alert:
-        """Return the `Alert` that this is referencing."""
-        if isinstance(spec, MonitoringSpec):
-            if self.name not in spec.alerts.definitions:
-                raise ValueError(f"Alert {self.name} has not been defined.")
+        """This function was invalid and so has been removed for the time being.
+        Use `AlertDefinition` instead.
 
-            return spec.alerts.definitions[self.name].resolve(spec, conf, configs)
-        else:
-            raise ValueError(f"Alerts cannot be defined as part of {spec}")
+        Return the `Alert` that this is referencing.
+        """
+        # if isinstance(spec, MonitoringSpec):
+        #     if self.name not in spec.alerts.definitions:
+        #         raise ValueError(f"Alert {self.name} has not been defined.")
+
+        #     return spec.alerts.definitions[self.name].resolve(spec, conf, configs)
+        # else:
+        #     raise ValueError(f"Alerts cannot be defined as part of {spec}")
+        raise NotImplementedError
 
 
 converter.register_structure_hook(AlertReference, lambda obj, _type: AlertReference(name=obj))
