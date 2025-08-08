@@ -134,17 +134,17 @@ jobs:
           venv/bin/python -m pip install --upgrade pip
           venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - run:
-        name: PyTest
-        command: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+        name: ruff
+        command: venv/bin/ruff check metric_config_parser
     - run:
-        name: flake8
-        command: venv/bin/flake8 metric_config_parser
-    - run:
-        name: isort
-        command: venv/bin/isort --check metric_config_parser
+        name: ruff format
+        command: venv/bin/ruff format --check metric_config_parser
     - run:
         name: Mypy
         command: venv/bin/mypy metric_config_parser
+    - run:
+        name: PyTest
+        command: venv/bin/pytest --ruff --ignore=metric_config_parser/tests/integration/
     - save_cache:
         paths:
         - venv/
@@ -158,7 +158,7 @@ jobs:
     - run:
         name: PyTest Integration Test
         command: |
-          venv/bin/pytest --black metric_config_parser/tests/integration/
+          venv/bin/pytest --ruff metric_config_parser/tests/integration/
   build-docs:
     docker:
       - image: python:3.10

@@ -92,4 +92,4 @@ jobs:
         venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - name: PyTest Integration Test
       working-directory: ~/project/lib/metric-config-parser
-      run: venv/bin/pytest --black metric_config_parser/tests/integration/
+      run: venv/bin/pytest --ruff metric_config_parser/tests/integration/
