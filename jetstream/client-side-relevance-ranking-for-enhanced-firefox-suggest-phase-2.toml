@@ -1,0 +1,110 @@
+[experiment]
+enrollment_period = 7
+
+[metrics]
+weekly = ["merino_wikipedia_impressions", "rust_adm_nonsponsored_impressions", "merino_adm_sponsored_impressions", "search_suggestion_impressions", 
+"merino_wikipedia_clicks", "rust_adm_nonsponsored_clicks", "merino_adm_sponsored_clicks", "search_suggestion_clicks", "merino_wikipedia_ctr", "rust_adm_nonsponsored_ctr", "merino_adm_sponsored_ctr", 
+"search_suggestion_ctr"]
+overall = ["merino_wikipedia_impressions", "rust_adm_nonsponsored_impressions", "merino_adm_sponsored_impressions", "search_suggestion_impressions", 
+"merino_wikipedia_clicks", "rust_adm_nonsponsored_clicks", "merino_adm_sponsored_clicks", "search_suggestion_clicks", "merino_wikipedia_ctr", "rust_adm_nonsponsored_ctr", "merino_adm_sponsored_ctr", 
+"search_suggestion_ctr"]
+
+## Impressions
+[metrics.merino_wikipedia_impressions]
+select_expression = "SUM(IF(product_result_type = 'merino_wikipedia', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.merino_wikipedia_impressions.statistics.bootstrap_mean]
+
+[metrics.rust_adm_nonsponsored_impressions]
+select_expression = "SUM(IF(product_result_type = 'rust_adm_nonsponsored', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.rust_adm_nonsponsored_impressions.statistics.bootstrap_mean]
+
+[metrics.merino_adm_sponsored_impressions]
+select_expression = "SUM(IF(product_result_type = 'merino_adm_sponsored', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.merino_adm_sponsored_impressions.statistics.bootstrap_mean]
+
+[metrics.rust_adm_sponsored_impressions]
+select_expression = "SUM(IF(product_result_type = 'rust_adm_sponsored', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.rust_adm_sponsored_impressions.statistics.bootstrap_mean]
+
+[metrics.search_suggestion_impressions]
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.search_suggestion_impressions.statistics.bootstrap_mean]
+
+[metrics.urlbar_impressions_suggest.statistics.bootstrap_mean]
+
+## Clicks
+[metrics.merino_wikipedia_clicks]
+select_expression = "SUM(IF(product_result_type = 'merino_wikipedia', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.merino_wikipedia_clicks.statistics.bootstrap_mean]
+
+[metrics.rust_adm_nonsponsored_clicks]
+select_expression = "SUM(IF(product_result_type = 'rust_adm_nonsponsored', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.rust_adm_nonsponsored_clicks.statistics.bootstrap_mean]
+
+[metrics.merino_adm_sponsored_clicks]
+select_expression = "SUM(IF(product_result_type = 'merino_adm_sponsored', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.merino_adm_sponsored_clicks.statistics.bootstrap_mean]
+
+[metrics.rust_adm_sponsored_clicks]
+select_expression = "SUM(IF(product_result_type = 'rust_adm_sponsored', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.rust_adm_sponsored_clicks.statistics.bootstrap_mean]
+
+[metrics.search_suggestion_clicks]
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.search_suggestion_clicks.statistics.bootstrap_mean]
+
+## CTR
+[metrics.merino_wikipedia_ctr]
+depends_on = ["merino_wikipedia_clicks", "merino_wikipedia_impressions"]
+friendly_name = "merino_wikipedia CTR"
+description = "Proportion of urlbar sessions where suggestion from the user's browsing merino_wikipedia was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.merino_wikipedia_ctr.statistics.population_ratio]
+numerator = "merino_wikipedia_clicks"
+denominator = "merino_wikipedia_impressions"
+
+[metrics.rust_adm_nonsponsored_ctr]
+depends_on = ["rust_adm_nonsponsored_clicks", "rust_adm_nonsponsored_impressions"]
+friendly_name = "rust_adm_nonsponsored CTR"
+description = "Proportion of urlbar sessions where suggestion from the user's rust_adm_nonsponsoreds was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.rust_adm_nonsponsored_ctr.statistics.population_ratio]
+numerator = "rust_adm_nonsponsored_clicks"
+denominator = "rust_adm_nonsponsored_impressions"
+
+[metrics.merino_adm_sponsored_ctr]
+depends_on = ["merino_adm_sponsored_clicks", "merino_adm_sponsored_impressions"]
+friendly_name = "merino_adm_sponsored CTR"
+description = "Proportion of urlbar sessions where suggestion from the user's merino_adm_sponsoreds was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.merino_adm_sponsored_ctr.statistics.population_ratio]
+numerator = "merino_adm_sponsored_clicks"
+denominator = "merino_adm_sponsored_impressions"
+
+[metrics.rust_adm_sponsored_ctr]
+depends_on = ["rust_adm_sponsored_clicks", "rust_adm_sponsored_impressions"]
+friendly_name = "rust_adm_sponsored CTR"
+description = "Proportion of urlbar sessions where suggestion from the user's rust_adm_sponsoreds was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.rust_adm_sponsored_ctr.statistics.population_ratio]
+numerator = "rust_adm_sponsored_clicks"
+denominator = "rust_adm_sponsored_impressions"
+
+[metrics.search_suggestion_ctr]
+depends_on = ["search_suggestion_clicks", "search_suggestion_impressions"]
+friendly_name = "Search Suggestion CTR"
+description = "Proportion of urlbar sessions where suggestion from the default search engine was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.search_suggestion_ctr.statistics.population_ratio]
+numerator = "search_suggestion_clicks"
+denominator = "search_suggestion_impressions"
