@@ -20,8 +20,8 @@ jobs:
         cache: 'pip'
     - name: Build docs
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r .script/requirements.txt
+        python3 -m pip install -r .script/requirements.txt
+        python3 -m pip install lib/metric-config-parser
         python .script/generate_docs.py \
           --output_dir=generated_docs/
     - name: Upload docs artifacts
