@@ -280,6 +280,14 @@ jobs:
             # For more on twine, see:
             #   https://twine.readthedocs.io/en/latest/
             twine upload --skip-existing dist/*
+  nothing-to-do:
+    executor: metric-config-parser-executor
+    steps:
+      - run:
+          name: Placeholder job to prevent CircleCI error about no workflows to run.
+          command: |
+            echo "Does nothing, see https://github.com/CircleCI-Public/circleci-cli/issues/577"
+
 workflows:
   version: 2
   validate-metrics:
@@ -333,3 +341,6 @@ workflows:
           filters:
             branches:
               only: main
+  nothing-to-do:
+    jobs:
+      - nothing-to-do
