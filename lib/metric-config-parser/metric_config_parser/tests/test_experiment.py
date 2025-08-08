@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 from pathlib import Path
 from textwrap import dedent
 
@@ -55,7 +56,7 @@ class TestExperimentSpec:
             """
         )
         spec = AnalysisSpec.from_dict(toml.loads(conf))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Not a valid enrollment_query"):
             spec.resolve(experiments[0], config_collection)
 
     def test_control_branch(self, experiments, config_collection):
@@ -146,8 +147,8 @@ class TestExperimentSpec:
         assert "2020-03-01" in segment.data_source.from_expression
 
         # Fails when `end_date=None`.
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
         with pytest.raises(NoEndDateException):
-            spec = AnalysisSpec.from_dict(toml.loads(conf))
             configured = spec.resolve(experiments[8], config_collection)
 
         # Succeeds when `end_date=None` but it's not referenced; note
@@ -191,9 +192,9 @@ class TestExperimentSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        pre_treatments = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
-            0
-        ].pre_treatments
+        pre_treatments = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).pre_treatments
 
         assert len(pre_treatments) == 3
         assert pre_treatments[0].name == "remove_nulls"
@@ -222,16 +223,16 @@ class TestExperimentSpec:
 
         spec = AnalysisSpec.from_dict(toml.loads(config_str))
         cfg = spec.resolve(experiments[0], config_collection)
-        pre_treatments = [m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"][
-            0
-        ].pre_treatments
+        pre_treatments = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).pre_treatments
 
         assert len(pre_treatments) == 1
         assert pre_treatments[0].name == "remove_nulls"
 
-        overall_pre_treatments = [
+        overall_pre_treatments = next(
             m for m in cfg.metrics[AnalysisPeriod.OVERALL] if m.metric.name == "spam"
-        ][0].pre_treatments
+        ).pre_treatments
 
         assert len(overall_pre_treatments) == 1
         assert overall_pre_treatments[0].name == "remove_nulls"
@@ -379,7 +380,7 @@ class TestExperimentConf:
             """
         )
         spec = AnalysisSpec.from_dict(toml.loads(conf))
-        live_experiment = [x for x in experiments if x.status == "Live"][0]
+        live_experiment = next(x for x in experiments if x.status == "Live")
         cfg = spec.resolve(live_experiment, config_collection)
         assert cfg.experiment.end_date == dt.datetime(2020, 12, 31, tzinfo=pytz.utc)
         assert cfg.experiment.status == "Complete"
@@ -474,9 +475,7 @@ class TestExperimentConf:
         assert cfg.experiment.randomization_unit is None
         assert cfg.experiment.analysis_unit == AnalysisUnit.CLIENT
 
-    @pytest.mark.parametrize(
-        "randomization_unit", [ru for ru in RandomizationUnit.__members__.values()]
-    )
+    @pytest.mark.parametrize("randomization_unit", list(RandomizationUnit.__members__.values()))
     def test_analysis_unit_configured(self, config_collection, randomization_unit):
         conf = dedent(
             """
@@ -545,10 +544,11 @@ class TestExperimentConf:
         )
         spec = AnalysisSpec.from_dict(toml.loads(conf))
         cfg = spec.resolve(exp, config_collection)
-        with pytest.raises(ValueError):
-            cfg.experiment.randomization_unit
-        with pytest.raises(ValueError):
-            cfg.experiment.analysis_unit
+        error_msg = " is not a valid RandomizationUnit"
+        with pytest.raises(ValueError, match=re.escape(error_msg)):
+            _r = cfg.experiment.randomization_unit
+        with pytest.raises(ValueError, match=re.escape(error_msg)):
+            _a = cfg.experiment.analysis_unit
 
 
 class TestDefaultConfiguration:

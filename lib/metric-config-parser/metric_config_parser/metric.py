@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 from enum import Enum
 from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import attr
 import jinja2
@@ -15,8 +15,8 @@ from metric_config_parser.errors import DefinitionNotFound
 if TYPE_CHECKING:
     from .analysis import AnalysisSpec
     from .config import ConfigCollection
-    from .experiment import ExperimentConfiguration
     from .definition import DefinitionSpecSub
+    from .experiment import ExperimentConfiguration
     from .project import ProjectConfiguration
 
 from . import AnalysisUnit
@@ -72,7 +72,7 @@ class Summary:
 
     metric: "Metric"
     statistic: "Statistic"
-    pre_treatments: List[PreTreatmentReference] = attr.Factory(list)
+    pre_treatments: list[PreTreatmentReference] = attr.Factory(list)
 
 
 @attr.s(auto_attribs=True, frozen=True, slots=True)
@@ -85,23 +85,25 @@ class Metric:
     """
 
     name: str
-    data_source: Optional[DataSource]
-    select_expression: Optional[str]
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    data_source: DataSource | None
+    select_expression: str | None
+    friendly_name: str | None = None
+    description: str | None = None
     bigger_is_better: bool = True
-    analysis_bases: List[AnalysisBasis] = [
-        AnalysisBasis.ENROLLMENTS,
-        AnalysisBasis.EXPOSURES,
-    ]
+    analysis_bases: list[AnalysisBasis] = attr.field(
+        default=[
+            AnalysisBasis.ENROLLMENTS,
+            AnalysisBasis.EXPOSURES,
+        ]
+    )
     type: str = "scalar"
-    category: Optional[str] = None
-    depends_on: Optional[List[Summary]] = None
-    owner: Optional[List[str]] = None
+    category: str | None = None
+    depends_on: list[Summary] | None = None
+    owner: list[str] | None = None
     deprecated: bool = False
-    level: Optional[MetricLevel] = None
+    level: MetricLevel | None = None
     # Default to client for most apps, client+group for desktop (set elsewhere)
-    analysis_units: List[AnalysisUnit] = [AnalysisUnit.CLIENT]
+    analysis_units: list[AnalysisUnit] = attr.field(default=[AnalysisUnit.CLIENT])
 
 
 @attr.s(auto_attribs=True)
@@ -113,7 +115,7 @@ class MetricReference:
         spec: "AnalysisSpec",
         conf: Union["ExperimentConfiguration", "ProjectConfiguration"],
         configs: "ConfigCollection",
-    ) -> List[Summary]:
+    ) -> list[Summary]:
         if self.name in spec.metrics.definitions:
             return spec.metrics.definitions[self.name].resolve(spec, conf, configs)
 
@@ -127,7 +129,7 @@ class MetricReference:
 # These are bare strings in the configuration file.
 converter.register_structure_hook(MetricReference, lambda obj, _type: MetricReference(name=obj))
 
-converter.register_structure_hook(Union[str, List[str], None], lambda obj, _type: obj)
+converter.register_structure_hook(str | list[str] | None, lambda obj, _type: obj)
 
 
 @attr.s(auto_attribs=True)
@@ -140,25 +142,25 @@ class MetricDefinition:
     """
 
     name: str  # implicit in configuration
-    statistics: Optional[Dict[str, Dict[str, Any]]] = None
-    select_expression: Optional[str] = None
-    data_source: Optional[DataSourceReference] = None
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    statistics: dict[str, dict[str, Any]] | None = None
+    select_expression: str | None = None
+    data_source: DataSourceReference | None = None
+    friendly_name: str | None = None
+    description: str | None = None
     bigger_is_better: bool = True
-    analysis_bases: Optional[List[AnalysisBasis]] = None
-    type: Optional[str] = None
-    category: Optional[str] = None
-    depends_on: Optional[List[MetricReference]] = None
-    owner: Optional[Union[str, List[str]]] = None
+    analysis_bases: list[AnalysisBasis] | None = None
+    type: str | None = None
+    category: str | None = None
+    depends_on: list[MetricReference] | None = None
+    owner: str | list[str] | None = None
     deprecated: bool = False
-    level: Optional[MetricLevel] = None
-    analysis_units: Optional[List[AnalysisUnit]] = None
+    level: MetricLevel | None = None
+    analysis_units: list[AnalysisUnit] | None = None
 
     @staticmethod
     def generate_select_expression(
-        param_definitions: Dict[str, ParameterDefinition],
-        select_expr_template: Union[str, jinja2.nodes.Template],
+        param_definitions: dict[str, ParameterDefinition],
+        select_expr_template: str | jinja2.nodes.Template,
         configs: "ConfigCollection",
     ) -> str:
         """
@@ -168,7 +170,7 @@ class MetricDefinition:
         if "parameters" not in str(select_expr_template):
             return configs.get_env().from_string(select_expr_template).render()
 
-        formatted_params: Dict[str, Any] = defaultdict()
+        formatted_params: dict[str, Any] = defaultdict()
 
         for param_name, param_definition in param_definitions.items():
             if param_definition.distinct_by_branch and isinstance(param_definition.value, dict):
@@ -196,7 +198,7 @@ class MetricDefinition:
         spec: "DefinitionSpecSub",
         conf: Union["ExperimentConfiguration", "ProjectConfiguration"],
         configs: "ConfigCollection",
-    ) -> List[Summary]:
+    ) -> list[Summary]:
         metric_summary = None
         metric = None
         upstream_metrics = None
@@ -368,37 +370,34 @@ class MetricDefinition:
             setattr(self, key, getattr(other, key) or getattr(self, key))
 
 
-MetricsConfigurationType = Dict[AnalysisPeriod, List[Summary]]
+MetricsConfigurationType = dict[AnalysisPeriod, list[Summary]]
 
 
 @attr.s(auto_attribs=True)
 class MetricsSpec:
     """Describes the interface for the metrics section in configuration."""
 
-    daily: List[MetricReference] = attr.Factory(list)
-    weekly: List[MetricReference] = attr.Factory(list)
-    days28: List[MetricReference] = attr.Factory(list)
-    overall: List[MetricReference] = attr.Factory(list)
-    preenrollment_weekly: List[MetricReference] = attr.Factory(list)
-    preenrollment_days28: List[MetricReference] = attr.Factory(list)
-    definitions: Dict[str, MetricDefinition] = attr.Factory(dict)
+    daily: list[MetricReference] = attr.Factory(list)
+    weekly: list[MetricReference] = attr.Factory(list)
+    days28: list[MetricReference] = attr.Factory(list)
+    overall: list[MetricReference] = attr.Factory(list)
+    preenrollment_weekly: list[MetricReference] = attr.Factory(list)
+    preenrollment_days28: list[MetricReference] = attr.Factory(list)
+    definitions: dict[str, MetricDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "MetricsSpec":
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         known_keys = {f.name for f in attr.fields(cls)}
         for k in known_keys:
-            if k == "days28":
-                v = d.get("28_day", [])
-            else:
-                v = d.get(k, [])
+            v = d.get("28_day", []) if k == "days28" else d.get(k, [])
             if not isinstance(v, list):
                 raise ValueError(f"metrics.{k} should be a list of metrics")
             params[k] = [MetricReference(m) for m in v]
 
         params["definitions"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                {"name": k, **{kk.lower(): vv for kk, vv in v.items()}},
                 MetricDefinition,
             )
             for k, v in d.items()

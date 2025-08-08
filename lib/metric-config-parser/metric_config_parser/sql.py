@@ -1,11 +1,10 @@
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
-
-from .metric import MetricDefinition
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .config import ConfigCollection
+    from .metric import MetricDefinition
 
 FILE_PATH = Path(os.path.dirname(__file__))
 METRICS_QUERY = FILE_PATH / "templates" / "metrics_query.sql"
@@ -15,15 +14,17 @@ DATA_SOURCE_MACROS = FILE_PATH / "templates" / "data_source_macros.j2"
 
 def generate_metrics_sql(
     config_collection: "ConfigCollection",
-    metrics: List[str],
+    metrics: list[str],
     platform: str,
-    group_by: Union[List[str], Dict[str, str]] = [],
-    where: Optional[str] = None,
+    group_by: list[str] | dict[str, str] | None = None,
+    where: str | None = None,
     group_by_client_id: bool = True,
     group_by_submission_date: bool = True,
 ) -> str:
     """Generates a SQL query for metrics and specified parameters."""
-    metric_definitions: List[MetricDefinition] = []
+    if group_by is None:
+        group_by = []
+    metric_definitions: list[MetricDefinition] = []
     for slug in metrics:
         definition = config_collection.get_metric_definition(slug, platform)
 
@@ -32,7 +33,7 @@ def generate_metrics_sql(
 
         metric_definitions.append(definition)
 
-    metrics_per_data_source: Dict[str, Any] = {}
+    metrics_per_data_source: dict[str, Any] = {}
     for metric in metric_definitions:
         if metric.select_expression is None:
             raise ValueError(f"No definition for metric {metric.name}")
@@ -104,7 +105,7 @@ def generate_data_source_sql(
     config_collection: "ConfigCollection",
     data_source: str,
     platform: str,
-    where: Optional[str] = None,
+    where: str | None = None,
     select_fields: bool = True,
     ignore_joins: bool = False,
 ) -> str:

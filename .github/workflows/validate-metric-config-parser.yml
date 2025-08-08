@@ -55,18 +55,18 @@ jobs:
         python3.10 -m venv venv/
         venv/bin/python -m pip install --upgrade pip
         venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
-    - name: PyTest
+    - name: Ruff check
       working-directory: ~/project/lib/metric-config-parser
-      run: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
-    - name: flake8
+      run: venv/bin/ruff check metric_config_parser
+    - name: Ruff format
       working-directory: ~/project/lib/metric-config-parser
-      run: venv/bin/flake8 metric_config_parser
-    - name: isort
-      working-directory: ~/project/lib/metric-config-parser
-      run: venv/bin/isort --check metric_config_parser
+      run: venv/bin/ruff format --check metric_config_parser
     - name: Mypy
       working-directory: ~/project/lib/metric-config-parser
       run: venv/bin/mypy metric_config_parser
+    - name: PyTest
+      working-directory: ~/project/lib/metric-config-parser
+      run: venv/bin/pytest --ruff --ignore=metric_config_parser/tests/integration/
 
   integration-metric-config-parser:
     runs-on: ubuntu-latest
@@ -92,4 +92,4 @@ jobs:
         venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - name: PyTest Integration Test
       working-directory: ~/project/lib/metric-config-parser
-      run: venv/bin/pytest --black metric_config_parser/tests/integration/
+      run: venv/bin/pytest --ruff metric_config_parser/tests/integration/

@@ -1,20 +1,21 @@
 import copy
-from typing import TYPE_CHECKING, Any, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
-
-if TYPE_CHECKING:
-    from metric_config_parser.config import ConfigCollection
-    from metric_config_parser.definition import DefinitionSpecSub
 
 from metric_config_parser.alert import Alert, AlertsSpec
 from metric_config_parser.data_source import DataSourcesSpec
 from metric_config_parser.dimension import Dimension, DimensionsSpec
-from metric_config_parser.experiment import Experiment
 from metric_config_parser.metric import MetricsSpec, Summary
 from metric_config_parser.parameter import ParameterSpec
 from metric_config_parser.project import ProjectConfiguration, ProjectSpec
 from metric_config_parser.util import converter
+
+if TYPE_CHECKING:
+    from metric_config_parser.config import ConfigCollection
+    from metric_config_parser.definition import DefinitionSpecSub
+    from metric_config_parser.experiment import Experiment
 
 
 @attr.s(auto_attribs=True)
@@ -26,10 +27,10 @@ class MonitoringConfiguration:
     Instead of instantiating this directly, consider using MonitoringSpec.resolve().
     """
 
-    project: Optional[ProjectConfiguration] = None
-    metrics: List[Summary] = attr.Factory(list)
-    dimensions: List[Dimension] = attr.Factory(list)
-    alerts: List[Alert] = attr.Factory(list)
+    project: ProjectConfiguration | None = None
+    metrics: list[Summary] = attr.Factory(list)
+    dimensions: list[Dimension] = attr.Factory(list)
+    alerts: list[Alert] = attr.Factory(list)
 
 
 @attr.s(auto_attribs=True)
@@ -53,7 +54,7 @@ class MonitoringSpec:
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "MonitoringSpec":
         """Create a `MonitoringSpec` from a dict."""
-        d = dict((k.lower(), v) for k, v in d.items())
+        d = {k.lower(): v for k, v in d.items()}
         return converter.structure(d, cls)
 
     @classmethod
@@ -151,9 +152,9 @@ class MonitoringSpec:
         if other:
             if isinstance(other, MonitoringSpec):
                 self.project.merge(other.project)
-            if isinstance(other, MonitoringSpec) or isinstance(other, DefinitionSpec):
+            if isinstance(other, MonitoringSpec | DefinitionSpec):
                 self.dimensions.merge(other.dimensions)
-            if isinstance(other, MonitoringSpec) or isinstance(other, DefinitionSpec):
+            if isinstance(other, MonitoringSpec | DefinitionSpec):
                 self.alerts.merge(other.alerts)
             self.data_sources.merge(other.data_sources)
             self.metrics.merge(other.metrics)
