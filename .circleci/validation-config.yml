@@ -13,9 +13,6 @@ parameters:
   validate-looker:
     type: boolean
     default: false
-  build-docs:
-    type: boolean
-    default: false
   base-revision:
     type: string
     default: << pipeline.git.base_revision >>
@@ -134,17 +131,17 @@ jobs:
           venv/bin/python -m pip install --upgrade pip
           venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - run:
-        name: PyTest
-        command: venv/bin/pytest --black --ignore=metric_config_parser/tests/integration/
+        name: ruff
+        command: venv/bin/ruff check metric_config_parser
     - run:
-        name: flake8
-        command: venv/bin/flake8 metric_config_parser
-    - run:
-        name: isort
-        command: venv/bin/isort --check metric_config_parser
+        name: ruff format
+        command: venv/bin/ruff format --check metric_config_parser
     - run:
         name: Mypy
         command: venv/bin/mypy metric_config_parser
+    - run:
+        name: PyTest
+        command: venv/bin/pytest --ruff --ignore=metric_config_parser/tests/integration/
     - save_cache:
         paths:
         - venv/
@@ -158,26 +155,7 @@ jobs:
     - run:
         name: PyTest Integration Test
         command: |
-          venv/bin/pytest --black metric_config_parser/tests/integration/
-  build-docs:
-    docker:
-      - image: python:3.10
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints: "95:33:49:57:f9:11:81:75:a4:46:74:19:c6:89:f4:1c"
-      - run:
-          name: Build and deploy docs
-          command: |
-            python3.10 -m venv venv/
-            venv/bin/python -m pip install --upgrade pip
-            venv/bin/pip install -r .script/requirements.txt
-            venv/bin/pip install lib/metric-config-parser
-            venv/bin/python3 .script/generate_docs.py \
-              --output_dir=generated_docs/
-            cd generated_docs/
-            PATH="../venv/bin:$PATH" mkdocs gh-deploy \
-              -m "[ci skip] Deployed {sha} with MkDocs version: {version}"
+          venv/bin/pytest --ruff metric_config_parser/tests/integration/
   rerun-jetstream:
     docker:
     - image: google/cloud-sdk
@@ -352,15 +330,6 @@ workflows:
         - << pipeline.parameters.validate-jetstream >>
     jobs:
       - rerun-jetstream:
-          filters:
-            branches:
-              only: main
-  build-docs:
-    when: 
-      or: 
-        - << pipeline.parameters.build-docs >>
-    jobs:
-      - build-docs:
           filters:
             branches:
               only: main

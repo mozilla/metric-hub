@@ -1,16 +1,17 @@
 import copy
-from typing import TYPE_CHECKING, Any, Mapping, Optional
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Optional
 
 import attr
 
 if TYPE_CHECKING:
     from .config import ConfigCollection
-    from .definition import DefinitionSpecSub, DefinitionSpec
+    from .definition import DefinitionSpec, DefinitionSpecSub
+    from .outcome import OutcomeSpec
 
 from .data_source import DataSourcesSpec
 from .experiment import Experiment, ExperimentConfiguration, ExperimentSpec
 from .metric import MetricReference, MetricsConfigurationType, MetricsSpec
-from .outcome import OutcomeSpec
 from .parameter import ParameterDefinition, ParameterSpec
 from .segment import SegmentsSpec
 from .util import converter
@@ -155,28 +156,21 @@ class AnalysisSpec:
         value = param_1.value or param_2.value or default_value
 
         final_value = (
-            {**(default_value or dict()), **value}
+            {**(default_value or {}), **value}
             if isinstance(value, dict) and isinstance(default_value, dict)
             else value
         )
 
         return ParameterDefinition(
-            **{
-                "name": getattr(param_1, "name", None) or getattr(param_2, "name"),
-                "friendly_name": getattr(param_1, "friendly_name", None)
-                or getattr(param_2, "friendly_name"),
-                "description": getattr(param_1, "description", None) or param_2.description,
-                "value": (
-                    {branch: branch_value for branch, branch_value in final_value.items()}
-                    if isinstance(final_value, dict)
-                    else final_value
-                ),
-                "default": getattr(param_1, "default", None)
-                or default_value
-                or (dict() if isinstance(final_value, dict) else None),
-                "distinct_by_branch": getattr(param_1, "distinct_by_branch", None)
-                or param_2.distinct_by_branch,
-            }
+            name=getattr(param_1, "name", None) or param_2.name,
+            friendly_name=getattr(param_1, "friendly_name", None) or param_2.friendly_name,
+            description=getattr(param_1, "description", None) or param_2.description,
+            value=(dict(final_value.items()) if isinstance(final_value, dict) else final_value),
+            default=getattr(param_1, "default", None)
+            or default_value
+            or ({} if isinstance(final_value, dict) else None),
+            distinct_by_branch=getattr(param_1, "distinct_by_branch", None)
+            or param_2.distinct_by_branch,
         ).validate()
 
     def merge_parameters(self, other: "ParameterSpec") -> None:

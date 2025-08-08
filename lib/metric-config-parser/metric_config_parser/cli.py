@@ -2,8 +2,8 @@
 
 import os
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import click
 

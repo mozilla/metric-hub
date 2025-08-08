@@ -1,40 +1,40 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 import attr
+
+from metric_config_parser.data_source import DataSource, DataSourceReference
+from metric_config_parser.dimension import Dimension, DimensionReference
+from metric_config_parser.experiment import Channel
 
 if TYPE_CHECKING:
     from metric_config_parser.config import ConfigCollection
     from metric_config_parser.monitoring import MonitoringSpec
     from metric_config_parser.project import ProjectConfiguration
 
-from metric_config_parser.data_source import DataSource, DataSourceReference
-from metric_config_parser.dimension import Dimension, DimensionReference
-from metric_config_parser.experiment import Channel
-
 
 @attr.s(auto_attribs=True, kw_only=True)
 class PopulationConfiguration:
     """Describes the interface for defining the client population in configuration."""
 
-    data_source: Optional[DataSource] = None
-    boolean_pref: Optional[str] = None
-    channel: Optional[Channel] = None
-    branches: List[str] = attr.Factory(list)
+    data_source: DataSource | None = None
+    boolean_pref: str | None = None
+    channel: Channel | None = None
+    branches: list[str] = attr.Factory(list)
     monitor_entire_population: bool = False
-    group_by_dimension: Optional[Dimension] = None
+    group_by_dimension: Dimension | None = None
 
 
 @attr.s(auto_attribs=True, kw_only=True)
 class PopulationSpec:
     """Describes the interface for defining the client population."""
 
-    data_source: Optional[DataSourceReference] = None
-    boolean_pref: Optional[str] = None
-    channel: Optional[Channel] = None
-    branches: Optional[List[str]] = None
-    dimensions: List[DimensionReference] = attr.Factory(list)
+    data_source: DataSourceReference | None = None
+    boolean_pref: str | None = None
+    channel: Channel | None = None
+    branches: list[str] | None = None
+    dimensions: list[DimensionReference] = attr.Factory(list)
     monitor_entire_population: bool = False
-    group_by_dimension: Optional[DimensionReference] = None
+    group_by_dimension: DimensionReference | None = None
 
     def resolve(
         self,
@@ -43,11 +43,10 @@ class PopulationSpec:
         configs: "ConfigCollection",
     ) -> PopulationConfiguration:
         """Create a `PopulationConfiguration` from the spec."""
-        if self.group_by_dimension:
-            if self.group_by_dimension not in self.dimensions:
-                raise ValueError(
-                    f"{self.group_by_dimension} not listed as dimension, but used for grouping"
-                )
+        if self.group_by_dimension and self.group_by_dimension not in self.dimensions:
+            raise ValueError(
+                f"{self.group_by_dimension} not listed as dimension, but used for grouping"
+            )
 
         return PopulationConfiguration(
             data_source=(
@@ -60,7 +59,7 @@ class PopulationSpec:
                 self.branches
                 if self.branches is not None
                 else (
-                    [branch for branch in conf.population.branches]
+                    list(conf.population.branches)
                     if conf and self.boolean_pref is None and not conf.is_rollout
                     else []
                 )

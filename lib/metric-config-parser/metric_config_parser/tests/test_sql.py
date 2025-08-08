@@ -84,7 +84,9 @@ def test_generate_query_with_null_client_id(config_collection):
 
 
 def test_no_metric_definition_found(config_collection):
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="No definition for metric doesnt-exist on platform firefox_desktop found."
+    ):
         config_collection.get_metrics_sql(metrics=["doesnt-exist"], platform="firefox_desktop")
 
 
@@ -100,7 +102,7 @@ def test_data_source(config_collection):
 
 
 def test_data_source_not_found(config_collection):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No valid data source definition found for non-existing"):
         config_collection.get_data_source_sql(
             data_source="non-existing", platform="firefox_desktop"
         )

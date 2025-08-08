@@ -1,5 +1,6 @@
+from collections.abc import Callable, Mapping
 from functools import partial
-from typing import Any, Callable, Dict, Mapping, Optional
+from typing import Any
 
 import attr
 
@@ -8,13 +9,13 @@ import attr
 class Function:
     slug: str
     definition: Callable
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    friendly_name: str | None = None
+    description: str | None = None
 
 
 @attr.s(auto_attribs=True)
 class FunctionsSpec:
-    functions: Dict[str, Function]
+    functions: dict[str, Function]
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "FunctionsSpec":
@@ -30,8 +31,8 @@ class FunctionsSpec:
                             definition=fun["definition"],
                         )
                     ),
-                    friendly_name=(fun["friendly_name"] if "friendly_name" in fun else None),
-                    description=fun["description"] if "description" in fun else None,
+                    friendly_name=(fun.get("friendly_name", None)),
+                    description=fun.get("description", None),
                 )
                 for slug, fun in d["functions"].items()
             }
