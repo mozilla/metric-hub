@@ -31,6 +31,7 @@ overall = [
 [metrics.chatbot_onboarding_complete.statistics.binomial]
 [metrics.chatbot_usage.statistics.binomial]
 [metrics.chatbot_frequency.statistics.bootstrap_mean]
+drop_highest = 0.0
 
 [metrics.chatbot_onboarding_start]
 select_expression = "COALESCE(LOGICAL_OR(event_name = 'onboarding_provider_choice_displayed'), FALSE)"
