@@ -1,4 +1,6 @@
 [experiment]
+enrollment_period = 14
+end_date = "2025-09-07"
 
 [metrics]
 
