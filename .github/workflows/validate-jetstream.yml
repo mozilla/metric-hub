@@ -44,6 +44,8 @@ jobs:
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
+        project_id: 'moz-fx-data-experiments'
+        create_credentials_file: true
         # token_format: id_token
         # id_token_audience: https://us-central1-moz-fx-data-experiments.cloudfunctions.net/bigquery-etl-dryrun
         # id_token_include_email: true
