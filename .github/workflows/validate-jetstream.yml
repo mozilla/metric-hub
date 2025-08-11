@@ -25,6 +25,9 @@ jobs:
     container:
       image: gcr.io/moz-fx-data-experiments/jetstream:latest
     needs: changed
+    permissions:
+      contents: read
+      id-token: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
