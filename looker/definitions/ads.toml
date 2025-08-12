@@ -187,7 +187,6 @@ description = "Ratio of ad clicks to ad impressions"
 
 [metrics.ad_metrics_ad_impressions.statistics.sum]
 [metrics.ad_metrics_ad_clicks.statistics.sum]
-[metrics.ad_metrics_ad_reports.statistics.sum]
 [metrics.revenue.statistics.sum]
 [metrics.milli_impressions.statistics.sum]
 [metrics.ads_count.statistics.sum]
