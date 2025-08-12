@@ -20,6 +20,9 @@ jobs:
     container:
       image: google/cloud-sdk
     needs: changed
+    permissions:
+      contents: read
+      id-token: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
