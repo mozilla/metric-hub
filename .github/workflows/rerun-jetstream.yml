@@ -7,6 +7,11 @@ on:
       - gha-rerun-jetstream
     paths:
       - 'jetstream/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'jetstream/**'
 
 jobs:
   changed:
