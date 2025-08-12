@@ -20,7 +20,7 @@ charset-normalizer==3.4.2
     # via requests
 click==8.2.1
     # via mozilla-metric-config-parser
-coverage[toml]==7.10.2
+coverage[toml]==7.10.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
