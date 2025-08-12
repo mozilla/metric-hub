@@ -113,7 +113,7 @@ types-pytz==2025.2.0.20250516
     # via mozilla-metric-config-parser
 types-pyyaml==6.0.12.20250516
     # via mozilla-metric-config-parser
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250809
     # via mozilla-metric-config-parser
 types-setuptools==80.9.0.20250801
     # via mozilla-metric-config-parser
