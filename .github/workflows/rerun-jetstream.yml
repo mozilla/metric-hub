@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-      - gha-rerun-jetstream
+      - gha-rerun-jetstream # delete me
     paths:
       - 'jetstream/**'
-  pull_request:
+  pull_request: # delete me
     branches:
       - main
     paths:
@@ -70,7 +70,7 @@ jobs:
         echo
         # kubectl delete pod -l app=$pod_identifier
         # TODO: deleteme
-        kubectl config get-contexts
+        # kubectl config get-contexts
 
         commit_message=$(git log --format=oneline -n 1 ${{ github.sha }})
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
@@ -94,27 +94,30 @@ jobs:
 
         # running=true
         # TODO: changeme
-        running=false
-        while [ $running = true ]
-        do
-          echo "Wait for jetstream to finish"
-          pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
-          if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
-            running=false
-          fi
-          sleep 10
-        done
+        # running=false
+        # while [ $running = true ]
+        # do
+        #   echo "Wait for jetstream to finish"
+        #   pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
+        #   if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
+        #     running=false
+        #   fi
+        #   sleep 10
+        # done
         # delete pod
         echo "Deleting pod [$pod_identifier]"
         echo
         # kubectl delete pod -l app=$pod_identifier
-        if [ $pod_status = 'Failed' ]; then
-          echo "Error when running jetstream. Check the logs for more information."
-          exit 1
-        elif [ $pod_status = 'Succeeded' ]; then
-          echo "Jetstream successfully completed."
-        else
-          echo "Jetstream completed in unknown status. Please check the logs."
-          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
-          exit 1
-        fi
+        # if [ $pod_status = 'Failed' ]; then
+        #   echo "Error when running jetstream. Check the logs for more information."
+        #   exit 1
+        # elif [ $pod_status = 'Succeeded' ]; then
+        #   echo "Jetstream successfully completed."
+        # else
+        #   echo "Jetstream completed in unknown status. Please check the logs."
+        #   echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+        #   exit 1
+        # fi
+        
+        # TODO: deleteme
+        exit 1
