@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+      - gha-rerun-jetstream # delete me
+    paths:
+      - 'jetstream/**'
+  pull_request: # delete me
+    branches:
+      - main
     paths:
       - 'jetstream/**'
 
@@ -19,6 +25,9 @@ jobs:
     container:
       image: google/cloud-sdk
     needs: changed
+    permissions:
+      contents: read
+      id-token: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
@@ -28,13 +37,22 @@ jobs:
         apt-get install jq -y
         apt-get install uuid-runtime
     - name: Authenticate to GCP
-      uses: 'google-github-actions/auth@v2'
+      uses: google-github-actions/auth@v2
       id: google_auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
-        service_account: ${{ secrets.GCP_INTEGRATION_SERVICE_ACCOUNT_EMAIL }}
+        service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
+        # token_format: id_token
+        # id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+        # id_token_include_email: true
+    - name: Set up gcloud
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        version: '>= 363.0.0'  # min required version for Workload Identity Federation
     - name: Rerun jetstream
+      shell: bash
       run: |
+        gcloud container clusters list --format="value(name)"
         changed_files=${{ needs.changed.outputs.all_changed_files }}
         # Token is available in '${{ steps.google_auth.outputs.id_token }}'
 
@@ -57,10 +75,12 @@ jobs:
         echo "Deleting pod [$pod_identifier]"
         echo
         # kubectl delete pod -l app=$pod_identifier
-        # TODO: deleteme
+        # TODO: deleteme (testing kubectl works)
         kubectl config get-contexts
 
-        commit_message=$(git log --format=oneline -n 1 ${{ github.sha }})
+        commit_message=${{ github.event.head_commit.message }}
+        echo "${{ github.event_name }}"
+        echo "$commit_message"
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"
           echo $changed_files
@@ -82,27 +102,30 @@ jobs:
 
         # running=true
         # TODO: changeme
-        running=false
-        while [ $running = true ]
-        do
-          echo "Wait for jetstream to finish"
-          pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
-          if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
-            running=false
-          fi
-          sleep 10
-        done
+        # running=false
+        # while [ $running = true ]
+        # do
+        #   echo "Wait for jetstream to finish"
+        #   pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
+        #   if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
+        #     running=false
+        #   fi
+        #   sleep 10
+        # done
         # delete pod
         echo "Deleting pod [$pod_identifier]"
         echo
         # kubectl delete pod -l app=$pod_identifier
-        if [ $pod_status = 'Failed' ]; then
-          echo "Error when running jetstream. Check the logs for more information."
-          exit 1
-        elif [ $pod_status = 'Succeeded' ]; then
-          echo "Jetstream successfully completed."
-        else
-          echo "Jetstream completed in unknown status. Please check the logs."
-          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
-          exit 1
-        fi
+        # if [ $pod_status = 'Failed' ]; then
+        #   echo "Error when running jetstream. Check the logs for more information."
+        #   exit 1
+        # elif [ $pod_status = 'Succeeded' ]; then
+        #   echo "Jetstream successfully completed."
+        # else
+        #   echo "Jetstream completed in unknown status. Please check the logs."
+        #   echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+        #   exit 1
+        # fi
+        
+        # TODO: deleteme
+        exit 1
