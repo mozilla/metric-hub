@@ -46,6 +46,7 @@ jobs:
         # id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
         # id_token_include_email: true
     - name: Rerun jetstream
+      shell: bash
       run: |
         changed_files=${{ needs.changed.outputs.all_changed_files }}
         # Token is available in '${{ steps.google_auth.outputs.id_token }}'
