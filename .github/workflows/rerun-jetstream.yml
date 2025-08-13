@@ -37,7 +37,7 @@ jobs:
         apt-get install jq -y
         apt-get install uuid-runtime
     - name: Authenticate to GCP
-      uses: 'google-github-actions/auth@v2'
+      uses: google-github-actions/auth@v2
       id: google_auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
@@ -45,9 +45,14 @@ jobs:
         # token_format: id_token
         # id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
         # id_token_include_email: true
+    - name: Set up gcloud
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        version: '>= 363.0.0'  # min required version for Workload Identity Federation
     - name: Rerun jetstream
       shell: bash
       run: |
+        gcloud container clusters list --format="value(name)"
         changed_files=${{ needs.changed.outputs.all_changed_files }}
         # Token is available in '${{ steps.google_auth.outputs.id_token }}'
 
@@ -69,7 +74,7 @@ jobs:
         pod_identifier="jetstream-${uuid}"
         echo "Deleting pod [$pod_identifier]"
         echo
-        # kubectl delete pod -l app=$pod_identifier
+        kubectl delete pod -l app=$pod_identifier
         # TODO: deleteme (testing kubectl works)
         kubectl config get-contexts
 
