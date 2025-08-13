@@ -74,7 +74,7 @@ jobs:
         pod_identifier="jetstream-${uuid}"
         echo "Deleting pod [$pod_identifier]"
         echo
-        kubectl delete pod -l app=$pod_identifier
+        # kubectl delete pod -l app=$pod_identifier
         # TODO: deleteme (testing kubectl works)
         kubectl config get-contexts
 
