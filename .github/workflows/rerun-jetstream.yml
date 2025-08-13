@@ -79,6 +79,7 @@ jobs:
         kubectl config get-contexts
 
         commit_message=${{ github.event.head_commit.message }}
+        echo "$commit_message"
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"
           echo $changed_files
