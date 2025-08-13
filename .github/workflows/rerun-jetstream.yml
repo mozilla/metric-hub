@@ -32,12 +32,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.head_ref }}
-    - name: Set safe directory
-      # workaround because actions/checkout's `set-safe-directory` flag doesn't work in containers
-      # this and `ref` above are needed because jetstream performs git operations
-      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Install dependencies
       run: |
         apt-get install jq -y
@@ -76,10 +70,10 @@ jobs:
         echo "Deleting pod [$pod_identifier]"
         echo
         # kubectl delete pod -l app=$pod_identifier
-        # TODO: deleteme
-        # kubectl config get-contexts
+        # TODO: deleteme (testing kubectl works)
+        kubectl config get-contexts
 
-        commit_message=$(git log --format=oneline -n 1 ${{ github.sha }})
+        commit_message=${{ github.event.head_commit.message }}
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"
           echo $changed_files
