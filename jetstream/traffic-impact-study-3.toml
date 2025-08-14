@@ -1,0 +1,4 @@
+[metrics]
+weekly = ['sponsored_tile_impressions', 'sponsored_tile_clicks', 'sponsored_tile_ctr', 'sponsored_tiles_disabled', 'sponsored_tiles_dismissals']
+
+overall = ['sponsored_tile_impressions', 'sponsored_tile_clicks', 'sponsored_tile_ctr', 'sponsored_tiles_disabled', 'sponsored_tiles_dismissals']
