@@ -1,5 +1,5 @@
-friendly_name = "Sponsored Tiles"
-description = "Interaction metrics for sponsored tiles."
+friendly_name = "Incrementality Sponsored Tiles"
+description = "Interaction metrics for sponsored tiles specifically for incrementality tests."
 
 [metrics.sponsored_tiles_disabled.statistics.binomial]
 [metrics.any_sponsored_tiles_dismissals.statistics.binomial]
