@@ -1,4 +1,20 @@
 [experiment]
 [experiment.exposure_signal]
+description = "exposure"
+select_expression = 'COALESCE(LOGICAL_OR(slug = "expand-sign-in-pxi-toolbar-button-with-callout-signed-out-existing-users-2"))'
+data_source = 'events_stream_exposures'
 window_start = 0 
 window_end = 70 # 7 days * 10 weeks
+
+
+[data_sources.events_stream_exposures]
+from_expression = """(
+SELECT 
+  legacy_telemetry_client_id AS analysis_id,
+  DATE(submission_timestamp) AS submission_date,
+  JSON_VALUE(event_extra, '$.experiment') AS slug
+FROM `mozdata.firefox_desktop.events_stream` 
+WHERE DATE(submission_timestamp) >= '2025-06-25'
+AND event_category = 'nimbus_events'
+AND event_name = 'exposure'
+)"""
