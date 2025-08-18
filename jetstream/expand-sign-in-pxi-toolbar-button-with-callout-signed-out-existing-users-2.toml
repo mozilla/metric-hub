@@ -13,6 +13,7 @@ window_end = 70 # 7 days * 10 weeks
 from_expression = """(
 SELECT 
   legacy_telemetry_client_id AS analysis_id,
+  profile_group_id,
   DATE(submission_timestamp) AS submission_date,
   JSON_VALUE(event_extra, '$.experiment') AS slug
 FROM `mozdata.firefox_desktop.events_stream` 
