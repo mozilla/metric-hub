@@ -3,7 +3,7 @@
 description = "Any exposure event from any feature in this experiment"
 friendly_name = "exposed"
 name = "exposed"
-select_expression = 'COALESCE(LOGICAL_OR(slug = "expand-sign-in-pxi-toolbar-button-with-callout-signed-out-existing-users-2"))'
+select_expression = 'COALESCE(slug = "expand-sign-in-pxi-toolbar-button-with-callout-signed-out-existing-users-2", FALSE)'
 data_source = 'events_stream_exposures'
 window_start = 0 
 window_end = 70 # 7 days * 10 weeks
