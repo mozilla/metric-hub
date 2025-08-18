@@ -1,0 +1,4 @@
+[experiment]
+[experiment.exposure_signal]
+window_start = 0 
+window_end = 70 # 7 days * 10 weeks
