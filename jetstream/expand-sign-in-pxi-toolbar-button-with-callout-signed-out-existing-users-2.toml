@@ -17,7 +17,7 @@ SELECT
   DATE(submission_timestamp) AS submission_date,
   JSON_VALUE(event_extra, '$.experiment') AS slug
 FROM `mozdata.firefox_desktop.events_stream` 
-WHERE DATE(submission_timestamp) >= '2025-06-25'
+WHERE DATE(submission_timestamp) >= '2025-06-01'
 AND event_category = 'nimbus_events'
 AND event_name = 'exposure'
 )"""
