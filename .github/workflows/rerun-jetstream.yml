@@ -21,8 +21,8 @@ jobs:
 
   rerun-jetstream:
     runs-on: ubuntu-latest
-    container:
-      image: google/cloud-sdk
+    # container:
+    #   image: google/cloud-sdk
     needs: changed
     permissions:
       contents: read
@@ -31,10 +31,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Install dependencies
-      run: |
-        apt-get install jq -y
-        apt-get install uuid-runtime
+    # - name: Install dependencies
+    #   run: |
+    #     apt-get install jq -y
+    #     apt-get install uuid-runtime
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       id: google_auth
@@ -48,12 +48,13 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
       with:
         version: '>= 363.0.0'  # min required version for Workload Identity Federation
+        project_id: $GCLOUD_PROJECT
+        install_components: 'kubectl'
     - name: Rerun jetstream
       shell: bash
       run: |
         gcloud container clusters list --format="value(name)"
         changed_files=${{ needs.changed.outputs.all_changed_files }}
-        # Token is available in '${{ steps.google_auth.outputs.id_token }}'
 
         # determine slugs of configs that got changed; filter out outcomes and defaults
         params=""
@@ -71,11 +72,12 @@ jobs:
         # stop running instances so that they do not interfere
         uuid=`uuidgen`
         pod_identifier="jetstream-${uuid}"
+        # deleteme
+        kubectl config get-contexts
         echo "Deleting pod [$pod_identifier]"
         echo
         kubectl delete pod -l app=$pod_identifier
         # TODO: deleteme (testing kubectl works)
-        kubectl config get-contexts
 
         commit_message=${{ github.event.head_commit.message }}
         echo "${{ github.event_name }}"
