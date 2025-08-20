@@ -6,11 +6,6 @@ on:
       - main
     paths:
       - 'jetstream/**'
-  pull_request: # delete me
-    branches:
-      - main
-    paths:
-      - 'jetstream/**'
 
 jobs:
   changed:
@@ -49,6 +44,8 @@ jobs:
       run: |
         changed_files=${{ needs.changed.outputs.all_changed_files }}
 
+        ERROR_DASHBOARD_URL="https://mozilla.cloud.looker.com/dashboards/246"
+
         # determine slugs of configs that got changed; filter out outcomes and defaults
         params=""
         for config in $changed_files; do
@@ -69,13 +66,16 @@ jobs:
         echo
         kubectl delete pod -l app=$pod_identifier
 
+        cur_date=`date -u +%FT%TZ`
+        LOGS_URL="https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.namespace_name%3D%22argo%22;cursorTimestamp=$curDate?project=${{ vars.GCLOUD_PROJECT }}"
+
         commit_message=${{ github.event.head_commit.message }}
         echo "Checking commit message: $commit_message"
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"
           echo $changed_files
 
-          echo "[$(date)] Running command: 'jetstream rerun-skip $params'"
+          echo "[$(date +%FT%T%Z)] Running command: 'jetstream rerun-skip $params'"
 
           # start a new instance
           kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $params
@@ -83,22 +83,21 @@ jobs:
           echo "Rerun changed files: "
           echo $changed_files
 
-          echo "[$(date)] Running command: 'jetstream rerun --argo --return-status --recreate-enrollments $params'"
+          echo "[$(date +%FT%T%Z)] Running command: 'jetstream rerun --argo --return-status --recreate-enrollments $params'"
 
           # start a new instance
-          # kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $params
-          kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --dataset-id=mwilli_test --zone=${{ env.CLUSTER_ZONE }} --cluster-id=${{ env.CLUSTER_NAME }} --return-status --recreate-enrollments $(echo $params)
+          kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $params
+          
           # link to logs
-          cur_date=`date -u +%FT%TZ`
-          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
-          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+          echo "Pod Logs: $LOGS_URL"
+          echo "Analysis Errors can be accessed via Looker: $ERROR_DASHBOARD_URL"
           # wait for pod to finish and check status
         fi
 
         running=true
         while [ $running = true ]
         do
-          echo "[$(date)] Wait for jetstream to finish"
+          echo "[$(date +%FT%T%Z)] Wait for jetstream to finish"
           pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
           if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
             running=false
@@ -110,16 +109,16 @@ jobs:
         echo
         kubectl delete pod -l app=$pod_identifier
         if [ $pod_status = 'Failed' ]; then
-          echo "[$(date)] Error when running jetstream. Check the pod logs or error dashboard for more information."
-          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
-          echo "Analysis Errors dashboard: https://mozilla.cloud.looker.com/dashboards/246"
+          echo "[$(date +%FT%T%Z)] Error when running jetstream. Check the pod logs or error dashboard for more information."
+          echo "Pod Logs: $LOGS_URL"
+          echo "Analysis Errors dashboard: $ERROR_DASHBOARD_URL"
           exit 1
         elif [ $pod_status = 'Succeeded' ]; then
-          echo "[$(date)] Jetstream successfully completed."
+          echo "[$(date +%FT%T%Z)] Jetstream successfully completed."
         else
-          echo "[$(date)] Jetstream completed in unknown status. Please check the pod logs or error dashboard."
-          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
-          echo "Analysis Errors dashboard: https://mozilla.cloud.looker.com/dashboards/246"
+          echo "[$(date +%FT%T%Z)] Jetstream completed in unknown status. Please check the pod logs or error dashboard."
+          echo "Pod Logs: $LOGS_URL"
+          echo "Analysis Errors dashboard: $ERROR_DASHBOARD_URL"
           exit 1
         fi
 
