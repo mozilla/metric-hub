@@ -48,7 +48,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
       with:
         version: '>= 363.0.0'  # min required version for Workload Identity Federation
-        project_id: $GCLOUD_PROJECT
+        project_id: ${{ vars.GCLOUD_PROJECT }}
         install_components: 'kubectl'
     - name: Rerun jetstream
       shell: bash
