@@ -41,15 +41,21 @@ jobs:
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
+        project_id: ${{ vars.GCLOUD_PROJECT }}
         # token_format: id_token
         # id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
         # id_token_include_email: true
-    - name: Set up gcloud
-      uses: google-github-actions/setup-gcloud@v2
+    # - name: Set up gcloud
+    #   uses: google-github-actions/setup-gcloud@v2
+    #   with:
+    #     version: '>= 363.0.0'  # min required version for Workload Identity Federation
+    #     project_id: ${{ vars.GCLOUD_PROJECT }}
+    #     install_components: 'kubectl,gke-gcloud-auth-plugin'
+    - name: Set up GKE
+      uses: google-github-actions/get-gke-credentials@v2
       with:
-        version: '>= 363.0.0'  # min required version for Workload Identity Federation
-        project_id: ${{ vars.GCLOUD_PROJECT }}
-        install_components: 'kubectl,gke-gcloud-auth-plugin'
+        cluster_name: 'jetstream-dev'
+        location: 'us-central1-c'
     - name: Rerun jetstream
       shell: bash
       run: |
