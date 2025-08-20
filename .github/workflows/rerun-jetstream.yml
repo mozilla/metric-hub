@@ -21,20 +21,17 @@ jobs:
 
   rerun-jetstream:
     runs-on: ubuntu-latest
-    # container:
-    #   image: google/cloud-sdk
     needs: changed
     permissions:
       contents: read
       id-token: write
     if: needs.changed.outputs.any_changed == 'true'
+    env:
+      CLUSTER_NAME: 'jetstream-dev'
+      CLUSTER_ZONE: 'us-central1-c'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    # - name: Install dependencies
-    #   run: |
-    #     apt-get install jq -y
-    #     apt-get install uuid-runtime
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       id: google_auth
@@ -42,24 +39,14 @@ jobs:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
         project_id: ${{ vars.GCLOUD_PROJECT }}
-        # token_format: id_token
-        # id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
-        # id_token_include_email: true
-    # - name: Set up gcloud
-    #   uses: google-github-actions/setup-gcloud@v2
-    #   with:
-    #     version: '>= 363.0.0'  # min required version for Workload Identity Federation
-    #     project_id: ${{ vars.GCLOUD_PROJECT }}
-    #     install_components: 'kubectl,gke-gcloud-auth-plugin'
     - name: Set up GKE
       uses: google-github-actions/get-gke-credentials@v2
       with:
-        cluster_name: 'jetstream-dev'
-        location: 'us-central1-c'
+        cluster_name: ${{ env.CLUSTER_NAME }}
+        location: ${{ env.CLUSTER_ZONE }}
     - name: Rerun jetstream
       shell: bash
       run: |
-        gcloud container clusters list --format="value(name)"
         changed_files=${{ needs.changed.outputs.all_changed_files }}
 
         # determine slugs of configs that got changed; filter out outcomes and defaults
@@ -78,42 +65,40 @@ jobs:
         # stop running instances so that they do not interfere
         uuid=`uuidgen`
         pod_identifier="jetstream-${uuid}"
-        # deleteme
-        kubectl config get-contexts
         echo "Deleting pod [$pod_identifier]"
         echo
         kubectl delete pod -l app=$pod_identifier
-        # TODO: deleteme (testing kubectl works)
 
         commit_message=${{ github.event.head_commit.message }}
-        echo "${{ github.event_name }}"
-        echo "$commit_message"
+        echo "Checking commit message: $commit_message"
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"
           echo $changed_files
 
+          echo "[$(date)] Running command: 'jetstream rerun-skip $params'"
+
           # start a new instance
-          # kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $(echo $params)
+          kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun-skip $params
         else
           echo "Rerun changed files: "
           echo $changed_files
 
+          echo "[$(date)] Running command: 'jetstream rerun --argo --return-status --recreate-enrollments $params'"
+
           # start a new instance
-          # kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $(echo $params)
-          kubectl run $pod_identifier --image=gcr.io/moz-fx-data-experiments/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --dataset-id=mwilli_test --zone=us-central1-c --cluster-id=jetstream-dev --return-status --recreate-enrollments $(echo $params)
+          # kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --return-status --recreate-enrollments $params
+          kubectl run $pod_identifier --image=gcr.io/${{ vars.GCLOUD_PROJECT }}/jetstream -l app=$pod_identifier --restart=Never --command -- jetstream rerun --argo --dataset-id=mwilli_test --zone=${{ env.CLUSTER_ZONE }} --cluster-id=${{ env.CLUSTER_NAME }} --return-status --recreate-enrollments $(echo $params)
           # link to logs
           cur_date=`date -u +%FT%TZ`
-          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22moz-fx-data-experiments%22%0Aresource.labels.location%3D%22us-central1-a%22%0Aresource.labels.cluster_name%3D%22jetstream%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
+          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
           echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
           # wait for pod to finish and check status
         fi
 
         running=true
-        # TODO: changeme
-        # running=false
         while [ $running = true ]
         do
-          echo "Wait for jetstream to finish"
+          echo "[$(date)] Wait for jetstream to finish"
           pod_status=`kubectl get pod -l app=$pod_identifier --no-headers -o custom-columns=":status.phase"`
           if [ $pod_status = 'Succeeded' ] || [ $pod_status = 'Failed' ]; then
             running=false
@@ -125,15 +110,16 @@ jobs:
         echo
         kubectl delete pod -l app=$pod_identifier
         if [ $pod_status = 'Failed' ]; then
-          echo "Error when running jetstream. Check the logs for more information."
+          echo "[$(date)] Error when running jetstream. Check the pod logs or error dashboard for more information."
+          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
+          echo "Analysis Errors dashboard: https://mozilla.cloud.looker.com/dashboards/246"
           exit 1
         elif [ $pod_status = 'Succeeded' ]; then
-          echo "Jetstream successfully completed."
+          echo "[$(date)] Jetstream successfully completed."
         else
-          echo "Jetstream completed in unknown status. Please check the logs."
-          echo "Analysis Errors can be accessed via Looker: https://mozilla.cloud.looker.com/dashboards/246"
+          echo "[$(date)] Jetstream completed in unknown status. Please check the pod logs or error dashboard."
+          echo "Pod Logs: https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.project_id%3D%22${{ vars.GCLOUD_PROJECT }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.namespace_name%3D%22default%22?scrollTimestamp=$cur_date"
+          echo "Analysis Errors dashboard: https://mozilla.cloud.looker.com/dashboards/246"
           exit 1
         fi
-        
-        # TODO: deleteme
-        exit 1
+
