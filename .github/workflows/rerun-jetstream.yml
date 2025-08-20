@@ -49,7 +49,7 @@ jobs:
       with:
         version: '>= 363.0.0'  # min required version for Workload Identity Federation
         project_id: ${{ vars.GCLOUD_PROJECT }}
-        install_components: 'kubectl'
+        install_components: 'kubectl,gke-gcloud-auth-plugin'
     - name: Rerun jetstream
       shell: bash
       run: |
