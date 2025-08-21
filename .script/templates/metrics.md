@@ -19,7 +19,11 @@ Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-
 <summary>Definition:</summary>
 
 ```sql
-{{ metric.select_expression | trim }}
+SELECT
+  {{ metric.select_expression | trim }}
+FROM (
+  {{ metric.data_source.from_expression | trim }}
+)
 ```
 </details>
 
