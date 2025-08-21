@@ -5,9 +5,11 @@ from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
 
+from dataclasses import dataclass
 from jinja2 import Environment, FileSystemLoader
 from metric_config_parser.analysis import AnalysisConfiguration, AnalysisSpec
 from metric_config_parser.config import ConfigCollection
+from metric_config_parser.definition import DefinitionSpec
 from metric_config_parser.experiment import Experiment
 from metric_config_parser.metric import AnalysisPeriod
 
@@ -60,6 +62,11 @@ def generate():
     generate_dimension_docs(out_dir / "docs")
 
 
+@dataclass
+class MinimalConfiguration:
+    app_name: str
+
+
 def generate_metrics_docs(out_dir: Path):
     """Generates docs for default metrics."""
     file_loader = FileSystemLoader(TEMPLATES_DIR)
@@ -67,23 +74,25 @@ def generate_metrics_docs(out_dir: Path):
     metrics_template = env.get_template("metrics.md")
 
     app_config = {}
-    platform_definitions_repos = {
-        repo: config.definitions for repo, config in REPOS.items()
-    }
+    platform_definitions_repos = {repo: config for repo, config in REPOS.items()}
 
-    for repo, platform_definitions in platform_definitions_repos.items():
-        for platform in platform_definitions:
+    for repo, config in platform_definitions_repos.items():
+        for platform in config.definitions:
+            cfg = MinimalConfiguration(platform.platform)
+            metrics_list = []
+            for _, metric in platform.spec.metrics.definitions.items():
+                try:
+                    ds_def = config.get_data_source_definition(
+                        metric.data_source.name, platform.platform
+                    )
+                    metric.data_source = ds_def.resolve(platform.spec, cfg, configs=config)
+                except Exception:
+                    continue
+                metrics_list.append(metric)
             if platform.platform not in app_config:
-                app_config[platform.platform] = {
-                    repo: [
-                        metric
-                        for _, metric in platform.spec.metrics.definitions.items()
-                    ]
-                }
+                app_config[platform.platform] = {repo: metrics_list}
             else:
-                app_config[platform.platform][repo] = [
-                    metric for _, metric in platform.spec.metrics.definitions.items()
-                ]
+                app_config[platform.platform][repo] = metrics_list
 
     for platform, metrics in app_config.items():
         metrics_doc = out_dir / "metrics" / (platform + ".md")
@@ -103,9 +112,7 @@ def generate_data_source_docs(out_dir: Path):
     data_sources_template = env.get_template("data_sources.md")
 
     app_config = {}
-    platform_definitions_repos = {
-        repo: config.definitions for repo, config in REPOS.items()
-    }
+    platform_definitions_repos = {repo: config.definitions for repo, config in REPOS.items()}
 
     for repo, platform_definitions in platform_definitions_repos.items():
         for platform in platform_definitions:
@@ -118,8 +125,7 @@ def generate_data_source_docs(out_dir: Path):
                 }
             else:
                 app_config[platform.platform][repo] = [
-                    data_source
-                    for _, data_source in platform.spec.data_sources.definitions.items()
+                    data_source for _, data_source in platform.spec.data_sources.definitions.items()
                 ]
 
     for platform, data_sources in app_config.items():
@@ -140,18 +146,13 @@ def generate_segment_docs(out_dir: Path):
     segments_template = env.get_template("segments.md")
 
     app_config = {}
-    platform_definitions_repos = {
-        repo: config.definitions for repo, config in REPOS.items()
-    }
+    platform_definitions_repos = {repo: config.definitions for repo, config in REPOS.items()}
 
     for repo, platform_definitions in platform_definitions_repos.items():
         for platform in platform_definitions:
             if platform.platform not in app_config:
                 app_config[platform.platform] = {
-                    repo: [
-                        segment
-                        for _, segment in platform.spec.segments.definitions.items()
-                    ]
+                    repo: [segment for _, segment in platform.spec.segments.definitions.items()]
                 }
             else:
                 app_config[platform.platform][repo] = [
@@ -178,23 +179,17 @@ def generate_segment_data_sources_docs(out_dir: Path):
     data_sources_template = env.get_template("segment_data_sources.md")
 
     app_config = {}
-    platform_definitions_repos = {
-        repo: config.definitions for repo, config in REPOS.items()
-    }
+    platform_definitions_repos = {repo: config.definitions for repo, config in REPOS.items()}
 
     for repo, platform_definitions in platform_definitions_repos.items():
         for platform in platform_definitions:
             if platform.platform not in app_config:
                 app_config[platform.platform] = {
-                    repo: [
-                        segment
-                        for _, segment in platform.spec.segments.data_sources.items()
-                    ]
+                    repo: [segment for _, segment in platform.spec.segments.data_sources.items()]
                 }
             else:
                 app_config[platform.platform][repo] = [
-                    segment
-                    for _, segment in platform.spec.segments.data_sources.items()
+                    segment for _, segment in platform.spec.segments.data_sources.items()
                 ]
 
     for platform, data_sources in app_config.items():
@@ -217,23 +212,19 @@ def generate_dimension_docs(out_dir: Path):
     dimensions_template = env.get_template("dimensions.md")
 
     app_config = {}
-    platform_definitions_repos = {
-        repo: config.definitions for repo, config in REPOS.items()
-    }
+    platform_definitions_repos = {repo: config.definitions for repo, config in REPOS.items()}
 
     for repo, platform_definitions in platform_definitions_repos.items():
         for platform in platform_definitions:
             if platform.platform not in app_config:
                 app_config[platform.platform] = {
                     repo: [
-                        dimension
-                        for _, dimension in platform.spec.dimensions.definitions.items()
+                        dimension for _, dimension in platform.spec.dimensions.definitions.items()
                     ]
                 }
             else:
                 app_config[platform.platform][repo] = [
-                    dimension
-                    for _, dimension in platform.spec.dimensions.definitions.items()
+                    dimension for _, dimension in platform.spec.dimensions.definitions.items()
                 ]
 
     for platform, dimensions in app_config.items():
@@ -278,9 +269,7 @@ def generate_outcome_docs(out_dir: Path):
         default_metrics = [m.name for m in outcome.spec.default_metrics]
         summaries = [summary for summary in conf.metrics[AnalysisPeriod.OVERALL]]
         metrics = [
-            summary.metric
-            for summary in summaries
-            if summary.metric.name not in default_metrics
+            summary.metric for summary in summaries if summary.metric.name not in default_metrics
         ]
         # deduplicate metrics
         deduplicated_metrics = []
@@ -350,9 +339,7 @@ def generate_default_config_docs(out_dir: Path):
 
             if isinstance(conf, AnalysisConfiguration):
                 metric_summaries = [
-                    summary
-                    for _, summaries in conf.metrics.items()
-                    for summary in summaries
+                    summary for _, summaries in conf.metrics.items() for summary in summaries
                 ]
             else:
                 metric_summaries = [summary for summary in conf.metrics]
@@ -438,9 +425,7 @@ def generate_function_docs(out_dir):
 
     functions_docs = out_dir / "functions.md"
     functions_docs.parent.mkdir(parents=True, exist_ok=True)
-    functions_docs.write_text(
-        functions_template.render(functions_repos=functions_repos)
-    )
+    functions_docs.write_text(functions_template.render(functions_repos=functions_repos))
 
 
 if __name__ == "__main__":
