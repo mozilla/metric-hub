@@ -77,10 +77,17 @@ def generate_metrics_docs(out_dir: Path):
     platform_definitions_repos = {repo: config for repo, config in REPOS.items()}
 
     for repo, config in platform_definitions_repos.items():
+        metric_env = config.get_env()
         for platform in config.definitions:
             cfg = MinimalConfiguration(platform.platform)
             metrics_list = []
             for _, metric in platform.spec.metrics.definitions.items():
+                try:
+                    metric.rendered_expression = metric_env.from_string(
+                        metric.select_expression
+                    ).render()
+                except TypeError:
+                    continue
                 try:
                     ds_def = config.get_data_source_definition(
                         metric.data_source.name, platform.platform

@@ -15,12 +15,17 @@ Pre-defined metrics for `{{ platform }}`. These metrics are defined in [metric-h
 
 Data Source: [`{{ metric.data_source.name }}`](https://mozilla.github.io/metric-hub/data_sources/{{ platform }}/#{{ metric.data_source.name }})
 
+**Definition:**
+```sql
+{{ metric.select_expression | trim }}
+```
+
 <details>
-<summary>Definition:</summary>
+<summary>SQL with DataSource</summary>
 
 ```sql
 SELECT
-  {{ metric.select_expression | trim }}
+  {{ metric.rendered_expression | trim }}
 FROM (
   {{ metric.data_source.from_expression | trim }}
 )
