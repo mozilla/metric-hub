@@ -37,7 +37,7 @@ jobs:
     - id: version_change
       name: Check for package version change in last commit before proceeding.
       run: |
-        if git diff main HEAD~1 lib/metric-config-parser/pyproject.toml | grep '+version'
+        if git diff main HEAD~1 -- ./lib/metric-config-parser/pyproject.toml | grep '+version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
             echo "proceed=true" >> "GITHUB_OUTPUT"
