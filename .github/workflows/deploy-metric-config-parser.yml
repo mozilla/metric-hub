@@ -8,12 +8,12 @@ on:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/*.yaml'
+      - 'lib/metric-config-parser/pyproject.toml'
   pull_request:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/*.yaml'
+      - 'lib/metric-config-parser/pyproject.toml'
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        lib/metric-config-parser/pyproject.yaml
+        lib/metric-config-parser/pyproject.toml
 
   check-version-change:
     runs-on: ubuntu-latest
