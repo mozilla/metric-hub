@@ -8,12 +8,12 @@ on:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/pyproject.yaml'
+      - 'lib/metric-config-parser/*.yaml'
   pull_request:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/pyproject.yaml'
+      - 'lib/metric-config-parser/*.yaml'
 
 permissions:
   contents: read
