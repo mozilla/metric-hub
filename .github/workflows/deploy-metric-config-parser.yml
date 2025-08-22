@@ -9,11 +9,6 @@ on:
       - main
     paths:
       - 'lib/metric-config-parser/pyproject.toml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'lib/metric-config-parser/pyproject.toml'
 
 permissions:
   contents: read
@@ -41,7 +36,6 @@ jobs:
     - id: version_change
       name: Check for package version change in last commit before proceeding.
       run: |
-        git --no-pager diff origin/main HEAD~1
         if git diff origin/main HEAD~1 -- ./lib/metric-config-parser/pyproject.toml | grep '\+version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
@@ -93,8 +87,5 @@ jobs:
       with:
         name: release-dist
         path: dist/
-    # - name: Publish to PyPi
-    #   uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
-    - name:
-      run: |
-        echo "Skipping publish for testing"
+    - name: Publish to PyPi
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
