@@ -16,11 +16,11 @@ cattrs==25.1.1
     # via mozilla-metric-config-parser
 certifi==2025.8.3
     # via requests
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 click==8.2.1
     # via mozilla-metric-config-parser
-coverage[toml]==7.10.2
+coverage[toml]==7.10.4
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
@@ -40,7 +40,7 @@ iniconfig==2.1.0
     # via pytest
 jinja2==3.1.6
     # via mozilla-metric-config-parser
-jsonschema==4.25.0
+jsonschema==4.25.1
     # via
     #   mozilla-metric-config-parser
     #   mozilla-nimbus-schemas
@@ -63,7 +63,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-polyfactory==2.22.1
+polyfactory==2.22.2
     # via mozilla-nimbus-schemas
 pydantic==2.11.7
     # via mozilla-nimbus-schemas
@@ -86,13 +86,13 @@ referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.4
+requests==2.32.5
     # via mozilla-metric-config-parser
 rpds-py==0.27.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.12.8
+ruff==0.12.10
     # via
     #   mozilla-metric-config-parser
     #   pytest-ruff
@@ -107,15 +107,15 @@ tomli==2.2.1
     #   pytest
 types-futures==3.3.8
     # via mozilla-metric-config-parser
-types-protobuf==6.30.2.20250703
+types-protobuf==6.30.2.20250822
     # via mozilla-metric-config-parser
-types-pytz==2025.2.0.20250516
+types-pytz==2025.2.0.20250809
     # via mozilla-metric-config-parser
-types-pyyaml==6.0.12.20250516
+types-pyyaml==6.0.12.20250822
     # via mozilla-metric-config-parser
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250809
     # via mozilla-metric-config-parser
-types-setuptools==80.9.0.20250801
+types-setuptools==80.9.0.20250822
     # via mozilla-metric-config-parser
 types-six==1.17.0.20250515
     # via mozilla-metric-config-parser
