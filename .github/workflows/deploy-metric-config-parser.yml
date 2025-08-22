@@ -8,7 +8,12 @@ on:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/*.yaml'
+      - 'lib/metric-config-parser/pyproject.yaml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lib/metric-config-parser/pyproject.yaml'
 
 permissions:
   contents: read
@@ -18,7 +23,7 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        lib/metric-config-parser/*.yaml
+        lib/metric-config-parser/pyproject.yaml
 
   check-version-change:
     runs-on: ubuntu-latest
@@ -86,5 +91,8 @@ jobs:
       with:
         name: release-dist
         path: dist/
-    - name: Publish to PyPi
-      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+    # - name: Publish to PyPi
+    #   uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+    - name:
+      run: |
+        echo "Skipping publish for testing"
