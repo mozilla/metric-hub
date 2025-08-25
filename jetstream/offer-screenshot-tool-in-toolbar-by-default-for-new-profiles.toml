@@ -1,0 +1,43 @@
+[metrics]
+
+weekly = [
+    "screenshot_usage",
+    "screenshot_frequency"
+]
+
+overall = [
+    "screenshot_usage",
+    "screenshot_frequency"
+]
+
+[metrics.screenshot_usage.statistics.binomial]
+[metrics.screenshot_frequency.statistics.bootstrap_mean]
+
+[metrics.screenshot_usage]
+friendly_name = "Screenshot Usage"
+description = "Percentage of clients who interacted with screenshot tool"
+select_expression = "COALESCE(COUNT(1)>0, FALSE)"
+data_source = "screenshots"
+
+[metrics.screenshot_frequency]
+friendly_name = "Screenshots Completed"
+description = "Average number of times per client that a screenshot was copied or downloaded"
+select_expression = "COALESCE(COUNTIF(event_name LIKE 'copy%' OR event_name LIKE 'download%'), 0)"
+data_source = "screenshots"
+
+
+[data_sources.screenshots]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'screenshots'
+)"""
+experiments_column_type = "none"
+friendly_name = "Screenshot Events"
+description = "Events for screenshot tool"
