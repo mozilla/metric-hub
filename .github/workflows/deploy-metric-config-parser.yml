@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'lib/metric-config-parser/*.yaml'
+      - 'lib/metric-config-parser/pyproject.toml'
 
 permissions:
   contents: read
@@ -18,22 +18,25 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        lib/metric-config-parser/*.yaml
+        lib/metric-config-parser/pyproject.toml
 
   check-version-change:
     runs-on: ubuntu-latest
     needs: changed
+    permissions:
+      contents: read
     outputs:
       proceed: ${{ steps.version_change.outputs.proceed }}
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v4    
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
     - id: version_change
       name: Check for package version change in last commit before proceeding.
-      working-directory: ~/project/lib/metric-config-parser
       run: |
-        if git diff main HEAD~1 pyproject.toml | grep 'version'
+        if git diff origin/main HEAD~1 -- ./lib/metric-config-parser/pyproject.toml | grep '\+version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
             echo "proceed=true" >> "GITHUB_OUTPUT"
@@ -50,27 +53,25 @@ jobs:
     if: needs.check-version-change.outputs.proceed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        path: ~/project
+      uses: actions/checkout@v5
     - name: Setup python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
         cache: 'pip'
     - name: Install deployment tools
-      working-directory: ~/project/lib/metric-config-parser
+      working-directory: ./lib/metric-config-parser
       run: |
         python3 -m pip install --upgrade pip build setuptools wheel
     - name: Create the distribution files
-      working-directory: ~/project/lib/metric-config-parser
+      working-directory: ./lib/metric-config-parser
       run: |
         python3.10 -m build --sdist
     - name: Upload distribution
       uses: actions/upload-artifact@v4
       with:
         name: release-dist
-        path: ~/project/lib/metric-config-parser/dist
+        path: ./lib/metric-config-parser/dist
 
   deploy-metric-config-parser:
     runs-on: ubuntu-latest
