@@ -1,0 +1,36 @@
+[metrics]
+
+weekly = [
+    "newtab_visits",
+    "newtab_engaged_visits",
+    "sponsored_tile_impressions",
+    "sponsored_tile_clicks",
+    "session_restore_enabled"
+]
+
+overall = [
+    "newtab_visits",
+    "newtab_engaged_visits",
+    "sponsored_tile_impressions",
+    "session_restore_enabled"
+]
+
+[metrics.newtab_visits.statistics.bootstrap_mean]
+[metrics.newtab_visits.statistics.deciles]
+
+[metrics.newtab_engaged_visits.statistics.bootstrap_mean]
+[metrics.newtab_engaged_visits.statistics.deciles]
+
+[metrics.sponsored_tile_impressions.statistics.sum]
+[metrics.sponsored_tile_impressions.statistics.linear_model_mean]
+
+[metrics.sponsored_tile_clicks.statistics.sum]
+[metrics.sponsored_tile_clicks.statistics.linear_model_mean]
+
+[metrics.session_restore_enabled.statistics.binomial]
+
+[metrics.session_restore_enabled]
+friendly_name = "Session Restore Enabled"
+description = "Percentage of clients who kept session restore enabled"
+select_expression = "COALESCE(MAX_BY(mozfun.map.get_key(environment.settings.user_prefs, 'browser.startup.page'), submission_timestamp) = '3', FALSE)"
+data_source = "main"
