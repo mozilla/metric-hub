@@ -2021,6 +2021,170 @@ select_expression = "SUM(urlbar_impressions)"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 friendly_name = "URL Bar Impressions"
 
+########################### START OF CAPTCHA DETECTION METRICS ###########################
+
+# Google reCAPTCHA v2 Metrics
+
+[metrics.captcha_recaptcha_v2_manual_completion]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_pc) / (SUM(metrics.counter.captcha_detection_google_recaptcha_v2_ac) + SUM(metrics.counter.captcha_detection_google_recaptcha_v2_pc) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Manual Completion %"
+
+[metrics.captcha_recaptcha_v2_manual_completion_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_pc_pbm) / (SUM(metrics.counter.captcha_detection_google_recaptcha_v2_ac_pbm) + SUM(metrics.counter.captcha_detection_google_recaptcha_v2_pc_pbm) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Manual Completion % in PBM"
+
+[metrics.captcha_recaptcha_v2_occurrences]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_oc) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Occurrences per Pages Visited %"
+
+[metrics.captcha_recaptcha_v2_occurrences_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_oc_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Occurrences per Pages Visited % in PBM"
+
+[metrics.captcha_recaptcha_v2_ps]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_ps) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Puzzle Shown per Pages Visited %"
+
+[metrics.captcha_recaptcha_v2_ps_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_google_recaptcha_v2_ps_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Google reCAPTCHA v2 Puzzle Shown per Pages Visited % in PBM"
+
+# hCaptcha Metrics
+
+[metrics.captcha_hcaptcha_manual_completion]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_pc) / (SUM(metrics.counter.captcha_detection_hcaptcha_ac) + SUM(metrics.counter.captcha_detection_hcaptcha_pc) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Manual Completion %"
+
+[metrics.captcha_hcaptcha_manual_completion_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_pc_pbm) / (SUM(metrics.counter.captcha_detection_hcaptcha_ac_pbm) + SUM(metrics.counter.captcha_detection_hcaptcha_pc_pbm) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Manual Completion % in PBM"
+
+[metrics.captcha_hcaptcha_occurrences]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_oc) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Occurrences per Pages Visited %"
+
+[metrics.captcha_hcaptcha_occurrences_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_oc_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Occurrences per Pages Visited % in PBM"
+
+[metrics.captcha_hcaptcha_ps]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_ps) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Puzzle Shown per Pages Visited %"
+
+[metrics.captcha_hcaptcha_ps_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_hcaptcha_ps_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "hCaptcha Puzzle Shown per Pages Visited % in PBM"
+
+# Datadome Metrics
+
+[metrics.captcha_datadome_blocked]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_bl) / (SUM(metrics.counter.captcha_detection_datadome_pc) + SUM(metrics.counter.captcha_detection_datadome_bl) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Blocked %"
+
+[metrics.captcha_datadome_blocked_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_bl_pbm) / (SUM(metrics.counter.captcha_detection_datadome_pc_pbm) + SUM(metrics.counter.captcha_detection_datadome_bl_pbm) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Blocked % in PBM"
+
+[metrics.captcha_datadome_occurrences]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_oc) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Occurrences per Pages Visited %"
+
+[metrics.captcha_datadome_occurrences_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_oc_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Occurrences per Pages Visited % in PBM"
+
+[metrics.captcha_datadome_ps]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_ps) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Puzzle Shown per Pages Visited %"
+
+[metrics.captcha_datadome_ps_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_datadome_ps_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Datadome Puzzle Shown per Pages Visited % in PBM"
+
+# Cloudflare Turnstile Metrics
+
+[metrics.captcha_turnstile_failure]
+select_expression = "SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cf) / (SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cc) + SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cf) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Cloudflare Turnstile Challange Failure %"
+
+[metrics.captcha_turnstile_failure_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cf_pbm) / (SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cc_pbm) + SUM(metrics.counter.captcha_detection_cloudflare_turnstile_cf_pbm) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Cloudflare Turnstile Challange Failure % in PBM"
+
+[metrics.captcha_turnstile_occurrences]
+select_expression = "SUM(metrics.counter.captcha_detection_cloudflare_turnstile_oc) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Cloudflare Turnstile Occurrences per Pages Visited %"
+
+[metrics.captcha_turnstile_occurrences_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_cloudflare_turnstile_oc_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Cloudflare Turnstile per Pages Visited % in PBM"
+
+# Arkose Labs Metrics
+
+[metrics.captcha_arkoselabs_puzzle_failed]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_pf) / (SUM(metrics.counter.captcha_detection_arkoselabs_pc) + SUM(metrics.counter.captcha_detection_arkoselabs_pf) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Puzzle Failed %"
+
+[metrics.captcha_arkoselabs_puzzle_failed_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_pf_pbm) / (SUM(metrics.counter.captcha_detection_arkoselabs_pc_pbm) + SUM(metrics.counter.captcha_detection_arkoselabs_pf_pbm) ) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Puzzle Failed % in PBM"
+
+[metrics.captcha_arkoselabs_occurrences]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_oc) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Occurrences per Pages Visited %"
+
+[metrics.captcha_arkoselabs_occurrences_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_oc_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Occurrences per Pages Visited % in PBM"
+
+[metrics.captcha_arkoselabs_ps]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_ps) / SUM(metrics.counter.captcha_detection_pages_visited) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Puzzle Shown per Pages Visited %"
+
+[metrics.captcha_arkoselabs_ps_pbm]
+select_expression = "SUM(metrics.counter.captcha_detection_arkoselabs_ps_pbm) / SUM(metrics.counter.captcha_detection_pages_visited_pbm) * 100"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Puzzle Shown per Pages Visited % in PBM"
+
+[metrics.captcha_arkoselabs_numofsolutions]
+select_expression = "AVG(metrics.custom_distribution.captcha_detection_arkoselabs_solutions_required.sum / (SELECT SUM(value) FROM UNNEST(metrics.custom_distribution.captcha_detection_arkoselabs_solutions_required.`values`)))"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Average Number of Solutions Required"
+
+[metrics.captcha_arkoselabs_numofsolutions_pbm]
+select_expression = "AVG(metrics.custom_distribution.captcha_detection_arkoselabs_solutions_required_pbm.sum / (SELECT SUM(value) FROM UNNEST(metrics.custom_distribution.captcha_detection_arkoselabs_solutions_required_pbm.`values`)))"
+data_source = "captcha_detection"
+friendly_name = "Arkose Labs Average Number of Solutions Required in PBM"
+
+########################### END OF CAPTCHA DETECTION METRICS ###########################
+
 [dimensions]
 
 [dimensions.os]
@@ -2467,6 +2631,18 @@ experiments_column_type = "events_stream"
 friendly_name = "Protections popup events"
 description = "Sheild icon 'Protections Popup' pings"
 
+[data_sources.captcha_detection]
+friendly_name = "Captcha Detection"
+description = "The daily captcha-detection ping"
+from_expression = """(
+    SELECT
+      p.*,
+      p.metrics.uuid.legacy_telemetry_profile_group_id as profile_group_id,
+      DATE(p.submission_timestamp) AS submission_date
+    FROM `mozdata.firefox_desktop.captcha_detection`
+)"""
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+experiments_column_type = "glean"
 
 [segments]
 
