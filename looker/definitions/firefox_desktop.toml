@@ -11,6 +11,9 @@ numerator = "socket_crash_count_v1.sum"
 denominator = "socket_crash_active_hours_v1.sum"
 
 
+
+
+
 ## OKRs example
 
 [metrics.desktop_engagement_dau_v1]
@@ -115,6 +118,12 @@ description = "Count of visits with sponsored content engagement"
 [metrics.any_content_engagement_visits.statistics.ratio]
 numerator = "any_content_engagement_visits.sum"
 denominator = "default_ui_visits.sum"
+
+[metrics.any_content_engagement_visits.statistics.rolling_average]
+aggregations = ["ratio", "sum"]
+window_sizes = [28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change"] }
+
 [metrics.organic_content_engagement_visits.statistics.ratio]
 numerator = "organic_content_engagement_visits.sum"
 denominator = "default_ui_visits.sum"
@@ -153,6 +162,12 @@ denominator = "default_ui_clients.sum"
 [metrics.sponsored_content_engagement_clients.statistics.ratio]
 numerator = "sponsored_content_engagement_clients.sum"
 denominator = "default_ui_clients.sum"
+
+[metrics.any_content_engagement_clients.statistics.rolling_average]
+aggregations = ["ratio", "sum"]
+window_sizes = [28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change"] }
+
 
 [metrics.any_content_impression_count]
 data_source = "newtab_clients_daily_aggregates"
