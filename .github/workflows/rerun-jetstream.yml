@@ -34,6 +34,7 @@ jobs:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
         project_id: ${{ vars.GCLOUD_PROJECT }}
+        access_token_lifetime: 43200s
     - name: Set up GKE
       uses: google-github-actions/get-gke-credentials@v2
       with:
