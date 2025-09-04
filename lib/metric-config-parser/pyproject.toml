@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mozilla-metric-config-parser"
-version = "2025.9.1"
+version = "2025.9.2"
 authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
 description = "Parses metric configuration files."
 readme = "README.md"
