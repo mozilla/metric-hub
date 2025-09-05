@@ -25,7 +25,7 @@ data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 
 
 [metrics.search_suggestion_impressions]
-select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_impressions, 0))"
+select_expression = "SUM(IF(product_result_type IN ('default_partner_search_suggestion', 'search_suggest', 'search_history', 'search_suggest_rich'), urlbar_impressions, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
@@ -38,7 +38,7 @@ data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.vpn_clicks.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_clicks]
-select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_clicks, 0))"
+select_expression = "SUM(IF(product_result_type IN ('default_partner_search_suggestion', 'search_suggest', 'search_history', 'search_suggest_rich'), urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.search_suggestion_clicks.statistics.bootstrap_mean]
 
