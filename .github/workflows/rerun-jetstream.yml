@@ -43,7 +43,7 @@ jobs:
     - name: Rerun jetstream
       shell: bash
       run: |
-        changed_files=${{ needs.changed.outputs.all_changed_files }}
+        changed_files="${{ needs.changed.outputs.all_changed_files }}"
 
         ERROR_DASHBOARD_URL="https://mozilla.cloud.looker.com/dashboards/246"
 
