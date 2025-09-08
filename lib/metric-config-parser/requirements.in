@@ -76,7 +76,7 @@ pytest==8.4.1
     #   mozilla-metric-config-parser
     #   pytest-cov
     #   pytest-ruff
-pytest-cov==6.2.1
+pytest-cov==6.3.0
     # via mozilla-metric-config-parser
 pytest-ruff==0.5
     # via mozilla-metric-config-parser
