@@ -1,0 +1,95 @@
+[experiment]
+
+segments = ["existing_users", "new_unique_profiles"]
+
+[metrics]
+
+weekly = [
+    "installed_web_apps",
+    "pinned_apps",
+    "web_app_launches",
+    "web_app_active_users"
+]
+
+overall = [
+    "installed_web_apps",
+    "pinned_apps",
+    "web_app_launches",
+    "web_app_active_users"
+]
+
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.installed_web_apps.statistics.binomial]
+[metrics.pinned_apps.statistics.bootstrap_mean]
+[metrics.web_app_launches.statistics.bootstrap_mean]
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.installed_web_apps]
+friendly_name = "Installed Web Apps"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.pinned_apps]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web Apps Launches per user (approx from activate and move to taskbar events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Chatbot Events"
+description = "Events for chatbot open and onboarding"
+
+[segments.existing_users]
+data_source = "clients_daily"
+select_expression = 'COALESCE(LOGICAL_AND(DATE_DIFF(submission_date, first_seen_date, DAY) >= 28), FALSE)'
+friendly_name = "Existing Users"
+description = """
+    Clients who are older than 28 days since enrollment.
+"""

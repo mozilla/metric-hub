@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 import attr
 
@@ -16,9 +16,9 @@ class MetricGroup:
     """Represents a set of metrics that are related and should be displayed together."""
 
     name: str
-    description: Optional[str] = None
-    friendly_name: Optional[str] = None
-    metrics: List[MetricReference] = attr.Factory(list)
+    description: str | None = None
+    friendly_name: str | None = None
+    metrics: list[MetricReference] = attr.Factory(list)
 
 
 @attr.s(auto_attribs=True)
@@ -26,9 +26,9 @@ class MetricGroupDefinition:
     """Describes the interface for defining a metric group in configuration."""
 
     name: str  # implicit in configuration
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
-    metrics: List[MetricReference] = attr.Factory(list)
+    friendly_name: str | None = None
+    description: str | None = None
+    metrics: list[MetricReference] = attr.Factory(list)
 
     def resolve(
         self,
@@ -61,12 +61,12 @@ class MetricGroupDefinition:
 class MetricGroupsSpec:
     """Describes the interface for defining custom dimensions."""
 
-    definitions: Dict[str, MetricGroupDefinition] = attr.Factory(dict)
+    definitions: dict[str, MetricGroupDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "MetricGroupsSpec":
         """Create a `MetricGroupsSpec` from a dictionary."""
-        d = dict((k.lower(), v) for k, v in d.items())
+        d = {k.lower(): v for k, v in d.items()}
 
         definitions = {
             k: converter.structure({"name": k, **v}, MetricGroupDefinition) for k, v in d.items()

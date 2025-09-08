@@ -1,0 +1,26 @@
+[metrics]
+
+weekly = [
+    "is_default_browser",
+    "imported_bookmarks",
+    "imported_logins",
+    "imported_history", 
+    "fxa_signed_in"
+]
+
+overall = [
+    "is_default_browser",
+    "imported_bookmarks",
+    "imported_logins",
+    "imported_history", 
+    "fxa_signed_in"
+]
+
+[metrics.is_default_browser.statistics.binomial]
+[metrics.is_pinned.statistics.binomial]
+
+[metrics.imported_bookmarks.statistics.binomial]
+[metrics.imported_logins.statistics.binomial]
+[metrics.imported_history.statistics.binomial]
+
+[metrics.fxa_signed_in.statistics.binomial]

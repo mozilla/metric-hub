@@ -4,7 +4,6 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import cattr
 import pytz
@@ -22,7 +21,7 @@ def TemporaryDirectory():
             shutil.rmtree(name)
 
 
-def parse_date(yyyy_mm_dd: Optional[str]) -> Optional[datetime]:
+def parse_date(yyyy_mm_dd: str | None) -> datetime | None:
     if not yyyy_mm_dd:
         return None
     return datetime.strptime(yyyy_mm_dd, "%Y-%m-%d").replace(tzinfo=pytz.utc)

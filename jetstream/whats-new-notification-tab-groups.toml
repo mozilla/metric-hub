@@ -107,4 +107,54 @@ GROUP BY
 QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
 """
 
+#segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
+segments = ["new_or_resurrected_v3", "regular_users_v3", "activity_infrequent_or_casual"]
 
+[metrics]
+# Metrics to compute for each weekly analysis window.
+weekly = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
+
+# Metrics to compute for each 28 days long analysis window
+28_day = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
+
+# Metrics to compute only for the overall analysis window.
+overall = ["tabgroup_quantity", "saved_tabgroup_quantity", "active_tabgroup_quantity"]
+
+[metrics.tabgroup_quantity]
+friendly_name = "Number of Tab Groups"
+description = "Average number of tab groups, including saved, collapsed and expanded"
+select_expression = """(
+  COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'expanded'), submission_date), 0)
+  + COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'collapsed'), submission_date), 0)
+  + COALESCE(MAX_BY(metrics.quantity.tabgroup_saved_groups, submission_date), 0)
+)"""
+data_source = "metrics"
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.saved_tabgroup_quantity]
+friendly_name = "Number of Saved Tab Groups"
+description = "Average number of saved tab groups, including saved, collapsed and expanded"
+select_expression = """(
+ COALESCE(MAX_BY(metrics.quantity.tabgroup_saved_groups, submission_date), 0)
+)"""
+data_source = "metrics"
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.active_tabgroup_quantity]
+friendly_name = "Number of Saved Tab Groups"
+description = "Average number of active tab groups, including collapsed and expanded"
+select_expression = """(
+  COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'expanded'), submission_date), 0)
+  + COALESCE(MAX_BY(mozfun.map.get_key(metrics.labeled_quantity.tabgroup_active_groups, 'collapsed'), submission_date), 0)
+)"""
+data_source = "metrics"
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0
+
+[metrics.saved_tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0
+
+[metrics.active_tabgroup_quantity.statistics.bootstrap_mean]
+drop_highest = 0.0

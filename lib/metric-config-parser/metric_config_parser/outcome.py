@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 import attr
 
@@ -14,20 +15,20 @@ class OutcomeSpec:
 
     friendly_name: str
     description: str
-    metrics: Dict[str, MetricDefinition] = attr.Factory(dict)
-    default_metrics: Optional[List[MetricReference]] = attr.ib(None)
+    metrics: dict[str, MetricDefinition] = attr.Factory(dict)
+    default_metrics: list[MetricReference] | None = attr.ib(None)
     data_sources: DataSourcesSpec = attr.Factory(DataSourcesSpec)
     parameters: ParameterSpec = attr.Factory(ParameterSpec)
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "OutcomeSpec":
-        params: Dict[str, Any] = {}
+        params: dict[str, Any] = {}
         params["friendly_name"] = d["friendly_name"]
         params["description"] = d["description"]
         params["data_sources"] = converter.structure(d.get("data_sources", {}), DataSourcesSpec)
         params["metrics"] = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                {"name": k, **{kk.lower(): vv for kk, vv in v.items()}},
                 MetricDefinition,
             )
             for k, v in d.get("metrics", {}).items()
@@ -36,11 +37,11 @@ class OutcomeSpec:
             converter.structure(m, MetricReference) for m in d.get("default_metrics", [])
         ]
 
-        params["parameters"] = ParameterSpec.from_dict(d.get("parameters", dict()))
+        params["parameters"] = ParameterSpec.from_dict(d.get("parameters", {}))
 
         # check that default metrics are actually defined in outcome
         for default_metric in params["default_metrics"]:
-            if default_metric.name not in params["metrics"].keys():
+            if default_metric.name not in params["metrics"]:
                 raise ValueError(f"Default metric {default_metric} is not defined in outcome.")
 
         return cls(**params)

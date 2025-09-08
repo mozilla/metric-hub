@@ -1,13 +1,13 @@
 from textwrap import dedent
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 import jinja2
 from jinja2 import StrictUndefined
 
 if TYPE_CHECKING:
-    from .config import ConfigCollection
     from .analysis import AnalysisSpec
+    from .config import ConfigCollection
     from .experiment import ExperimentConfiguration
 
 from . import AnalysisUnit
@@ -61,7 +61,7 @@ class SegmentDataSource:
     window_end = attr.ib(default=0, type=int)
     client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
-    default_dataset = attr.ib(default=None, type=Optional[str])
+    default_dataset = attr.ib(default=None, type=str | None)
     group_id_column = attr.ib(default=AnalysisUnit.PROFILE_GROUP.value, type=str)
     glean_client_id_column = attr.ib(default=None, type=str)
     legacy_client_id_column = attr.ib(default=None, type=str)
@@ -86,8 +86,8 @@ class Segment:
     name = attr.ib(type=str)
     data_source = attr.ib(validator=attr.validators.instance_of(SegmentDataSource))
     select_expression = attr.ib(type=str)
-    friendly_name = attr.ib(type=Optional[str], default=None)
-    description = attr.ib(type=Optional[str], default=None)
+    friendly_name = attr.ib(type=str | None, default=None)
+    description = attr.ib(type=str | None, default=None)
 
 
 @attr.s(auto_attribs=True)
@@ -117,12 +117,12 @@ class SegmentDataSourceDefinition:
     from_expression: str
     window_start: int = 0
     window_end: int = 0
-    client_id_column: Optional[str] = AnalysisUnit.CLIENT.value
-    submission_date_column: Optional[str] = "submission_date"
-    default_dataset: Optional[str] = None
-    group_id_column: Optional[str] = AnalysisUnit.PROFILE_GROUP.value
-    glean_client_id_column: Optional[str] = None
-    legacy_client_id_column: Optional[str] = None
+    client_id_column: str | None = AnalysisUnit.CLIENT.value
+    submission_date_column: str | None = "submission_date"
+    default_dataset: str | None = None
+    group_id_column: str | None = AnalysisUnit.PROFILE_GROUP.value
+    glean_client_id_column: str | None = None
+    legacy_client_id_column: str | None = None
 
     def resolve(
         self,
@@ -132,7 +132,7 @@ class SegmentDataSourceDefinition:
     ) -> SegmentDataSource:
         env = jinja2.Environment(autoescape=False, undefined=StrictUndefined)
         from_expression = env.from_string(self.from_expression).render(experiment=conf)
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "name": self.name,
             "from_expression": from_expression,
             "window_start": self.window_start,
@@ -181,8 +181,8 @@ class SegmentDefinition:
     name: str
     data_source: SegmentDataSourceReference
     select_expression: str
-    friendly_name: Optional[str] = None
-    description: Optional[str] = None
+    friendly_name: str | None = None
+    description: str | None = None
 
     def resolve(
         self,
@@ -205,21 +205,21 @@ class SegmentDefinition:
 
 @attr.s(auto_attribs=True)
 class SegmentsSpec:
-    definitions: Dict[str, SegmentDefinition] = attr.Factory(dict)
-    data_sources: Dict[str, SegmentDataSourceDefinition] = attr.Factory(dict)
+    definitions: dict[str, SegmentDefinition] = attr.Factory(dict)
+    data_sources: dict[str, SegmentDataSourceDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "SegmentsSpec":
         data_sources = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                {"name": k, **{kk.lower(): vv for kk, vv in v.items()}},
                 SegmentDataSourceDefinition,
             )
             for k, v in d.pop("data_sources", {}).items()
         }
         definitions = {
             k: converter.structure(
-                {"name": k, **dict((kk.lower(), vv) for kk, vv in v.items())},
+                {"name": k, **{kk.lower(): vv for kk, vv in v.items()}},
                 SegmentDefinition,
             )
             for k, v in d.items()

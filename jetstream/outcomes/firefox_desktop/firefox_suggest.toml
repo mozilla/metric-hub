@@ -14,16 +14,16 @@ numerator = "ad_clicks"
 denominator = "search_count"
 
 [metrics.urlbar_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged')"
-data_source = "urlbar_events"
+select_expression = "SUM(urlbar_clicks)"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 description = "Count of clicks on any result shown in the urlbar dropdown menu"
 friendly_name = "Urlbar engagements"
 exposure_basis = ["exposures", "enrollments"]
 statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.urlbar_impressions_suggest]
-select_expression = "COUNTIF(is_terminal)"
-data_source = "urlbar_events"
+select_expression = "SUM(urlbar_impressions)"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 description = "The number of times a user exits the urlbar dropdown menu, either by abandoning the urlbar, engaging with a urlbar result, or selecting an annoyance signal that closes the urlbar dropdown menu"
 friendly_name = "Urlbar search sessions"
 exposure_basis = ["exposures", "enrollments"]
@@ -39,23 +39,21 @@ numerator = "urlbar_clicks"
 denominator = "urlbar_impressions_suggest"
 
 [metrics.urlbar_annoyances]
-select_expression = "COUNTIF(event_action = 'annoyance')"
-data_source = "urlbar_events"
+select_expression = "SUM(urlbar_annoyances)"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 description = "Count of clicks on annoyance signals across all results shown in the urlbar dropdown menu"
 friendly_name = "Urlbar annoyances"
 exposure_basis = ["exposures", "enrollments"]
 statistics = { deciles = {}, bootstrap_mean = {} }
 
 [metrics.search_engine_clicks]
-select_expression = """COUNTIF(
-  is_terminal
-  AND event_action = 'engaged'
-  AND (
-    product_selected_result IN ('default_partner_search_suggestion', 'search_engine', 'trending_suggestion')
-    OR selected_result IN ('recent_search')
+select_expression = """SUM(
+  IF(
+    product_result_type IN ('default_partner_search_suggestion', 'search_suggest', 'search_history', 'search_suggest_rich', 'search_engine', 'trending_suggestion', 'recent_search'), 
+    urlbar_clicks, 0
   )
 )"""
-data_source = "urlbar_events"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 description = "Count of clicks on a result shown in the urlbar dropdown menu leading to a SERP"
 friendly_name = "Urlbar sessions ending on a SERP"
 exposure_basis = ["exposures", "enrollments"]

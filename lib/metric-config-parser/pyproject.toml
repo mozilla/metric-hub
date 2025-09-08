@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools", "pytest-runner"]
+requires = ["pytest-runner", "setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mozilla-metric-config-parser"
-version = "2025.5.3"
+version = "2025.9.2"
 authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
-description = "Parses metric configuration files"
+description = "Parses metric configuration files."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -31,13 +31,12 @@ Documentation = "https://github.com/mozilla/metric-hub/blob/main/lib/metric-conf
 [project.optional-dependencies]
 testing = [
   "coverage",
-  "isort",
   "jsonschema",
   "mypy",
-  "pytest-black",
-  "pytest-cov",
-  "pytest-flake8",
   "pytest",
+  "pytest-cov",
+  "pytest-ruff",
+  "ruff",
   "types-futures",
   "types-protobuf",
   "types-pytz",
@@ -59,9 +58,25 @@ packages = [
 metric_config_parser = ["templates/*"]
 "metric_config_parser.tests" = ["data/*"]
 
-[tool.black]
+[tool.ruff]
 line-length = 100
+exclude = [".git", "__pycache__"]
+target-version = "py310"
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.ruff.lint]
+ignore = ["E741", "RUF005", "RUF012", "SIM105"]
+select = [
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "E",   # pycodestyle
+  "F",   # Pyflakes
+  "I",   # isort
+  "PT",  # flake8-pytest-style
+  "Q",   # flake8-quotes
+  "RUF", # Ruff-specific rules
+  "SIM", # flake8-simplify
+  "TC",  # flake8-type-checking
+  "TID", # flake8-tidy-imports
+  "UP",  # pyupgrade
+  "W",   # pycodestyle
+]

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import attr
 
@@ -6,4 +6,4 @@ import attr
 @attr.s(auto_attribs=True)
 class Statistic:
     name: str
-    params: Dict[str, Any]
+    params: dict[str, Any]

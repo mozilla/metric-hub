@@ -5,8 +5,8 @@ enrollment_period = 7
 name = "exposed_session"
 friendly_name = "Exposed"
 description = "The set of clients that typed 5+ characters to trigger an AMP result"
-select_expression = "result.product_result_type = 'history'"
-data_source =  "urlbar_events_unnested_results"
+select_expression = "product_result_type = 'history'"
+data_source =  "urlbar_events_daily_engagement_by_product_result_type_v1"
 window_end = "analysis_window_end"
 
 [metrics]
@@ -19,36 +19,36 @@ overall = ["history_impressions", "bookmark_impressions", "search_suggestion_imp
 
 ## Impressions
 [metrics.history_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'history', event_id, NULL))"
-data_source = "urlbar_events_unnested_results"
+select_expression = "SUM(IF(product_result_type = 'history', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.history_impressions.statistics.bootstrap_mean]
 
 [metrics.bookmark_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'bookmark', event_id, NULL))"
-data_source = "urlbar_events_unnested_results"
+select_expression = "SUM(IF(product_result_type = 'bookmark', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.bookmark_impressions.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_impressions]
-select_expression = "COUNT(DISTINCT IF(is_terminal AND result.product_result_type = 'default_partner_search_suggestion', event_id, NULL))"
-data_source = "urlbar_events_unnested_results"
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.search_suggestion_impressions.statistics.bootstrap_mean]
 
 [metrics.urlbar_impressions_suggest.statistics.bootstrap_mean]
 
 ## Clicks
 [metrics.history_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'history')"
-data_source = "urlbar_events"
+select_expression = "SUM(IF(product_result_type = 'history', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.history_clicks.statistics.bootstrap_mean]
 
 [metrics.bookmark_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'bookmark')"
-data_source = "urlbar_events"
+select_expression = "SUM(IF(product_result_type = 'bookmark', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.bookmark_clicks.statistics.bootstrap_mean]
 
 [metrics.search_suggestion_clicks]
-select_expression = "COUNTIF(is_terminal and event_action = 'engaged' and product_engaged_result_type = 'default_partner_search_suggestion')"
-data_source = "urlbar_events"
+select_expression = "SUM(IF(product_result_type = 'default_partner_search_suggestion', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 [metrics.search_suggestion_clicks.statistics.bootstrap_mean]
 
 ## CTR

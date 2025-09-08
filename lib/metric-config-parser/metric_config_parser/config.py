@@ -4,14 +4,13 @@ import tempfile
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING
 
 import attr
 import jinja2
 import toml
 from git import Repo
 from git.exc import InvalidGitRepositoryError
-from git.objects.commit import Commit
 from jinja2 import StrictUndefined
 from pytz import UTC
 
@@ -28,6 +27,9 @@ from .metric import MetricDefinition
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory
+
+if TYPE_CHECKING:
+    from git.objects.commit import Commit
 
 OUTCOMES_DIR = "outcomes"
 DEFAULTS_DIR = "defaults"
@@ -61,10 +63,9 @@ class Config:
                 platform,
                 configs,
             )
-            if experiment and experiment.is_rollout:
-                if platform == "firefox_desktop":
-                    rollout_spec = MonitoringSpec.default_for_platform_or_type("rollout", configs)
-                    monitoring_spec.merge(rollout_spec)
+            if experiment and experiment.is_rollout and platform == "firefox_desktop":
+                rollout_spec = MonitoringSpec.default_for_platform_or_type("rollout", configs)
+                monitoring_spec.merge(rollout_spec)
             monitoring_spec.merge(self.spec)
             monitoring_spec.resolve(experiment, configs)
 
@@ -151,7 +152,7 @@ class Outcome:
     slug: str
     spec: OutcomeSpec
     platform: str
-    commit_hash: Optional[str]
+    commit_hash: str | None
     is_private: bool = False
 
     def validate(self, configs: "ConfigCollection") -> None:
@@ -184,6 +185,10 @@ class DefinitionConfig(Config):
 
     platform: str = "firefox_desktop"
 
+    @property
+    def app_name(self) -> str:
+        return self.platform
+
     def validate(self, configs: "ConfigCollection", _experiment: Experiment = None) -> None:
         dummy_experiment = Experiment(
             experimenter_slug="dummy-experiment",
@@ -210,7 +215,7 @@ class DefinitionConfig(Config):
 
 def entity_from_path(
     path: Path, is_private: bool = False
-) -> Union[Config, Outcome, DefaultConfig, DefinitionConfig, FunctionsSpec]:
+) -> Config | Outcome | DefaultConfig | DefinitionConfig | FunctionsSpec:
     is_outcome = path.parent.parent.name == OUTCOMES_DIR
     is_default_config = path.parent.name == DEFAULTS_DIR
     is_definition_config = path.parent.name == DEFINITIONS_DIR
@@ -302,12 +307,12 @@ class ConfigCollection:
     from an external GitHub repository.
     """
 
-    configs: List[Config] = attr.Factory(list)
-    outcomes: List[Outcome] = attr.Factory(list)
-    defaults: List[DefaultConfig] = attr.Factory(list)
-    definitions: List[DefinitionConfig] = attr.Factory(list)
-    functions: Optional[FunctionsSpec] = None
-    repos: List[Repository] = []  # repos configs were loaded from
+    configs: list[Config] = attr.Factory(list)
+    outcomes: list[Outcome] = attr.Factory(list)
+    defaults: list[DefaultConfig] = attr.Factory(list)
+    definitions: list[DefinitionConfig] = attr.Factory(list)
+    functions: FunctionsSpec | None = None
+    repos: list[Repository] = attr.Factory(list)  # repos configs were loaded from
     is_private: bool = False
 
     repo_url = "https://github.com/mozilla/metric-hub"
@@ -315,10 +320,10 @@ class ConfigCollection:
     @classmethod
     def from_github_repo(
         cls,
-        repo_url: Optional[str] = None,
+        repo_url: str | None = None,
         is_private: bool = False,
-        path: Optional[str] = None,
-        depth: Optional[int] = None,
+        path: str | None = None,
+        depth: int | None = None,
     ) -> "ConfigCollection":
         """Pull in external config files."""
         # download files to a persisted tmp directory
@@ -371,7 +376,7 @@ class ConfigCollection:
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: Optional[List[str]] = None, is_private: bool = False
+        cls, repo_urls: list[str] | None = None, is_private: bool = False
     ) -> "ConfigCollection":
         """Load configs from the provided repos."""
         if repo_urls is None or len(repo_urls) < 1:
@@ -393,10 +398,7 @@ class ConfigCollection:
     ) -> "ConfigCollection":
         """Load configs from a local repository."""
 
-        if path:
-            files_path = Path(repo.git_dir).parent / path
-        else:
-            files_path = Path(repo.git_dir).parent
+        files_path = Path(repo.git_dir).parent / path if path else Path(repo.git_dir).parent
 
         external_configs = []
         for config_file in files_path.glob("*.toml"):
@@ -523,7 +525,7 @@ class ConfigCollection:
 
                 # keep track of more recent commits to go back to in case invalid configs
                 # got checked into main that cannot be parsed
-                newer_commits: List[Commit] = []
+                newer_commits: list[Commit] = []
 
                 # start iterating through all commits starting at HEAD
                 for commit in tmp_repo.iter_commits("HEAD"):
@@ -590,7 +592,7 @@ class ConfigCollection:
 
         return config_collection
 
-    def spec_for_outcome(self, slug: str, platform: str) -> Optional[OutcomeSpec]:
+    def spec_for_outcome(self, slug: str, platform: str) -> OutcomeSpec | None:
         """Return the spec for a specific outcome"""
         for outcome in self.outcomes:
             if outcome.slug == slug and outcome.platform == platform:
@@ -598,39 +600,37 @@ class ConfigCollection:
 
         return None
 
-    def spec_for_experiment(self, slug: str) -> Optional[AnalysisSpec]:
+    def spec_for_experiment(self, slug: str) -> AnalysisSpec | None:
         """Return the spec for a specific experiment."""
         for config in self.configs:
-            if config.slug == slug:
-                if isinstance(config.spec, AnalysisSpec):
-                    return config.spec
+            if config.slug == slug and isinstance(config.spec, AnalysisSpec):
+                return config.spec
 
         return None
 
-    def spec_for_project(self, slug: str) -> Optional[MonitoringSpec]:
+    def spec_for_project(self, slug: str) -> MonitoringSpec | None:
         """Return the spec for a specific project."""
         for config in self.configs:
-            if config.slug == slug:
-                if isinstance(config.spec, MonitoringSpec):
-                    return config.spec
+            if config.slug == slug and isinstance(config.spec, MonitoringSpec):
+                return config.spec
 
         return None
 
-    def get_platform_defaults(self, platform: str) -> Optional[DefinitionSpecSub]:
+    def get_platform_defaults(self, platform: str) -> DefinitionSpecSub | None:
         for default in self.defaults:
             if platform == default.slug:
                 return default.spec
 
         return None
 
-    def get_platform_definitions(self, platform: str) -> Optional[DefinitionSpecSub]:
+    def get_platform_definitions(self, platform: str) -> DefinitionSpecSub | None:
         for definition in self.definitions:
             if platform == definition.slug:
                 return definition.spec
 
         return None
 
-    def get_metric_definition(self, slug: str, app_name: str) -> Optional[MetricDefinition]:
+    def get_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for metric_slug, metric in definition.spec.metrics.definitions.items():
@@ -639,9 +639,7 @@ class ConfigCollection:
 
         return None
 
-    def get_data_source_definition(
-        self, slug: str, app_name: str
-    ) -> Optional[DataSourceDefinition]:
+    def get_data_source_definition(self, slug: str, app_name: str) -> DataSourceDefinition | None:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for (
@@ -654,34 +652,32 @@ class ConfigCollection:
 
     def get_segment_data_source_definition(
         self, slug: str, app_name: str
-    ) -> Optional[SegmentDataSourceDefinition]:
+    ) -> SegmentDataSourceDefinition | None:
         for definition in self.definitions:
-            if app_name == definition.platform:
-                if not isinstance(definition.spec, MonitoringSpec):
-                    for (
-                        segment_source_slug,
-                        segment_source,
-                    ) in definition.spec.segments.data_sources.items():
-                        if segment_source_slug == slug:
-                            return segment_source
+            if app_name == definition.platform and not isinstance(definition.spec, MonitoringSpec):
+                for (
+                    segment_source_slug,
+                    segment_source,
+                ) in definition.spec.segments.data_sources.items():
+                    if segment_source_slug == slug:
+                        return segment_source
 
         return None
 
-    def get_segment_definition(self, slug: str, app_name: str) -> Optional[SegmentDefinition]:
+    def get_segment_definition(self, slug: str, app_name: str) -> SegmentDefinition | None:
         for definition in self.definitions:
-            if app_name == definition.platform:
-                if not isinstance(definition.spec, MonitoringSpec):
-                    for (
-                        segment_slug,
-                        segment,
-                    ) in definition.spec.segments.definitions.items():
-                        if segment_slug == slug:
-                            return segment
+            if app_name == definition.platform and not isinstance(definition.spec, MonitoringSpec):
+                for (
+                    segment_slug,
+                    segment,
+                ) in definition.spec.segments.definitions.items():
+                    if segment_slug == slug:
+                        return segment
 
         return None
 
-    def get_segments_for_app(self, app_name: str) -> Optional[List[SegmentDefinition]]:
-        segments: List[SegmentDefinition] = []
+    def get_segments_for_app(self, app_name: str) -> list[SegmentDefinition] | None:
+        segments: list[SegmentDefinition] = []
         for definition in self.definitions:
             if app_name == definition.platform and not isinstance(definition.spec, MonitoringSpec):
                 segments.extend(definition.spec.segments.definitions.values())
@@ -690,14 +686,16 @@ class ConfigCollection:
 
     def get_metrics_sql(
         self,
-        metrics: List[str],
+        metrics: list[str],
         platform: str,
-        group_by: List[str] = [],
-        where: Optional[str] = None,
+        group_by: list[str] | None = None,
+        where: str | None = None,
         group_by_client_id: bool = True,
         group_by_submission_date: bool = True,
     ) -> str:
         """Generate a SQL query for the specified metrics."""
+        if group_by is None:
+            group_by = []
         return generate_metrics_sql(
             self,
             metrics=metrics,
@@ -712,7 +710,7 @@ class ConfigCollection:
         self,
         data_source: str,
         platform: str,
-        where: Optional[str] = None,
+        where: str | None = None,
         select_fields: bool = True,
         ignore_joins: bool = False,
     ) -> str:
@@ -914,10 +912,10 @@ class LocalConfigCollection(ConfigCollection):
     @classmethod
     def from_github_repo(
         cls,
-        repo_url: Optional[str] = None,
+        repo_url: str | None = None,
         is_private: bool = False,
-        path: Optional[str] = None,
-        depth: Optional[int] = None,
+        path: str | None = None,
+        depth: int | None = None,
     ):
         raise NotImplementedError(
             "`from_github_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -926,7 +924,7 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: Optional[List[str]] = None, is_private: bool = False
+        cls, repo_urls: list[str] | None = None, is_private: bool = False
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_github_repos` is not valid for non-repo-based LocalConfigCollection. "

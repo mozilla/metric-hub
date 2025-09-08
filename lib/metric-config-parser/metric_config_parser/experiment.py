@@ -1,6 +1,6 @@
 import datetime as dt
 import enum
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any
 
 import attr
 import jinja2
@@ -8,8 +8,8 @@ from jinja2 import StrictUndefined
 from mozilla_nimbus_schemas import RandomizationUnit
 
 if TYPE_CHECKING:
-    from .config import ConfigCollection
     from .analysis import AnalysisSpec
+    from .config import ConfigCollection
 
 from . import AnalysisUnit
 from .errors import NoEndDateException, NoStartDateException
@@ -68,25 +68,25 @@ class Experiment:
             needed because enrollment_end_date may be computed/proposed
     """
 
-    experimenter_slug: Optional[str]
-    normandy_slug: Optional[str]
+    experimenter_slug: str | None
+    normandy_slug: str | None
     type: str
-    status: Optional[str]
-    branches: List[Branch]
-    start_date: Optional[dt.datetime]
-    end_date: Optional[dt.datetime]
-    proposed_enrollment: Optional[int]
-    reference_branch: Optional[str]
+    status: str | None
+    branches: list[Branch]
+    start_date: dt.datetime | None
+    end_date: dt.datetime | None
+    proposed_enrollment: int | None
+    reference_branch: str | None
     is_high_population: bool
     app_name: str
-    bucket_config: Optional[BucketConfig] = None
-    is_enrollment_paused: Optional[bool] = None
-    app_id: Optional[str] = None
-    outcomes: List[str] = attr.Factory(list)
-    segments: List[str] = attr.Factory(list)
-    enrollment_end_date: Optional[dt.datetime] = None
-    boolean_pref: Optional[str] = None
-    channel: Optional[Channel] = None
+    bucket_config: BucketConfig | None = None
+    is_enrollment_paused: bool | None = None
+    app_id: str | None = None
+    outcomes: list[str] = attr.Factory(list)
+    segments: list[str] = attr.Factory(list)
+    enrollment_end_date: dt.datetime | None = None
+    boolean_pref: str | None = None
+    channel: Channel | None = None
     is_rollout: bool = False
 
 
@@ -96,17 +96,17 @@ class ExperimentConfiguration:
 
     experiment_spec: "ExperimentSpec"
     experiment: "Experiment"
-    segments: List[Segment]
-    exposure_signal: Optional[ExposureSignal] = None
+    segments: list[Segment]
+    exposure_signal: ExposureSignal | None = None
     # int <= 100 represents the percentage of clients for downsampling enrollments
-    sample_size: Optional[int] = None
+    sample_size: int | None = None
 
     def __attrs_post_init__(self):
         # Catch any exceptions at instantiation
         self._enrollment_query = self.enrollment_query
 
     @property
-    def enrollment_query(self) -> Optional[str]:
+    def enrollment_query(self) -> str | None:
         if self.experiment_spec.enrollment_query is None:
             return None
 
@@ -117,7 +117,7 @@ class ExperimentConfiguration:
         class ExperimentProxy:
             @property
             def enrollment_query(proxy):
-                raise ValueError()
+                raise ValueError("Not a valid enrollment_query")
 
             def __getattr__(proxy, name):
                 return getattr(self, name)
@@ -132,29 +132,29 @@ class ExperimentConfiguration:
         return self.experiment_spec.enrollment_period or self.experiment.proposed_enrollment or 0
 
     @property
-    def enrollment_end_date(self) -> Optional[dt.datetime]:
+    def enrollment_end_date(self) -> dt.datetime | None:
         return self.experiment.enrollment_end_date
 
     @property
-    def is_enrollment_paused(self) -> Optional[bool]:
+    def is_enrollment_paused(self) -> bool | None:
         return self.experiment.is_enrollment_paused
 
     @property
-    def bucket_count(self) -> Optional[int]:
+    def bucket_count(self) -> int | None:
         if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             return self.experiment.bucket_config.count
 
         return None
 
     @property
-    def bucket_start(self) -> Optional[int]:
+    def bucket_start(self) -> int | None:
         if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             return self.experiment.bucket_config.start
 
         return None
 
     @property
-    def randomization_unit(self) -> Optional[RandomizationUnit]:
+    def randomization_unit(self) -> RandomizationUnit | None:
         if hasattr(self.experiment, "bucket_config") and self.experiment.bucket_config is not None:
             # this will raise a ValueError if the provided randomization_unit is invalid
             return RandomizationUnit(self.experiment.bucket_config.randomization_unit)
@@ -162,7 +162,7 @@ class ExperimentConfiguration:
         return None
 
     @property
-    def analysis_unit(self) -> Optional[AnalysisUnit]:
+    def analysis_unit(self) -> AnalysisUnit | None:
         """Retrieve the appropriate analysis unit, which is
         derived from the experiment's randomization unit.
         """
@@ -181,19 +181,19 @@ class ExperimentConfiguration:
         return self.proposed_enrollment or 0
 
     @property
-    def reference_branch(self) -> Optional[str]:
+    def reference_branch(self) -> str | None:
         return self.experiment_spec.reference_branch or self.experiment.reference_branch
 
     @property
-    def start_date(self) -> Optional[dt.datetime]:
+    def start_date(self) -> dt.datetime | None:
         return parse_date(self.experiment_spec.start_date) or self.experiment.start_date
 
     @property
-    def end_date(self) -> Optional[dt.datetime]:
+    def end_date(self) -> dt.datetime | None:
         return parse_date(self.experiment_spec.end_date) or self.experiment.end_date
 
     @property
-    def status(self) -> Optional[str]:
+    def status(self) -> str | None:
         """Assert the experiment is Complete if an end date is provided.
 
         Functionally, this lets the Overall metrics run on the specified date.
@@ -232,7 +232,7 @@ class ExperimentConfiguration:
         return self.experiment.app_name
 
     @property
-    def dataset_id(self) -> Optional[str]:
+    def dataset_id(self) -> str | None:
         return self.experiment_spec.dataset_id
 
     def has_external_config_overrides(self) -> bool:
@@ -272,17 +272,17 @@ def _validate_dataset_id(instance: Any, attribute, value):
 class ExperimentSpec:
     """Describes the interface for overriding experiment details."""
 
-    enrollment_query: Optional[str] = None
-    enrollment_period: Optional[int] = None
-    reference_branch: Optional[str] = None
-    start_date: Optional[str] = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
-    end_date: Optional[str] = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
-    segments: List[SegmentReference] = attr.Factory(list)
+    enrollment_query: str | None = None
+    enrollment_period: int | None = None
+    reference_branch: str | None = None
+    start_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
+    end_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
+    segments: list[SegmentReference] = attr.Factory(list)
     skip: bool = False
-    exposure_signal: Optional[ExposureSignalDefinition] = None
+    exposure_signal: ExposureSignalDefinition | None = None
     is_private: bool = False
-    dataset_id: Optional[str] = attr.ib(default=None, validator=_validate_dataset_id)
-    sample_size: Optional[int] = None
+    dataset_id: str | None = attr.ib(default=None, validator=_validate_dataset_id)
+    sample_size: int | None = None
 
     def resolve(
         self,

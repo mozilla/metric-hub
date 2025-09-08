@@ -1,0 +1,4 @@
+[experiment]
+enrollment_period = 9
+
+segments = ["new_users", "new_and_repeat_users"]

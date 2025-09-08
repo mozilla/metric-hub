@@ -6,8 +6,8 @@ from metric_config_parser.parameter import ParameterDefinition
 
 class TestMetricDefinition:
     @pytest.mark.parametrize(
-        "input,expected",
-        (
+        ("input", "expected"),
+        [
             (
                 [
                     {"param": ParameterDefinition(name="param", value="1")},
@@ -68,7 +68,7 @@ class TestMetricDefinition:
                     """WHEN "branch_1" THEN "1" WHEN "branch_2" THEN "2" END)"""
                 ),
             ),
-        ),
+        ],
     )
     def test_generate_select_expression(self, input, expected, config_collection):
         """

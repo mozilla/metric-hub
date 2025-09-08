@@ -1,0 +1,39 @@
+[experiment]
+enrollment_period = 14
+end_date = "2025-09-07"
+
+[metrics]
+
+weekly = [
+    "tried_pinned_tabs",
+    "kept_pinned_tabs",
+    "number_pinned_tabs",
+]
+
+overall = [
+    "tried_pinned_tabs",
+    "kept_pinned_tabs",
+    "number_pinned_tabs",
+]
+
+[metrics.tried_pinned_tabs.statistics.binomial]
+[metrics.kept_pinned_tabs.statistics.binomial]
+[metrics.number_pinned_tabs.statistics.bootstrap_mean]
+
+[metrics.tried_pinned_tabs]
+friendly_name = "Pinned Tabs Use"
+description = "Percentage of clients who had a pinned tab at some point during the experiment"
+select_expression = "LOGICAL_OR(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_tab_pinned_count, payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_pinned_count, 0) > 0)"
+data_source = "main"
+
+[metrics.kept_pinned_tabs]
+friendly_name = "Pinned Tabs Use"
+description = "Percentage of clients who kept at least one pinned tab"
+select_expression = "COALESCE(MAX_BY(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_tab_pinned_count, payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_pinned_count, 0), submission_timestamp) > 0 , FALSE)"
+data_source = "main"
+
+[metrics.number_pinned_tabs]
+friendly_name = "Pinned Tabs Quantity"
+description = "Average number of pinned tabs per client when they were last seen"
+select_expression = "COALESCE(MAX_BY(COALESCE(payload.processes.parent.scalars.browser_engagement_max_concurrent_tab_pinned_count, payload.processes.parent.scalars.browser_engagement_max_concurrent_vertical_tab_pinned_count, 0), submission_timestamp), 0)"
+data_source = "main"

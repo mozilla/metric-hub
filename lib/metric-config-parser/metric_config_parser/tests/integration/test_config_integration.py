@@ -114,9 +114,7 @@ class TestConfigIntegration:
     def test_config_as_of(self):
         config_collection = ConfigCollection.from_github_repo(
             "https://github.com/mozilla/metric-hub/tree/main/jetstream"
-        ).as_of(
-            UTC.localize(datetime(2023, 5, 15))
-        )  # 6a052aea23e7e2332a20c992b2e6f07468c3d161
+        ).as_of(UTC.localize(datetime(2023, 5, 15)))  # 6a052aea23e7e2332a20c992b2e6f07468c3d161
 
         assert config_collection is not None
         assert config_collection.spec_for_outcome("networking", "firefox_desktop") is None

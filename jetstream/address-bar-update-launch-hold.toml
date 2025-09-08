@@ -1,5 +1,5 @@
 [experiment]
-end_date = "2025-06-18"
+end_date = "2025-07-18"
 segments = [
   "google_default_search",
   "marketing_tier1_countries"
@@ -9,6 +9,21 @@ segments = [
 weekly = ['search_engine_default_change', 'non_default_search_engine_search']
 overall = ['search_engine_default_change', 'non_default_search_engine_search']
 
+[metrics.serp_impressions]
+friendly_name = "no-op serp impressions"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
 
 [metrics.search_engine_default_change]
 friendly_name = "Search Engine Default Changed"

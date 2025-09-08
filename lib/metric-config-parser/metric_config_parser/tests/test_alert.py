@@ -4,6 +4,8 @@ import pytest
 import toml
 from cattrs.errors import ClassValidationError
 
+from metric_config_parser.alert import AlertReference
+from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.metric import MetricReference
 from metric_config_parser.monitoring import MonitoringSpec
 
@@ -72,6 +74,32 @@ class TestAlertSpec:
 
         with pytest.raises(ClassValidationError):
             MonitoringSpec.from_dict(toml.loads(config_str))
+
+    def test_alert_incorrect_spec(self):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["my_cool_metric"]
+            [metrics.my_cool_metric]
+            data_source = "main"
+            select_expression = "{{agg_histogram_mean('payload.content.my_cool_histogram')}}"
+
+            [metrics.my_cool_metric.statistics.bootstrap_mean]
+
+            [alerts]
+            [alerts.test]
+            type = "threshold"
+            metrics = ["test_metric"]
+            min = [1]
+            max = [3]
+            percentiles = [1]
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+
+        alert_reference = AlertReference(name="test")
+        with pytest.raises(NotImplementedError):
+            alert_reference.resolve(spec, None, None)
 
     def test_alert_incorrect_number_of_thresholds(self):
         config_str = dedent(

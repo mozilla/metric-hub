@@ -143,8 +143,20 @@ denominator = "ad_impressions.sum"
 [metrics.avg_visit_duration]
 select_expression = "AVG(avg_duration_seconds)"
 data_source = "newtab_visit_duration"
-friendly_name = "HNT visit duration (seconds)"
+friendly_name = "Avg HNT visit duration (seconds)"
 description ="Home Newtab (HNT) average visit duration in seconds"
+
+[metrics.p50_visit_duration]
+select_expression = "AVG(p50_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "Median HNT visit duration (seconds)"
+description ="Home Newtab (HNT) median / p50 visit duration in seconds"
+
+[metrics.p95_visit_duration]
+select_expression = "AVG(p95_duration_seconds)"
+data_source = "newtab_visit_duration"
+friendly_name = "P95 HNT visit duration (seconds)"
+description ="Home Newtab (HNT) p95 visit duration in seconds"
 
 ### data_sources.ad_metrics_daily
 [metrics.ads_count]
@@ -154,23 +166,39 @@ friendly_name = "Ads Count"
 description = "Number of unique ads served"
 
 [metrics.revenue_per_ad]
-depends_on = ['ads_count', 'revenue']
+select_expression = "SUM(1)"
 data_source = "ad_metrics_daily"
 friendly_name =  "Revenue Per Ad"
 description = "Revenue Per Ad"
 
+[metrics.ecpm]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "eCPM"
+description = "effective CPM, calculated as average revenue per thousand impressions"
+
+[metrics.click_through_rate]
+select_expression = "SUM(1)"
+data_source = "ad_metrics_daily"
+type = "scalar"
+friendly_name = "Click Through Rate"
+description = "Ratio of ad clicks to ad impressions"
+
 [metrics.ad_metrics_ad_impressions.statistics.sum]
 [metrics.ad_metrics_ad_clicks.statistics.sum]
 [metrics.revenue.statistics.sum]
+[metrics.milli_impressions.statistics.sum]
+[metrics.ads_count.statistics.sum]
 [metrics.ecpm.statistics.ratio]
-numerator = 'revenue'
-denominator = 'milli_impressions'
+numerator = "revenue.sum"
+denominator = "milli_impressions.sum"
 [metrics.click_through_rate.statistics.ratio]
-numerator = 'clicks'
-denominator = 'impressions'
+numerator = "ad_metrics_ad_clicks.sum"
+denominator = "ad_metrics_ad_impressions.sum"
 [metrics.revenue_per_ad.statistics.ratio]
-numerator = 'revenue'
-denominator = 'ads_count'
+numerator = "revenue.sum"
+denominator = "ads_count.sum"
 
 [data_sources.consolidated_ads_spocs]
 from_expression = """

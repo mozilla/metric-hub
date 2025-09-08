@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Union
+from collections.abc import Mapping
+from typing import Any
 
 import attr
 
@@ -32,12 +33,12 @@ class DefinitionSpec:
     def merge(self, other: "DefinitionSpecSub"):
         self.metrics.merge(other.metrics)
         self.data_sources.merge(other.data_sources)
-        if isinstance(other, DefinitionSpec) or isinstance(other, AnalysisSpec):
+        if isinstance(other, DefinitionSpec | AnalysisSpec):
             self.segments.merge(other.segments)
-        if isinstance(other, DefinitionSpec) or isinstance(other, MonitoringSpec):
+        if isinstance(other, DefinitionSpec | MonitoringSpec):
             self.dimensions.merge(other.dimensions)
-        if isinstance(other, DefinitionSpec) or isinstance(other, MonitoringSpec):
+        if isinstance(other, DefinitionSpec | MonitoringSpec):
             self.alerts.merge(other.alerts)
 
 
-DefinitionSpecSub = Union[AnalysisSpec, MonitoringSpec, DefinitionSpec]
+DefinitionSpecSub = AnalysisSpec | MonitoringSpec | DefinitionSpec

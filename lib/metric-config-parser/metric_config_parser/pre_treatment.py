@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 import attr
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 @attr.s(auto_attribs=True)
 class PreTreatmentReference:
     name: str
-    args: Dict[str, Any]
+    args: dict[str, Any]
 
     def resolve(self, spec: "DefinitionSpecSub") -> "PreTreatmentReference":
         return self

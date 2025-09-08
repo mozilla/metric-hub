@@ -1,12 +1,12 @@
 [experiment]
 
-segments = ["us", "de", "gb", "existing_users", "new_users"]
+segments = ["us", "de", "gb"]
 
 [metrics]
 
-weekly = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+weekly = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count", "serp_impressions"]
 
-overall = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count"]
+overall = ["switch_to_perplexity", "perplexity_sap_count", "google_sap_count", "serp_impressions"]
 
 [metrics.switch_to_perplexity]
 friendly_name = "Switch to perplexity"
@@ -15,7 +15,7 @@ select_expression = """(
     COALESCE(COUNTIF(event = 'search.engine.default.changed' 
     AND JSON_VALUE(event_extra.new_display_name) = 'Perplexity'), 0)
 )"""
-data_source = "glean_events_stream"
+data_source = "glean_search_engine"
 
 [metrics.switch_to_perplexity.statistics.bootstrap_mean]
 
@@ -26,7 +26,7 @@ select_expression = """(
    COALESCE(COUNTIF(event = 'sap.counts' 
    AND JSON_VALUE(event_extra.provider_name) = 'Perplexity'), 0)
 )"""
-data_source = "glean_events_stream"
+data_source = "glean_sap"
 
 [metrics.perplexity_sap_count.statistics.bootstrap_mean]
 
@@ -37,9 +37,67 @@ select_expression = """(
    COALESCE(COUNTIF(event = 'sap.counts' 
    AND JSON_VALUE(event_extra.provider_name) = 'Google'), 0)
 )"""
-data_source = "glean_events_stream"
+data_source = "glean_sap"
 
 [metrics.google_sap_count.statistics.bootstrap_mean]
+
+[metrics.serp_impressions]
+friendly_name = "no-op serp impressions"
+description = "zeroing out serp impressions to prevent timeouts with outcome metric"
+select_expression = "SUM(0)"
+data_source = "noop_ds"
+
+[metrics.serp_impressions.statistics.bootstrap_mean]
+
+[data_sources]
+
+[data_sources.noop_ds]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
+
+[data_sources.glean_sap]
+from_expression = """(
+    SELECT
+      *,  
+      DATE(submission_timestamp) AS submission_date
+   FROM `mozdata.firefox_desktop.events_stream`
+   WHERE
+      event_category = 'sap'
+    AND event_name = 'sap.counts'
+    AND DATE(submission_timestamp) BETWEEN DATE("2025-06-10") AND DATE("2025-07-16")
+)"""
+analysis_units = ["profile_group_id", "client_id"]
+description = "Glean events_stream dataset filtered for SAP count events"
+friendly_name = "Glean SAP Counts Events Stream"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
+glean_client_id_column = "client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.glean_search_engine]
+from_expression = """(
+   SELECT
+      *,  
+      DATE(submission_timestamp) AS submission_date
+   FROM `mozdata.firefox_desktop.events_stream`
+   WHERE
+      event = 'search.engine.default.changed'
+   AND DATE(submission_timestamp) BETWEEN DATE("2025-06-10") AND DATE("2025-07-16") 
+)"""
+analysis_units = ["profile_group_id", "client_id"]
+description = "Glean events_stream dataset filtered for engine default changed"
+friendly_name = "Glean Search Engine Default Changed"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
+glean_client_id_column = "client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
 
 [segments]
 
@@ -58,15 +116,15 @@ select_expression = "COALESCE(LOGICAL_OR(country = 'GB'), FALSE)"
 description = "Clients in GB"
 data_source = "clients_daily"
 
-[segments.existing_users]
-select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 27), FALSE)"
-description = "Clients first seen date > 27 days"
-data_source = "clients_last_seen"
+# [segments.existing_users]
+# select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 27), FALSE)"
+# description = "Clients first seen date > 27 days"
+# data_source = "clients_last_seen"
 
-[segments.new_users]
-select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 27), FALSE)"
-description = "Clients first seen date <= 27 days"
-data_source = "clients_last_seen"
+# [segments.new_users]
+# select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 27), FALSE)"
+# description = "Clients first seen date <= 27 days"
+# data_source = "clients_last_seen"
 
 [segments.data_sources.clients_daily]
 from_expression = "mozdata.telemetry.clients_daily"
