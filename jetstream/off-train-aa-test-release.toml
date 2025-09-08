@@ -2,15 +2,6 @@
 enrollment_period = 14
 
 [metrics]
-overall = [
-  "spoc_tiles_impressions",
-  "spoc_tiles_clicks",
-  "spoc_tiles_disable_rate",
-  "spoc_tiles_preference_toggled",
-  "awesomebar_engagement",
-  "awesomebar_abandonment"
-]
-
 
 [metrics.spoc_tiles_impressions]
 friendly_name = "no-op spoc tiles impressions"
