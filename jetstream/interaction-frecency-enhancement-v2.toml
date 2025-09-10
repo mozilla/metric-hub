@@ -35,11 +35,6 @@ description = "Proportion of urlbar sessions where suggestion from the user's br
 numerator = "history_clicks"
 denominator = "history_impressions"
 
-[metrics.serp_impressions]
-friendly_name = "no-op serp impressions"
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-[metrics.serp_impressions.statistics.linear_model_mean]
 
 [metrics.any_sponsored_tiles_dismissals]
 friendly_name = "no-op any sponsored tile dismissals"
