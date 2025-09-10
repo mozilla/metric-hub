@@ -1,0 +1,78 @@
+[experiment]
+enrollment_period = 7
+
+[experiment.exposure_signal]
+name = "exposed_session"
+friendly_name = "Exposed"
+description = "The set of clients that typed 5+ characters to trigger an AMP result"
+select_expression = "product_result_type = 'history'"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+window_end = "analysis_window_end"
+
+[metrics]
+weekly = ["history_impressions", "history_clicks", "history_ctr"]
+overall = ["history_impressions", "history_clicks", "history_ctr"]
+
+## Impressions
+[metrics.history_impressions]
+select_expression = "SUM(IF(product_result_type = 'history', urlbar_impressions, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.history_impressions.statistics.bootstrap_mean]
+
+## Clicks
+[metrics.history_clicks]
+select_expression = "SUM(IF(product_result_type = 'history', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.history_clicks.statistics.bootstrap_mean]
+
+## CTR
+[metrics.history_ctr]
+depends_on = ["history_clicks", "history_impressions"]
+friendly_name = "History CTR"
+description = "Proportion of urlbar sessions where suggestion from the user's browsing history was clicked, out of all urlbar sessions where one was shown (not available on control)"
+
+[metrics.history_ctr.statistics.population_ratio]
+numerator = "history_clicks"
+denominator = "history_impressions"
+
+
+[metrics.any_sponsored_tiles_dismissals]
+friendly_name = "no-op any sponsored tile dismissals"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tiles_disabled]
+friendly_name = "no-op tiles disabled"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tiles_dismissals]
+friendly_name = "no-op tile dismissals"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tiles_dismissals_pos1_2]
+friendly_name = "no-op tile dismissals Post"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tile_clicks]
+friendly_name = "no-op tile clicks"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tile_impressions]
+friendly_name = "no-op tile impressions"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
