@@ -19,9 +19,12 @@ overall = [
 ]
 
 [metrics.web_app_active_users.statistics.binomial]
-[metrics.installed_web_apps.statistics.binomial]
+[metrics.installed_web_apps.statistics.bootstrap_mean]
+drop_highest = 0.0005
 [metrics.pinned_apps.statistics.bootstrap_mean]
+drop_highest = 0.0005
 [metrics.web_app_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
 
 [metrics.web_app_active_users]
 friendly_name = "Web App Active Users"
