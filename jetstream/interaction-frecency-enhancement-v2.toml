@@ -1,6 +1,6 @@
 [experiment]
 enrollment_period = 7
-end_date = "2025-09-10"
+end_date = "2025-09-17"
 
 [experiment.exposure_signal]
 name = "exposed_session"
