@@ -55,6 +55,16 @@ jobs:
         echo ${{ needs.changed.outputs.all_changed_files }}
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
-
+    - uses: actions/github-script@v6
+      if: ${{ success() }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: "✅ Jetstream Validation is complete. Check the CI logs for this step for Enrollments and Metrics Query SQL."
+          })
 
 
