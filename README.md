@@ -57,9 +57,10 @@ If you decide to use `[ci rerun-skip]` to prevent jetstream from automatically r
     * Existing results will remain unchanged without manual intervention
 
 
-The manual intervention mentioned above will require support from one of the DE/DS supporting Nimbus to run this manually, so reach out in `#ask-experimenter` to request support if needed. The supporting Nimbus team member will want to know:
+The manual intervention mentioned above will require either rerunning with the [jetstream_rerun DAG](https://workflow.telemetry.mozilla.org/dags/jetstream_rerun/grid), which can be done with support from a Nimbus Data team member the first time. Some information you will need:
 * Experiment slug(s) (and Experimenter link(s) might be helpful)
 * Analysis windows to run (daily, weekly, and/or overall)
+* Whether to run only statistics (or include metrics too)
 * A link to the PR with the relevant configuration changes
 
-After the manual analysis run is triggered, results availability will depend on numerous factors (number of metrics, population size, etc.), but usually can be expected within a few hours. If the experiment is complete, a Nimbus team member will need to refresh the results in Experimenter in order for the new results to display in the UI. If the experiment is live, Experimenter will automatically refresh the results (this job runs every 6 hours).
+After the manual analysis run is triggered, results availability will depend on numerous factors (number of metrics, population size, etc.), but usually can be expected within a few hours. If the experiment ended more than 3 days ago, a Nimbus team member will need to refresh the results in Experimenter in order for the new results to display in the UI. If the experiment is live or ended within the past 3 days, Experimenter will automatically refresh the results (this job runs every 2 hours).
