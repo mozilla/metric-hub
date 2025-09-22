@@ -57,7 +57,7 @@ jobs:
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
     - uses: actions/github-script@v6
-      if: ${{ success() }}
+      if: ${{ github.event_name == 'pull_request' && success() }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
