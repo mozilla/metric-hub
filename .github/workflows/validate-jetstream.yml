@@ -28,6 +28,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
