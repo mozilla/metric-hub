@@ -1,6 +1,6 @@
 [experiment]
 enrollment_period = 7
-end_date = "2025-09-10"
+end_date = "2025-09-23"
 
 [experiment.exposure_signal]
 name = "exposed_session"
@@ -17,13 +17,13 @@ overall = ["history_impressions", "history_clicks", "history_ctr"]
 ## Impressions
 [metrics.history_impressions]
 select_expression = "SUM(IF(product_result_type = 'history', urlbar_impressions, 0))"
-data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+data_source = "history_date_limit"
 [metrics.history_impressions.statistics.bootstrap_mean]
 
 ## Clicks
 [metrics.history_clicks]
 select_expression = "SUM(IF(product_result_type = 'history', urlbar_clicks, 0))"
-data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+data_source = "history_date_limit"
 [metrics.history_clicks.statistics.bootstrap_mean]
 
 ## CTR
@@ -77,3 +77,15 @@ from_expression = """(
 experiments_column_type = "none"
 friendly_name = "No-Op"
 description = "No-op that creates the required columns"
+
+[data_sources.history_date_limit]
+from_expression = """(
+    SELECT *
+    FROM `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
+    WHERE submission_date >= '2025-09-10'
+)"""
+analysis_units = ["profile_group_id", "client_id"]
+friendly_name = "Urlbar Events Clients Daily"
+description = "Urlbar Events Clients Daily"
+submission_date_column = "submission_date"
+experiments_column_type = "native"
