@@ -2,6 +2,7 @@ friendly_name = "Sponsored Tiles"
 description = "Interaction metrics for sponsored tiles."
 
 [metrics.sponsored_tiles_disabled.statistics.binomial]
+
 [metrics.any_sponsored_tiles_dismissals.statistics.binomial]
 
 [metrics.sponsored_tiles_dismissals.statistics.bootstrap_mean]
