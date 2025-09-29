@@ -46,7 +46,7 @@ jsonschema==4.25.1
     #   mozilla-nimbus-schemas
 jsonschema-specifications==2025.4.1
     # via jsonschema
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via jinja2
     # via -r -
 mozilla-nimbus-schemas==3001.0.0
