@@ -1,3 +1,22 @@
+[experiment]
+segments = ["high_concurrent_tabs", "low_concurrent_tabs"]
+
+[segments]
+[segments.data_sources.clients_daily]
+from_expression = "`mozdata.telemetry.clients_daily`"
+
+[segments.high_concurrent_tabs]
+select_expression = """(
+COALESCE(LOGICAL_OR(scalar_parent_browser_engagement_max_concurrent_tab_count_max >= 8), FALSE)
+)"""
+data_source = "clients_daily"
+
+[segments.low_concurrent_tabs]
+select_expression = """(
+COALESCE(LOGICAL_AND(scalar_parent_browser_engagement_max_concurrent_tab_count_max < 8), FALSE)
+)"""
+data_source = "clients_daily"
+
 [metrics]
 
 weekly = [
