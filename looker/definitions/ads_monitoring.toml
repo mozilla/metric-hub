@@ -50,6 +50,12 @@ data_source = "monitoring_equativ"
 friendly_name =  "Clicks Difference w/o Invalid Clicks"
 description = "Absolute difference in clicks between Firefox telemetry and Equativ reported data, after removing clicks deemed invalid."
 
+[metrics.geo_mismatch_count]
+select_expression = "SUM(mismatch_count)"
+data_source = "monitoring_equativ_geo_targeting"
+friendly_name =  "Mismatched Creative Count"
+description = "The number of times a creative was served in a country that did not match the targeted country for a given line item on a specific date."
+
 ## Statistics
 
 ### Data Source: monitoring_equativ
@@ -69,7 +75,7 @@ numerator = "clicks_diff_wo_invalids.sum"
 denominator = "equativ_clicks.sum"
 
 ### Data Source: monitoring_equativ_geo_targeting
-[metrics.mismatch_count.statistics.sum]
+[metrics.geo_mismatch_count.statistics.sum]
 
 
 # Data Sources
