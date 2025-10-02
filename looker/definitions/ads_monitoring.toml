@@ -53,13 +53,24 @@ description = "Absolute difference in clicks between Firefox telemetry and Equat
 [metrics.geo_mismatch_count]
 select_expression = "SUM(mismatch_count)"
 data_source = "monitoring_equativ_geo_targeting"
-friendly_name =  "Mismatched Creative Count"
+friendly_name =  "Mismatched Creatives Count"
 description = """
   The number of times a creative (ad_id) was served in a country not equal to the creative's targeted country on a specific date, across multiple positions.
   Note that a line item (line_item_id) can target multiple countries. For example:
   -  On day X, ad_id = 01 was targeted for US but served in DE in positions 5 and 3, then count_mismatch = 2.
   -  Alternatively, if ad_id = 01 was targeted for US but served in IN and DE, in a single position for each country, then count_mismatch = 2.
   -  If ad_id = 01 was targeted for US but served in IN and DE, in positions 5 and 3 for both, then count_mismatch = 4.
+"""
+
+[metrics.geo_impressions_mismatch_count]
+select_expression = "SUM(impressions_mismatch_count)"
+data_source = "monitoring_equativ_geo_targeting"
+friendly_name =  "Mismatched Impressions Count"
+description = """
+  The number of impressions delivered in a country not equal to the creative's targeted country on a specific date, across multiple positions.
+    Note that a line item (line_item_id) can target multiple countries. For example:
+    -  On day X, ad_id = 01 was targeted for US but served 10 impressions in DE in positions 5 and 3, then impressions_mismatch_count = 10.
+    -  Alternatively, if ad_id = 01 was targeted for US but served in IN and DE, 4 and 6 impressions each, then count_mismatch = 10.
 """
 
 ## Statistics
@@ -82,6 +93,7 @@ denominator = "equativ_clicks.sum"
 
 ### Data Source: monitoring_equativ_geo_targeting
 [metrics.geo_mismatch_count.statistics.sum]
+[metrics.geo_impressions_mismatch_count.statistics.sum]
 
 
 # Data Sources
