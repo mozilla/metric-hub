@@ -1,0 +1,3251 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Metric Definitions">
+      
+      
+        <meta name="author" content="Mozilla Data Platform Team">
+      
+      
+      <link rel="icon" href="../../favicon.png">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>Focus ios - Metric Hub</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#metric-hub" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Metric Hub" class="md-header__button md-logo" aria-label="Metric Hub" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Metric Hub
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Focus ios
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mozilla/metric-hub/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mozilla/metric-hub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../outcomes/fenix/awesomebar/" class="md-tabs__link">
+        Outcomes
+      </a>
+    </li>
+  
+
+  
+
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ads/" class="md-tabs__link md-tabs__link--active">
+        Metrics
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../data_sources/ads/" class="md-tabs__link">
+        Data Sources
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../segments/fenix/" class="md-tabs__link">
+        Segments
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../segment_data_sources/fenix/" class="md-tabs__link">
+        Segment Data Sources
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../dimensions/ads/" class="md-tabs__link">
+        Dimensions
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../default_configs/cfr_metrics/" class="md-tabs__link">
+        Default Configs
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../functions/" class="md-tabs__link">
+        Functions
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Metric Hub" class="md-nav__button md-logo" aria-label="Metric Hub" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Metric Hub
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mozilla/metric-hub/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mozilla/metric-hub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Outcomes
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Outcomes" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Outcomes
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1" type="checkbox" id="__nav_2_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1">
+          Outcomes
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Outcomes" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          Outcomes
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_1" type="checkbox" id="__nav_2_1_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1_1">
+          Fenix
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Fenix" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          Fenix
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/awesomebar/" class="md-nav__link">
+        Awesomebar
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/default-browser/" class="md-nav__link">
+        Default browser
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/mr_2022/" class="md-nav__link">
+        Mr 2022
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/onboarding/" class="md-nav__link">
+        Onboarding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/pocket/" class="md-nav__link">
+        Pocket
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/fenix/sponsored_tiles/" class="md-nav__link">
+        Sponsored tiles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_2" type="checkbox" id="__nav_2_1_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1_2">
+          Firefox desktop
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Firefox desktop" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_1_2">
+          <span class="md-nav__icon md-icon"></span>
+          Firefox desktop
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/FxA_Account/" class="md-nav__link">
+        FxA Account
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/content_process_stability/" class="md-nav__link">
+        Content process stability
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/crlite/" class="md-nav__link">
+        Crlite
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/defaults_and_os_integration/" class="md-nav__link">
+        Defaults and os integration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/early_hints/" class="md-nav__link">
+        Early hints
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/firefox_suggest/" class="md-nav__link">
+        Firefox suggest
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/fxa_access_method/" class="md-nav__link">
+        Fxa access method
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/incrementality_sponsored_tiles/" class="md-nav__link">
+        Incrementality sponsored tiles
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/main_process_stability/" class="md-nav__link">
+        Main process stability
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/networking/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/networking_performance/" class="md-nav__link">
+        Networking performance
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/new_user_onboarding/" class="md-nav__link">
+        New user onboarding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/newtab_do_no_harm/" class="md-nav__link">
+        Newtab do no harm
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/newtab_visibility/" class="md-nav__link">
+        Newtab visibility
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/page_load_performance/" class="md-nav__link">
+        Page load performance
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/page_load_performance_minimal/" class="md-nav__link">
+        Page load performance minimal
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/pdf/" class="md-nav__link">
+        Pdf
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/pdf_handler/" class="md-nav__link">
+        Pdf handler
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/picture_in_picture/" class="md-nav__link">
+        Picture in picture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/pocket_newtab/" class="md-nav__link">
+        Pocket newtab
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/reader_mode/" class="md-nav__link">
+        Reader mode
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/relay/" class="md-nav__link">
+        Relay
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/serp/" class="md-nav__link">
+        Serp
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/sidebar/" class="md-nav__link">
+        Sidebar
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/sponsored_tiles/" class="md-nav__link">
+        Sponsored tiles
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/spotlight_engagement/" class="md-nav__link">
+        Spotlight engagement
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/stricter_pbm/" class="md-nav__link">
+        Stricter pbm
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/upload_download_performance/" class="md-nav__link">
+        Upload download performance
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_desktop/webcompat/" class="md-nav__link">
+        Webcompat
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1_3" type="checkbox" id="__nav_2_1_3" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1_3">
+          Firefox ios
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Firefox ios" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_1_3">
+          <span class="md-nav__icon md-icon"></span>
+          Firefox ios
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_ios/default_browser/" class="md-nav__link">
+        Default browser
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_ios/mr_2022/" class="md-nav__link">
+        Mr 2022
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_ios/onboarding/" class="md-nav__link">
+        Onboarding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_ios/pocket/" class="md-nav__link">
+        Pocket
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../outcomes/firefox_ios/sponsored_tiles/" class="md-nav__link">
+        Sponsored tiles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Metrics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Metrics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Metrics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_1" type="checkbox" id="__nav_3_1" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1">
+          Metrics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Metrics" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          Metrics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ads/" class="md-nav__link">
+        Ads
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fenix/" class="md-nav__link">
+        Fenix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../firefox_ios/" class="md-nav__link">
+        Firefox ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../focus_android/" class="md-nav__link">
+        Focus android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Focus ios
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Focus ios
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metric-hub" class="md-nav__link">
+    metric-hub
+  </a>
+  
+    <nav class="md-nav" aria-label="metric-hub">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#baseline_ping_count" class="md-nav__link">
+    baseline_ping_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric_ping_count" class="md-nav__link">
+    metric_ping_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#first_run_date" class="md-nav__link">
+    first_run_date
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily_active_users" class="md-nav__link">
+    daily_active_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily_active_users_v2" class="md-nav__link">
+    daily_active_users_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v1" class="md-nav__link">
+    client_level_daily_active_users_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v2" class="md-nav__link">
+    client_level_daily_active_users_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v3" class="md-nav__link">
+    client_level_daily_active_users_v3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_clicks_organic" class="md-nav__link">
+    ad_clicks_organic
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searches_with_ads_organic" class="md-nav__link">
+    searches_with_ads_organic
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_count" class="md-nav__link">
+    search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_count_imputed" class="md-nav__link">
+    search_count_imputed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tagged_search_count" class="md-nav__link">
+    tagged_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tagged_follow_on_search_count" class="md-nav__link">
+    tagged_follow_on_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organic_search_count" class="md-nav__link">
+    organic_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searches_with_ads" class="md-nav__link">
+    searches_with_ads
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engagement_rate_v1" class="md-nav__link">
+    engagement_rate_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention_rate_v1" class="md-nav__link">
+    retention_rate_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new_profile_retention_rate_v1" class="md-nav__link">
+    new_profile_retention_rate_v1
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../functions/" class="md-nav__link">
+        Functions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../klar_android/" class="md-nav__link">
+        Klar android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../klar_ios/" class="md-nav__link">
+        Klar ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitor_cirrus/" class="md-nav__link">
+        Monitor cirrus
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi_product/" class="md-nav__link">
+        Multi product
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4">
+          Data Sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Data Sources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Data Sources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_1" type="checkbox" id="__nav_4_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1">
+          Data sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Data sources" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_1">
+          <span class="md-nav__icon md-icon"></span>
+          Data sources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/ads/" class="md-nav__link">
+        Ads
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/fenix/" class="md-nav__link">
+        Fenix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/firefox_ios/" class="md-nav__link">
+        Firefox ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/focus_android/" class="md-nav__link">
+        Focus android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/focus_ios/" class="md-nav__link">
+        Focus ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/functions/" class="md-nav__link">
+        Functions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/klar_android/" class="md-nav__link">
+        Klar android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/klar_ios/" class="md-nav__link">
+        Klar ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/monitor_cirrus/" class="md-nav__link">
+        Monitor cirrus
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_sources/multi_product/" class="md-nav__link">
+        Multi product
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5">
+          Segments
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Segments" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Segments
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_1" type="checkbox" id="__nav_5_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_1">
+          Segments
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Segments" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_1">
+          <span class="md-nav__icon md-icon"></span>
+          Segments
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segments/fenix/" class="md-nav__link">
+        Fenix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segments/firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6">
+          Segment Data Sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Segment Data Sources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Segment Data Sources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6_1" type="checkbox" id="__nav_6_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_1">
+          Segment data sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Segment data sources" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          Segment data sources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment_data_sources/fenix/" class="md-nav__link">
+        Fenix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment_data_sources/firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7">
+          Dimensions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Dimensions" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Dimensions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_1" type="checkbox" id="__nav_7_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_1">
+          Dimensions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Dimensions" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_1">
+          <span class="md-nav__icon md-icon"></span>
+          Dimensions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dimensions/ads/" class="md-nav__link">
+        Ads
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dimensions/firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Default Configs
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Default Configs" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Default Configs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8_1" type="checkbox" id="__nav_8_1" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8_1">
+          Default configs
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Default configs" data-md-level="2">
+        <label class="md-nav__title" for="__nav_8_1">
+          <span class="md-nav__icon md-icon"></span>
+          Default configs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/cfr_metrics/" class="md-nav__link">
+        Cfr metrics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/fenix/" class="md-nav__link">
+        Fenix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/firefox_desktop/" class="md-nav__link">
+        Firefox desktop
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/firefox_ios/" class="md-nav__link">
+        Firefox ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/focus_android/" class="md-nav__link">
+        Focus android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/focus_ios/" class="md-nav__link">
+        Focus ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/klar_android/" class="md-nav__link">
+        Klar android
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/klar_ios/" class="md-nav__link">
+        Klar ios
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/messaging/" class="md-nav__link">
+        Messaging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/monitor_cirrus/" class="md-nav__link">
+        Monitor cirrus
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../default_configs/rollout/" class="md-nav__link">
+        Rollout
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9">
+          Functions
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Functions" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Functions
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../functions/" class="md-nav__link">
+        Functions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metric-hub" class="md-nav__link">
+    metric-hub
+  </a>
+  
+    <nav class="md-nav" aria-label="metric-hub">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#baseline_ping_count" class="md-nav__link">
+    baseline_ping_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric_ping_count" class="md-nav__link">
+    metric_ping_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#first_run_date" class="md-nav__link">
+    first_run_date
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active_hours" class="md-nav__link">
+    active_hours
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#days_of_use" class="md-nav__link">
+    days_of_use
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily_active_users" class="md-nav__link">
+    daily_active_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily_active_users_v2" class="md-nav__link">
+    daily_active_users_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v1" class="md-nav__link">
+    client_level_daily_active_users_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v2" class="md-nav__link">
+    client_level_daily_active_users_v2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client_level_daily_active_users_v3" class="md-nav__link">
+    client_level_daily_active_users_v3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_clicks" class="md-nav__link">
+    ad_clicks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad_clicks_organic" class="md-nav__link">
+    ad_clicks_organic
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searches_with_ads_organic" class="md-nav__link">
+    searches_with_ads_organic
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_count" class="md-nav__link">
+    search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_count_imputed" class="md-nav__link">
+    search_count_imputed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tagged_search_count" class="md-nav__link">
+    tagged_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tagged_follow_on_search_count" class="md-nav__link">
+    tagged_follow_on_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organic_search_count" class="md-nav__link">
+    organic_search_count
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searches_with_ads" class="md-nav__link">
+    searches_with_ads
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#engagement_rate_v1" class="md-nav__link">
+    engagement_rate_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retention_rate_v1" class="md-nav__link">
+    retention_rate_v1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new_profile_retention_rate_v1" class="md-nav__link">
+    new_profile_retention_rate_v1
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+  <h1>Focus ios</h1>
+
+<h2 id="metric-hub">metric-hub</h2>
+<p>Pre-defined metrics for <code>focus_ios</code>. These metrics are defined in <a href="https://github.com/mozilla/metric-hub/blob/main/definitions/focus_ios.toml">metric-hub</a></p>
+<h3 id="baseline_ping_count">baseline_ping_count</h3>
+<p><strong>Baseline pings</strong></p>
+<p>Counts the number of <code>baseline</code> pings received from each client.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline"><code>baseline</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(document_id)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(document_id)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="metric_ping_count">metric_ping_count</h3>
+<p><strong>Metrics pings</strong></p>
+<p>Counts the number of <code>metrics</code> pings received from each client.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#metrics"><code>metrics</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(document_id)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(document_id)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.metrics` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="first_run_date">first_run_date</h3>
+<p><strong>First run date</strong></p>
+<p>The earliest first-run date reported by each client.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline"><code>baseline</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">MIN(client_info.first_run_date)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  MIN(client_info.first_run_date)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="active_hours">active_hours</h3>
+<p><strong>Active Hours</strong></p>
+<p>Total time Firefox was active</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline"><code>baseline</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(metrics.timespan.glean_baseline_duration.value), 0) / 3600.0
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="days_of_use">days_of_use</h3>
+<p><strong>Days of use</strong></p>
+<p>The number of days in an observation window that clients used the browser.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline"><code>baseline</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(DISTINCT DATE(submission_timestamp))
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(DISTINCT DATE(submission_timestamp))
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="daily_active_users">daily_active_users</h3>
+<p><strong>DAU</strong></p>
+<p>The number of unique clients that we received a baseline ping from each day, excluding
+    pings originating from BrowserStack. To be comparable to DAU used for KPI tracking,
+    this metric needs to be aggregated by <code>submission_date</code>. If the metric is NOT
+    aggregated by <code>submission_date</code>, the metric is similar to a "days of use" metric. For more details, refer to
+    <a href="https://docs.telemetry.mozilla.org/concepts/terminology.html#dau">the DAU description in the Mozilla Data Documentation</a>.</p>
+<pre><code>For questions, please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+</code></pre>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline_v2"><code>baseline_v2</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="daily_active_users_v2">daily_active_users_v2</h3>
+<p><strong>Focus iOS DAU</strong></p>
+<p>This is the official DAU reporting definition. The logic is
+    <a href="https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric">detailed on the Confluence DAU page</a>
+    and is automatically cross-checked, actively monitored, and change controlled.
+    Whenever possible, this is the preferred DAU reporting definition to use for Focus iOS.
+    This metric needs to be aggregated by <code>submission_date</code>. If it is not aggregated by <code>submission_date</code>,
+    it is similar to a "days of use" metric, and not DAU.</p>
+<pre><code>For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+</code></pre>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#focus_ios_active_users_aggregates_view"><code>focus_ios_active_users_aggregates_view</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">SUM(dau)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  SUM(dau)
+FROM (
+  (
+    SELECT *
+     FROM `moz-fx-data-shared-prod.telemetry.active_users_aggregates`
+    WHERE app_name = 'Focus iOS'
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="client_level_daily_active_users_v1">client_level_daily_active_users_v1</h3>
+<p><strong>Focus iOS Client-Level DAU</strong></p>
+<p>This metric reports DAU values similar (but not necessarily identical)
+    to the <a href="https://mozilla.github.io/metric-hub/metrics/focus_ios/#daily_active_users_v2">official DAU reporting definition</a>.
+    It's generally preferable to use the official DAU reporting definition when possible; this metric
+    exists only for cases where reporting <code>client_id</code> is required (e.g. for experiments). This metric
+    needs to be aggregated by <code>submission_date</code>. If it is not aggregated by <code>submission_date</code>, it is
+    similar to a "days of use" metric, and not DAU.</p>
+<pre><code>For more information, refer to [the DAU description in Confluence](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric).
+For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.
+</code></pre>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline_v2"><code>baseline_v2</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(DISTINCT CASE WHEN LOWER(metadata.isp.name) != 'browserstack' THEN client_info.client_id ELSE NULL END)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="client_level_daily_active_users_v2">client_level_daily_active_users_v2</h3>
+<p><strong>Focus iOS Client-Level DAU</strong></p>
+<p>This metric reports DAU values similar (but not necessarily identical)
+    to the <a href="https://mozilla.github.io/metric-hub/metrics/focus_ios/#daily_active_users_v2">official DAU reporting definition</a>.
+    It's generally preferable to use the official DAU reporting definition when possible; this metric
+    exists only for cases where reporting <code>client_id</code> is required (e.g. for experiments). This metric
+    needs to be aggregated by <code>submission_date</code>. If it is not aggregated by <code>submission_date</code>, it is
+    similar to a "days of use" metric, and not DAU.</p>
+<p>For more information, refer to <a href="https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric">the DAU description in Confluence</a>.
+    For questions please contact bochocki@mozilla.com or firefox-kpi@mozilla.com.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#baseline_v2"><code>baseline_v2</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNT(DISTINCT CASE WHEN metrics.timespan.glean_baseline_duration.value &gt; 0
+                         AND LOWER(metadata.isp.name) != 'browserstack'
+                        THEN client_info.client_id
+                        ELSE NULL END)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNT(DISTINCT CASE WHEN metrics.timespan.glean_baseline_duration.value &gt; 0
+                         AND LOWER(metadata.isp.name) != 'browserstack'
+                        THEN client_info.client_id
+                        ELSE NULL END)
+FROM (
+  (
+    SELECT
+        p.*,
+        DATE(p.submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.{dataset}.baseline` p
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="client_level_daily_active_users_v3">client_level_daily_active_users_v3</h3>
+<p><strong>Focus iOS Client-Level DAU</strong></p>
+<p>Client-level DAU. The logic is
+    <a href="https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric">detailed on the Confluence DAU page</a>
+    and is automatically cross-checked, actively monitored, and change controlled.
+    This metric needs to be aggregated by <code>submission_date</code>. If it is not aggregated by <code>submission_date</code>, it is
+    similar to a "days of use" metric, and not DAU.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#focus_ios_active_users_view"><code>focus_ios_active_users_view</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">COUNTIF(is_dau)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COUNTIF(is_dau)
+FROM (
+  (
+    SELECT *
+     FROM `moz-fx-data-shared-prod.focus_ios.active_users`
+    WHERE is_mobile
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="ad_clicks">ad_clicks</h3>
+<p><strong>Ad Clicks</strong></p>
+<p>Counts clicks on ads on search engine result pages with a Mozilla
+    partner tag.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('ad_click')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(ad_click), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="ad_clicks_organic">ad_clicks_organic</h3>
+<p><strong>Ad Clicks through organic traffic</strong></p>
+<p>Counts clicks on ads on search engine result pages that are <em>not</em> tagged with an eligible Mozilla
+    partner code.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('ad_click_organic')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(ad_click_organic), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="searches_with_ads_organic">searches_with_ads_organic</h3>
+<p><strong>Organic Search With Ads Count</strong></p>
+<p>Total number of Organic Search With Ads Counts</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('search_with_ads_organic')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(search_with_ads_organic), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="search_count">search_count</h3>
+<p><strong>SAP search count</strong></p>
+<p>Number of searches performed through a Search Access Point.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('search_count')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(search_count), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="search_count_imputed">search_count_imputed</h3>
+<p><strong>SAP search count (legacy to glean conversion)</strong></p>
+<p>Imputed SAP for converting historical search counts from legacy to glean</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">ROUND(SUM(IF((submission_date &gt;= '2023-01-01') AND (browser_version_info.major_version &lt; 111), search_count - search_count * 0.4, search_count)))
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  ROUND(SUM(IF((submission_date &gt;= '2023-01-01') AND (browser_version_info.major_version &lt; 111), search_count - search_count * 0.4, search_count)))
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="tagged_search_count">tagged_search_count</h3>
+<p><strong>Tagged SAP searches</strong></p>
+<p>Counts the number of searches a user performed through Firefox's
+    Search Access Points that were submitted with a partner code
+    and were potentially revenue-generating.
+    Learn more in the
+    <a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('tagged_sap')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(tagged_sap), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="tagged_follow_on_search_count">tagged_follow_on_search_count</h3>
+<p><strong>Tagged follow-on searches</strong></p>
+<p>Counts the number of follow-on searches with a Mozilla partner tag.
+    These are additional searches that users performed from a search engine
+    results page after executing a tagged search through a SAP.
+    Learn more in the
+    <a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('tagged_follow_on')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(tagged_follow_on), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="organic_search_count">organic_search_count</h3>
+<p><strong>Organic searches</strong></p>
+<p>Counts organic searches, which are searches that are <em>not</em> performed
+    through a Firefox SAP and which are not monetizable.
+    Learn more in the
+    <a href="https://docs.telemetry.mozilla.org/datasets/search.html">search data documentation</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum('organic')}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(organic), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="searches_with_ads">searches_with_ads</h3>
+<p><strong>Search result pages with ads (a.k.a. Ad Impressions) both tagged and organic</strong></p>
+<p>Counts search result pages served with advertising.
+    Users may not actually see these ads thanks to e.g. ad-blockers.
+    Learn more in the
+    <a href="https://mozilla-private.report/search-analysis-docs/book/in_content_searches.html">search analysis documentation</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#mobile_search_clients_engines_sources_daily"><code>mobile_search_clients_engines_sources_daily</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">{{agg_sum(&quot;search_with_ads&quot;)}}
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  COALESCE(SUM(search_with_ads), 0)
+FROM (
+  (
+    SELECT *
+    FROM `mozdata.search.mobile_search_clients_engines_sources_daily`
+    WHERE normalized_app_name_os = 'Focus iOS'
+ )
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="engagement_rate_v1">engagement_rate_v1</h3>
+<p><strong>Focus iOS Engagement Rate</strong></p>
+<p>The Engagement Rate is calculated as the ratio between DAU and MAU. For each day, we use the single-day DAU number and divide
+    it by the MAU corresponding to the 28-day period ending on that day. For OKR reporting, we then calculate a 
+    28-day moving average of this number. More information is provided on the
+    <a href="https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#Engagement-Rate">New Profiles, Retention and Engagement Rate Confluence Page</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#focus_ios_engagement_view"><code>focus_ios_engagement_view</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">SUM(dau) / SUM(mau)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  SUM(dau) / SUM(mau)
+FROM (
+  (
+    SELECT *
+     FROM `moz-fx-data-shared-prod.focus_ios.engagement`
+    WHERE is_mobile
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="retention_rate_v1">retention_rate_v1</h3>
+<p><strong>Focus iOS Retention Rate</strong></p>
+<p>The Retention Rate is calculated as the proportion of clients that are active on the 4th week after the metric date.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#focus_ios_retention_view"><code>focus_ios_retention_view</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">SUM(retained_week_4) / SUM(active_metric_date)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  SUM(retained_week_4) / SUM(active_metric_date)
+FROM (
+  (
+    SELECT *
+     FROM `moz-fx-data-shared-prod.focus_ios.retention`
+    WHERE is_mobile
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+<h3 id="new_profile_retention_rate_v1">new_profile_retention_rate_v1</h3>
+<p><strong>Focus iOS New Proflie Retention Rate</strong></p>
+<p>The New Profile Retention Rate is calculated as the proportion of new profiles that are active on the 4th week after the metric date.
+    More information is provided on the
+    <a href="https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/814481685/Firefox+New+Profiles+Retention+and+Engagement#New-Profile-Retention">New Profiles, Retention and Engagement Rate Confluence Page</a>.</p>
+<p>Data Source: <a href="https://mozilla.github.io/metric-hub/data_sources/focus_ios/#focus_ios_retention_view"><code>focus_ios_retention_view</code></a></p>
+<p><strong>Definition:</strong></p>
+<pre><code class="language-sql">SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)
+</code></pre>
+<details>
+<summary>SQL with DataSource</summary>
+
+
+<pre><code class="language-sql">SELECT
+  SUM(retained_week_4_new_profiles) / SUM(new_profiles_metric_date)
+FROM (
+  (
+    SELECT *
+     FROM `moz-fx-data-shared-prod.focus_ios.retention`
+    WHERE is_mobile
+)
+)
+</code></pre>
+
+</details>
+
+<hr />
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../focus_android/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Focus android" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Focus android
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../functions/" class="md-footer__link md-footer__link--next" aria-label="Next: Functions" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Functions
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs"], "search": "../../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+    
+  </body>
+</html>
