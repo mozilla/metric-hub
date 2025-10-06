@@ -34,5 +34,6 @@ jobs:
         files: ${{ inputs.path_filter }}
     - name: Print results
       run: |
+        echo "Using path filter: ${{ inputs.path_filter }}"
         echo "Did files change?: ${{ steps.changed-files-specific.outputs.any_changed }}"
         echo "All changed files: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
