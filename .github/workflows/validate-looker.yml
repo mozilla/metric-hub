@@ -17,8 +17,8 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        looker/**.toml
-        looker/**.toml.example
+        looker/**/*.toml
+        looker/**/*.toml.example
 
   validate-looker:
     runs-on: ubuntu-latest

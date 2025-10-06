@@ -17,8 +17,8 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        jetstream/**.toml
-        jetstream/**.toml.example
+        jetstream/**/*.toml
+        jetstream/**/*.toml.example
 
   validate-jetstream:
     runs-on: ubuntu-latest
