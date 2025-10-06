@@ -17,8 +17,8 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        opmon/**.toml
-        opmon/**.toml.example
+        opmon/**/*.toml
+        opmon/**/*.toml.example
 
   validate-opmon:
     runs-on: ubuntu-latest

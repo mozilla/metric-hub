@@ -17,8 +17,8 @@ jobs:
     uses: ./.github/workflows/changed-files.yml
     with:
       path_filter: |
-        definitions/**.toml
-        definitions/**.toml.example
+        definitions/*.toml
+        definitions/*.toml.example
 
   validate-metrics:
     runs-on: ubuntu-latest
