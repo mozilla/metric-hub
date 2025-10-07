@@ -1,3 +1,4 @@
+import re
 from textwrap import dedent
 
 import pytest
@@ -269,5 +270,5 @@ class TestMonitoringSpec:
         )
 
         spec = MonitoringSpec.from_dict(toml.loads(config_str))
-        with pytest.raises(ValueError, match="No definition for metric test2."):
+        with pytest.raises(ValueError, match=re.escape("No definition for metric test2.")):
             spec.resolve(experiment=None, configs=config_collection)
