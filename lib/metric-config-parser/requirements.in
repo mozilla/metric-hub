@@ -92,7 +92,7 @@ rpds-py==0.27.1
     # via
     #   jsonschema
     #   referencing
-ruff==0.13.3
+ruff==0.14.0
     # via
     #   mozilla-metric-config-parser
     #   pytest-ruff
