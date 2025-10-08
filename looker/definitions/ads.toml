@@ -68,6 +68,12 @@ numerator = "native_saves_pos.sum"
 denominator = "native_impressions_pos.sum"
 
 ### data_sources.native_desktop_ad_metrics
+[metrics.id]
+select_expression = "ANY_VALUE(GENERATE_UUID())"
+data_source = "native_desktop_ad_metrics"
+friendly_name = "ID"
+description = "Randomly generated unique identifier for a row"
+
 [metrics.native_spend]
 select_expression = "SUM(spend)"
 data_source = "native_desktop_ad_metrics"
