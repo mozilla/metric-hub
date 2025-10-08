@@ -14,11 +14,6 @@ friendly_name = "no-op serp impressions"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.client_level_daily_active_users_v2]
-friendly_name = "no-op DAU"
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
 [data_sources.noop_source]
 from_expression = """(
     SELECT
@@ -50,6 +45,21 @@ data_source = "metrics_unnested_urlbar_searchmode_searchbutton"
 [metrics.search_engine_default_change.statistics.binomial]
 [metrics.non_default_search_engine_search.statistics.binomial]
 
+[metrics.urlbar_annoyances]
+select_expression = "SUM(urlbar_annoyances)"
+data_source = "address_bar_update_holdback_urlbar_events"
+
+[metrics.urlbar_clicks]
+select_expression = "SUM(urlbar_clicks)"
+data_source = "address_bar_update_holdback_urlbar_events"
+
+[metrics.urlbar_impressions_suggest]
+select_expression = "SUM(urlbar_impressions)"
+data_source = "address_bar_update_holdback_urlbar_events"
+
+[metrics.search_engine_clicks]
+select_expression = "SUM(search_engine_clicks)"
+data_source = "address_bar_update_holdback_urlbar_events"
 
 [data_sources.metrics_unnested_urlbar_searchmode_searchbutton]
 friendly_name = "Glean Metrics"
@@ -73,6 +83,17 @@ description = "Glean events_stream dataset filtered to event_category 'search.en
 friendly_name = "Glean Events Stream filtered to event_category 'search.engine.default'"
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
+
+[data_sources.address_bar_update_holdback_urlbar_events]
+from_expression = """(
+    SELECT *
+    FROM `mozdata.analysis.address_bar_update_holdback_urlbar_events`
+)"""
+analysis_units = ["profile_group_id", "client_id"]
+friendly_name = "Urlbar Events Clients Daily"
+description = "Urlbar Events Clients Daily aggreaged and filtered for the address bar holdback experiment"
+submission_date_column = "submission_date"
+experiments_column_type = "native"
 
 [segments]
 
