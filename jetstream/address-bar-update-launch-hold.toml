@@ -14,6 +14,11 @@ friendly_name = "no-op serp impressions"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
+[metrics.client_level_daily_active_users_v2]
+friendly_name = "no-op DAU"
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
 [data_sources.noop_source]
 from_expression = """(
     SELECT
