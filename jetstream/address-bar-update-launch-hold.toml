@@ -54,7 +54,7 @@ select_expression = "SUM(urlbar_clicks)"
 data_source = "address_bar_update_holdback_urlbar_events"
 
 [metrics.urlbar_impressions_suggest]
-select_expression = "SUM(urlbar_impressions)"
+select_expression = "SUM(urlbar_impressions_suggest)"
 data_source = "address_bar_update_holdback_urlbar_events"
 
 [metrics.search_engine_clicks]
