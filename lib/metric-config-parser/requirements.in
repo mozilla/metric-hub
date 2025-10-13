@@ -82,7 +82,7 @@ pytest-ruff==0.5
     # via mozilla-metric-config-parser
 pytz==2025.2
     # via mozilla-metric-config-parser
-referencing==0.36.2
+referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
