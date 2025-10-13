@@ -100,7 +100,7 @@ smmap==5.0.2
     # via gitdb
 toml==0.10.2
     # via mozilla-metric-config-parser
-tomli==2.2.1
+tomli==2.3.0
     # via
     #   coverage
     #   mypy
