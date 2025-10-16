@@ -65,7 +65,7 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
-            body: "✅ Jetstream Validation is complete. Check the CI logs for this step for Enrollments and Metrics Query SQL."
+            body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
           })
 
 
