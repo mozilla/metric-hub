@@ -1,0 +1,40 @@
+name: "Trigger Looker DAG"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'definitions/**'
+      - 'looker/**'
+
+jobs:
+  looker-deploy:
+    name: Deploy Looker via Airflow DAG
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          project_id: ${{ vars.GCLOUD_PROJECT }}
+          token_format: id_token
+          id_token_audience: https://us-west1-moz-fx-telemetry-airflow-prod.cloudfunctions.net/ci-external-trigger
+          id_token_include_email: true
+          create_credentials_file: false
+
+      - name: Prepare DAG run note
+        run: |
+          echo "DAGRUN_NOTE=DAG triggered by **[${{ github.actor }}](https://github.com/${{ github.actor }})** from ${{ github.repository }} CI build [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+
+      - name: Trigger looker DAG in Airflow to deploy lookml
+        run: |
+          curl --location --request POST "https://us-west1-moz-fx-telemetry-airflow-prod.cloudfunctions.net/ci-external-trigger" \
+            -H "Authorization: bearer ${{ steps.auth.outputs.id_token }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"dagrun_note\": \"${DAGRUN_NOTE}\", \"dag_id\":\"looker\"}"
