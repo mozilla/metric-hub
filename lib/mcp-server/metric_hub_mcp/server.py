@@ -208,6 +208,100 @@ async def list_tools() -> list[Tool]:
                 "required": ["platform", "metric_name"],
             },
         ),
+        Tool(
+            name="list_experiment_configs",
+            description="List configuration files. Use 'jetstream' for experiment configs, 'opmon' for operational monitoring, 'looker' for Looker configs",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "config_type": {
+                        "type": "string",
+                        "description": "Type of configs: 'jetstream' (experiment configs), 'opmon' (operational monitoring), 'looker' (Looker dashboards)",
+                        "enum": ["jetstream", "opmon", "looker"],
+                    },
+                },
+                "required": ["config_type"],
+            },
+        ),
+        Tool(
+            name="get_experiment_config",
+            description="Get the contents of an existing configuration file from jetstream/, opmon/, or looker/ folders",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "config_type": {
+                        "type": "string",
+                        "description": "Type of config: 'jetstream' (experiments), 'opmon' (monitoring), 'looker' (dashboards)",
+                        "enum": ["jetstream", "opmon", "looker"],
+                    },
+                    "config_slug": {
+                        "type": "string",
+                        "description": "Config slug (filename without .toml extension)",
+                    },
+                },
+                "required": ["config_type", "config_slug"],
+            },
+        ),
+        Tool(
+            name="create_experiment_config",
+            description="Create a new config file in jetstream/, opmon/, or looker/ folder. NOTE: For metric/data source definitions, use generate_metric_template instead",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "new_config_slug": {
+                        "type": "string",
+                        "description": "Slug for the new config (will be filename without .toml)",
+                    },
+                    "config_type": {
+                        "type": "string",
+                        "description": "Type: 'jetstream' (experiments), 'opmon' (monitoring), 'looker' (dashboards). NOT for metric definitions (use definitions/ folder tools)",
+                        "enum": ["jetstream", "opmon", "looker"],
+                    },
+                    "base_config_slug": {
+                        "type": "string",
+                        "description": "Optional: existing config slug to copy from",
+                    },
+                    "config_content": {
+                        "type": "string",
+                        "description": "Optional: TOML content for the new config (if not copying from base)",
+                    },
+                },
+                "required": ["new_config_slug", "config_type"],
+            },
+        ),
+        Tool(
+            name="generate_experiment_config_template",
+            description="Generate a template for a new experiment configuration",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "experiment_type": {
+                        "type": "string",
+                        "description": "Type of experiment template to generate",
+                        "enum": ["basic", "with_segments", "with_custom_metrics", "with_custom_data_source"],
+                    },
+                    "platform": {
+                        "type": "string",
+                        "description": "Platform name (e.g., 'firefox_desktop', 'fenix')",
+                    },
+                },
+                "required": ["experiment_type", "platform"],
+            },
+        ),
+        Tool(
+            name="list_outcomes",
+            description="List all available outcome snippets",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: filter by platform",
+                    },
+                },
+                "required": [],
+            },
+        ),
     ]
 
 
@@ -233,6 +327,16 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
             return await handle_generate_metric_template(arguments)
         elif name == "get_metric_sql":
             return await handle_get_metric_sql(arguments)
+        elif name == "list_experiment_configs":
+            return await handle_list_experiment_configs(arguments)
+        elif name == "get_experiment_config":
+            return await handle_get_experiment_config(arguments)
+        elif name == "create_experiment_config":
+            return await handle_create_experiment_config(arguments)
+        elif name == "generate_experiment_config_template":
+            return await handle_generate_experiment_config_template(arguments)
+        elif name == "list_outcomes":
+            return await handle_list_outcomes(arguments)
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -649,7 +753,12 @@ async def handle_generate_metric_template(arguments: dict[str, Any]) -> list[Tex
         result += "4. Set the `category`\n"
 
     result += "5. Add optional fields as needed (owner, bigger_is_better, etc.)\n"
-    result += "6. Validate your config using the `validate_metric_config` tool\n"
+    result += "6. Validate your config using the `validate_metric_config` tool\n\n"
+    result += "## Important: Where to add this metric\n\n"
+    result += "This template is for **metric definitions** that go in the `definitions/` folder.\n"
+    result += "These are reusable metrics that can be referenced in experiment configs.\n\n"
+    result += "- **Add to definitions/**: `definitions/firefox_desktop.toml` (or your platform)\n"
+    result += "- **Reference in experiments**: Use in `jetstream/your-experiment.toml` by adding the metric name to the [metrics] section\n"
 
     return [TextContent(type="text", text=result)]
 
@@ -714,6 +823,318 @@ async def handle_get_metric_sql(arguments: dict[str, Any]) -> list[TextContent]:
 
     else:
         result += "No SQL expression found for this metric.\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_list_experiment_configs(arguments: dict[str, Any]) -> list[TextContent]:
+    """List all experiment configuration files."""
+    config_type = arguments["config_type"]
+
+    # Get the repo path
+    if _repo_path is None:
+        repo_path = Path(__file__).parent.parent.parent
+    else:
+        repo_path = _repo_path
+
+    config_dir = repo_path / config_type
+
+    if not config_dir.exists():
+        return [TextContent(type="text", text=f"Directory '{config_type}' not found")]
+
+    # List all .toml files (excluding defaults and definitions subdirectories)
+    configs = []
+    for config_file in config_dir.glob("*.toml"):
+        if config_file.is_file():
+            configs.append({
+                "slug": config_file.stem,
+                "path": str(config_file.relative_to(repo_path)),
+            })
+
+    result = f"# {config_type.title()} Configurations\n\n"
+    result += f"**Total configs:** {len(configs)}\n\n"
+
+    for config in sorted(configs, key=lambda x: x["slug"]):
+        result += f"- `{config['slug']}`\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_get_experiment_config(arguments: dict[str, Any]) -> list[TextContent]:
+    """Get the contents of an existing experiment configuration file."""
+    config_type = arguments["config_type"]
+    config_slug = arguments.get("config_slug") or arguments.get("experiment_slug")  # Support both parameter names
+
+    # Get the repo path
+    if _repo_path is None:
+        repo_path = Path(__file__).parent.parent.parent
+    else:
+        repo_path = _repo_path
+
+    config_file = repo_path / config_type / f"{config_slug}.toml"
+
+    if not config_file.exists():
+        return [TextContent(type="text", text=f"Configuration file '{config_slug}.toml' not found in {config_type}/")]
+
+    content = config_file.read_text()
+
+    result = f"# Config: {config_slug}\n\n"
+    result += f"**Path:** `{config_type}/{config_slug}.toml`\n\n"
+    result += f"## Configuration\n\n```toml\n{content}```\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_create_experiment_config(arguments: dict[str, Any]) -> list[TextContent]:
+    """Create a new experiment configuration file."""
+    new_config_slug = arguments.get("new_config_slug") or arguments.get("new_experiment_slug")  # Support both parameter names
+    config_type = arguments["config_type"]
+    base_config_slug = arguments.get("base_config_slug")
+    config_content = arguments.get("config_content")
+
+    # Get the repo path
+    if _repo_path is None:
+        repo_path = Path(__file__).parent.parent.parent
+    else:
+        repo_path = _repo_path
+
+    new_config_file = repo_path / config_type / f"{new_config_slug}.toml"
+
+    # Check if file already exists
+    if new_config_file.exists():
+        return [TextContent(type="text", text=f"Error: Configuration file '{new_config_slug}.toml' already exists in {config_type}/")]
+
+    # Get content either from base config or from provided content
+    if base_config_slug:
+        base_config_file = repo_path / config_type / f"{base_config_slug}.toml"
+        if not base_config_file.exists():
+            return [TextContent(type="text", text=f"Error: Base configuration '{base_config_slug}.toml' not found in {config_type}/")]
+        content = base_config_file.read_text()
+    elif config_content:
+        content = config_content
+    else:
+        return [TextContent(type="text", text="Error: Either 'base_config_slug' or 'config_content' must be provided")]
+
+    # Write the new config file
+    new_config_file.write_text(content)
+
+    result = f"# Created Config: {new_config_slug}\n\n"
+    result += f"**Path:** `{config_type}/{new_config_slug}.toml`\n\n"
+    if base_config_slug:
+        result += f"**Copied from:** `{base_config_slug}.toml`\n\n"
+    result += f"## Content\n\n```toml\n{content}```\n\n"
+    result += f"## Next Steps\n\n"
+    result += f"1. Review and customize the configuration for your experiment\n"
+    result += f"2. Update metric references to match your needs\n"
+    result += f"3. Validate the configuration using `validate_metric_config`\n"
+    result += f"4. Commit and push the configuration to the repository\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_generate_experiment_config_template(arguments: dict[str, Any]) -> list[TextContent]:
+    """Generate a template for a new experiment configuration."""
+    experiment_type = arguments["experiment_type"]
+    platform = arguments["platform"]
+
+    templates = {
+        "basic": f"""[experiment]
+# Define experiment-level parameters
+# enrollment_period = 7  # Duration in days
+# reference_branch = "control"  # Control branch name
+
+[metrics]
+# Specify which metrics to compute for each analysis window
+daily = []
+weekly = []
+28_day = []
+overall = []
+
+# Reference metrics from the {platform} platform definitions
+# Example: weekly = ["active_hours", "uri_count"]
+""",
+        "with_segments": f"""[experiment]
+segments = ["my_segment"]
+
+# Define custom data source for segment
+[segments.data_sources.my_data_source]
+from_expression = \"\"\"(
+  SELECT
+    *
+  FROM
+    `moz-fx-data-shared-prod.telemetry.clients_daily`
+)\"\"\"
+window_start = 0
+window_end = 28
+
+# Define segment selection logic
+[segments.my_segment]
+select_expression = \"\"\"
+  -- Replace with your segment selection logic
+  -- Must return a boolean grouped by client_id
+  CAST(MAX(column_name) > 0 AS BOOL)
+\"\"\"
+data_source = "my_data_source"
+
+[metrics]
+daily = []
+weekly = []
+28_day = []
+overall = []
+""",
+        "with_custom_metrics": f"""[experiment]
+
+[metrics]
+daily = ["my_metric"]
+weekly = ["my_metric"]
+28_day = ["my_metric"]
+overall = ["my_metric"]
+
+# Define a custom metric
+[metrics.my_metric]
+select_expression = \"\"\"
+  -- Replace with your metric calculation
+  -- Example: COUNT(*)
+  {{{{agg_sum("column_name")}}}}
+\"\"\"
+data_source = "main"  # Reference a data source from {platform} definitions
+friendly_name = "My Custom Metric"
+description = "Description of what this metric measures"
+bigger_is_better = true
+
+# Optional: Add statistics
+[metrics.my_metric.statistics.binomial]
+# Use for boolean/proportion metrics
+
+# Or for continuous metrics:
+# [metrics.my_metric.statistics.mean]
+""",
+        "with_custom_data_source": f"""[experiment]
+
+# Define a custom data source
+[data_sources.my_custom_source]
+from_expression = \"\"\"
+  -- Your custom SQL query or table reference
+  `moz-fx-data-shared-prod.telemetry.events`
+\"\"\"
+experiments_column_type = "native"
+
+[metrics]
+daily = ["my_metric"]
+weekly = ["my_metric"]
+
+[metrics.my_metric]
+select_expression = "COUNT(*)"
+data_source = "my_custom_source"
+friendly_name = "Event Count"
+description = "Count of events from custom data source"
+"""
+    }
+
+    template = templates.get(experiment_type, "")
+
+    result = f"# Experiment Configuration Template: {experiment_type}\n\n"
+    result += f"**Platform:** {platform}\n\n"
+    result += f"## Template\n\n```toml\n{template}```\n\n"
+    result += f"## Key Configuration Sections\n\n"
+    result += f"### [experiment]\n"
+    result += f"- `segments`: List of user segments to analyze\n"
+    result += f"- `enrollment_period`: Duration of enrollment in days\n"
+    result += f"- `reference_branch`: Control branch name\n\n"
+    result += f"### [metrics]\n"
+    result += f"Specify metrics for each analysis window:\n"
+    result += f"- `daily`: Metrics computed daily\n"
+    result += f"- `weekly`: Metrics computed weekly\n"
+    result += f"- `28_day`: Metrics computed over 28 days\n"
+    result += f"- `overall`: Metrics computed over entire experiment\n\n"
+    result += f"### Custom Metrics\n"
+    result += f"Define with `[metrics.metric_name]` and include:\n"
+    result += f"- `select_expression`: SQL aggregation clause\n"
+    result += f"- `data_source`: Reference to data source\n"
+    result += f"- `friendly_name`: Display name\n"
+    result += f"- `description`: What the metric measures\n\n"
+    result += f"## Repository Structure\n\n"
+    result += f"- **definitions/**: Metric and data source definitions (reusable across experiments)\n"
+    result += f"- **jetstream/**: Experiment configurations (reference metrics from definitions/)\n"
+    result += f"- **opmon/**: Operational monitoring configurations\n"
+    result += f"- **looker/**: Looker dashboard configurations\n"
+    result += f"- **outcomes/**: Reusable outcome snippets\n\n"
+    result += f"## Documentation\n\n"
+    result += f"For more details, see: https://experimenter.info/deep-dives/jetstream/configuration\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_list_outcomes(arguments: dict[str, Any]) -> list[TextContent]:
+    """List all available outcome snippets."""
+    platform_filter = arguments.get("platform")
+
+    # Get the repo path
+    if _repo_path is None:
+        repo_path = Path(__file__).parent.parent.parent
+    else:
+        repo_path = _repo_path
+
+    outcomes_dir = repo_path / "outcomes"
+
+    if not outcomes_dir.exists():
+        return [TextContent(type="text", text="Outcomes directory not found")]
+
+    outcomes = []
+
+    # Search for outcome files in platform subdirectories
+    for platform_dir in outcomes_dir.iterdir():
+        if not platform_dir.is_dir():
+            continue
+
+        platform_name = platform_dir.name
+
+        # Skip if filtering by platform
+        if platform_filter and platform_name != platform_filter:
+            continue
+
+        for outcome_file in platform_dir.glob("*.toml"):
+            if outcome_file.is_file():
+                # Try to read friendly name from the file
+                try:
+                    content = toml.loads(outcome_file.read_text())
+                    friendly_name = content.get("friendly_name", "")
+                    description = content.get("description", "")
+                except Exception:
+                    friendly_name = ""
+                    description = ""
+
+                outcomes.append({
+                    "platform": platform_name,
+                    "slug": outcome_file.stem,
+                    "friendly_name": friendly_name,
+                    "description": description,
+                    "path": str(outcome_file.relative_to(repo_path)),
+                })
+
+    if not outcomes:
+        return [TextContent(type="text", text="No outcomes found")]
+
+    result = "# Available Outcome Snippets\n\n"
+    result += f"**Total outcomes:** {len(outcomes)}\n\n"
+
+    # Group by platform
+    by_platform: dict[str, list] = {}
+    for outcome in outcomes:
+        platform = outcome["platform"]
+        if platform not in by_platform:
+            by_platform[platform] = []
+        by_platform[platform].append(outcome)
+
+    for platform in sorted(by_platform.keys()):
+        result += f"## {platform}\n\n"
+        for outcome in sorted(by_platform[platform], key=lambda x: x["slug"]):
+            result += f"### {outcome['slug']}\n"
+            if outcome['friendly_name']:
+                result += f"**{outcome['friendly_name']}**\n\n"
+            if outcome['description']:
+                result += f"{outcome['description']}\n\n"
+            result += f"_Path: `{outcome['path']}`_\n\n"
 
     return [TextContent(type="text", text=result)]
 

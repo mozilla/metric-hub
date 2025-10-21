@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/anna/mydata/metric-hub/lib/metric-config-parser/metric_config_parser/**)"
+      "Read(//Users/anna/mydata/metric-hub/lib/metric-config-parser/metric_config_parser/**)",
+      "Read(//Users/anna/mydata/metric-hub/jetstream/**)"
     ],
     "deny": [],
     "ask": []
