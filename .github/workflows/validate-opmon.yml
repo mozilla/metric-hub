@@ -30,10 +30,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Validate OpMon config files
+      env:
+        ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
       run: |
         echo "Run validation on changed files: "
-        echo ${{ needs.changed.outputs.all_changed_files }}
-        opmon validate_config --config_repos='.' --config_repos=opmon/ ${{ needs.changed.outputs.all_changed_files }}
+        echo $ALL_CHANGED_FILES
+        opmon validate_config --config_repos='.' --config_repos=opmon/ $ALL_CHANGED_FILES
 
 
 

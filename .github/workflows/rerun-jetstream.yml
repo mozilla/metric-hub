@@ -42,8 +42,10 @@ jobs:
         location: ${{ env.CLUSTER_ZONE }}
     - name: Rerun jetstream
       shell: bash
+      env:
+        changed_files: ${{ needs.changed.outputs.all_changed_files }}
+        commit_message: ${{ github.event.head_commit.message }}
       run: |
-        changed_files="${{ needs.changed.outputs.all_changed_files }}"
 
         ERROR_DASHBOARD_URL="https://mozilla.cloud.looker.com/dashboards/246"
 
@@ -70,7 +72,6 @@ jobs:
         cur_date=`date -u +%FT%TZ`
         LOGS_URL="https://console.cloud.google.com/logs/query;query=resource.type%3D%22k8s_container%22%0Aresource.labels.cluster_name%3D%22${{ env.CLUSTER_NAME }}%22%0Aresource.labels.location%3D%22${{ env.CLUSTER_ZONE }}%22%0Aresource.labels.namespace_name%3D%22argo%22;cursorTimestamp=$curDate?project=${{ vars.GCLOUD_PROJECT }}"
 
-        commit_message="${{ github.event.head_commit.message }}"
         echo "Checking commit message: $commit_message"
         if [[ "$commit_message" == *"[ci rerun-skip]"* ]] || [[ "$commit_message" == *"[ci rerun_skip]"* ]] || [[ "$commit_message" == *"[ci skip-rerun]"* ]] || [[ "$commit_message" == *"[ci skip_rerun]"* ]]; then
           echo "Skip rerun for files:"

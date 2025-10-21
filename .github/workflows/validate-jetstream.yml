@@ -49,13 +49,17 @@ jobs:
         id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
         id_token_include_email: true
     - name: Export ID Token for Python
-      run: echo "GOOGLE_GHA_ID_TOKEN=${{ steps.auth.outputs.id_token }}" >> $GITHUB_ENV
+      env:
+        GOOGLE_GHA_ID_TOKEN: ${{ steps.auth.outputs.id_token }}
+      run: echo "GOOGLE_GHA_ID_TOKEN=$GOOGLE_GHA_ID_TOKEN" >> $GITHUB_ENV
     - name: Validate jetstream config files
+      env:
+        ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
       run: |
         echo "Run validation on changed files: "
-        echo ${{ needs.changed.outputs.all_changed_files }}
-        echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}"
-        jetstream validate_config --config_repos='.' --config_repos=jetstream/ ${{ needs.changed.outputs.all_changed_files }}
+        echo $ALL_CHANGED_FILES
+        echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
+        jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
     - uses: actions/github-script@v6
       if: ${{ github.event_name == 'pull_request' && success() }}
       with:
