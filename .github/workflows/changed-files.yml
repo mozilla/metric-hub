@@ -33,7 +33,11 @@ jobs:
       with:
         files: ${{ inputs.path_filter }}
     - name: Print results
+      env:
+        PATH_FILTER: ${{ inputs.path_filter }}
+        ANY_CHANGED: ${{ steps.changed-files-specific.outputs.any_changed }}
+        ALL_CHANGED_FILES: ${{ steps.changed-files-specific.outputs.all_changed_files }}
       run: |
-        echo "Using path filter: ${{ inputs.path_filter }}"
-        echo "Did files change?: ${{ steps.changed-files-specific.outputs.any_changed }}"
-        echo "All changed files: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+        echo "Using path filter: $PATH_FILTER"
+        echo "Did files change?: $ANY_CHANGED"
+        echo "All changed files: $ALL_CHANGED_FILES"

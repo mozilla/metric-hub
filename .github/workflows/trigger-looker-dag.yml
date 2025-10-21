@@ -33,8 +33,10 @@ jobs:
           echo "DAGRUN_NOTE=DAG triggered by **[${{ github.actor }}](https://github.com/${{ github.actor }})** from ${{ github.repository }} CI build [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
 
       - name: Trigger looker DAG in Airflow to deploy lookml
+        env:
+          ID_TOKEN: ${{ steps.auth.outputs.id_token }}
         run: |
           curl --location --request POST "https://us-west1-moz-fx-telemetry-airflow-prod.cloudfunctions.net/ci-external-trigger" \
-            -H "Authorization: bearer ${{ steps.auth.outputs.id_token }}" \
+            -H "Authorization: bearer $ID_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"dagrun_note\": \"${DAGRUN_NOTE}\", \"dag_id\":\"looker\"}"
