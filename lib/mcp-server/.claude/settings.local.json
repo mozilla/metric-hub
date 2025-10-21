@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/anna/mydata/metric-hub/lib/metric-config-parser/metric_config_parser/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
