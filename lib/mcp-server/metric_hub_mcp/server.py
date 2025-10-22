@@ -3,11 +3,12 @@
 This server provides tools to query, create, and validate metrics from the metric-hub repository.
 """
 
-import json
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
+import requests
 import toml
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -18,7 +19,7 @@ from mcp.types import (
     EmbeddedResource,
 )
 
-from metric_config_parser.config import ConfigCollection, entity_from_path
+from metric_config_parser.config import ConfigCollection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +29,10 @@ logger = logging.getLogger(__name__)
 _config_collection: ConfigCollection | None = None
 _repo_path: Path | None = None
 
+# Experimenter API configuration
+EXPERIMENTER_API_URL = "https://experimenter.services.mozilla.com/api/v8/experiments/"
+MAX_RETRIES = 3
+
 
 def get_config_collection() -> ConfigCollection:
     """Get or initialize the config collection."""
@@ -36,7 +41,7 @@ def get_config_collection() -> ConfigCollection:
     if _config_collection is None:
         # Try to load from local repo (parent directory of mcp-server)
         if _repo_path is None:
-            _repo_path = Path(__file__).parent.parent.parent
+            _repo_path = Path(__file__).parent.parent.parent.parent
 
         logger.info(f"Loading metric hub configs from {_repo_path}")
         _config_collection = ConfigCollection.from_github_repo(
@@ -44,6 +49,34 @@ def get_config_collection() -> ConfigCollection:
         )
 
     return _config_collection
+
+
+def retry_get(url: str, max_retries: int = MAX_RETRIES) -> Any:
+    """Fetch JSON data from URL with retry logic."""
+    session = requests.Session()
+    session.headers.update({"User-Agent": "metric-hub-mcp"})
+
+    for attempt in range(max_retries):
+        try:
+            response = session.get(url, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.info(f"Attempt {attempt + 1}/{max_retries} failed for {url}: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise Exception(f"Failed to fetch {url} after {max_retries} retries") from e
+
+
+def fetch_experiments_from_experimenter() -> list[dict[str, Any]]:
+    """Fetch all experiments from Experimenter API."""
+    try:
+        experiments_json = retry_get(EXPERIMENTER_API_URL)
+        return experiments_json
+    except Exception as e:
+        logger.error(f"Error fetching experiments from Experimenter: {e}")
+        return []
 
 
 # Create MCP server
@@ -270,36 +303,94 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="generate_experiment_config_template",
-            description="Generate a template for a new experiment configuration",
+            name="generate_config_template",
+            description="Generate a template for a new configuration (jetstream experiment, opmon monitoring, or looker dashboard)",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "experiment_type": {
+                    "config_type": {
                         "type": "string",
-                        "description": "Type of experiment template to generate",
-                        "enum": ["basic", "with_segments", "with_custom_metrics", "with_custom_data_source"],
+                        "description": "Type of config: 'jetstream' (experiments), 'opmon' (monitoring), 'looker' (dashboards)",
+                        "enum": ["jetstream", "opmon", "looker"],
+                    },
+                    "template_type": {
+                        "type": "string",
+                        "description": "Template type: For jetstream: 'basic', 'with_segments', 'with_custom_metrics', 'with_custom_data_source'. For opmon: 'basic', 'with_dimensions'. For looker: 'basic'",
                     },
                     "platform": {
                         "type": "string",
                         "description": "Platform name (e.g., 'firefox_desktop', 'fenix')",
                     },
                 },
-                "required": ["experiment_type", "platform"],
+                "required": ["config_type", "template_type", "platform"],
             },
         ),
         Tool(
-            name="list_outcomes",
-            description="List all available outcome snippets",
+            name="list_segments",
+            description="List all segments for a specific platform",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "platform": {
                         "type": "string",
-                        "description": "Optional: filter by platform",
+                        "description": "Platform name (e.g., 'firefox_desktop', 'fenix')",
+                    },
+                },
+                "required": ["platform"],
+            },
+        ),
+        Tool(
+            name="list_experiments",
+            description="List experiments and rollouts from Experimenter API",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Filter by status: 'Live', 'Complete', or omit for all launched experiments",
+                    },
+                    "app_name": {
+                        "type": "string",
+                        "description": "Filter by application name (e.g., 'firefox_desktop', 'fenix')",
+                    },
+                    "is_rollout": {
+                        "type": "boolean",
+                        "description": "Filter to show only rollouts (true) or only experiments (false), or omit for both",
                     },
                 },
                 "required": [],
+            },
+        ),
+        Tool(
+            name="get_experiment",
+            description="Get detailed information about a specific experiment or rollout from Experimenter",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "type": "string",
+                        "description": "Experiment slug (normandy_slug or experimenter_slug)",
+                    },
+                },
+                "required": ["slug"],
+            },
+        ),
+        Tool(
+            name="get_segment",
+            description="Get detailed information about a specific segment",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "description": "Platform name (e.g., 'firefox_desktop', 'fenix')",
+                    },
+                    "segment_name": {
+                        "type": "string",
+                        "description": "Name of the segment",
+                    },
+                },
+                "required": ["platform", "segment_name"],
             },
         ),
     ]
@@ -333,10 +424,16 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
             return await handle_get_experiment_config(arguments)
         elif name == "create_experiment_config":
             return await handle_create_experiment_config(arguments)
-        elif name == "generate_experiment_config_template":
-            return await handle_generate_experiment_config_template(arguments)
-        elif name == "list_outcomes":
-            return await handle_list_outcomes(arguments)
+        elif name == "generate_config_template":
+            return await handle_generate_config_template(arguments)
+        elif name == "list_segments":
+            return await handle_list_segments(arguments)
+        elif name == "get_segment":
+            return await handle_get_segment(arguments)
+        elif name == "list_experiments":
+            return await handle_list_experiments(arguments)
+        elif name == "get_experiment":
+            return await handle_get_experiment_from_experimenter(arguments)
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -833,7 +930,7 @@ async def handle_list_experiment_configs(arguments: dict[str, Any]) -> list[Text
 
     # Get the repo path
     if _repo_path is None:
-        repo_path = Path(__file__).parent.parent.parent
+        repo_path = Path(__file__).parent.parent.parent.parent
     else:
         repo_path = _repo_path
 
@@ -867,7 +964,7 @@ async def handle_get_experiment_config(arguments: dict[str, Any]) -> list[TextCo
 
     # Get the repo path
     if _repo_path is None:
-        repo_path = Path(__file__).parent.parent.parent
+        repo_path = Path(__file__).parent.parent.parent.parent
     else:
         repo_path = _repo_path
 
@@ -894,7 +991,7 @@ async def handle_create_experiment_config(arguments: dict[str, Any]) -> list[Tex
 
     # Get the repo path
     if _repo_path is None:
-        repo_path = Path(__file__).parent.parent.parent
+        repo_path = Path(__file__).parent.parent.parent.parent
     else:
         repo_path = _repo_path
 
@@ -932,11 +1029,24 @@ async def handle_create_experiment_config(arguments: dict[str, Any]) -> list[Tex
     return [TextContent(type="text", text=result)]
 
 
-async def handle_generate_experiment_config_template(arguments: dict[str, Any]) -> list[TextContent]:
-    """Generate a template for a new experiment configuration."""
-    experiment_type = arguments["experiment_type"]
+async def handle_generate_config_template(arguments: dict[str, Any]) -> list[TextContent]:
+    """Generate a template for a new configuration."""
+    config_type = arguments["config_type"]
+    template_type = arguments["template_type"]
     platform = arguments["platform"]
 
+    if config_type == "jetstream":
+        return await handle_generate_jetstream_template(template_type, platform)
+    elif config_type == "opmon":
+        return await handle_generate_opmon_template(template_type, platform)
+    elif config_type == "looker":
+        return await handle_generate_looker_template(template_type, platform)
+    else:
+        return [TextContent(type="text", text=f"Unknown config type: {config_type}")]
+
+
+async def handle_generate_jetstream_template(template_type: str, platform: str) -> list[TextContent]:
+    """Generate a template for a jetstream experiment configuration."""
     templates = {
         "basic": f"""[experiment]
 # Define experiment-level parameters
@@ -1031,9 +1141,9 @@ description = "Count of events from custom data source"
 """
     }
 
-    template = templates.get(experiment_type, "")
+    template = templates.get(template_type, "")
 
-    result = f"# Experiment Configuration Template: {experiment_type}\n\n"
+    result = f"# Jetstream Experiment Configuration Template: {template_type}\n\n"
     result += f"**Platform:** {platform}\n\n"
     result += f"## Template\n\n```toml\n{template}```\n\n"
     result += f"## Key Configuration Sections\n\n"
@@ -1053,88 +1163,373 @@ description = "Count of events from custom data source"
     result += f"- `data_source`: Reference to data source\n"
     result += f"- `friendly_name`: Display name\n"
     result += f"- `description`: What the metric measures\n\n"
-    result += f"## Repository Structure\n\n"
-    result += f"- **definitions/**: Metric and data source definitions (reusable across experiments)\n"
-    result += f"- **jetstream/**: Experiment configurations (reference metrics from definitions/)\n"
-    result += f"- **opmon/**: Operational monitoring configurations\n"
-    result += f"- **looker/**: Looker dashboard configurations\n"
-    result += f"- **outcomes/**: Reusable outcome snippets\n\n"
     result += f"## Documentation\n\n"
     result += f"For more details, see: https://experimenter.info/deep-dives/jetstream/configuration\n"
 
     return [TextContent(type="text", text=result)]
 
 
-async def handle_list_outcomes(arguments: dict[str, Any]) -> list[TextContent]:
-    """List all available outcome snippets."""
-    platform_filter = arguments.get("platform")
+async def handle_generate_opmon_template(template_type: str, platform: str) -> list[TextContent]:
+    """Generate a template for an opmon operational monitoring configuration."""
+    templates = {
+        "basic": f"""[project]
+name = "My Monitoring Project"
+platform = "{platform}"
+xaxis = "submission_date"
+start_date = "2025-01-01"
+skip_default_metrics = false
 
-    # Get the repo path
+# Metrics to monitor
+metrics = [
+    "active_hours",
+    "uri_count",
+]
+
+[project.population]
+# Monitor the entire population
+data_source = "main"
+monitor_entire_population = true
+
+# Or monitor specific criteria
+# [project.population.criteria]
+# channel = ["release"]
+
+[metrics.active_hours.statistics]
+sum = {{}}
+
+[metrics.uri_count.statistics]
+sum = {{}}
+""",
+        "with_dimensions": f"""[project]
+name = "My Monitoring Project with Dimensions"
+platform = "{platform}"
+xaxis = "submission_date"
+start_date = "2025-01-01"
+skip_default_metrics = false
+
+# Dimensions to break down the metrics
+dimensions = [
+    "country",
+    "channel",
+]
+
+metrics = [
+    "active_hours",
+]
+
+[project.population]
+data_source = "main"
+monitor_entire_population = true
+
+# Define custom metrics if needed
+[metrics.active_hours]
+data_source = "main"
+select_expression = "{{{{agg_sum('active_hours_sum')}}}}"
+type = "scalar"
+friendly_name = "Active Hours"
+description = "Total active hours"
+
+[metrics.active_hours.statistics]
+sum = {{}}
+
+# Define custom data sources if needed
+[data_sources.main]
+from_expression = "`moz-fx-data-shared-prod.telemetry.clients_daily`"
+""",
+    }
+
+    template = templates.get(template_type, templates["basic"])
+
+    result = f"# OpMon Configuration Template: {template_type}\n\n"
+    result += f"**Platform:** {platform}\n\n"
+    result += f"## Template\n\n```toml\n{template}```\n\n"
+    result += f"## Key Configuration Sections\n\n"
+    result += f"### [project]\n"
+    result += f"- `name`: Display name for the monitoring project\n"
+    result += f"- `platform`: Platform being monitored (e.g., 'firefox_desktop', 'fenix')\n"
+    result += f"- `xaxis`: Time dimension (typically 'submission_date')\n"
+    result += f"- `start_date`: Start date for monitoring\n"
+    result += f"- `dimensions`: Optional dimensions to break down metrics by\n\n"
+    result += f"### [project.population]\n"
+    result += f"- `data_source`: Data source for population definition\n"
+    result += f"- `monitor_entire_population`: Set to true to monitor all users\n"
+    result += f"- `criteria`: Optional filters for population\n\n"
+    result += f"### [metrics]\n"
+    result += f"List metrics to monitor and define their statistics\n\n"
+    result += f"## Documentation\n\n"
+    result += f"For more details, see: https://docs.telemetry.mozilla.org/cookbooks/operational_monitoring.html\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_generate_looker_template(template_type: str, platform: str) -> list[TextContent]:
+    """Generate a template for a looker dashboard configuration."""
+    template = f"""# Looker configurations are typically stored in looker/definitions/
+
+[data_sources.'*']
+# Enable all columns as dimensions for Looker
+columns_as_dimensions = true
+
+# Example custom metric for Looker
+[metrics.my_metric]
+data_source = "my_data_source"
+select_expression = "COUNT(*)"
+type = "scalar"
+friendly_name = "My Metric"
+description = "Description of the metric"
+
+[data_sources.my_data_source]
+from_expression = "`moz-fx-data-shared-prod.{platform}.table_name`"
+submission_date_column = "submission_date"
+"""
+
+    result = f"# Looker Configuration Template\n\n"
+    result += f"**Platform:** {platform}\n\n"
+    result += f"## Template\n\n```toml\n{template}```\n\n"
+    result += f"## Key Configuration Notes\n\n"
+    result += f"- Looker configs are stored in `looker/definitions/` directory\n"
+    result += f"- Use `columns_as_dimensions = true` to enable all columns as Looker dimensions\n"
+    result += f"- Define custom metrics and data sources as needed\n\n"
+    result += f"## Documentation\n\n"
+    result += f"For more details, see metric-hub documentation\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_list_segments(arguments: dict[str, Any]) -> list[TextContent]:
+    """List all segments for a platform."""
+    platform = arguments["platform"]
+
+    config = get_config_collection()
+
+    segments = config.get_segments_for_app(platform)
+
+    if not segments:
+        return [TextContent(type="text", text=f"No segments found for platform '{platform}'")]
+
+    result = f"# Segments for {platform}\n\n"
+    result += f"**Total segments:** {len(segments)}\n\n"
+
+    for segment in sorted(segments, key=lambda x: x.name):
+        result += f"## {segment.name}\n"
+
+        if segment.friendly_name:
+            result += f"**Friendly Name:** {segment.friendly_name}\n\n"
+
+        if segment.description:
+            result += f"**Description:** {segment.description}\n\n"
+
+        result += f"**Data Source:** {segment.data_source.name}\n\n"
+
+        result += "\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_get_segment(arguments: dict[str, Any]) -> list[TextContent]:
+    """Get detailed information about a segment."""
+    platform = arguments["platform"]
+    segment_name = arguments["segment_name"]
+
+    config = get_config_collection()
+
+    segment = config.get_segment_definition(segment_name, platform)
+
+    if not segment:
+        return [TextContent(type="text", text=f"Segment '{segment_name}' not found in platform '{platform}'")]
+
+    result = f"# Segment: {segment_name}\n\n"
+    result += f"**Platform:** {platform}\n\n"
+
+    if segment.friendly_name:
+        result += f"**Friendly Name:** {segment.friendly_name}\n\n"
+
+    if segment.description:
+        result += f"## Description\n\n{segment.description}\n\n"
+
+    result += f"## Configuration\n\n"
+    result += f"**Data Source:** {segment.data_source.name}\n\n"
+
+    result += f"## Select Expression\n\n```sql\n{segment.select_expression}\n```\n\n"
+
+    result += f"## Usage\n\n"
+    result += f"To use this segment in an experiment config, add it to the `segments` list:\n\n"
+    result += f"```toml\n[experiment]\nsegments = [\"{segment_name}\"]\n```\n\n"
+    result += f"The analysis will then be performed separately for users in this segment.\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_list_experiments(arguments: dict[str, Any]) -> list[TextContent]:
+    """List experiments and rollouts from Experimenter."""
+    status_filter = arguments.get("status")
+    app_name_filter = arguments.get("app_name")
+    is_rollout_filter = arguments.get("is_rollout")
+
+    experiments = fetch_experiments_from_experimenter()
+
+    if not experiments:
+        return [TextContent(type="text", text="No experiments found or error fetching from Experimenter")]
+
+    # Apply filters
+    filtered = []
+    for exp in experiments:
+        # Determine status
+        exp_status = "Live"
+        if exp.get("endDate"):
+            from datetime import datetime
+            try:
+                end_date = datetime.strptime(exp["endDate"], "%Y-%m-%d")
+                if end_date < datetime.now():
+                    exp_status = "Complete"
+            except Exception:
+                pass
+
+        # Status filter
+        if status_filter and exp_status != status_filter:
+            continue
+
+        # App name filter
+        app_name = exp.get("appName", "firefox_desktop")
+        if app_name_filter and app_name != app_name_filter:
+            continue
+
+        # Rollout filter
+        branches = exp.get("branches", [])
+        is_rollout = exp.get("isRollout", len(branches) == 1)
+        if is_rollout_filter is not None and is_rollout != is_rollout_filter:
+            continue
+
+        # Only show launched experiments (with start date)
+        if exp.get("startDate"):
+            filtered.append({
+                "slug": exp.get("slug", ""),
+                "name": exp.get("userFacingName", ""),
+                "status": exp_status,
+                "app_name": app_name,
+                "is_rollout": is_rollout,
+                "start_date": exp.get("startDate", ""),
+                "end_date": exp.get("endDate", ""),
+                "channel": exp.get("channel", ""),
+            })
+
+    result = "# Experiments and Rollouts from Experimenter\n\n"
+    result += f"**Total found:** {len(filtered)}\n\n"
+
+    if not filtered:
+        result += "No experiments match the specified filters.\n"
+        return [TextContent(type="text", text=result)]
+
+    # Group by status
+    by_status: dict[str, list] = {"Live": [], "Complete": []}
+    for exp in filtered:
+        by_status[exp["status"]].append(exp)
+
+    for status in ["Live", "Complete"]:
+        if by_status[status]:
+            result += f"## {status}\n\n"
+            for exp in sorted(by_status[status], key=lambda x: x["slug"]):
+                exp_type = "🚀 Rollout" if exp["is_rollout"] else "🧪 Experiment"
+                result += f"### {exp_type}: {exp['slug']}\n"
+                if exp["name"]:
+                    result += f"**Name:** {exp['name']}\n\n"
+                result += f"- **App:** {exp['app_name']}\n"
+                if exp["channel"]:
+                    result += f"- **Channel:** {exp['channel']}\n"
+                result += f"- **Start Date:** {exp['start_date']}\n"
+                if exp["end_date"]:
+                    result += f"- **End Date:** {exp['end_date']}\n"
+                result += "\n"
+
+    return [TextContent(type="text", text=result)]
+
+
+async def handle_get_experiment_from_experimenter(arguments: dict[str, Any]) -> list[TextContent]:
+    """Get detailed information about a specific experiment from Experimenter."""
+    slug = arguments["slug"]
+
+    experiments = fetch_experiments_from_experimenter()
+
+    if not experiments:
+        return [TextContent(type="text", text="Error fetching experiments from Experimenter")]
+
+    # Find the experiment
+    experiment = None
+    for exp in experiments:
+        if exp.get("slug") == slug:
+            experiment = exp
+            break
+
+    if not experiment:
+        return [TextContent(type="text", text=f"Experiment '{slug}' not found in Experimenter")]
+
+    # Determine status
+    status = "Live"
+    if experiment.get("endDate"):
+        from datetime import datetime
+        try:
+            end_date = datetime.strptime(experiment["endDate"], "%Y-%m-%d")
+            if end_date < datetime.now():
+                status = "Complete"
+        except Exception:
+            pass
+
+    branches = experiment.get("branches", [])
+    is_rollout = experiment.get("isRollout", len(branches) == 1)
+
+    result = f"# {'Rollout' if is_rollout else 'Experiment'}: {slug}\n\n"
+
+    if experiment.get("userFacingName"):
+        result += f"**Name:** {experiment['userFacingName']}\n\n"
+
+    result += f"**Status:** {status}\n\n"
+
+    result += f"## Details\n\n"
+    result += f"- **App Name:** {experiment.get('appName', 'firefox_desktop')}\n"
+    result += f"- **App ID:** {experiment.get('appId', 'firefox-desktop')}\n"
+
+    if experiment.get("channel"):
+        result += f"- **Channel:** {experiment['channel']}\n"
+
+    result += f"- **Start Date:** {experiment.get('startDate', 'Not set')}\n"
+    result += f"- **End Date:** {experiment.get('endDate', 'Not set')}\n"
+
+    if experiment.get("referenceBranch"):
+        result += f"- **Reference Branch:** {experiment['referenceBranch']}\n"
+
+    result += f"\n## Branches\n\n"
+    for branch in branches:
+        result += f"### {branch.get('slug', 'unknown')}\n"
+        result += f"- **Ratio:** {branch.get('ratio', 1)}\n\n"
+
+    # Check if there's a config in the repo
+    has_jetstream_config = False
+    has_opmon_config = False
+
     if _repo_path is None:
-        repo_path = Path(__file__).parent.parent.parent
+        repo_path = Path(__file__).parent.parent.parent.parent
     else:
         repo_path = _repo_path
 
-    outcomes_dir = repo_path / "outcomes"
+    jetstream_file = repo_path / "jetstream" / f"{slug}.toml"
+    opmon_file = repo_path / "opmon" / f"{slug}.toml"
 
-    if not outcomes_dir.exists():
-        return [TextContent(type="text", text="Outcomes directory not found")]
+    if jetstream_file.exists():
+        has_jetstream_config = True
+    if opmon_file.exists():
+        has_opmon_config = True
 
-    outcomes = []
+    if has_jetstream_config or has_opmon_config:
+        result += f"## Configurations in Repo\n\n"
+        if has_jetstream_config:
+            result += f"- ✅ Jetstream config: `jetstream/{slug}.toml`\n"
+        if has_opmon_config:
+            result += f"- ✅ OpMon config: `opmon/{slug}.toml`\n"
+        result += "\n"
 
-    # Search for outcome files in platform subdirectories
-    for platform_dir in outcomes_dir.iterdir():
-        if not platform_dir.is_dir():
-            continue
-
-        platform_name = platform_dir.name
-
-        # Skip if filtering by platform
-        if platform_filter and platform_name != platform_filter:
-            continue
-
-        for outcome_file in platform_dir.glob("*.toml"):
-            if outcome_file.is_file():
-                # Try to read friendly name from the file
-                try:
-                    content = toml.loads(outcome_file.read_text())
-                    friendly_name = content.get("friendly_name", "")
-                    description = content.get("description", "")
-                except Exception:
-                    friendly_name = ""
-                    description = ""
-
-                outcomes.append({
-                    "platform": platform_name,
-                    "slug": outcome_file.stem,
-                    "friendly_name": friendly_name,
-                    "description": description,
-                    "path": str(outcome_file.relative_to(repo_path)),
-                })
-
-    if not outcomes:
-        return [TextContent(type="text", text="No outcomes found")]
-
-    result = "# Available Outcome Snippets\n\n"
-    result += f"**Total outcomes:** {len(outcomes)}\n\n"
-
-    # Group by platform
-    by_platform: dict[str, list] = {}
-    for outcome in outcomes:
-        platform = outcome["platform"]
-        if platform not in by_platform:
-            by_platform[platform] = []
-        by_platform[platform].append(outcome)
-
-    for platform in sorted(by_platform.keys()):
-        result += f"## {platform}\n\n"
-        for outcome in sorted(by_platform[platform], key=lambda x: x["slug"]):
-            result += f"### {outcome['slug']}\n"
-            if outcome['friendly_name']:
-                result += f"**{outcome['friendly_name']}**\n\n"
-            if outcome['description']:
-                result += f"{outcome['description']}\n\n"
-            result += f"_Path: `{outcome['path']}`_\n\n"
+    result += f"## API Data\n\n"
+    result += f"View full experiment details at:\n"
+    result += f"https://experimenter.services.mozilla.com/nimbus/{slug}/summary\n"
 
     return [TextContent(type="text", text=result)]
 
