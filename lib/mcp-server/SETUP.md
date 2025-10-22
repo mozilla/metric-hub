@@ -97,7 +97,7 @@ This automatically configures the server in your settings.json file.
 If you're developing locally with a virtual environment:
 
 ```bash
-gemini mcp add metric-hub /Users/anna/mydata/metric-hub/lib/mcp-server/venv/bin/python -- -m metric_hub_mcp.server
+gemini mcp add metric-hub /metric-hub/lib/mcp-server/venv/bin/python -- -m metric_hub_mcp.server
 ```
 
 Note: Adjust the path to match your actual project location.
@@ -128,9 +128,9 @@ Note: Adjust the path to match your actual project location.
    {
      "mcpServers": {
        "metric-hub": {
-         "command": "/Users/anna/mydata/metric-hub/lib/mcp-server/venv/bin/python",
+         "command": "/metric-hub/lib/mcp-server/venv/bin/python",
          "args": ["-m", "metric_hub_mcp.server"],
-         "cwd": "/Users/anna/mydata/metric-hub/lib/mcp-server",
+         "cwd": "/metric-hub/lib/mcp-server",
          "timeout": 30000,
          "trust": false
        }
@@ -145,9 +145,9 @@ Note: Adjust the path to match your actual project location.
        "metric-hub": {
          "command": "python3",
          "args": ["-m", "metric_hub_mcp.server"],
-         "cwd": "/Users/anna/mydata/metric-hub/lib/mcp-server",
+         "cwd": "/metric-hub/lib/mcp-server",
          "env": {
-           "PYTHONPATH": "/Users/anna/mydata/metric-hub/lib/mcp-server"
+           "PYTHONPATH": "/metric-hub/lib/mcp-server"
          },
          "timeout": 30000,
          "trust": false
@@ -257,7 +257,7 @@ def get_config_collection() -> ConfigCollection:
 
     if _config_collection is None:
         # Use local repository
-        _repo_path = Path("/Users/anna/mydata/metric-hub")
+        _repo_path = Path("/metric-hub")
 
         logger.info(f"Loading metric hub configs from {_repo_path}")
         _config_collection = ConfigCollection.from_github_repo(
@@ -325,7 +325,7 @@ This caches the config collection in memory.
 
 1. **Test the server manually:**
    ```bash
-   cd /Users/anna/mydata/metric-hub/lib/mcp-server
+   cd /metric-hub/lib/mcp-server
    venv/bin/python -m metric_hub_mcp.server
    ```
 
@@ -333,7 +333,7 @@ This caches the config collection in memory.
 
 2. **Check dependencies are installed:**
    ```bash
-   cd /Users/anna/mydata/metric-hub/lib/mcp-server
+   cd /metric-hub/lib/mcp-server
    source venv/bin/activate
    pip list | grep mcp
    ```
@@ -348,9 +348,9 @@ This caches the config collection in memory.
    {
      "mcpServers": {
        "metric-hub": {
-         "command": "/Users/anna/mydata/metric-hub/lib/mcp-server/venv/bin/python",
+         "command": "/metric-hub/lib/mcp-server/venv/bin/python",
          "args": ["-m", "metric_hub_mcp.server"],
-         "cwd": "/Users/anna/mydata/metric-hub/lib/mcp-server"
+         "cwd": "/metric-hub/lib/mcp-server"
        }
      }
    }
