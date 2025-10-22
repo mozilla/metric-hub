@@ -1535,7 +1535,7 @@ async def handle_get_experiment_from_experimenter(arguments: dict[str, Any]) -> 
 
 
 async def main() -> None:
-    """Run the MCP server."""
+    """Run the MCP server via stdio (local mode)."""
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
             read_stream,
@@ -1544,10 +1544,86 @@ async def main() -> None:
         )
 
 
+async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
+    """Run the MCP server via HTTP SSE (remote mode).
+
+    This allows the server to be deployed remotely and accessed over HTTP.
+
+    Args:
+        host: Host to bind to (default: 0.0.0.0 for all interfaces)
+        port: Port to listen on (default: 8080)
+    """
+    from mcp.server.sse import SseServerTransport
+    from starlette.applications import Starlette
+    from starlette.routing import Route
+    from starlette.responses import Response
+    import uvicorn
+
+    async def handle_sse(request):
+        async with SseServerTransport("/messages") as (read_stream, write_stream):
+            await app.run(
+                read_stream,
+                write_stream,
+                app.create_initialization_options(),
+            )
+            return Response()
+
+    async def handle_messages(request):
+        async with SseServerTransport("/messages") as (read_stream, write_stream):
+            await app.run(
+                read_stream,
+                write_stream,
+                app.create_initialization_options(),
+            )
+            return Response()
+
+    starlette_app = Starlette(
+        routes=[
+            Route("/sse", endpoint=handle_sse),
+            Route("/messages", endpoint=handle_messages, methods=["POST"]),
+        ]
+    )
+
+    config = uvicorn.Config(
+        starlette_app,
+        host=host,
+        port=port,
+        log_level="info"
+    )
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
 def cli() -> None:
-    """CLI entry point."""
+    """CLI entry point for local stdio mode."""
     import asyncio
     asyncio.run(main())
+
+
+def cli_http() -> None:
+    """CLI entry point for remote HTTP/SSE mode."""
+    import argparse
+    import asyncio
+
+    parser = argparse.ArgumentParser(
+        description="Run Metric Hub MCP Server in HTTP/SSE mode"
+    )
+    parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port to listen on (default: 8080)"
+    )
+
+    args = parser.parse_args()
+
+    logger.info(f"Starting Metric Hub MCP Server on {args.host}:{args.port}")
+    asyncio.run(run_sse_server(host=args.host, port=args.port))
 
 
 if __name__ == "__main__":

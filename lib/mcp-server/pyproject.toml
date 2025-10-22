@@ -17,6 +17,7 @@ dependencies = [
     "attrs>=23.0.0",
     "cattrs>=23.0.0",
     "toml>=0.10.2",
+    "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
@@ -26,9 +27,14 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
 ]
+http = [
+    "uvicorn>=0.27.0",
+    "starlette>=0.36.0",
+]
 
 [project.scripts]
 metric-hub-mcp = "metric_hub_mcp.server:cli"
+metric-hub-mcp-http = "metric_hub_mcp.server:cli_http"
 
 [tool.ruff]
 line-length = 100
