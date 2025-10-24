@@ -20,8 +20,7 @@ data_source = "noop_source"
 from_expression = """(
     SELECT
         '1234' AS client_id,
-        DATE('2022-01-01') AS submission_date,
-        profile_group_id = '12345'
+        DATE('2022-01-01') AS submission_date
 )"""
 experiments_column_type = "none"
 friendly_name = "No-Op"
