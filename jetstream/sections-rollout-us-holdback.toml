@@ -15,9 +15,6 @@ data_source = "noop_source"
 [metrics.sponsored_tiles_dismissals]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-[metrics.sponsored_tiles_dismissals_pos1_2]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
 
 [data_sources.noop_source]
 from_expression = """(
