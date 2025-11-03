@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - 1150-deploy-triggers
     paths:
       - 'lib/metric-config-parser/pyproject.toml'
 
@@ -36,7 +37,7 @@ jobs:
     - id: version_change
       name: Check for package version change in last commit before proceeding.
       run: |
-        if git diff origin/main HEAD~1 -- ./lib/metric-config-parser/pyproject.toml | grep '\+version'
+        if git diff origin/main HEAD -- ./lib/metric-config-parser/pyproject.toml | grep '\+version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
             echo "proceed=true" >> "$GITHUB_OUTPUT"
@@ -87,5 +88,8 @@ jobs:
       with:
         name: release-dist
         path: dist/
-    - name: Publish to PyPi
-      uses: pypa/gh-action-pypi-publish@release/v1
+    # - name: Publish to PyPi
+    #   uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Test Publish
+      run: |
+        echo "Would publish here"
