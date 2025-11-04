@@ -1,0 +1,8 @@
+[experiment]
+
+start_date = "2025-09-03"
+
+#enrollment_end_date = "2025-09-25"
+enrollment_period = 22
+
+end_date = "2025-10-29"
