@@ -596,19 +596,24 @@ description = "Events Ping"
 build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 
-[data_sources.events_stream]
+[data_sources.sponsored_tiles_events_stream]
 from_expression = """(
     SELECT
-        p.*,
+        p.client_id,
+        p.event_category,
+        p.event_name,
+        p.experiments,
+        p.event_extra,
         DATE(p.submission_timestamp) AS submission_date
     FROM
         `moz-fx-data-shared-prod.{dataset}.events_stream` p
+    WHERE p.event_category in ('customize_home', 'top_sites')
 )"""
 client_id_column = "client_id"
-experiments_column_type = "glean"
-default_dataset = "org_mozilla_firefox"
-friendly_name = "Events Stream"
-description = "Events pings from events stream"
+experiments_column_type = "events_stream"
+default_dataset = "fenix"
+friendly_name = "Sponsored Tiles Events Stream"
+description = "Sponsored tiles Events pings from events stream"
 build_id_column = "REPLACE(CAST(DATE(mozfun.norm.fenix_build_to_datetime(client_info.app_build)) AS STRING), '-', '')"
 
 
