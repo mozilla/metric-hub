@@ -45,7 +45,8 @@ select_expression = """
   COALESCE(SUM(CASE WHEN
           event_category = 'customize_home'
           AND event_name = 'preference_toggled'
-          AND `mozfun.map.get_key`(event_extra, 'preference_key') = 'contile'
+		  AND JSON_VALUE(event_extra, '$.preference_key') = 'contile'
+          --AND `mozfun.map.get_key`(event_extra, 'preference_key') = 'contile'
 	THEN 1 ELSE 0 END
   ),0)
 """
