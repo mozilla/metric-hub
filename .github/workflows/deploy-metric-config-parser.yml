@@ -39,10 +39,10 @@ jobs:
         if git diff origin/main HEAD~1 -- ./lib/metric-config-parser/pyproject.toml | grep '\+version'
           then
             echo "Found changes to package version dir, proceeding with deployment."
-            echo "proceed=true" >> "GITHUB_OUTPUT"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
           else
             echo "No changes in package version. Skipping metric-config-parser deployment."
-            echo "proceed=false" >> "GITHUB_OUTPUT"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
         fi
 
   build-metric-config-parser:
