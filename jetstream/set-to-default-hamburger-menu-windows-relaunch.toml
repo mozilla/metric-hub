@@ -1,0 +1,9 @@
+[metrics]
+weekly = ["pinned_windows_taskbar"]
+overall = ["pinned_windows_taskbar"]
+
+[metrics.pinned_windows_taskbar]
+select_expression = "COALESCE(LOGICAL_OR(metrics.boolean.os_environment_is_taskbar_pinned), FALSE)"
+data_source = "metrics"
+friendly_name = "Pinned Windows Taskbar"
+description = "Percentage of clients who pinned on Windows Taskbar"
