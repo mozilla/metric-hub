@@ -25,6 +25,10 @@ jobs:
     container:
       image: gcr.io/moz-fx-data-experiments/opmon:latest
     needs: changed
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
