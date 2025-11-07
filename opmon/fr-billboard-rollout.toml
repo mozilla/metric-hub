@@ -3,7 +3,7 @@
 platform = "firefox_desktop"
 xaxis = "submission_date"
 metrics = [
-    "any_organic_pocket_clicks",
+    "organic_pocket_clicks",
     "sponsored_pocket_clicks",
     "organic_pocket_impressions",
     "sponsored_pocket_impressions",
@@ -19,7 +19,7 @@ skip_default_metrics=true
 
 data_source = "newtab_clients_daily"
 
-[metrics.any_organic_pocket_clicks.statistics]
+[metrics.organic_pocket_clicks.statistics]
 mean = {}
 
 [metrics.sponsored_pocket_clicks.statistics]
