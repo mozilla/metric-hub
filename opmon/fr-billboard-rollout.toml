@@ -16,6 +16,8 @@ skip_default_metrics=true
 [project.population]
 
 data_source = "newtab_clients_daily"
+boolean_pref = "mozfun.map.get_key(experiments, 'fr-billboard-rollout').branch IS NOT NULL"
+dimensions=['country']
 
 [metrics.organic_pocket_impressions.statistics]
 mean = {}
