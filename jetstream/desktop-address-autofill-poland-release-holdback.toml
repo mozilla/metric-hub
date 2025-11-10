@@ -2,7 +2,7 @@
 enrollment_query = """
 WITH enrollments_raw AS (
   SELECT
-      e.client_id AS analysis_id,
+      profile_group_id as analysis_id,
       `mozfun.map.get_key`(e.event_map_values, 'branch')
           AS branch,
       MIN(e.submission_date) AS enrollment_date,
@@ -16,10 +16,10 @@ WITH enrollments_raw AS (
           BETWEEN '2025-06-20' AND '2025-07-01'
       AND e.event_string_value = 'desktop-address-autofill-poland-release-holdback'
       AND e.sample_id < 10
-  GROUP BY e.client_id, branch
+  GROUP BY profile_group_id, branch
 ), non_dupes AS (
   SELECT 
-      analysis_id, COUNT(*) AS n_rows
+     analysis_id, COUNT(*) AS n_rows
   FROM enrollments_raw
   GROUP BY 1
   HAVING n_rows = 1
@@ -48,6 +48,7 @@ window_end = 7
 from_expression = """(
   SELECT 
     legacy_telemetry_client_id as client_id,
+    profile_group_id,
     DATE(submission_timestamp) as submission_date,
     event_name
   FROM
@@ -55,7 +56,7 @@ from_expression = """(
   WHERE
     event_category IN ('creditcard')
     AND event_name IN ('detected_cc_form_v2') --, 'filled_cc_form_v2', 'submitted_cc_form_v2', 'popup_shown_cc_form_v2')
-  GROUP BY 1, 2, 3
+  GROUP BY 1, 2, 3,4
 )"""
 experiments_column_type = "none"
 friendly_name = "Credit Card Autofill"
