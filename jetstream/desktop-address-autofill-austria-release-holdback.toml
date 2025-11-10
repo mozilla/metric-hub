@@ -19,7 +19,7 @@ WITH enrollments_raw AS (
   GROUP BY profile_group_id, branch
 ), non_dupes AS (
   SELECT 
-      profile_group_id, COUNT(*) AS n_rows
+     analysis_id, COUNT(*) AS n_rows
   FROM enrollments_raw
   GROUP BY 1
   HAVING n_rows = 1
@@ -27,7 +27,7 @@ WITH enrollments_raw AS (
   SELECT er.*
   FROM enrollments_raw er
   INNER JOIN non_dupes
-  USING(profile_group_id)            
+  USING(analysis_id)            
   WHERE num_enrollment_events = 1  
 )
 SELECT *
