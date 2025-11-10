@@ -56,7 +56,7 @@ from_expression = """(
   WHERE
     event_category IN ('creditcard')
     AND event_name IN ('detected_cc_form_v2') --, 'filled_cc_form_v2', 'submitted_cc_form_v2', 'popup_shown_cc_form_v2')
-  GROUP BY 1, 2, 3
+  GROUP BY 1, 2, 3,4
 )"""
 experiments_column_type = "none"
 friendly_name = "Credit Card Autofill"
