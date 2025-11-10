@@ -2,7 +2,7 @@
 enrollment_query = """
 WITH enrollments_raw AS (
   SELECT
-      profile_group_id,
+      profile_group_id as analysis_id,
       `mozfun.map.get_key`(e.event_map_values, 'branch')
           AS branch,
       MIN(e.submission_date) AS enrollment_date,
