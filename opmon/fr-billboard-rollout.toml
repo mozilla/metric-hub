@@ -7,8 +7,6 @@ metrics = [
     "sponsored_pocket_clicks",
     "organic_pocket_impressions",
     "sponsored_pocket_impressions",
-    "sponsored_pocket_ctr",
-    "organic_pocket_ctr",
     "newtab_pocket_enabled",
     "newtab_sponsored_pocket_stories_enabled",
 ]
