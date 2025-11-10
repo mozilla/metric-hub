@@ -39,6 +39,7 @@ mean = {}
 [metrics.newtab_sponsored_pocket_stories_enabled.statistics]
 mean = {}
 
+[dimensions]
 [dimensions.country]
 data_source = "newtab_clients_daily"
 select_expression = "country"
