@@ -2,8 +2,8 @@
 enrollment_query = """
 WITH enrollments_raw AS (
   SELECT
-      e.client_id AS analysis_id,
-      profile_group_id,
+      
+      profile_group_id as analysis_id,
       `mozfun.map.get_key`(e.event_map_values, 'branch')
           AS branch,
       MIN(e.submission_date) AS enrollment_date,
@@ -48,7 +48,6 @@ window_end = 7
 [data_sources.credit_card_autofill]
 from_expression = """(
   SELECT 
-    legacy_telemetry_client_id as client_id,
     profile_group_id,
     DATE(submission_timestamp) as submission_date,
     event_name
