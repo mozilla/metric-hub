@@ -63,7 +63,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-polyfactory==2.22.3
+polyfactory==2.22.4
     # via mozilla-nimbus-schemas
 pydantic==2.12.3
     # via mozilla-nimbus-schemas
