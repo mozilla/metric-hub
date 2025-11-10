@@ -2,8 +2,7 @@
 enrollment_query = """
 WITH enrollments_raw AS (
   SELECT
-      
-      profile_group_id as analysis_id,
+      profile_group_id,
       `mozfun.map.get_key`(e.event_map_values, 'branch')
           AS branch,
       MIN(e.submission_date) AS enrollment_date,
@@ -17,7 +16,7 @@ WITH enrollments_raw AS (
           BETWEEN '2025-06-20' AND '2025-07-01'
       AND e.event_string_value = 'desktop-address-autofill-austria-release-holdback'
       AND e.sample_id < 10
-  GROUP BY e.client_id, branch
+  GROUP BY profile_group_id, branch
 ), non_dupes AS (
   SELECT 
       analysis_id, COUNT(*) AS n_rows
@@ -48,6 +47,7 @@ window_end = 7
 [data_sources.credit_card_autofill]
 from_expression = """(
   SELECT 
+    legacy_telemetry_client_id as client_id,
     profile_group_id,
     DATE(submission_timestamp) as submission_date,
     event_name
