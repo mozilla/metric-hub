@@ -1,0 +1,10 @@
+[experiment]
+sample_size = 50
+
+[experiment.exposure_signal]
+name = "first_content_click"
+friendly_name = "First Click on any content"
+description = "Clients Click on any content at least once"
+data_source = "newtab_visits_pocket_interactions"
+select_expression = "COALESCE(pocket_interactions.pocket_clicks, 0) > 0"
+window_end = "analysis_window_end"

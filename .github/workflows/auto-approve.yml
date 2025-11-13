@@ -34,7 +34,9 @@ jobs:
           })
     - name: Skip
       if: needs.changed.outputs.any_changed == 'true'
+      env:
+        ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
       run: |
         echo "Metric definitions changed, needs manual review"
-        echo "Changed files: ${{ needs.changed.outputs.all_changed_files }}"
+        echo "Changed files: $ALL_CHANGED_FILES"
 

@@ -1,0 +1,120 @@
+# Metrics
+
+## Metric definitions
+
+[metrics.glean_impressions]
+select_expression = "SUM(glean_impressions)"
+data_source = "monitoring_equativ"
+friendly_name = "Glean Impressions"
+description = "Number of times an ad is seen once by the client, or is displayed once on a web page as recorded by Firefox telemetry."
+
+[metrics.equativ_impressions]
+select_expression = "SUM(equativ_impressions)"
+data_source = "monitoring_equativ"
+friendly_name =  "Equativ Impressions"
+description = "Number of times an ad is displayed to an end user as reported by Equativ."
+
+[metrics.glean_clicks]
+select_expression = "SUM(glean_clicks)"
+data_source = "monitoring_equativ"
+friendly_name = "Glean Clicks"
+description = "Number of times an ad is clicked once by the client as recorded by Firefox telemetry."
+
+[metrics.equativ_clicks]
+select_expression = "SUM(equativ_clicks)"
+data_source = "monitoring_equativ"
+friendly_name =  "Equativ Clicks"
+description = "Number of times that an ad is clicked once by the client as reported by Equativ."
+
+[metrics.equativ_invalid_clicks]
+select_expression = "SUM(equativ_invalid_clicks)"
+data_source = "monitoring_equativ"
+friendly_name =  "Equativ Invalid Clicks"
+description = "Number of times that an ad clicked is determined by Equativ as invalid."
+
+[metrics.impressions_diff]
+select_expression = "SUM(impressions_diff)"
+data_source = "monitoring_equativ"
+friendly_name =  "Impressions Difference"
+description = "Percentage difference in impressions between Firefox telemetry and Equativ reported data with Equativ count as the denominator."
+
+[metrics.clicks_diff]
+select_expression = "SUM(clicks_diff)"
+data_source = "monitoring_equativ"
+friendly_name =  "Clicks Difference"
+description = "Absolute difference in clicks between Firefox telemetry and Equativ reported data."
+
+[metrics.clicks_diff_wo_invalids]
+select_expression = "SUM(clicks_diff - equativ_invalid_clicks)"
+data_source = "monitoring_equativ"
+friendly_name =  "Clicks Difference w/o Invalid Clicks"
+description = "Absolute difference in clicks between Firefox telemetry and Equativ reported data, after removing clicks deemed invalid."
+
+[metrics.geo_mismatch_count]
+select_expression = "SUM(mismatch_count)"
+data_source = "monitoring_equativ_geo_targeting"
+friendly_name =  "Mismatched Creatives Count"
+description = """
+  The number of times a creative (ad_id) was served in a country not equal to the creative's targeted country on a specific date, across multiple positions.
+  Note that a line item (line_item_id) can target multiple countries. For example:
+  -  On day X, ad_id = 01 was targeted for US but served in DE in positions 5 and 3, then count_mismatch = 2.
+  -  Alternatively, if ad_id = 01 was targeted for US but served in IN and DE, in a single position for each country, then count_mismatch = 2.
+  -  If ad_id = 01 was targeted for US but served in IN and DE, in positions 5 and 3 for both, then count_mismatch = 4.
+"""
+
+[metrics.geo_impressions_mismatch_count]
+select_expression = "SUM(impressions_mismatch_count)"
+data_source = "monitoring_equativ_geo_targeting"
+friendly_name =  "Mismatched Impressions Count"
+description = """
+  The number of impressions delivered in a country not equal to the creative's targeted country on a specific date, across multiple positions.
+    Note that a line item (line_item_id) can target multiple countries. For example:
+    -  On day X, ad_id = 01 was targeted for US but served 10 impressions in DE in positions 5 and 3, then impressions_mismatch_count = 10.
+    -  Alternatively, if ad_id = 01 was targeted for US but served in IN and DE, 4 and 6 impressions each, then count_mismatch = 10.
+"""
+
+## Statistics
+
+### Data Source: monitoring_equativ
+[metrics.glean_impressions.statistics.sum]
+[metrics.equativ_impressions.statistics.sum]
+[metrics.glean_clicks.statistics.sum]
+[metrics.equativ_clicks.statistics.sum]
+[metrics.equativ_invalid_clicks.statistics.sum]
+[metrics.impressions_diff.statistics.sum]
+[metrics.clicks_diff.statistics.sum]
+[metrics.clicks_diff_wo_invalids.statistics.sum]
+[metrics.impressions_pct_diff.statistics.ratio]
+numerator = "impressions_diff.sum"
+denominator = "equativ_impressions.sum"
+[metrics.clicks_pct_diff.statistics.ratio]
+numerator = "clicks_diff_wo_invalids.sum"
+denominator = "equativ_clicks.sum"
+
+### Data Source: monitoring_equativ_geo_targeting
+[metrics.geo_mismatch_count.statistics.sum]
+[metrics.geo_impressions_mismatch_count.statistics.sum]
+
+
+# Data Sources
+[data_sources.monitoring_equativ]
+from_expression = "mozdata.ads.monitoring_equativ"
+friendly_name = "Equativ Monitoring - General"
+description = """
+  Tracks actuals and metric discrepancies between our telemetry and our new ad server.
+  Divided across dates, line items, and advertisement IDs.
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[data_sources.monitoring_equativ_geo_targeting]
+from_expression = "mozdata.ads.monitoring_equativ_geo_targeting"
+friendly_name = "Equativ Monitoring - Geo Targeting"
+description = """
+  Tracks geo-targeting induced actuals and metric discrepancies between our telemetry and our new ad server.
+  Divided across dates, line items, and actual vs targeted countries.
+"""
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
