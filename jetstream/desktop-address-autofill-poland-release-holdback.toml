@@ -1,0 +1,63 @@
+[experiment]
+enrollment_query = """
+WITH enrollments_raw AS (
+  SELECT
+      profile_group_id as analysis_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch')
+          AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+  FROM
+      `moz-fx-data-shared-prod.telemetry.events` e
+  WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date
+          BETWEEN '2025-06-20' AND '2025-07-01'
+      AND e.event_string_value = 'desktop-address-autofill-poland-release-holdback'
+      AND e.sample_id < 10
+  GROUP BY profile_group_id, branch
+), non_dupes AS (
+  SELECT 
+     analysis_id, COUNT(*) AS n_rows
+  FROM enrollments_raw
+  GROUP BY 1
+  HAVING n_rows = 1
+), cleaned AS (
+  SELECT er.*
+  FROM enrollments_raw er
+  INNER JOIN non_dupes
+  USING(analysis_id)            
+  WHERE num_enrollment_events = 1  
+)
+SELECT *
+FROM cleaned
+"""
+
+
+[experiment.exposure_signal]
+name = "credit_card_form_detect"
+friendly_name = "Credit Card Form Detected"
+description = "Clients who have credit card form detected"
+data_source = "credit_card_autofill"
+select_expression = "COALESCE(event_name = 'detected_cc_form_v2', FALSE)"
+window_start = 0
+window_end = 7
+
+[data_sources.credit_card_autofill]
+from_expression = """(
+  SELECT 
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    DATE(submission_timestamp) as submission_date,
+    event_name
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category IN ('creditcard')
+    AND event_name IN ('detected_cc_form_v2') --, 'filled_cc_form_v2', 'submitted_cc_form_v2', 'popup_shown_cc_form_v2')
+  GROUP BY 1, 2, 3,4
+)"""
+experiments_column_type = "none"
+friendly_name = "Credit Card Autofill"
+description = "Clients who have used the credit card autofill feature"

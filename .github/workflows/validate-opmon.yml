@@ -25,10 +25,33 @@ jobs:
     container:
       image: gcr.io/moz-fx-data-experiments/opmon:latest
     needs: changed
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Set safe directory
+      # workaround because actions/checkout's `set-safe-directory` flag doesn't work in containers
+      # this and `ref` above are needed because opmon performs git operations
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      id: auth
+      with:
+        workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_DRYRUN_SERVICE_ACCOUNT_EMAIL }}
+        token_format: id_token
+        id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+        id_token_include_email: true
+    - name: Export ID Token for Python
+      env:
+        GOOGLE_GHA_ID_TOKEN: ${{ steps.auth.outputs.id_token }}
+      run: echo "GOOGLE_GHA_ID_TOKEN=$GOOGLE_GHA_ID_TOKEN" >> $GITHUB_ENV
     - name: Validate OpMon config files
       env:
         ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
@@ -36,6 +59,17 @@ jobs:
         echo "Run validation on changed files: "
         echo $ALL_CHANGED_FILES
         opmon validate_config --config_repos='.' --config_repos=opmon/ $ALL_CHANGED_FILES
+    - uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' && success() }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: "✅ OpMon Validation is complete. Check the CI logs for this step for generated **SQL** and **data processing estimates**."
+          })
 
 
 

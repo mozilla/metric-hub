@@ -1,0 +1,45 @@
+[project]
+
+platform = "firefox_desktop"
+xaxis = "submission_date"
+metrics = [
+    "organic_pocket_clicks",
+    "sponsored_pocket_clicks",
+    "organic_pocket_impressions",
+    "sponsored_pocket_impressions",
+    "newtab_pocket_enabled",
+    "newtab_sponsored_pocket_stories_enabled",
+]
+is_rollout=true
+skip_default_metrics=true
+
+[project.population]
+
+data_source = "newtab_clients_daily"
+boolean_pref = "mozfun.map.get_key(experiments, 'fr-billboard-rollout').branch IS NOT NULL"
+dimensions=['country_code']
+
+[metrics.organic_pocket_impressions.statistics]
+mean = {}
+
+[metrics.sponsored_pocket_impressions.statistics]
+mean = {}
+
+[metrics.organic_pocket_clicks.statistics]
+mean = {}
+total_ratio = { denominator_metric = "organic_pocket_impressions" }
+
+[metrics.sponsored_pocket_clicks.statistics]
+mean = {}
+total_ratio = { denominator_metric = "sponsored_pocket_impressions" }
+
+[metrics.newtab_pocket_enabled.statistics]
+mean = {}
+
+[metrics.newtab_sponsored_pocket_stories_enabled.statistics]
+mean = {}
+
+[dimensions]
+[dimensions.country_code]
+data_source = "newtab_clients_daily"
+select_expression = "country_code"
