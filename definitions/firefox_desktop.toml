@@ -2337,7 +2337,6 @@ from_expression = """(
 submission_date_column = "submission_date"
 description = "Visits-level table or Newtab Homepage Data"
 friendly_name = "Newtab Visits Daily"
-client_id_column = "client_id"
 experiments_column_type = "native"
 
 [data_sources.newtab_clients_daily]
