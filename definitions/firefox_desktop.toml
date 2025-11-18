@@ -2327,20 +2327,17 @@ friendly_name = "Search Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
-[data_sources.newtab_visits_pocket_interactions]
-from_expression = """(
+[data_sources.newtab_visits]
+from_expression = """
     SELECT
-        e.* EXCEPT (pocket_interactions),
-        pocket_interactions
+       *
     FROM
-        `moz-fx-data-shared-prod.telemetry.newtab_visits` e
-    CROSS JOIN
-        UNNEST(e.pocket_interactions) AS pocket_interactions
-)"""
+        `moz-fx-data-shared-prod.firefox_desktop.newtab_visits_daily`
+    """
 submission_date_column = "submission_date"
-description = "Pocket Tiles Visit Activity Daily"
-friendly_name = "Pocket Tiles Visit Activity Daily"
-client_id_column = "legacy_telemetry_client_id"
+description = "Visits-level table or Newtab Homepage Data"
+friendly_name = "Newtab Visits Daily"
+client_id_column = "client_id"
 experiments_column_type = "native"
 
 [data_sources.newtab_clients_daily]
