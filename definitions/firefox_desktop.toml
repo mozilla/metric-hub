@@ -2303,22 +2303,6 @@ friendly_name = "Topsite Tiles Visit Activity Daily"
 client_id_column = "legacy_telemetry_client_id"
 experiments_column_type = "native"
 
-[data_sources.newtab_visits_search_interactions]
-from_expression = """(
-    SELECT
-        e.* EXCEPT (search_interactions),
-        search_interactions
-    FROM
-        `moz-fx-data-shared-prod.telemetry.newtab_visits` e
-    CROSS JOIN
-        UNNEST(e.search_interactions) AS search_interactions
-)"""
-submission_date_column = "submission_date"
-description = "Search Tiles Visit Activity Daily"
-friendly_name = "Search Tiles Visit Activity Daily"
-client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "native"
-
 [data_sources.newtab_visits]
 from_expression = """(
     SELECT
