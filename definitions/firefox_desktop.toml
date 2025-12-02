@@ -1607,9 +1607,9 @@ data_source = "main"
 friendly_name = "SSL Loads Probe Ratio"
 description = "Ratio of clients that have the http_pageload_is_ssl_ratio_v1 probe"
 
-[metrics.sponsored_tiles_disabled]
-select_expression = '{{agg_any("sponsored_tiles_disable_count > 0")}}'
-data_source = "sponsored_tiles_clients_daily"
+[metrics.total_sponsored_tiles_disabled]
+select_expression = 'topsites_sponsored_enabled'
+data_source = "newtab_clients_daily"
 friendly_name = "Sponsored Tiles Disabled Event"
 description = "Boolean that identifies clients that disabled sponsored tiles during experiment"
 
