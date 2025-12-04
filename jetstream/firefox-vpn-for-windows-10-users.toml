@@ -7,17 +7,6 @@ end_date = "2025-11-19"
 
 # overwrite all metrics in Networking outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/networking.toml
 [metrics.dns_lookup_time]
-
-
-[metrics.dns_lookup_time.statistics.deciles]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.dns_lookup_time.statistics.kernel_density_estimate]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.dns_lookup_time.statistics.empirical_cdf]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
