@@ -104,12 +104,6 @@ data_source = "noop_source"
 
 # overwrite all metrics in Networking Performance outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/networking_performance.toml
 
-
-[metrics.dns_lookup_time]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-
 [metrics.http_page_tls_handshake]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
