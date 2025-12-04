@@ -65,6 +65,10 @@ jobs:
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
         echo "JETSTREAM_EXIT_CODE=$?" >> $GITHUB_ENV
+    - name: Validation Failed
+      if: ${{ "$JETSTREAM_EXIT_CODE" == "1" }}
+      # we explicitly want to continue on error when jetstream returns specific exit codes, but 1 indicates failure, so we should exit
+      run: exit 1
     - uses: actions/github-script@v6
       if: ${{ github.event_name == 'pull_request' && success() }}
       with:
