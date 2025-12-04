@@ -104,21 +104,6 @@ data_source = "noop_source"
 
 # overwrite all metrics in Networking Performance outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/networking_performance.toml
 
-[metrics.http_page_tls_handshake]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.http_sub_tls_handshake]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.http_page_open_to_first_sent]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.time_to_response_start_ms]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
 
 #overwrite Upload, Download Performance outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/upload_download_performance.toml
 
