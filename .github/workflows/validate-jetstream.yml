@@ -65,46 +65,38 @@ jobs:
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
         echo "JETSTREAM_EXIT_CODE=$?" >> $GITHUB_ENV
-    - name: Validation Failed
-      if: ${{ "$JETSTREAM_EXIT_CODE" == "1" }}
-      # we explicitly want to continue on error when jetstream returns specific exit codes, but 1 indicates failure, so we should exit
-      run: exit 1
-    - uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' && success() }}
+    - name: Validation Message
+      uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
-          })
-    - uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' && "$JETSTREAM_EXIT_CODE" == "2"}}
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: "⚠️ Experiment metrics query data processing estimate exceeded moderate threshold.
-            
-            Check logs to confirm query SQL."
-          })
-    - uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' && "$JETSTREAM_EXIT_CODE" == "3"}}
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: "❗ Experiment metrics query data processing estimate exceeded high threshold and may fail.
-            
-            Updating the configuration is recommended."
-          })
-
+          if (process.env.JETSTREAM_EXIT_CODE == "0") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
+            });
+          } else if (process.env.JETSTREAM_EXIT_CODE == "2") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `⚠️ Experiment metrics query data processing estimate exceeded moderate threshold.
+              
+              Check logs to confirm query SQL.`
+            });
+          } else if (process.env.JETSTREAM_EXIT_CODE == "3") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❗ Experiment metrics query data processing estimate exceeded high threshold and may fail.
+              
+              Updating the configuration is recommended.`
+            });
+          } else {
+            core.setFailed("Jetstream validation failed, see logs above for 'Validate jetstream config files'.")
+          }
 
