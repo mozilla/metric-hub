@@ -1791,7 +1791,7 @@ data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 friendly_name = "URL Bar Impressions"
 
 [metrics.number_of_sessions]
-select_expression = COUNTIF(TaskbarTab)
+select_expression = COUNT(DISTINCT metrics.uuid.legacy_telemetry_session_id)
 data_source = "metrics"
 friendly_name = "Number of Cold Starts (Based on Legacy Session IDs)"
 
