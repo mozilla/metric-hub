@@ -33,9 +33,9 @@ drop_highest = 0.0005
 drop_highest = 0.0005
 [metrics.number_of_sessions.statistics.bootstrap_mean]
 drop_highest = 0.0005
-[metrics.number_of_taskbartab_launches]
+[metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
 drop_highest = 0.0005
-[metrics.number_of_non_taskbartab_launches]
+[metrics.number_of_non_taskbartab_launches.statistics.bootstrap_mean]
 drop_highest = 0.0005
 
 [metrics.web_app_active_users]
