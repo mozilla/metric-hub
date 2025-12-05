@@ -1791,67 +1791,67 @@ data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 friendly_name = "URL Bar Impressions"
 
 [metrics.number_of_sessions]
-select_expression = COALESCE(COUNT(DISTINCT metrics.uuid.legacy_telemetry_session_id), 0)
+select_expression = "COALESCE(COUNT(DISTINCT metrics.uuid.legacy_telemetry_session_id), 0)"
 data_source = "metrics"
 friendly_name = "Number of Cold Starts (Based on Legacy Session IDs)"
 
 [metrics.number_of_autostart_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Autostart"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Autostart"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Autostart"
 
 [metrics.number_of_desktoplauncher_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "DesktopLauncher"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "DesktopLauncher"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using the Desktop Launcher"
 
 [metrics.number_of_desktop_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Desktop"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Desktop"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using an Desktop Shortcut (Normal Mode)"
 
 [metrics.number_of_desktopprivate_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "DesktopPrivate"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "DesktopPrivate"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using an Desktop Shortcut (Private Mode)"
 
 [metrics.number_of_other_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Other"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Other"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using an Unknown Method"
 
 [metrics.number_of_othershortcut_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "OtherShortcut"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "OtherShortcut"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Another Shortcut"
 
 [metrics.number_of_startmenu_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "StartMenu"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "StartMenu"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Start Menu (Normal Mode)"
 
 [metrics.number_of_startmenuprivate_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "StartMenuPrivate"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "StartMenuPrivate"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Start Menu (Private Mode)"
 
 [metrics.number_of_taskbar_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Taskbar"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "Taskbar"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Taskbar (Normal Mode)"
 
 [metrics.number_of_taskbarprivate_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "TaskbarPrivate"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "TaskbarPrivate"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Taskbar (Private Mode)"
 
 [metrics.number_of_taskbartab_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "TaskbarTab"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method = "TaskbarTab"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches Using Taskbar Tabs"
 
 [metrics.number_of_non_taskbartab_launches]
-select_expression = COALESCE(COUNTIF(metrics.string.os_environment_launch_method != "TaskbarTab"), 0)
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method != "TaskbarTab"), 0)"
 data_source = "metrics"
 friendly_name = "Number of Launches without Using Taskbar Tabs"
 
