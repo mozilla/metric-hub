@@ -101,6 +101,6 @@ jobs:
               issue_number: context.issue.number,
               body: "❗ Experiment metrics query data processing estimate exceeded high threshold and may fail. Updating the configuration is recommended."
             });
-          } else {
+          } else if (process.env.JETSTREAM_EXIT_CODE != "0") {
             core.setFailed("Jetstream validation failed, see logs above for 'Validate jetstream config files'.")
           }
