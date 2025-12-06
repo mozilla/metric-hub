@@ -175,10 +175,11 @@ window_end = -1
 from_expression = """(
   SELECT
     client_id,
+    profile_group_id,
     MAX(submission_date) as last_active_date,
     MAX(submission_date) as submission_date
-  FROM `mozdata.telemetry.active_users`
-  WHERE app_name = 'Firefox Desktop'
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
     AND is_dau
-  GROUP BY client_id
+  GROUP BY client_id, profile_group_id
 )"""
