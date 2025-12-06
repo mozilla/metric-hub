@@ -134,7 +134,7 @@ description = "Events for Web App (Taskbar Tabs)"
 [segments.last_dau_2_to_4_weeks_ago]
 friendly_name = "Last DAU 2 to 4 weeks ago"
 description = "Clients who last counted towards DAU 2-4 weeks (15-28 days) ago"
-select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) BETWEEN 15 AND 28'
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) BETWEEN 15 AND 28'
 data_source = "active_users_last_seen"
 window_start = -182
 window_end = -1
@@ -142,7 +142,7 @@ window_end = -1
 [segments.last_dau_5_to_8_weeks_ago]
 friendly_name = "Last DAU 5 to 8 weeks ago"
 description = "Clients who last counted towards DAU 5-8 weeks (29-56 days) ago"
-select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) BETWEEN 29 AND 56'
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) BETWEEN 29 AND 56'
 data_source = "active_users_last_seen"
 window_start = -182
 window_end = -1
@@ -150,7 +150,7 @@ window_end = -1
 [segments.last_dau_more_than_8_weeks_ago]
 friendly_name = "Last DAU more than 8 weeks ago"
 description = "Clients who last counted towards DAU more than 8 weeks (56 days) ago"
-select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) > 56'
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) > 56'
 data_source = "active_users_last_seen"
 window_start = -182
 window_end = -1
@@ -158,7 +158,7 @@ window_end = -1
 [segments.last_dau_more_than_4_weeks_ago]
 friendly_name = "Last DAU more than 4 weeks ago"
 description = "Clients who last counted towards DAU more than 4 weeks (28 days) ago"
-select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) > 28'
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) > 28'
 data_source = "active_users_last_seen"
 window_start = -182
 window_end = -1
@@ -166,7 +166,7 @@ window_end = -1
 [segments.never_user]
 friendly_name = "No recorded DAU"
 description = "Clients who did not provide any recorded DAU in the period"
-select_expression = 'last_active_date IS NULL'
+select_expression = 'MAX(last_active_date) IS NULL'
 data_source = "active_users_last_seen"
 window_start = -182
 window_end = -1
