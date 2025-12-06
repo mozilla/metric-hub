@@ -181,5 +181,6 @@ from_expression = """(
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
+    AND submission_date >= "2025-04-01"
   GROUP BY client_id, profile_group_id
 )"""
