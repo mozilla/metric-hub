@@ -1,0 +1,172 @@
+[experiment]
+
+segments = [
+  "activity_infrequent_or_casual",
+  "last_dau_2_to_4_weeks_ago",
+  "last_dau_5_to_8_weeks_ago",
+  "last_dau_more_than_8_weeks_ago",
+  "last_dau_more_than_4_weeks_ago",
+  "never_user",
+  "new_unique_profiles",
+]
+
+[metrics]
+
+weekly = [
+  "is_pinned",
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "unique_client_installs",
+  "unique_client_pins",
+  "web_app_launches",
+  "web_app_active_users",
+]
+
+overall = [
+  "is_pinned",
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "unique_client_installs",
+  "unique_client_pins",
+  "web_app_launches",
+  "web_app_active_users",
+]
+
+[metrics.web_app_active_users.statistics.binomial]
+
+[metrics.unique_client_installs.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.unique_client_pins.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.web_app_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.unique_client_installs]
+friendly_name = "Installed Web App"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.unique_client_pins]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web Apps Launches per user (approx from activate and move to taskbar events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-10-27'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs)"
+
+# ============================================================================
+# USER SEGMENTS - Based on activity patterns before enrollment
+# ============================================================================
+# Using e.enrollment_date to reference enrollment date
+# (see https://github.com/mozilla/mozanalysis/blob/ccabadcc5233a1f48f528fa4a23e3495b3ac9ea2/src/mozanalysis/segments.py#L132-L156)
+# Using a 26 week lookback window (182 days)
+
+[segments.last_dau_2_to_4_weeks_ago]
+friendly_name = "Last DAU 2 to 4 weeks ago"
+description = "Clients who last counted towards DAU 2-4 weeks (15-28 days) ago"
+select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) BETWEEN 15 AND 28'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_5_to_8_weeks_ago]
+friendly_name = "Last DAU 5 to 8 weeks ago"
+description = "Clients who last counted towards DAU 5-8 weeks (29-56 days) ago"
+select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) BETWEEN 29 AND 56'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_more_than_8_weeks_ago]
+friendly_name = "Last DAU more than 8 weeks ago"
+description = "Clients who last counted towards DAU more than 8 weeks (56 days) ago"
+select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) > 56'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_more_than_4_weeks_ago]
+friendly_name = "Last DAU more than 4 weeks ago"
+description = "Clients who last counted towards DAU more than 4 weeks (28 days) ago"
+select_expression = 'DATE_DIFF(e.enrollment_date, last_active_date, DAY) > 28'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.never_user]
+friendly_name = "No recorded DAU"
+description = "Clients who did not provide any recorded DAU in the period"
+select_expression = 'last_active_date IS NULL'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    MAX(submission_date) as last_active_date,
+    MAX(submission_date) as submission_date
+  FROM `mozdata.telemetry.active_users`
+  WHERE app_name = 'Firefox Desktop'
+    AND is_dau
+  GROUP BY client_id
+)"""
