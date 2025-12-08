@@ -65,7 +65,7 @@ drop_highest = 0.0005
 friendly_name = "Web App Active Users"
 description = "Percentage of clients who had non-zero usage time"
 select_expression = """
-  COALESCE(MAX(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
 """
 data_source = "metrics"
 
