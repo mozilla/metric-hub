@@ -65,7 +65,7 @@ drop_highest = 0.0005
 friendly_name = "Web App Active Users"
 description = "Percentage of clients who had non-zero usage time"
 select_expression = """
-  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+  COALESCE(MAX(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
 """
 data_source = "metrics"
 
@@ -73,8 +73,8 @@ data_source = "metrics"
 friendly_name = "Installed Web App"
 description = "Average Installed Web Apps per user (approx from install and uninstall events)"
 select_expression = """
-  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
-  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
 """
 data_source = "web_app_events"
 
@@ -82,8 +82,8 @@ data_source = "web_app_events"
 friendly_name = "Pinned Web Apps"
 description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
 select_expression = """
-  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
-  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+  COALESCE(MAX(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
 """
 data_source = "web_app_events"
 
@@ -91,8 +91,8 @@ data_source = "web_app_events"
 friendly_name = "Web App Launches"
 description = "Average Web Apps Launches per user (approx from activate and move to taskbar events)"
 select_expression = """
-  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
-  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+  COALESCE(MAX(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
 """
 data_source = "web_app_events"
 
