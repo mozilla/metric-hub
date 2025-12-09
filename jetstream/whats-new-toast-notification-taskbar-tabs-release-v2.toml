@@ -78,7 +78,7 @@ UNION ALL
 
 (
 SELECT
-    client_id AS analysis_id,
+    profile_group_id AS analysis_id,
     -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
     -- this name looks like 'slug:branch'.
     SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
