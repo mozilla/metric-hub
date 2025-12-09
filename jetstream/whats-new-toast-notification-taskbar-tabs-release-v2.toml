@@ -1,14 +1,113 @@
 [experiment]
 
-segments = [
-  "activity_infrequent_or_casual",
-  "last_dau_2_to_4_weeks_ago",
-  "last_dau_5_to_8_weeks_ago",
-  "last_dau_more_than_8_weeks_ago",
-  "last_dau_more_than_4_weeks_ago",
-  "never_user",
-  "new_unique_profiles",
-]
+enrollment_query = """
+SELECT * FROM
+(
+
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date. This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS analysis_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS analysis_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+GROUP BY
+    analysis_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
+"""
+
+#segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
+segments = ["new_or_resurrected_v3", "activity_infrequent_or_casual"]
 
 [metrics]
 
