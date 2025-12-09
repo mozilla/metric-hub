@@ -25,7 +25,7 @@ SELECT * FROM
 
 (
 SELECT
-    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(metrics, '$.uuid.background_update_profile_group_id') AS analysis_id,
     JSON_VALUE(event_extra, '$.branch') AS branch,
     MIN(DATE(events.submission_timestamp)) AS enrollment_date,
     COUNT(events.submission_timestamp) AS num_enrollment_events
@@ -41,7 +41,7 @@ WHERE
     -- The background update experiment slug is exact.
     AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
     -- This should never happen, but belt-and-braces.
-    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+    AND JSON_VALUE(metrics, '$.uuid.background_update_profile_group_id') IS NOT NULL
 GROUP BY analysis_id, branch
 )
 
@@ -49,7 +49,7 @@ UNION ALL
 
 (
 SELECT
-    m.metrics.uuid.background_update_client_id AS analysis_id,
+    m.metrics.uuid.background_update_profile_group_id AS analysis_id,
     experiment.value.branch AS branch,
     MIN(DATE(submission_timestamp)) AS enrollment_date,
     -- These aren't discrete events, it makes no sense to count them.
