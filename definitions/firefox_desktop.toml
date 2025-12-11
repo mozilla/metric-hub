@@ -1164,7 +1164,7 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 
 [metrics.newtab_searches]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(searches), 0)"
+select_expression = "COALESCE(SUM(search_interaction_count), 0)"
 friendly_name = "Newtab Handoff Searches"
 type = "scalar"
 description = """
@@ -1173,7 +1173,7 @@ Count of searches performed on the New Tab and handed off to the urlbar
 
 [metrics.newtab_any_searches]
 data_source = "newtab_clients_daily"
-select_expression = '{{agg_any("searches > 0")}}'
+select_expression = '{{agg_any("search_interaction_count > 0")}}'
 friendly_name = "Any Newtab Searches"
 description = """
 Client performed any Newtab Handoff searches during the experiment
@@ -1181,7 +1181,7 @@ Client performed any Newtab Handoff searches during the experiment
 
 [metrics.newtab_gt4_searches]
 data_source = "newtab_clients_daily"
-select_expression = 'COALESCE(CASE WHEN SUM(searches) > 4 THEN 1 ELSE 0 END, 0)'
+select_expression = 'COALESCE(CASE WHEN SUM(search_interaction_count) > 4 THEN 1 ELSE 0 END, 0)'
 friendly_name = "Any Newtab Searches"
 description = """
 Client performed any Newtab Handoff searches during the experiment
@@ -1189,7 +1189,7 @@ Client performed any Newtab Handoff searches during the experiment
 
 [metrics.newtab_searches_with_ads]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(tagged_search_ad_impressions), 0)"
+select_expression = "COALESCE(SUM(search_ad_impression_count), 0)"
 friendly_name = "Newtab Searches with Ads"
 type = "scalar"
 description = """
@@ -1198,7 +1198,7 @@ Count of searches performed on the New Tab that resulted in an ad impression on 
 
 [metrics.newtab_ad_clicks]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(tagged_search_ad_clicks), 0)"
+select_expression = "COALESCE(SUM(search_ad_click_count), 0)"
 friendly_name = "Newtab Ad Clicks"
 type = "scalar"
 description = """
@@ -1207,7 +1207,7 @@ Count of searches performed on the New Tab that resulted in an ad click
 
 [metrics.newtab_ad_click_rate]
 data_source = "newtab_clients_daily"
-select_expression = "SAFE_DIVIDE(COALESCE(SUM(tagged_search_ad_clicks), 0),  COALESCE(SUM(tagged_search_ad_impressions), 0))"
+select_expression = "SAFE_DIVIDE(COALESCE(SUM(search_ad_click_count), 0),  COALESCE(SUM(search_ad_impression_count), 0))"
 friendly_name = "Newtab Ad Click Rate"
 type = "scalar"
 description = """
