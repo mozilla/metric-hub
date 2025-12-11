@@ -1227,7 +1227,7 @@ select_expression = "COALESCE(SUM(organic_content_click_count), 0)"
 friendly_name = "Organic Content Clicks"
 type = "scalar"
 description = """
-Count of clicks on Organic Content content.
+Count of clicks on Organic content.
 """
 
 [metrics.any_organic_content_clicks]
@@ -1244,7 +1244,7 @@ select_expression = "COALESCE(SUM(sponsored_content_click_count), 0)"
 friendly_name = "Sponsored Content Clicks"
 type = "scalar"
 description = """
-Count of clicks on Sponsored Content content.
+Count of clicks on Sponsored content.
 """
 
 [metrics.organic_content_impressions]
@@ -1253,7 +1253,7 @@ select_expression = "COALESCE(SUM(sponsored_content_click_count), 0)"
 friendly_name = "Organic Content Impressions"
 type = "scalar"
 description = """
-Count of impressions on Organic Content content.
+Count of impressions on Organic content.
 """
 
 [metrics.sponsored_content_impressions]
@@ -1262,21 +1262,21 @@ select_expression = "COALESCE(SUM(sponsored_content_impression_count), 0)"
 friendly_name = "Sponsored Content Impressions"
 type = "scalar"
 description = """
-Count of impressions of Sponsored Content content.
+Count of impressions of Sponsored Content.
 """
 
 [metrics.sponsored_content_ctr]
 depends_on=['sponsored_content_clicks', 'sponsored_content_impressions']
 friendly_name = "Sponsored Content Click Through Rate"
 description = """
-Rate of Clicks per impression for Sponsored Content Content
+Rate of Clicks per impression for Sponsored Content
 """
 
 [metrics.organic_content_ctr]
 depends_on=['organic_content_clicks', 'organic_content_impressions']
 friendly_name = "Organic Content Click Through Rate"
 description = """
-Rate of Clicks per impression for Organic Content Content
+Rate of Clicks per impression for Organic Content
 """
 
 [metrics.sponsored_tile_impressions]

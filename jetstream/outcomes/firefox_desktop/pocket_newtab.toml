@@ -1,5 +1,5 @@
 friendly_name = "Content (formerly known as Pocket) in New Tab"
-description = "Usage and engagement metrics for content content in New Tab."
+description = "Usage and engagement metrics for content in New Tab."
 
 [metrics.organic_content_clicks.statistics.bootstrap_mean]
 [metrics.organic_content_clicks.statistics.deciles]
