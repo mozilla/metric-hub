@@ -327,7 +327,7 @@ description = "Sum of sponsored topsite clicks"
 
 [metrics.sponsored_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "SUM(sponsored_content_impressions) + SUM(sponsored_topsite_tile_impressions)"
+select_expression = "SUM(sponsored_content_impression_count) + SUM(sponsored_topsite_impression_count)"
 friendly_name = "Sponsored Impressions"
 type = "scalar"
 description = """
