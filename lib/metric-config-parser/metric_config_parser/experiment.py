@@ -166,6 +166,9 @@ class ExperimentConfiguration:
         """Retrieve the appropriate analysis unit, which is
         derived from the experiment's randomization unit.
         """
+        if self.experiment_spec.analysis_unit is not None:
+            return AnalysisUnit(self.experiment_spec.analysis_unit)
+
         if self.randomization_unit and self.randomization_unit == RandomizationUnit.GROUP_ID:
             return AnalysisUnit.PROFILE_GROUP
 
@@ -268,6 +271,10 @@ def _validate_dataset_id(instance: Any, attribute, value):
         raise ValueError("dataset_id must be set to a custom dataset for private experiments")
 
 
+def _validate_analysis_unit(instance: Any, attribute, value):
+    AnalysisUnit(value)
+
+
 @attr.s(auto_attribs=True, kw_only=True)
 class ExperimentSpec:
     """Describes the interface for overriding experiment details."""
@@ -283,6 +290,7 @@ class ExperimentSpec:
     is_private: bool = False
     dataset_id: str | None = attr.ib(default=None, validator=_validate_dataset_id)
     sample_size: int | None = None
+    analysis_unit: str | None = attr.ib(default=None, validator=_validate_analysis_unit)
 
     def resolve(
         self,
