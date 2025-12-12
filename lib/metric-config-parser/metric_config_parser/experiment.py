@@ -272,7 +272,8 @@ def _validate_dataset_id(instance: Any, attribute, value):
 
 
 def _validate_analysis_unit(instance: Any, attribute, value):
-    AnalysisUnit(value)
+    if value is not None:
+        AnalysisUnit(value)
 
 
 @attr.s(auto_attribs=True, kw_only=True)
