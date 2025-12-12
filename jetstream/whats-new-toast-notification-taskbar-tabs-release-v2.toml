@@ -1,4 +1,5 @@
 [experiment]
+analysis_unit = "client_id"
 
 enrollment_query = """
 SELECT * FROM
