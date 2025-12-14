@@ -53,23 +53,54 @@ jobs:
         GOOGLE_GHA_ID_TOKEN: ${{ steps.auth.outputs.id_token }}
       run: echo "GOOGLE_GHA_ID_TOKEN=$GOOGLE_GHA_ID_TOKEN" >> $GITHUB_ENV
     - name: Validate jetstream config files
+      id: validate_jetstream
+      continue-on-error: true
       env:
         ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
+      # set +e allows this step to continue past the jetstream command even with a nonzero exit code
       run: |
+        set +e
         echo "Run validation on changed files: "
         echo $ALL_CHANGED_FILES
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
-    - uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' && success() }}
+        echo "JETSTREAM_EXIT_CODE=$?" >> $GITHUB_ENV
+    - name: Validation Success Message
+      uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' }}
+      # add a helpful message about where to find generated SQL and data processing estimates
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
-          })
-
-
+          if (process.env.JETSTREAM_EXIT_CODE != "1") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
+            });
+          }
+    - name: Validation Error Message
+      uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' }}
+      # add a helpful message to the PR if jetstream returns a non-zero exit code
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          if (process.env.JETSTREAM_EXIT_CODE == "2") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "⚠️ Experiment metrics query data processing estimate exceeded moderate threshold. Check logs to confirm query SQL."
+            });
+          } else if (process.env.JETSTREAM_EXIT_CODE == "3") {
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "❗ Experiment metrics query data processing estimate exceeded high threshold and may fail. Updating the configuration is recommended."
+            });
+          } else if (process.env.JETSTREAM_EXIT_CODE != "0") {
+            core.setFailed("Jetstream validation failed, see logs above for 'Validate jetstream config files'.")
+          }

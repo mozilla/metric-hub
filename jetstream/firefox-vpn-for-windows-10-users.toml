@@ -1,0 +1,152 @@
+[experiment]
+end_date = "2025-11-19"
+
+[metrics]
+
+# overwrite all irrelevant metrics with no-op
+
+# overwrite all metrics in Networking outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/networking.toml
+[metrics.dns_lookup_time]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_page_tls_handshake]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_sub_tls_handshake]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_page_open_to_first_sent]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.time_to_response_start_ms]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.cert_error_page_loaded]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+
+[metrics.cert_error_page_clicked]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_transactions_using_tls]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_pageloads_using_tls]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.http_channels_success]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.tls_successful_cert_validation_time]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.tls_failed_cert_validation_time]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.tls_successful_connections_overall]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.tls_successful_connections_with_ech]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.tls_successful_connections_with_ech_grease]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.tls_successful_first_try_connections]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.tls_successful_conservative_connections]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.quic_successful_connections_no_ech]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.quic_successful_connections_ech_grease]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.quic_successful_connections_ech_real]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+# overwrite all metrics in Networking Performance outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/networking_performance.toml
+
+
+#overwrite Upload, Download Performance outcome: https://github.com/mozilla/metric-hub/blob/main/jetstream/outcomes/firefox_desktop/upload_download_performance.toml
+
+
+[metrics.networking_download_throughput_http_1]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.networking_download_throughput_http_2]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.networking_download_throughput_http_3]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.networking_upload_throughput_http_1]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.networking_upload_throughput_http_2]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.networking_upload_throughput_http_3]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
+
+

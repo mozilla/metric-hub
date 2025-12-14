@@ -73,6 +73,31 @@ class TestExperimentSpec:
         configured = spec.resolve(experiments[0], config_collection)
         assert configured.experiment.reference_branch == "a"
 
+    def test_analysis_unit(self, experiments, config_collection):
+        trivial = AnalysisSpec().resolve(experiments[0], config_collection)
+        assert trivial.experiment.analysis_unit == AnalysisUnit.PROFILE_GROUP
+
+        conf = dedent(
+            """
+            [experiment]
+            analysis_unit = "client_id"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        configured = spec.resolve(experiments[0], config_collection)
+        assert configured.experiment.analysis_unit == AnalysisUnit.CLIENT
+
+    def test_analysis_unit_invalid(self):
+        conf = dedent(
+            """
+            [experiment]
+            analysis_unit = "not_valid_id"
+            """
+        )
+
+        with pytest.raises(ClassValidationError):
+            AnalysisSpec.from_dict(toml.loads(conf))
+
     def test_recognizes_segments(self, experiments, config_collection):
         conf = dedent(
             """

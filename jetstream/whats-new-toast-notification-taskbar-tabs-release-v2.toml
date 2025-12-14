@@ -1,0 +1,286 @@
+[experiment]
+analysis_unit = "client_id"
+
+enrollment_query = """
+SELECT * FROM
+(
+
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date. This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS analysis_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS analysis_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+GROUP BY
+    analysis_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
+"""
+
+#segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
+segments = ["new_or_resurrected_v3", "activity_infrequent_or_casual"]
+
+[metrics]
+
+weekly = [
+  "is_pinned",
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "unique_client_installs",
+  "unique_client_pins",
+  "web_app_launches",
+  "web_app_active_users",
+]
+
+overall = [
+  "is_pinned",
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "unique_client_installs",
+  "unique_client_pins",
+  "web_app_launches",
+  "web_app_active_users",
+]
+
+[metrics.number_of_desktop_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.number_of_taskbar_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.number_of_startmenu_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.unique_client_installs.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.unique_client_pins.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.web_app_launches.statistics.bootstrap_mean]
+drop_highest = 0.0005
+
+[metrics.web_app_active_users.statistics.binomial]
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.unique_client_installs]
+friendly_name = "Installed Web App"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.unique_client_pins]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(MAX(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web Apps Launches per user (approx from activate and move to taskbar events)"
+select_expression = """
+  COALESCE(MAX(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-10-27'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs)"
+
+# ============================================================================
+# USER SEGMENTS - Based on activity patterns before enrollment
+# ============================================================================
+# Using e.enrollment_date to reference enrollment date
+# (see https://github.com/mozilla/mozanalysis/blob/ccabadcc5233a1f48f528fa4a23e3495b3ac9ea2/src/mozanalysis/segments.py#L132-L156)
+# Using a 26 week lookback window (182 days)
+
+[segments.last_dau_2_to_4_weeks_ago]
+friendly_name = "Last DAU 2 to 4 weeks ago"
+description = "Clients who last counted towards DAU 2-4 weeks (15-28 days) ago"
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) BETWEEN 15 AND 28'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_5_to_8_weeks_ago]
+friendly_name = "Last DAU 5 to 8 weeks ago"
+description = "Clients who last counted towards DAU 5-8 weeks (29-56 days) ago"
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) BETWEEN 29 AND 56'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_more_than_8_weeks_ago]
+friendly_name = "Last DAU more than 8 weeks ago"
+description = "Clients who last counted towards DAU more than 8 weeks (56 days) ago"
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) > 56'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.last_dau_more_than_4_weeks_ago]
+friendly_name = "Last DAU more than 4 weeks ago"
+description = "Clients who last counted towards DAU more than 4 weeks (28 days) ago"
+select_expression = 'DATE_DIFF(MAX(e.enrollment_date), MAX(last_active_date), DAY) > 28'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.never_user]
+friendly_name = "No recorded DAU"
+description = "Clients who did not provide any recorded DAU in the period"
+select_expression = 'MAX(last_active_date) IS NULL'
+data_source = "active_users_last_seen"
+window_start = -182
+window_end = -1
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    MAX(submission_date) as last_active_date,
+    MAX(submission_date) as submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= "2025-04-01"
+  GROUP BY client_id, profile_group_id
+)"""
