@@ -51,7 +51,7 @@ markupsafe==3.0.3
     # via -r -
 mozilla-nimbus-schemas==3001.0.0
     # via mozilla-metric-config-parser
-mypy==1.18.2
+mypy==1.19.1
     # via mozilla-metric-config-parser
 mypy-extensions==1.1.0
     # via mypy
