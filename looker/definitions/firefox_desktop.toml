@@ -327,7 +327,7 @@ description = "Sum of sponsored topsite clicks"
 
 [metrics.sponsored_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "SUM(sponsored_pocket_impressions) + SUM(sponsored_topsite_tile_impressions)"
+select_expression = "SUM(sponsored_content_impression_count) + SUM(sponsored_topsite_impression_count)"
 friendly_name = "Sponsored Impressions"
 type = "scalar"
 description = """
@@ -387,8 +387,8 @@ description = "Count of clients with others engagement"
 
 
 ### Ads data funnel statistics
-[metrics.sponsored_pocket_clicks.statistics.sum]
-[metrics.sponsored_pocket_impressions.statistics.sum]
+[metrics.sponsored_content_clicks.statistics.sum]
+[metrics.sponsored_content_impressions.statistics.sum]
 [metrics.sponsored_tile_clicks.statistics.sum]
 [metrics.sponsored_tile_impressions.statistics.sum]
 
@@ -396,24 +396,24 @@ description = "Count of clients with others engagement"
 [metrics.sponsored_tile_impressions.statistics.client_count]
 [metrics.sponsored_tile_clicks.statistics.client_count]
 
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics.client_count]
-[metrics.sponsored_pocket_impressions.statistics.client_count]
-[metrics.sponsored_pocket_clicks.statistics.client_count]
+[metrics.newtab_sponsored_content_stories_enabled.statistics.client_count]
+[metrics.sponsored_content_impressions.statistics.client_count]
+[metrics.sponsored_content_clicks.statistics.client_count]
 [metrics.sponsored_impressions.statistics.client_count]
 
 [metrics.sponsored_tile_clicks.statistics.ratio]
 numerator = "sponsored_tile_clicks.sum"
 denominator = "sponsored_tile_impressions.sum"
 
-[metrics.sponsored_pocket_clicks.statistics.ratio]
-numerator = "sponsored_pocket_clicks.sum"
-denominator = "sponsored_pocket_impressions.sum"
+[metrics.sponsored_content_clicks.statistics.ratio]
+numerator = "sponsored_content_clicks.sum"
+denominator = "sponsored_content_impressions.sum"
 
 
-[metrics.sponsored_pocket_impressions_per_client]
+[metrics.sponsored_content_impressions_per_client]
 data_source = "newtab_clients_daily"
 select_expression = "SUM(1)"
-friendly_name = "Sponsored Pocket Impressions Per Client"
+friendly_name = "Sponsored content Impressions Per Client"
 description = """
 Number of sponsored content impressions divided by number of clients
 """
@@ -434,8 +434,8 @@ description = """
 Number of sponsored impressions (content and tiles on New Tab) divided by number of clients
 """
 
-[metrics.sponsored_pocket_impressions_per_client.statistics.ratio]
-numerator = "sponsored_pocket_impressions.sum"
+[metrics.sponsored_content_impressions_per_client.statistics.ratio]
+numerator = "sponsored_content_impressions.sum"
 denominator = "sponsored_impressions.client_count"
 
 [metrics.sponsored_tile_impressions_per_client.statistics.ratio]
