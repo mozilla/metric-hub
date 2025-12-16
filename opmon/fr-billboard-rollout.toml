@@ -17,7 +17,7 @@ skip_default_metrics=true
 
 data_source = "newtab_clients_daily"
 boolean_pref = "mozfun.map.get_key(experiments, 'fr-billboard-rollout').branch IS NOT NULL"
-dimensions=['country_code']
+dimensions=['country']
 
 [metrics.organic_content_impressions.statistics]
 mean = {}
