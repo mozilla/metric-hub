@@ -27,11 +27,11 @@ mean = {}
 
 [metrics.organic_content_clicks.statistics]
 mean = {}
-total_ratio = { denominator_metric = "organic_pocket_impressions" }
+total_ratio = { denominator_metric = "organic_content_impressions" }
 
 [metrics.sponsored_content_clicks.statistics]
 mean = {}
-total_ratio = { denominator_metric = "sponsored_pocket_impressions" }
+total_ratio = { denominator_metric = "sponsored_content_impressions" }
 
 [metrics.newtab_content_enabled.statistics]
 mean = {}
