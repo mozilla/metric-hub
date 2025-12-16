@@ -42,4 +42,4 @@ mean = {}
 [dimensions]
 [dimensions.country_code]
 data_source = "newtab_clients_daily"
-select_expression = "country_code"
+select_expression = "country"
