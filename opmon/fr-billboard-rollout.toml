@@ -3,12 +3,12 @@
 platform = "firefox_desktop"
 xaxis = "submission_date"
 metrics = [
-    "organic_pocket_clicks",
-    "sponsored_pocket_clicks",
-    "organic_pocket_impressions",
-    "sponsored_pocket_impressions",
-    "newtab_pocket_enabled",
-    "newtab_sponsored_pocket_stories_enabled",
+    "organic_content_clicks",
+    "sponsored_content_clicks",
+    "organic_content_impressions",
+    "sponsored_content_impressions",
+    "newtab_content_enabled",
+    "newtab_sponsored_content_stories_enabled",
 ]
 is_rollout=true
 skip_default_metrics=true
@@ -19,27 +19,27 @@ data_source = "newtab_clients_daily"
 boolean_pref = "mozfun.map.get_key(experiments, 'fr-billboard-rollout').branch IS NOT NULL"
 dimensions=['country_code']
 
-[metrics.organic_pocket_impressions.statistics]
+[metrics.organic_content_impressions.statistics]
 mean = {}
 
-[metrics.sponsored_pocket_impressions.statistics]
+[metrics.sponsored_content_impressions.statistics]
 mean = {}
 
-[metrics.organic_pocket_clicks.statistics]
+[metrics.organic_content_clicks.statistics]
 mean = {}
-total_ratio = { denominator_metric = "organic_pocket_impressions" }
+total_ratio = { denominator_metric = "organic_content_impressions" }
 
-[metrics.sponsored_pocket_clicks.statistics]
+[metrics.sponsored_content_clicks.statistics]
 mean = {}
-total_ratio = { denominator_metric = "sponsored_pocket_impressions" }
+total_ratio = { denominator_metric = "sponsored_content_impressions" }
 
-[metrics.newtab_pocket_enabled.statistics]
+[metrics.newtab_content_enabled.statistics]
 mean = {}
 
-[metrics.newtab_sponsored_pocket_stories_enabled.statistics]
+[metrics.newtab_sponsored_content_stories_enabled.statistics]
 mean = {}
 
 [dimensions]
 [dimensions.country_code]
 data_source = "newtab_clients_daily"
-select_expression = "country_code"
+select_expression = "country"
