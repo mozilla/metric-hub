@@ -43,8 +43,8 @@ WHERE
     AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
     -- This should never happen, but belt-and-braces.
     AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
-    -- 25pct sample, large dataset
-    AND sample_id <= 25
+    -- 50pct sample, large dataset
+    AND sample_id < 50
 GROUP BY analysis_id, branch
 )
 
@@ -74,8 +74,8 @@ WHERE
         '{{experiment.last_enrollment_date_str}}'
     -- The background update experiment slug is exact.
     AND experiment.key = '{{experiment.normandy_slug}}'
-    -- 25pct sample, large dataset
-    AND sample_id <= 25
+    -- 50pct sample, large dataset
+    AND sample_id < 50
 GROUP BY analysis_id, branch
 )
 
@@ -103,8 +103,8 @@ WHERE
     -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
     -- this name looks like 'slug:branch'.
     AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
-    -- 25pct sample, large dataset
-    AND sample_id <= 25
+    -- 50pct sample, large dataset
+    AND sample_id < 50
 GROUP BY
     analysis_id, branch
 )
