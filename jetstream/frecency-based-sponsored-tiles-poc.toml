@@ -66,7 +66,7 @@ denominator='sponsored_tile_impressions'
 
 [data_sources]
 [data_sources.newtab_tiles_third_spot_metrics]
-from_expression = "SELECT * FROM moz-fx-data-shared-prod.firefox_desktop_derived.newtab_client_tile_component_daily_v1 WHERE position = 2 "
+from_expression = "(SELECT * FROM moz-fx-data-shared-prod.firefox_desktop_derived.newtab_client_tile_component_daily_v1 WHERE position = 2)"
 experiments_column_type = "glean"
 friendly_name = "Newtab Topsites 3rd Tile Metrics"
 description = "Newtab Topsites metrics for 3rd tile only"
