@@ -299,3 +299,4 @@ from_expression = """(
     AND submission_date >= "2025-04-01"
   GROUP BY client_id, profile_group_id
 )"""
+window_start = -182
