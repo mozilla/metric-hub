@@ -37,7 +37,7 @@ from metric_config_parser.function import FunctionsSpec
 logger = logging.getLogger(__name__)
 
 
-DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun"
+DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/dryrun"
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 NUM_QUERIES_PER_REQUEST = 1
