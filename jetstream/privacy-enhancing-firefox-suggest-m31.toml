@@ -4,7 +4,7 @@ name = "merino_request"
 friendly_name = "Merino request exposure signal"
 description = "Clients that have a Merino request exposure signal recorded for flight, market, and sport carrots suggestions"
 data_source = "online_suggest_exposures"
-select_expression = ''COALESCE(merino_exposures > 0, FALSE)'''
+select_expression = '''COALESCE(merino_exposures > 0, FALSE)'''
 
 [data_sources.online_suggest_exposures]
 from_expression = """(
