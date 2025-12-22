@@ -1,0 +1,25 @@
+[experiment.exposure_signal]
+
+name = "merino_request"
+friendly_name = "Merino request exposure signal"
+description = "Clients that have a Merino request exposure signal recorded for flight, market, and sport carrots suggestions"
+data_source = "online_suggest_exposures"
+select_expression = ''COALESCE(merino_exposures > 0, FALSE)'''
+
+[data_sources.online_suggest_exposures]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    COUNT(1) as merino_exposures
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'urlbar'
+    AND event_name = 'exposure'
+  GROUP BY ALL
+)"""
+experiments_column_type = "none"
+friendly_name = "urlbar exposure signal event"
+description = "Events filtered to only include urlbar exposures"
