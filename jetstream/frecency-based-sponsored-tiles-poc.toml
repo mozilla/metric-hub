@@ -1,18 +1,30 @@
 # Third tile metrics
 [metrics]
-daily = ["total_third_tile_impressions", "total_third_tile_clicks",
-    "total_third_tile_ctr"]
-weekly = ["total_third_tile_impressions", "total_third_tile_clicks", 
-    "total_third_tile_ctr",  "sponsored_tile_impressions", "sponsored_tile_clicks",
-    "newtab_sponsored_tiles_enabled",
-        "newtab_visits", "newtab_engaged_visits", 
-        "newtab_organic_topsite_clicks_v2","newtab_organic_topsite_impressions_v2","sponsored_tile_ctr"]
-overall = ["total_third_tile_impressions", "total_third_tile_clicks",
-    "total_third_tile_ctr", 
-     "sponsored_tile_impressions","sponsored_tile_clicks","sponsored_tile_ctr",
-    "newtab_sponsored_tiles_enabled",
-            "newtab_visits", "newtab_engaged_visits", 
-            "newtab_organic_topsite_clicks_v2","newtab_organic_topsite_impressions_v2"]
+daily = ["total_third_tile_impressions",
+            "total_third_tile_clicks",
+            "total_third_tile_ctr"]
+weekly = ["total_third_tile_impressions",
+            "total_third_tile_clicks", 
+            "total_third_tile_ctr",
+            "sponsored_tile_impressions",
+            "sponsored_tile_clicks",
+            "newtab_sponsored_tiles_enabled",
+            "newtab_visits",
+            "newtab_engaged_visits", 
+            "newtab_organic_topsite_clicks_v2",
+            "newtab_organic_topsite_impressions_v2",
+            "sponsored_tile_ctr"]
+overall = ["total_third_tile_impressions",
+            "total_third_tile_clicks",
+            "total_third_tile_ctr", 
+            "sponsored_tile_impressions",
+            "sponsored_tile_clicks",
+            "sponsored_tile_ctr",
+            "newtab_sponsored_tiles_enabled",
+            "newtab_visits",
+            "newtab_engaged_visits", 
+            "newtab_organic_topsite_clicks_v2",
+            "newtab_organic_topsite_impressions_v2"]
 
 [metrics.total_third_tile_impressions]
 data_source = "newtab_tiles_third_spot_metrics"
