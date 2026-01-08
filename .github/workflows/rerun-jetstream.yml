@@ -22,8 +22,8 @@ jobs:
       id-token: write
     if: needs.changed.outputs.any_changed == 'true'
     env:
-      CLUSTER_NAME: 'jetstream-dev'
-      CLUSTER_ZONE: 'us-central1-c'
+      CLUSTER_NAME: 'jetstream'
+      CLUSTER_ZONE: 'us-central1-a'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
