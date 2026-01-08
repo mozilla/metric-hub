@@ -16,11 +16,11 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: 'pip'
     - name: Install dependencies
       run: |
-        python3.10 -m venv venv/
+        python -m venv venv/
         venv/bin/python -m pip install -r .script/requirements.txt
         venv/bin/python -m pip install lib/metric-config-parser
     - name: Build docs
