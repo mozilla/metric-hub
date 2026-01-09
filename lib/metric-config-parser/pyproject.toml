@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mozilla-metric-config-parser"
-version = "2025.12.1"
+version = "2026.1.1"
 authors = [{ name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org" }]
 description = "Parses metric configuration files."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
   "attrs",
   "cattrs",
@@ -61,7 +61,7 @@ metric_config_parser = ["templates/*"]
 [tool.ruff]
 line-length = 100
 exclude = [".git", "__pycache__"]
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 ignore = ["E741", "RUF005", "RUF012", "SIM105"]

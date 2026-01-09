@@ -36,7 +36,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: 'pip'
     - name: restore_cache
       uses: actions/cache@v3
@@ -52,7 +52,7 @@ jobs:
     - name: Build
       working-directory: ~/project/lib/metric-config-parser
       run: |
-        python3.10 -m venv venv/
+        python -m venv venv/
         venv/bin/python -m pip install --upgrade pip
         venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - name: Ruff check
@@ -82,12 +82,12 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: 'pip'
     - name: Build
       working-directory: ~/project/lib/metric-config-parser
       run: |
-        python3.10 -m venv venv/
+        python -m venv venv/
         venv/bin/python -m pip install --upgrade pip
         venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
     - name: PyTest Integration Test
