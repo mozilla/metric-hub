@@ -37,14 +37,6 @@ data_source = "noop_source"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_organic_topsite_impressions_v2]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.newtab_organic_topsite_clicks_v2]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
 [metrics.newtab_gt4_searches]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
