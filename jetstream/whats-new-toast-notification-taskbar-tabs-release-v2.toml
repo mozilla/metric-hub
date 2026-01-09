@@ -1,5 +1,6 @@
 [experiment]
 analysis_unit = "client_id"
+sample_size = 20
 
 enrollment_query = """
 SELECT * FROM
@@ -43,6 +44,8 @@ WHERE
     AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
     -- This should never happen, but belt-and-braces.
     AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+    -- 20pct sample, large dataset
+    AND sample_id < 20
 GROUP BY analysis_id, branch
 )
 
@@ -72,6 +75,8 @@ WHERE
         '{{experiment.last_enrollment_date_str}}'
     -- The background update experiment slug is exact.
     AND experiment.key = '{{experiment.normandy_slug}}'
+    -- 20pct sample, large dataset
+    AND sample_id < 20
 GROUP BY analysis_id, branch
 )
 
@@ -99,6 +104,8 @@ WHERE
     -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
     -- this name looks like 'slug:branch'.
     AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+    -- 20pct sample, large dataset
+    AND sample_id < 20
 GROUP BY
     analysis_id, branch
 )
@@ -108,7 +115,16 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 """
 
 #segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
-segments = ["new_or_resurrected_v3", "activity_infrequent_or_casual"]
+segments = [
+  "new_or_resurrected_v3",
+  "activity_infrequent_or_casual",
+  "last_dau_2_to_4_weeks_ago",
+  "last_dau_5_to_8_weeks_ago",
+  "last_dau_more_than_8_weeks_ago",
+  "last_dau_more_than_4_weeks_ago",
+  "never_user",
+  "new_unique_profiles",
+]
 
 [metrics]
 
@@ -209,7 +225,8 @@ FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
 WHERE
     event_category = 'web_app'
     AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
-    AND DATE(submission_timestamp) >= '2025-10-27'
+    AND DATE(submission_timestamp) >= '2025-10-27' AND DATE(submission_timestamp) <= '2025-12-10'
+    AND sample_id < 20
 GROUP BY ALL
 )
   SELECT
@@ -282,5 +299,7 @@ from_expression = """(
   WHERE is_desktop
     AND is_dau
     AND submission_date >= "2025-04-01"
+    AND sample_id < 20
   GROUP BY client_id, profile_group_id
 )"""
+window_start = -182
