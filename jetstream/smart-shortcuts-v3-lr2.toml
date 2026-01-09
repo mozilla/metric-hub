@@ -1,8 +1,4 @@
 [experiment]
-
-[metrics]
-
-[experiment]
 reference_branch = "control"
 
 # overwrite nonessential metrics with no-op
