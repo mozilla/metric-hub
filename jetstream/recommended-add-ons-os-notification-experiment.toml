@@ -5,11 +5,7 @@ analysis_unit = "client_id"
 segments = [
   "new_or_resurrected_v3",
   "activity_infrequent_or_casual",
-  "last_dau_2_to_4_weeks_ago",
-  "last_dau_5_to_8_weeks_ago",
-  "last_dau_more_than_8_weeks_ago",
-  "last_dau_more_than_4_weeks_ago",
-  "never_user",
+  "last_dau_28_to_59_days_ago",
   "new_unique_profiles",
 ]
 
