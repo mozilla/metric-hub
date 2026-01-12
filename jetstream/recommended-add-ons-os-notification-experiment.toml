@@ -2,12 +2,7 @@
 analysis_unit = "client_id"
 
 #segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
-segments = [
-  "new_or_resurrected_v3",
-  "activity_infrequent_or_casual",
-  "last_dau_28_to_59_days_ago",
-  "new_unique_profiles",
-]
+segments = ["last_dau_28_to_59_days_ago"]
 
 [metrics]
 
@@ -149,4 +144,5 @@ from_expression = """(
     AND is_dau
     AND submission_date >= "2024-12-10"
 )"""
+window_end = -1
 window_start = -365
