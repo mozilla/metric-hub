@@ -257,7 +257,7 @@ description = "Sum of searches (sap) on days where no ad blockers are enabled"
 select_expression = "SUM( IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
 data_source = "searches_with_ad_blocker_flags"
 
-[segments.data_sources.searches_with_ad_blocker_flags]
+[metrics.data_sources.searches_with_ad_blocker_flags]
 from_expression = """(
   WITH addons_daily AS (
     SELECT
