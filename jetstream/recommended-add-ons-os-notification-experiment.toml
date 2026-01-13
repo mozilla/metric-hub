@@ -265,17 +265,17 @@ from_expression = """(
       client_id,
       LOGICAL_OR(
         addon_id IN (
-          'uBlock0@raymondhill.net',                /* uBlock Origin */ 
-          'adblockultimate@adblockultimate.net',    /* AdBlocker Ultimate */
-          'firefox@ghostery.com'                    /* Ghostery */
+          'uBlock0@raymondhill.net',                 /* uBlock Origin */ 
+          'adblockultimate@adblockultimate.net',     /* AdBlocker Ultimate */
+          'firefox@ghostery.com'                     /* Ghostery */
         )
         AND NOT user_disabled
         AND NOT app_disabled
       ) AS has_serp_ad_blocker,
       LOGICAL_OR(
         addon_id IN (
-          '{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}', /* Adblock Plus */
-          'jid1-NIfFY2CA8fy1tg@jetpack'             /* Adblock */
+          '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}', /* Adblock Plus */
+          'jid1-NIfFY2CA8fy1tg@jetpack'               /* Adblock */
         )
         AND NOT user_disabled
         AND NOT app_disabled
