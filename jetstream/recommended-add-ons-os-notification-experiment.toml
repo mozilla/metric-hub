@@ -111,127 +111,190 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 """
 
 
-#segment information:https://docs.telemetry.mozilla.org/concepts/segments.html
+# segment information: https://docs.telemetry.mozilla.org/concepts/segments.html
 segments = [
   "new_or_resurrected_v3",
   "activity_infrequent_or_casual",
-  "last_dau_28_to_59_days_ago",
   "new_unique_profiles",
+
+  "last_dau_28_to_59_days_ago",
+  "last_dau_60_to_119_days_ago",
+  "last_dau_120_to_179_days_ago",
+  "last_dau_180plus_days_ago",
 ]
 
 [metrics]
 
 weekly = [
-  "is_pinned",
   "is_default_browser",
   "number_of_desktop_launches",
   "number_of_taskbar_launches",
   "number_of_startmenu_launches",
   "number_of_taskbartab_launches",
-  "unique_client_installs",
-  "unique_client_pins",
-  "web_app_launches",
-  "web_app_active_users",
+  "ubo_newly_enabled",
+  "at_least_one_add_on_installed",
+  "at_least_two_add_ons_installed",
+  "searches_with_serp_ad_blocker",
+  "searches_with_non_serp_ad_blocker",
+  "searches_with_no_ad_blocker",
 ]
 
 overall = [
-  "is_pinned",
   "is_default_browser",
   "number_of_desktop_launches",
   "number_of_taskbar_launches",
   "number_of_startmenu_launches",
   "number_of_taskbartab_launches",
-  "unique_client_installs",
-  "unique_client_pins",
-  "web_app_launches",
-  "web_app_active_users",
+  "ubo_newly_enabled",
+  "at_least_one_add_on_installed",
+  "at_least_two_add_ons_installed",
+  "searches_with_serp_ad_blocker",
+  "searches_with_non_serp_ad_blocker",
+  "searches_with_no_ad_blocker",
 ]
 
-[metrics.number_of_desktop_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
+[metrics.ubo_newly_enabled.statistics.binomial]
+[metrics.at_least_one_add_on_installed.statistics.binomial]
+[metrics.at_least_two_add_ons_installed.statistics.binomial]
+[metrics.searches_with_serp_ad_blocker.statistics.bootstrap_mean]
+[metrics.searches_with_non_serp_ad_blocker.statistics.bootstrap_mean]
+[metrics.searches_with_no_ad_blocker.statistics.bootstrap_mean]
 
-[metrics.number_of_taskbar_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.number_of_startmenu_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.unique_client_installs.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.unique_client_pins.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.web_app_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
-
-[metrics.web_app_active_users.statistics.binomial]
-
-[metrics.web_app_active_users]
-friendly_name = "Web App Active Users"
-description = "Percentage of clients who had non-zero usage time"
+[metrics.ubo_newly_enabled]
+friendly_name = "uBO newly enabled"
+description = "uBO not enabled on enrollment-1, and enabled at least once after enrollment"
 select_expression = """
-  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+  LOGICAL_OR(
+    addon_id = 'uBlock0@raymondhill.net'
+    AND NOT user_disabled
+    AND NOT app_disabled
+    AND submission_date >= e.enrollment_date
+  )
+  AND
+  NOT LOGICAL_OR(
+    addon_id = 'uBlock0@raymondhill.net'
+    AND NOT user_disabled
+    AND NOT app_disabled
+    AND submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
+  )
 """
-data_source = "metrics"
+data_source = "clients_daily"
+window_start = -1
 
-[metrics.unique_client_installs]
-friendly_name = "Installed Web App"
-description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+[metrics.at_least_one_add_on_installed]
+friendly_name = "At least one add-on installed"
+description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 1"
 select_expression = """
-  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
-  COALESCE(MAX(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+  (
+    COALESCE(
+      MAX(
+        IF(
+          submission_date >= e.enrollment_date,
+          COUNTIF(NOT user_disabled AND NOT app_disabled)
+            OVER (PARTITION BY submission_date),
+          NULL
+        )
+      ),
+      0
+    )
+    -
+    COUNTIF(
+      submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
+      AND NOT user_disabled
+      AND NOT app_disabled
+    )
+  ) >= 1
 """
-data_source = "web_app_events"
+data_source = "clients_daily"
+window_start = -1
 
-[metrics.unique_client_pins]
-friendly_name = "Pinned Web Apps"
-description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+[metrics.at_least_two_add_ons_installed]
+friendly_name = "At least two add-ons installed"
+description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 2"
 select_expression = """
-  COALESCE(MAX(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
-  COALESCE(MAX(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+  (
+    COALESCE(
+      MAX(
+        IF(
+          submission_date >= e.enrollment_date,
+          COUNTIF(NOT user_disabled AND NOT app_disabled)
+            OVER (PARTITION BY submission_date),
+          NULL
+        )
+      ),
+      0
+    )
+    -
+    COUNTIF(
+      submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
+      AND NOT user_disabled
+      AND NOT app_disabled
+    )
+  ) >= 2
 """
-data_source = "web_app_events"
+data_source = "clients_daily"
+window_start = -1
 
-[metrics.web_app_launches]
-friendly_name = "Web App Launches"
-description = "Average Web Apps Launches per user (approx from activate and move to taskbar events)"
-select_expression = """
-  COALESCE(MAX(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
-  COALESCE(MAX(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
-"""
-data_source = "web_app_events"
+[metrics.searches_with_serp_ad_blocker]
+friendly_name = "Searches with SERP ad blocker"
+description = "Sum of searches (sap) on days where a SERP ad blocker is enabled"
+select_expression = "SUM( IF(has_serp_ad_blocker, COALESCE(sap, 0), 0))"
+data_source = "searches_with_ad_blocker_flags"
 
-[data_sources.web_app_events]
+[metrics.searches_with_non_serp_ad_blocker]
+friendly_name = "Searches with non-SERP ad blocker"
+description = "Sum of searches (sap) on days where a non-SERP ad blocker is enabled and no SERP ad blocker is enabled"
+select_expression = "SUM( IF(NOT has_serp_ad_blocker AND has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
+data_source = "searches_with_ad_blocker_flags"
+
+[metrics.searches_with_no_ad_blocker]
+friendly_name = "Searches with no ad blocker"
+description = "Sum of searches (sap) on days where no ad blockers are enabled"
+select_expression = "SUM( IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
+data_source = "searches_with_ad_blocker_flags"
+
+[data_sources.searches_with_ad_blocker_flags]
 from_expression = """(
-WITH events AS (
-SELECT
-    CAST(submission_timestamp as DATE) as submission_date,
-    legacy_telemetry_client_id as client_id,
-    profile_group_id,
-    event_name,
-    COUNT(1) as event_count
-FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
-WHERE
-    event_category = 'web_app'
-    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
-    AND DATE(submission_timestamp) >= '2025-12-10'
-GROUP BY ALL
-)
+  WITH addons_daily AS (
+    SELECT
+      submission_date,
+      client_id,
+      LOGICAL_OR(
+        addon_id IN (
+          'uBlock0@raymondhill.net',                /* uBlock Origin */ 
+          'adblockultimate@adblockultimate.net',    /* AdBlocker Ultimate */
+          'firefox@ghostery.com'                    /* Ghostery */
+        )
+        AND NOT user_disabled
+        AND NOT app_disabled
+      ) AS has_serp_ad_blocker,
+      LOGICAL_OR(
+        addon_id IN (
+          '{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}', /* Adblock Plus */
+          'jid1-NIfFY2CA8fy1tg@jetpack'             /* Adblock */
+        )
+        AND NOT user_disabled
+        AND NOT app_disabled
+      ) AS has_non_serp_ad_blocker
+    FROM `mozdata.telemetry.addons`
+    WHERE submission_date >= '{{experiment.start_date_str}}'
+    GROUP BY 1, 2
+  )
   SELECT
-    submission_date,
-    client_id,
-    profile_group_id,
-    event_name,
-    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
-  FROM events
+    scd.submission_date,
+    scd.client_id,
+    scd.profile_group_id,
+    scd.sap,
+    COALESCE(a.has_serp_ad_blocker, FALSE) AS has_serp_ad_blocker,
+    COALESCE(a.has_non_serp_ad_blocker, FALSE) AS has_non_serp_ad_blocker
+  FROM `mozdata.search.search_clients_engines_sources_daily` AS scd
+  LEFT JOIN addons_daily AS a
+    USING (submission_date, client_id)
+  WHERE scd.submission_date >= '{{experiment.start_date_str}}'
 )"""
 experiments_column_type = "none"
-friendly_name = "Web App Events"
-description = "Events for Web App (Taskbar Tabs)"
+friendly_name = "Searches joined to ad blocker flags"
+description = "Daily SAP joined to daily addon-derived ad blocker flags"
 
 # ============================================================================
 # USER SEGMENTS - Based on activity patterns before enrollment
@@ -248,16 +311,49 @@ data_source = "active_users_last_seen"
 window_start = -365
 window_end = -1
 
+[segments.last_dau_60_to_119_days_ago]
+friendly_name = "Last DAU 60 to 119 days ago"
+description = "Clients who last counted towards DAU 60–119 days before enrollment"
+select_expression = "DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119"
+data_source = "active_users_last_seen"
+window_start = -365
+window_end = -1
+
+[segments.last_dau_120_to_179_days_ago]
+friendly_name = "Last DAU 120 to 179 days ago"
+description = "Clients who last counted towards DAU 120–179 days before enrollment"
+select_expression = "DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179"
+data_source = "active_users_last_seen"
+window_start = -365
+window_end = -1
+
+[segments.last_dau_180plus_days_ago]
+friendly_name = "Last DAU 180+ days ago"
+description = """
+Clients whose last DAU before enrollment is >=180 days ago (or no DAU observed in lookback window), excluding new users.
+No DAU in lookback window generally means the profile was last seen before the first date in the lookback window.
+"""
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) >= 180
+  )
+  AND COALESCE(MAX(is_new_user), FALSE) = FALSE
+"""
+data_source = "active_users_last_seen"
+window_start = -365
+window_end = -1
+
 [segments.data_sources.active_users_last_seen]
 from_expression = """(
   SELECT
     client_id,
     profile_group_id,
-    submission_date
+    submission_date,
+    first_seen_date >= DATE('{{experiment.start_date_str}}') AS is_new_user
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
-    AND submission_date >= "2024-12-10"
+    AND submission_date >= DATE_SUB(DATE('{{experiment.start_date_str}}'), INTERVAL 365 DAY)
 )"""
-window_end = -1
 window_start = -365
