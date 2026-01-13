@@ -306,6 +306,7 @@ from_expression = """(
     scd.client_id,
     scd.profile_group_id,
     scd.sap,
+    scd.experiments,
     COALESCE(a.has_serp_ad_blocker, FALSE) AS has_serp_ad_blocker,
     COALESCE(a.has_non_serp_ad_blocker, FALSE) AS has_non_serp_ad_blocker
   FROM `mozdata.search.search_clients_engines_sources_daily` AS scd
