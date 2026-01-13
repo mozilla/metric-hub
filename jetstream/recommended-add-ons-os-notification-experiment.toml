@@ -171,7 +171,7 @@ select_expression = """
   LOGICAL_OR(submission_date >= e.enrollment_date AND addon_id = 'uBlock0@raymondhill.net')
   AND NOT LOGICAL_OR(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY) AND addon_id = 'uBlock0@raymondhill.net')
 """
-data_source = "clients_daily_active_addons"
+data_source = "clients_daily_enabled_addons"
 window_start = -1
 
 [data_sources.clients_daily_enabled_addons]
@@ -199,7 +199,7 @@ select_expression = """
   COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
   >= 1
 """
-data_source = "clients_daily_active_addons"
+data_source = "clients_daily_enabled_addon_counts"
 window_start = -1
 
 [metrics.at_least_two_add_ons_installed]
@@ -211,7 +211,7 @@ select_expression = """
   COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
   >= 2
 """
-data_source = "clients_daily_active_addons"
+data_source = "clients_daily_enabled_addon_counts"
 window_start = -1
 
 [data_sources.clients_daily_enabled_addon_counts]
