@@ -221,7 +221,7 @@ from_expression = """(
     client_id,
     profile_group_id,
     COUNT(*) AS enabled_addons,
-    experiments
+    ANY_VALUE(experiments)
   FROM `mozdata.telemetry.clients_daily`,
   UNNEST(active_addons) AS a
   WHERE NOT a.user_disabled
