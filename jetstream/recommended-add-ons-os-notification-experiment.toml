@@ -298,7 +298,7 @@ from_expression = """(
         AND NOT app_disabled
       ) AS has_non_serp_ad_blocker
     FROM `mozdata.telemetry.addons`
-    WHERE submission_date >= '{experiment.start_date_str}'
+    WHERE submission_date >= '2025-12-10'
     GROUP BY 1, 2
   )
   SELECT
@@ -311,7 +311,7 @@ from_expression = """(
   FROM `mozdata.search.search_clients_engines_sources_daily` AS scd
   LEFT JOIN addons_daily AS a
     USING (submission_date, client_id)
-  WHERE scd.submission_date >= '{experiment.start_date_str}'
+  WHERE scd.submission_date >= '2025-12-10'
 )"""
 friendly_name = "Searches joined to ad blocker flags"
 description = "Daily SAP joined to daily addon-derived ad blocker flags"
@@ -370,10 +370,10 @@ from_expression = """(
     client_id,
     profile_group_id,
     submission_date,
-    first_seen_date >= DATE('{experiment.start_date_str}') AS is_new_user
+    first_seen_date >= '2025-12-10' AS is_new_user
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
-    AND submission_date >= DATE_SUB(DATE('{experiment.start_date_str}'), INTERVAL 365 DAY)
+    AND submission_date >= DATE_SUB('2025-12-10', INTERVAL 365 DAY)
 )"""
 window_start = -365
