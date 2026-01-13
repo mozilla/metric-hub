@@ -168,46 +168,36 @@ overall = [
 friendly_name = "uBO newly enabled"
 description = "uBO not enabled on enrollment-1, and enabled at least once after enrollment"
 select_expression = """
-  LOGICAL_OR(
-    addon_id = 'uBlock0@raymondhill.net'
-    AND NOT user_disabled
-    AND NOT app_disabled
-    AND submission_date >= e.enrollment_date
-  )
-  AND
-  NOT LOGICAL_OR(
-    addon_id = 'uBlock0@raymondhill.net'
-    AND NOT user_disabled
-    AND NOT app_disabled
-    AND submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
-  )
+  LOGICAL_OR(submission_date >= e.enrollment_date AND addon_id = 'uBlock0@raymondhill.net')
+  AND NOT LOGICAL_OR(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY) AND addon_id = 'uBlock0@raymondhill.net')
 """
 data_source = "clients_daily_active_addons"
 window_start = -1
+
+[data_sources.clients_daily_enabled_addons]
+from_expression = """(
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    a.addon_id,
+    experiments
+  FROM `mozdata.telemetry.clients_daily`,
+  UNNEST(active_addons) AS a
+  WHERE NOT a.user_disabled
+    AND NOT a.app_disabled
+)"""
+friendly_name = "clients_daily enabled add-ons"
+description = "One row per (client_id, submission_date, enabled addon) from clients_daily.active_addons"
 
 [metrics.at_least_one_add_on_installed]
 friendly_name = "At least one add-on installed"
 description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 1"
 select_expression = """
-  (
-    COALESCE(
-      MAX(
-        IF(
-          submission_date >= e.enrollment_date,
-          COUNTIF(NOT user_disabled AND NOT app_disabled)
-            OVER (PARTITION BY submission_date),
-          NULL
-        )
-      ),
-      0
-    )
-    -
-    COUNTIF(
-      submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
-      AND NOT user_disabled
-      AND NOT app_disabled
-    )
-  ) >= 1
+  COALESCE(MAX(IF(submission_date >= e.enrollment_date, enabled_addons, NULL)), 0)
+  -
+  COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
+  >= 1
 """
 data_source = "clients_daily_active_addons"
 window_start = -1
@@ -216,45 +206,30 @@ window_start = -1
 friendly_name = "At least two add-ons installed"
 description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 2"
 select_expression = """
-  (
-    COALESCE(
-      MAX(
-        IF(
-          submission_date >= e.enrollment_date,
-          COUNTIF(NOT user_disabled AND NOT app_disabled)
-            OVER (PARTITION BY submission_date),
-          NULL
-        )
-      ),
-      0
-    )
-    -
-    COUNTIF(
-      submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
-      AND NOT user_disabled
-      AND NOT app_disabled
-    )
-  ) >= 2
+  COALESCE(MAX(IF(submission_date >= e.enrollment_date, enabled_addons, NULL)), 0)
+  -
+  COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
+  >= 2
 """
 data_source = "clients_daily_active_addons"
 window_start = -1
 
-[data_sources.clients_daily_active_addons]
+[data_sources.clients_daily_enabled_addon_counts]
 from_expression = """(
   SELECT
     submission_date,
     client_id,
     profile_group_id,
-    a.addon_id AS addon_id,
-    a.user_disabled AS user_disabled,
-    a.app_disabled AS app_disabled,
-    is_default_browser,
+    COUNT(*) AS enabled_addons,
     experiments
   FROM `mozdata.telemetry.clients_daily`,
   UNNEST(active_addons) AS a
+  WHERE NOT a.user_disabled
+    AND NOT a.app_disabled
+  GROUP BY 1, 2, 3
 )"""
-friendly_name = "clients_daily active_addons unnested"
-description = "One row per (client_id, submission_date, addon) from clients_daily.active_addons"
+friendly_name = "clients_daily enabled add-on counts"
+description = "One row per (client_id, submission_date) with enabled add-on count"
 
 [metrics.searches_with_serp_ad_blocker]
 friendly_name = "Searches with SERP ad blocker"
