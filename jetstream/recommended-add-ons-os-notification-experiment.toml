@@ -182,7 +182,7 @@ select_expression = """
     AND submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY)
   )
 """
-data_source = "clients_daily"
+data_source = "clients_daily_active_addons"
 window_start = -1
 
 [metrics.at_least_one_add_on_installed]
@@ -209,7 +209,7 @@ select_expression = """
     )
   ) >= 1
 """
-data_source = "clients_daily"
+data_source = "clients_daily_active_addons"
 window_start = -1
 
 [metrics.at_least_two_add_ons_installed]
@@ -236,8 +236,25 @@ select_expression = """
     )
   ) >= 2
 """
-data_source = "clients_daily"
+data_source = "clients_daily_active_addons"
 window_start = -1
+
+[data_sources.clients_daily_active_addons]
+from_expression = """(
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    a.addon_id AS addon_id,
+    a.user_disabled AS user_disabled,
+    a.app_disabled AS app_disabled,
+    is_default_browser,
+    experiments
+  FROM `mozdata.telemetry.clients_daily`,
+  UNNEST(active_addons) AS a
+)"""
+friendly_name = "clients_daily active_addons unnested"
+description = "One row per (client_id, submission_date, addon) from clients_daily.active_addons"
 
 [metrics.searches_with_serp_ad_blocker]
 friendly_name = "Searches with SERP ad blocker"
