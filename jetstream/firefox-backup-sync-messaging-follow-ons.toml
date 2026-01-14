@@ -1,13 +1,13 @@
 [metrics]
 
 # Metrics to compute for each weekly analysis window.
-weekly = ["backup scheduler enabled"]
+weekly = ["backup_scheduler_enabled"]
 
 # Metrics to compute for each 28 days long analysis window
-28_day = ["backup scheduler enabled"]
+28_day = ["backup_scheduler_enabled"]
 
 # Metrics to compute only for the overall analysis window.
-overall = ["backup scheduler enabled"]
+overall = ["backup_scheduler_enabled"]
 
 [metrics.backup_scheduler_enabled]
 data_source = 'clients_daily'

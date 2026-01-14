@@ -4,7 +4,5 @@ description = "Metrics for Firefox Backup"
 [metrics.backup_scheduler_enabled]
 data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(browser_backup_scheduler_enabled), FALSE) AS INT)'
-friendly_name = "backup scheduler enabled"
-description = "Firefox Backup scheduler enabled"
 
 [metrics.backup_scheduler_enabled.statistics.binomial]
