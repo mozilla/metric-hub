@@ -120,7 +120,7 @@ segments = [
   "last_dau_28_to_59_days_ago",
   "last_dau_60_to_119_days_ago",
   "last_dau_120_to_179_days_ago",
-  "last_dau_180plus_days_ago",
+  "new_or_last_dau_180plus_days_ago",
 ]
 
 [metrics]
@@ -302,7 +302,7 @@ Built on clients_daily and joined to daily search.
 [segments.last_dau_28_to_59_days_ago]
 friendly_name = "Last DAU 28 to 59 days ago"
 description = "Clients who last counted towards DAU 28–59 days before enrollment"
-select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -190
 window_end = -1
@@ -310,7 +310,7 @@ window_end = -1
 [segments.last_dau_60_to_119_days_ago]
 friendly_name = "Last DAU 60 to 119 days ago"
 description = "Clients who last counted towards DAU 60–119 days before enrollment"
-select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -190
 window_end = -1
@@ -318,23 +318,21 @@ window_end = -1
 [segments.last_dau_120_to_179_days_ago]
 friendly_name = "Last DAU 120 to 179 days ago"
 description = "Clients who last counted towards DAU 120–179 days before enrollment"
-select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -190
 window_end = -1
 
-[segments.last_dau_180plus_days_ago]
-friendly_name = "Last DAU 180+ days ago"
+[segments.new_or_last_dau_180plus_days_ago]
+friendly_name = "New or last DAU 180+ days ago"
 description = """
-Clients whose last DAU before enrollment is >=180 days ago (or no DAU observed in lookback window), excluding new users.
-No DAU in lookback window generally means the profile was last seen before the first date in the lookback window.
+New Clients, or those whose last DAU before enrollment is >=180 days ago (or no DAU observed in lookback window).
 """
 select_expression = """
   (
     MAX(submission_date) IS NULL
     OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
   )
-  AND NOT COALESCE(LOGICAL_OR(is_new_user), FALSE)
 """
 data_source = "active_users_last_seen"
 window_start = -190
@@ -345,8 +343,7 @@ from_expression = """(
   SELECT
     client_id,
     profile_group_id,
-    submission_date,
-    first_seen_date >= '2025-12-10' AS is_new_user
+    submission_date
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
