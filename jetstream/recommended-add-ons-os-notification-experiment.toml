@@ -297,14 +297,14 @@ Built on clients_daily and joined to daily search.
 # ============================================================================
 # Using e.enrollment_date to reference enrollment date
 # (see https://github.com/mozilla/mozanalysis/blob/ccabadcc5233a1f48f528fa4a23e3495b3ac9ea2/src/mozanalysis/segments.py#L132-L156)
-# Using a 1 year week lookback window (365 days)
+# Using a 190 day week lookback window
 
 [segments.last_dau_28_to_59_days_ago]
 friendly_name = "Last DAU 28 to 59 days ago"
 description = "Clients who last counted towards DAU 28–59 days before enrollment"
 select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59"
 data_source = "active_users_last_seen"
-window_start = -365
+window_start = -190
 window_end = -1
 
 [segments.last_dau_60_to_119_days_ago]
@@ -312,7 +312,7 @@ friendly_name = "Last DAU 60 to 119 days ago"
 description = "Clients who last counted towards DAU 60–119 days before enrollment"
 select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119"
 data_source = "active_users_last_seen"
-window_start = -365
+window_start = -190
 window_end = -1
 
 [segments.last_dau_120_to_179_days_ago]
@@ -320,7 +320,7 @@ friendly_name = "Last DAU 120 to 179 days ago"
 description = "Clients who last counted towards DAU 120–179 days before enrollment"
 select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179"
 data_source = "active_users_last_seen"
-window_start = -365
+window_start = -190
 window_end = -1
 
 [segments.last_dau_180plus_days_ago]
@@ -337,7 +337,7 @@ select_expression = """
   AND NOT COALESCE(LOGICAL_OR(is_new_user), FALSE)
 """
 data_source = "active_users_last_seen"
-window_start = -365
+window_start = -190
 window_end = -1
 
 [segments.data_sources.active_users_last_seen]
@@ -350,6 +350,6 @@ from_expression = """(
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
-    AND submission_date >= DATE_SUB('2025-12-10', INTERVAL 365 DAY)
+    AND submission_date >= DATE_SUB('2025-12-10', INTERVAL 190 DAY)
 )"""
-window_start = -365
+window_start = -190
