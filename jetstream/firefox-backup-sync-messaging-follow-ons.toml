@@ -1,0 +1,10 @@
+[metrics]
+
+# Metrics to compute for each weekly analysis window.
+weekly = ["backup scheduler enabled"]
+
+# Metrics to compute for each 28 days long analysis window
+28_day = ["ubackup scheduler enabled"]
+
+# Metrics to compute only for the overall analysis window.
+overall = ["backup scheduler enabled"]
