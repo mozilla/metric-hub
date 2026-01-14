@@ -166,29 +166,13 @@ overall = [
 
 [metrics.ubo_newly_enabled]
 friendly_name = "uBO newly enabled"
-description = "uBO not enabled on enrollment-1, and enabled at least once after enrollment"
+description = "uBO not enabled the day before enrollment, and enabled at least once after enrollment"
 select_expression = """
-  LOGICAL_OR(submission_date >= e.enrollment_date AND addon_id = 'uBlock0@raymondhill.net')
-  AND NOT LOGICAL_OR(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY) AND addon_id = 'uBlock0@raymondhill.net')
+  LOGICAL_OR(submission_date >= e.enrollment_date AND has_ubo)
+  AND NOT LOGICAL_OR(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY) AND has_ubo)
 """
-data_source = "clients_daily_enabled_addons"
+data_source = "search_and_addons_daily"
 window_start = -1
-
-[data_sources.clients_daily_enabled_addons]
-from_expression = """(
-  SELECT
-    submission_date,
-    client_id,
-    profile_group_id,
-    a.addon_id,
-    experiments
-  FROM `mozdata.telemetry.clients_daily`,
-  UNNEST(active_addons) AS a
-  WHERE NOT a.user_disabled
-    AND NOT a.app_disabled
-)"""
-friendly_name = "clients_daily enabled add-ons"
-description = "One row per (client_id, submission_date, enabled addon) from clients_daily.active_addons"
 
 [metrics.at_least_one_add_on_installed]
 friendly_name = "At least one add-on installed"
@@ -199,7 +183,7 @@ select_expression = """
   COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
   >= 1
 """
-data_source = "clients_daily_enabled_addon_counts"
+data_source = "search_and_addons_daily"
 window_start = -1
 
 [metrics.at_least_two_add_ons_installed]
@@ -211,86 +195,103 @@ select_expression = """
   COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
   >= 2
 """
-data_source = "clients_daily_enabled_addon_counts"
+data_source = "search_and_addons_daily"
 window_start = -1
-
-[data_sources.clients_daily_enabled_addon_counts]
-from_expression = """(
-  SELECT
-    submission_date,
-    client_id,
-    profile_group_id,
-    COUNT(*) AS enabled_addons,
-    ANY_VALUE(experiments) AS experiments
-  FROM `mozdata.telemetry.clients_daily`,
-  UNNEST(active_addons) AS a
-  WHERE NOT a.user_disabled
-    AND NOT a.app_disabled
-  GROUP BY 1, 2, 3
-)"""
-friendly_name = "clients_daily enabled add-on counts"
-description = "One row per (client_id, submission_date) with enabled add-on count"
 
 [metrics.searches_with_serp_ad_blocker]
 friendly_name = "Searches with SERP ad blocker"
 description = "Sum of searches (sap) on days where a SERP ad blocker is enabled"
 select_expression = "SUM( IF(has_serp_ad_blocker, COALESCE(sap, 0), 0))"
-data_source = "searches_with_ad_blocker_flags"
+data_source = "search_and_addons_daily"
 
 [metrics.searches_with_non_serp_ad_blocker]
 friendly_name = "Searches with non-SERP ad blocker"
 description = "Sum of searches (sap) on days where a non-SERP ad blocker is enabled and no SERP ad blocker is enabled"
 select_expression = "SUM( IF(NOT has_serp_ad_blocker AND has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
-data_source = "searches_with_ad_blocker_flags"
+data_source = "search_and_addons_daily"
 
 [metrics.searches_with_no_ad_blocker]
 friendly_name = "Searches with no ad blocker"
 description = "Sum of searches (sap) on days where no ad blockers are enabled"
 select_expression = "SUM( IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
-data_source = "searches_with_ad_blocker_flags"
+data_source = "search_and_addons_daily"
 
-[data_sources.searches_with_ad_blocker_flags]
-from_expression = """(
-  WITH addons_daily AS (
+[data_sources.search_and_addons_daily]
+from_expression = """
+WITH
+  clients_daily_base AS (
     SELECT
       submission_date,
       client_id,
-      LOGICAL_OR(
-        addon_id IN (
-          'uBlock0@raymondhill.net',                 /* uBlock Origin */ 
-          'adblockultimate@adblockultimate.net',     /* AdBlocker Ultimate */
-          'firefox@ghostery.com'                     /* Ghostery */
-        )
-        AND NOT user_disabled
-        AND NOT app_disabled
-      ) AS has_serp_ad_blocker,
-      LOGICAL_OR(
-        addon_id IN (
-          '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}', /* Adblock Plus */
-          'jid1-NIfFY2CA8fy1tg@jetpack'               /* Adblock */
-        )
-        AND NOT user_disabled
-        AND NOT app_disabled
-      ) AS has_non_serp_ad_blocker
-    FROM `mozdata.telemetry.addons`
-    WHERE submission_date >= '2025-12-10'
+      profile_group_id,
+      experiments,
+      active_addons
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE
+      submission_date
+      BETWEEN DATE_SUB('2025-12-10', INTERVAL 1 DAY)
+      AND '2026-01-15'
+  ),
+  addon_rows AS (
+    SELECT
+      submission_date,
+      client_id,
+      a.addon_id
+    FROM clients_daily_base,
+    UNNEST(active_addons) AS a
+    WHERE NOT a.user_disabled AND NOT a.app_disabled
+  ),
+  addon_daily AS (
+    SELECT
+      submission_date,
+      client_id,
+      COUNT(1) AS enabled_addons,
+      LOGICAL_OR(addon_id IN (
+        'uBlock0@raymondhill.net'                    /* uBlock Origin */
+      )) AS has_ubo,
+      LOGICAL_OR(addon_id IN (
+        'uBlock0@raymondhill.net',                   /* uBlock Origin */
+        'adblockultimate@adblockultimate.net',       /* AdBlocker Ultimate */
+        'firefox@ghostery.com'                       /* Ghostery */
+      )) AS has_serp_ad_blocker,
+      LOGICAL_OR(addon_id IN (
+        '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}',  /* Adblock Plus */
+        'jid1-NIfFY2CA8fy1tg@jetpack'                /* Adblock */
+      )) AS has_non_serp_ad_blocker
+    FROM addon_rows
     GROUP BY 1, 2
+  ),
+  search_daily AS (
+    SELECT
+      submission_date,
+      client_id,
+      profile_group_id,
+      SUM(COALESCE(sap, 0)) AS sap
+    FROM `mozdata.search.search_clients_engines_sources_daily`
+    WHERE submission_date BETWEEN '2025-12-10' AND '2026-01-15'
+    GROUP BY 1, 2, 3
   )
-  SELECT
-    scd.submission_date,
-    scd.client_id,
-    scd.profile_group_id,
-    scd.sap,
-    scd.experiments,
-    COALESCE(a.has_serp_ad_blocker, FALSE) AS has_serp_ad_blocker,
-    COALESCE(a.has_non_serp_ad_blocker, FALSE) AS has_non_serp_ad_blocker
-  FROM `mozdata.search.search_clients_engines_sources_daily` AS scd
-  LEFT JOIN addons_daily AS a
-    USING (submission_date, client_id)
-  WHERE scd.submission_date >= '2025-12-10'
-)"""
-friendly_name = "Searches joined to ad blocker flags"
-description = "Daily SAP joined to daily addon-derived ad blocker flags"
+SELECT
+  cd.submission_date,
+  cd.client_id,
+  cd.profile_group_id,
+  cd.experiments,
+  COALESCE(ad.enabled_addons, 0) AS enabled_addons,
+  COALESCE(ad.has_ubo, FALSE) AS has_ubo,
+  COALESCE(ad.has_serp_ad_blocker, FALSE) AS has_serp_ad_blocker,
+  COALESCE(ad.has_non_serp_ad_blocker, FALSE) AS has_non_serp_ad_blocker,
+  COALESCE(sd.sap, 0) AS sap
+FROM clients_daily_base AS cd
+LEFT JOIN addon_daily AS ad
+  USING (submission_date, client_id)
+LEFT JOIN search_daily AS sd
+  USING (submission_date, client_id, profile_group_id);
+"""
+friendly_name = "Daily search and add-on summary"
+description = """
+Daily client-level dataset combining enabled add-on state and search activity.
+Built on clients_daily and joined to daily search.
+"""
 
 # ============================================================================
 # USER SEGMENTS - Based on activity patterns before enrollment
@@ -302,7 +303,7 @@ description = "Daily SAP joined to daily addon-derived ad blocker flags"
 [segments.last_dau_28_to_59_days_ago]
 friendly_name = "Last DAU 28 to 59 days ago"
 description = "Clients who last counted towards DAU 28–59 days before enrollment"
-select_expression = "DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59"
+select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59"
 data_source = "active_users_last_seen"
 window_start = -365
 window_end = -1
@@ -310,7 +311,7 @@ window_end = -1
 [segments.last_dau_60_to_119_days_ago]
 friendly_name = "Last DAU 60 to 119 days ago"
 description = "Clients who last counted towards DAU 60–119 days before enrollment"
-select_expression = "DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119"
+select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119"
 data_source = "active_users_last_seen"
 window_start = -365
 window_end = -1
@@ -318,7 +319,7 @@ window_end = -1
 [segments.last_dau_120_to_179_days_ago]
 friendly_name = "Last DAU 120 to 179 days ago"
 description = "Clients who last counted towards DAU 120–179 days before enrollment"
-select_expression = "DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179"
+select_expression = "DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179"
 data_source = "active_users_last_seen"
 window_start = -365
 window_end = -1
@@ -332,9 +333,9 @@ No DAU in lookback window generally means the profile was last seen before the f
 select_expression = """
   (
     MAX(submission_date) IS NULL
-    OR DATE_DIFF(MAX(e.enrollment_date), MAX(submission_date), DAY) >= 180
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
   )
-  AND COALESCE(MAX(is_new_user), FALSE) = FALSE
+  AND NOT COALESCE(LOGICAL_OR(is_new_user), FALSE)
 """
 data_source = "active_users_last_seen"
 window_start = -365
