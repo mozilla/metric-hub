@@ -217,7 +217,7 @@ select_expression = "SUM( IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blo
 data_source = "search_and_addons_daily"
 
 [data_sources.search_and_addons_daily]
-from_expression = """
+from_expression = """(
 WITH
   clients_daily_base AS (
     SELECT
@@ -285,8 +285,8 @@ FROM clients_daily_base AS cd
 LEFT JOIN addon_daily AS ad
   USING (submission_date, client_id)
 LEFT JOIN search_daily AS sd
-  USING (submission_date, client_id, profile_group_id);
-"""
+  USING (submission_date, client_id)
+)"""
 friendly_name = "Daily search and add-on summary"
 description = """
 Daily client-level dataset combining enabled add-on state and search activity.
