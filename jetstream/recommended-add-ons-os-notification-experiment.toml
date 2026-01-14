@@ -265,11 +265,10 @@ WITH
     SELECT
       submission_date,
       client_id,
-      profile_group_id,
       SUM(COALESCE(sap, 0)) AS sap
     FROM `mozdata.search.search_clients_engines_sources_daily`
     WHERE submission_date BETWEEN '2025-12-10' AND '2026-01-15'
-    GROUP BY 1, 2, 3
+    GROUP BY 1, 2
   )
 SELECT
   cd.submission_date,
