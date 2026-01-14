@@ -1,0 +1,60 @@
+
+[metrics]
+
+overall = [
+    # thumbs up/down metrics
+    "newtab_selected_topics",
+    "pocket_thumbs_up",
+    "pocket_thumbs_down",
+    "pocket_matches_selected_topic",
+    "pocket_topic",
+    "topic_selection_open",
+    "topic_selection_dismiss",
+    "topic_selection_topics_first_saved",
+    "topic_selection_topics_updated",
+
+]
+
+weekly = [
+    # thumbs up/down metrics
+    "newtab_selected_topics",
+    "pocket_thumbs_up",
+    "pocket_thumbs_down",
+    "pocket_matches_selected_topic",
+    "pocket_topic",
+    "topic_selection_open",
+    "topic_selection_dismiss",
+    "topic_selection_topics_first_saved",
+    "topic_selection_topics_updated",
+
+]
+
+[metrics.newtab_selected_topics.statistics.binomial]
+
+[metrics.pocket_thumbs_up.statistics.bootstrap_mean]
+[metrics.pocket_thumbs_up.statistics.deciles]
+
+[metrics.pocket_thumbs_down.statistics.bootstrap_mean]
+[metrics.pocket_thumbs_down.statistics.deciles]
+
+[metrics.pocket_matches_selected_topic.statistics.binomial]
+
+[metrics.pocket_topic.statistics.binomial]
+
+[metrics.topic_selection_open.statistics.bootstrap_mean]
+[metrics.topic_selection_open.statistics.deciles]
+
+[metrics.topic_selection_dismiss.statistics.bootstrap_mean]
+[metrics.topic_selection_dismiss.statistics.deciles]
+
+[metrics.topic_selection_topics_first_saved.statistics.bootstrap_mean]
+[metrics.topic_selection_topics_first_saved.statistics.deciles]
+
+[metrics.topic_selection_topics_updated.statistics.bootstrap_mean]
+[metrics.topic_selection_topics_updated.statistics.deciles]
+
+[metrics.sponsored_pocket_impressions.statistics.bootstrap_mean]
+[metrics.sponsored_pocket_impressions.statistics.deciles]
+
+[metrics.organic_pocket_impressions.statistics.bootstrap_mean]
+[metrics.organic_pocket_impressions.statistics.deciles]
