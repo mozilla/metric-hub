@@ -1,0 +1,86 @@
+[experiment]
+reference_branch = "control"
+
+# overwrite nonessential metrics with no-op
+
+[metrics]
+
+
+[metrics.sponsored_tile_ctr]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tile_impressions]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_tile_clicks]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.organic_content_impressions]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.organic_content_clicks]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_content_impressions]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_content_clicks]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_gt4_searches]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_any_searches]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_homepage_enabled]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.any_organic_content_clicks]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_sponsored_content_stories_enabled]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_content_enabled]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_ad_click_rate]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_engaged_visits]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_visits]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_searches]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
