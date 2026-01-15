@@ -5,19 +5,6 @@ reference_branch = "control"
 
 [metrics]
 
-
-[metrics.sponsored_tile_ctr]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.sponsored_tile_impressions]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.sponsored_tile_clicks]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
 [metrics.organic_content_impressions]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
