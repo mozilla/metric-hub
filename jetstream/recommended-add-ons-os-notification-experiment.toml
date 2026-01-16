@@ -114,6 +114,8 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 # segment information: https://docs.telemetry.mozilla.org/concepts/segments.html
 segments = [
   "new_or_resurrected_v3",
+  "activity_infrequent",
+  "activity_casual",
   "activity_infrequent_or_casual",
   "new_unique_profiles",
 
@@ -201,19 +203,19 @@ window_start = -1
 [metrics.searches_with_serp_ad_blocker]
 friendly_name = "Searches with SERP ad blocker"
 description = "Sum of searches (sap) on days where a SERP ad blocker is enabled"
-select_expression = "SUM( IF(has_serp_ad_blocker, COALESCE(sap, 0), 0))"
+select_expression = "COALESCE(SUM(IF(has_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
 data_source = "search_and_addons_daily"
 
 [metrics.searches_with_non_serp_ad_blocker]
 friendly_name = "Searches with non-SERP ad blocker"
 description = "Sum of searches (sap) on days where a non-SERP ad blocker is enabled and no SERP ad blocker is enabled"
-select_expression = "SUM( IF(NOT has_serp_ad_blocker AND has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
+select_expression = "COALESCE(SUM(IF(NOT has_serp_ad_blocker AND has_non_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
 data_source = "search_and_addons_daily"
 
 [metrics.searches_with_no_ad_blocker]
 friendly_name = "Searches with no ad blocker"
 description = "Sum of searches (sap) on days where no ad blockers are enabled"
-select_expression = "SUM( IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0))"
+select_expression = "COALESCE(SUM(IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
 data_source = "search_and_addons_daily"
 
 [data_sources.search_and_addons_daily]
@@ -239,7 +241,11 @@ WITH
       a.addon_id
     FROM clients_daily_base,
     UNNEST(active_addons) AS a
-    WHERE NOT a.user_disabled AND NOT a.app_disabled
+    WHERE NOT a.user_disabled
+      AND NOT a.app_disabled
+      AND NOT COALESCE(a.is_system, FALSE)
+      AND COALESCE(a.is_web_extension, FALSE)
+      AND a.addon_id NOT LIKE '%mozilla.org'
   ),
   addon_daily AS (
     SELECT
