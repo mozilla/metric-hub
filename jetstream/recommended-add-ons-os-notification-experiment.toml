@@ -115,7 +115,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 segments = [
   "new_or_resurrected_v3",
   "activity_infrequent",
-  "activity__casual",
+  "activity_casual",
   "activity_infrequent_or_casual",
   "new_unique_profiles",
 
