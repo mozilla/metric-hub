@@ -261,8 +261,8 @@ WITH
         'firefox@ghostery.com'                       /* Ghostery */
       )) AS has_serp_ad_blocker,
       LOGICAL_OR(addon_id IN (
-        CONCAT('{', 'd10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d', '}'),  /* Adblock Plus */
-        'jid1-NIfFY2CA8fy1tg@jetpack'                              /* Adblock */
+        '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}',  /* Adblock Plus */
+        'jid1-NIfFY2CA8fy1tg@jetpack'                /* Adblock */
       )) AS has_non_serp_ad_blocker
     FROM addon_rows
     GROUP BY 1, 2
