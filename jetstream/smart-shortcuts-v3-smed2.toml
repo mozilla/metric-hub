@@ -5,23 +5,36 @@ reference_branch = "control"
 
 [metrics]
 
-[metrics.organic_content_impressions]
+[metrics.organic_pocket_clicks]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.organic_content_clicks]
+[metrics.newtab_searches]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.sponsored_content_impressions]
+[metrics.newtab_pocket_enabled]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.sponsored_content_clicks]
+[metrics.newtab_sponsored_pocket_stories_enabled]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_gt4_searches]
+[metrics.organic_pocket_impressions]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.sponsored_pocket_ctr]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.any_sponsored_tiles_dismissals]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+
+[metrics.sponsored_tiles_dismissals_pos1_2]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
@@ -29,37 +42,27 @@ data_source = "noop_source"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_homepage_enabled]
+[metrics.newtab_gt4_searches]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.any_organic_content_clicks]
+[metrics.sponsored_pocket_clicks]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_sponsored_content_stories_enabled]
+[metrics.sponsored_pocket_impressions]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_content_enabled]
+[metrics.sponsored_tile_ctr]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_ad_click_rate]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.newtab_engaged_visits]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.newtab_visits]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-
-[metrics.newtab_searches]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
+[metrics.urlbar_topsite_clicks]
+select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
+friendly_name = "Urlbar topsite clicks"
 
 [data_sources.noop_source]
 from_expression = """(
