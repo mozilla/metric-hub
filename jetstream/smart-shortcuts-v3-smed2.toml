@@ -5,6 +5,10 @@ reference_branch = "control"
 
 [metrics]
 
+[metrics.sponsored_content_ctr]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
 [metrics.organic_content_impressions]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
@@ -26,6 +30,10 @@ select_expression = 'SUM(0)'
 data_source = "noop_source"
 
 [metrics.newtab_any_searches]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_engagement]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
@@ -57,9 +65,11 @@ data_source = "noop_source"
 select_expression = 'SUM(0)'
 data_source = "noop_source"
 
-[metrics.newtab_searches]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
+[metrics.urlbar_topsite_clicks]
+select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
+friendly_name = "Urlbar topsite clicks"
 
 [data_sources.noop_source]
 from_expression = """(
