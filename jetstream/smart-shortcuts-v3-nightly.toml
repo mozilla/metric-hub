@@ -2,13 +2,12 @@
 end_date = "2026-01-20"
 reference_branch = "control"
 
-# overwrite nonessential metrics with no-op
-
 [metrics]
 overall = ['urlbar_topsite_clicks']
 
 [metrics.urlbar_topsite_clicks]
+friendly_name = "Urlbar topsite clicks"
 select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+
 [metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
-friendly_name = "Urlbar topsite clicks"
