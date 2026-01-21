@@ -5,6 +5,8 @@ reference_branch = "control"
 
 [metrics]
 
+overall = ['urlbar_topsite_clicks']
+
 [metrics.organic_pocket_clicks]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
