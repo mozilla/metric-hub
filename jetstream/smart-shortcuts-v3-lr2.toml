@@ -76,8 +76,8 @@ statistics = { bootstrap_mean = {} }
 [metrics.urlbar_topsite_clicks]
 select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
-[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
 friendly_name = "Urlbar topsite clicks"
+[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
 
 [data_sources.noop_source]
 from_expression = """(
