@@ -35,7 +35,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: 'pip'
     - name: Build
       run: |
@@ -48,7 +48,7 @@ jobs:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ secrets.GCP_DRYRUN_SERVICE_ACCOUNT_EMAIL }}
         token_format: id_token
-        id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/bigquery-etl-dryrun
+        id_token_audience: https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/dryrun
         id_token_include_email: true
     - name: Export ID Token for Python
       env:

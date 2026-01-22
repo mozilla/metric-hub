@@ -1,0 +1,358 @@
+[experiment]
+analysis_unit = "client_id"
+
+enrollment_query = """
+SELECT * FROM
+(
+
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date. This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS analysis_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS analysis_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+    AND sample_id < 100
+GROUP BY
+    analysis_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
+"""
+
+
+# segment information: https://docs.telemetry.mozilla.org/concepts/segments.html
+segments = [
+  "new_or_resurrected_v3",
+  "activity_infrequent",
+  "activity_casual",
+  "activity_infrequent_or_casual",
+  "new_unique_profiles",
+
+  "last_dau_28_to_59_days_ago",
+  "last_dau_60_to_119_days_ago",
+  "last_dau_120_to_179_days_ago",
+  "new_or_last_dau_180plus_days_ago",
+]
+
+[metrics]
+
+weekly = [
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "ubo_newly_enabled",
+  "at_least_one_add_on_installed",
+  "at_least_two_add_ons_installed",
+  "searches_with_serp_ad_blocker",
+  "searches_with_non_serp_ad_blocker",
+  "searches_with_no_ad_blocker",
+]
+
+overall = [
+  "is_default_browser",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "ubo_newly_enabled",
+  "at_least_one_add_on_installed",
+  "at_least_two_add_ons_installed",
+  "searches_with_serp_ad_blocker",
+  "searches_with_non_serp_ad_blocker",
+  "searches_with_no_ad_blocker",
+]
+
+[metrics.number_of_desktop_launches.statistics.bootstrap_mean]
+[metrics.number_of_taskbar_launches.statistics.bootstrap_mean]
+[metrics.number_of_startmenu_launches.statistics.bootstrap_mean]
+[metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
+[metrics.ubo_newly_enabled.statistics.binomial]
+[metrics.at_least_one_add_on_installed.statistics.binomial]
+[metrics.at_least_two_add_ons_installed.statistics.binomial]
+[metrics.searches_with_serp_ad_blocker.statistics.bootstrap_mean]
+[metrics.searches_with_non_serp_ad_blocker.statistics.bootstrap_mean]
+[metrics.searches_with_no_ad_blocker.statistics.bootstrap_mean]
+
+[metrics.ubo_newly_enabled]
+friendly_name = "uBO newly enabled"
+description = "uBO not enabled the day before enrollment, and enabled at least once after enrollment"
+select_expression = """
+  LOGICAL_OR(submission_date >= e.enrollment_date AND has_ubo)
+  AND NOT LOGICAL_OR(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY) AND has_ubo)
+"""
+data_source = "search_and_addons_daily"
+window_start = -1
+
+[metrics.at_least_one_add_on_installed]
+friendly_name = "At least one add-on installed"
+description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 1"
+select_expression = """
+  COALESCE(MAX(IF(submission_date >= e.enrollment_date, enabled_addons, NULL)), 0)
+  -
+  COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
+  >= 1
+"""
+data_source = "search_and_addons_daily"
+window_start = -1
+
+[metrics.at_least_two_add_ons_installed]
+friendly_name = "At least two add-ons installed"
+description = "Maximum enabled add-on count after enrollment exceeds enabled add-on count before enrollment by at least 2"
+select_expression = """
+  COALESCE(MAX(IF(submission_date >= e.enrollment_date, enabled_addons, NULL)), 0)
+  -
+  COALESCE(MAX(IF(submission_date = DATE_SUB(e.enrollment_date, INTERVAL 1 DAY), enabled_addons, NULL)), 0)
+  >= 2
+"""
+data_source = "search_and_addons_daily"
+window_start = -1
+
+[metrics.searches_with_serp_ad_blocker]
+friendly_name = "Searches with SERP ad blocker"
+description = "Sum of searches (sap) on days where a SERP ad blocker is enabled"
+select_expression = "COALESCE(SUM(IF(has_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
+data_source = "search_and_addons_daily"
+
+[metrics.searches_with_non_serp_ad_blocker]
+friendly_name = "Searches with non-SERP ad blocker"
+description = "Sum of searches (sap) on days where a non-SERP ad blocker is enabled and no SERP ad blocker is enabled"
+select_expression = "COALESCE(SUM(IF(NOT has_serp_ad_blocker AND has_non_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
+data_source = "search_and_addons_daily"
+
+[metrics.searches_with_no_ad_blocker]
+friendly_name = "Searches with no ad blocker"
+description = "Sum of searches (sap) on days where no ad blockers are enabled"
+select_expression = "COALESCE(SUM(IF(NOT has_serp_ad_blocker AND NOT has_non_serp_ad_blocker, COALESCE(sap, 0), 0)), 0)"
+data_source = "search_and_addons_daily"
+
+[data_sources.search_and_addons_daily]
+from_expression = """(
+WITH
+  clients_daily_base AS (
+    SELECT
+      submission_date,
+      client_id,
+      profile_group_id,
+      experiments,
+      active_addons
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE
+      submission_date
+      BETWEEN DATE_SUB('2025-12-10', INTERVAL 1 DAY)
+      AND '2026-01-15'
+  ),
+  addon_rows AS (
+    SELECT
+      submission_date,
+      client_id,
+      a.addon_id
+    FROM clients_daily_base,
+    UNNEST(active_addons) AS a
+    WHERE NOT a.user_disabled
+      AND NOT a.app_disabled
+      AND NOT COALESCE(a.is_system, FALSE)
+      AND COALESCE(a.is_web_extension, FALSE)
+      AND a.addon_id NOT LIKE '%mozilla.org'
+  ),
+  addon_daily AS (
+    SELECT
+      submission_date,
+      client_id,
+      COUNT(1) AS enabled_addons,
+      LOGICAL_OR(addon_id IN (
+        'uBlock0@raymondhill.net'                    /* uBlock Origin */
+      )) AS has_ubo,
+      LOGICAL_OR(addon_id IN (
+        'uBlock0@raymondhill.net',                   /* uBlock Origin */
+        'adblockultimate@adblockultimate.net',       /* AdBlocker Ultimate */
+        'firefox@ghostery.com'                       /* Ghostery */
+      )) AS has_serp_ad_blocker,
+      LOGICAL_OR(addon_id IN (
+        '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}',  /* Adblock Plus */
+        'jid1-NIfFY2CA8fy1tg@jetpack'                /* Adblock */
+      )) AS has_non_serp_ad_blocker
+    FROM addon_rows
+    GROUP BY 1, 2
+  ),
+  search_daily AS (
+    SELECT
+      submission_date,
+      client_id,
+      SUM(COALESCE(sap, 0)) AS sap
+    FROM `mozdata.search.search_clients_engines_sources_daily`
+    WHERE submission_date BETWEEN '2025-12-10' AND '2026-01-15'
+    GROUP BY 1, 2
+  )
+SELECT
+  cd.submission_date,
+  cd.client_id,
+  cd.profile_group_id,
+  cd.experiments,
+  COALESCE(ad.enabled_addons, 0) AS enabled_addons,
+  COALESCE(ad.has_ubo, FALSE) AS has_ubo,
+  COALESCE(ad.has_serp_ad_blocker, FALSE) AS has_serp_ad_blocker,
+  COALESCE(ad.has_non_serp_ad_blocker, FALSE) AS has_non_serp_ad_blocker,
+  COALESCE(sd.sap, 0) AS sap
+FROM clients_daily_base AS cd
+LEFT JOIN addon_daily AS ad
+  USING (submission_date, client_id)
+LEFT JOIN search_daily AS sd
+  USING (submission_date, client_id)
+)"""
+friendly_name = "Daily search and add-on summary"
+description = """
+Daily client-level dataset combining enabled add-on state and search activity.
+Built on clients_daily and joined to daily search.
+"""
+
+# ============================================================================
+# USER SEGMENTS - Based on activity patterns before enrollment
+# ============================================================================
+# Using e.enrollment_date to reference enrollment date
+# (see https://github.com/mozilla/mozanalysis/blob/ccabadcc5233a1f48f528fa4a23e3495b3ac9ea2/src/mozanalysis/segments.py#L132-L156)
+# Using a 190 day week lookback window
+
+[segments.last_dau_28_to_59_days_ago]
+friendly_name = "Last DAU 28 to 59 days ago"
+description = "Clients who last counted towards DAU 28–59 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -190
+window_end = -1
+
+[segments.last_dau_60_to_119_days_ago]
+friendly_name = "Last DAU 60 to 119 days ago"
+description = "Clients who last counted towards DAU 60–119 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -190
+window_end = -1
+
+[segments.last_dau_120_to_179_days_ago]
+friendly_name = "Last DAU 120 to 179 days ago"
+description = "Clients who last counted towards DAU 120–179 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -190
+window_end = -1
+
+[segments.new_or_last_dau_180plus_days_ago]
+friendly_name = "New or last DAU 180+ days ago"
+description = """
+New Clients, or those whose last DAU before enrollment is >=180 days ago (or no DAU observed in lookback window).
+"""
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
+  )
+"""
+data_source = "active_users_last_seen"
+window_start = -190
+window_end = -1
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2025-12-10', INTERVAL 190 DAY)
+)"""
+window_start = -190

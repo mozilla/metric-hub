@@ -1,0 +1,24 @@
+[experiment]
+
+# sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
+enrollment_query = """
+  SELECT
+      e.profile_group_id AS analysis_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch')
+          AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+  FROM
+      `moz-fx-data-shared-prod.telemetry.events` e
+  WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date
+          BETWEEN '2025-12-01' AND '2025-12-09'
+      AND e.event_string_value = 'mozilla-foundation-donation-promotion-moments-page'
+      AND (
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'treatment-a' AND e.sample_id < 5) 
+        OR `mozfun.map.get_key`(e.event_map_values, 'branch') = 'control'
+      )
+  GROUP BY ALL
+"""
