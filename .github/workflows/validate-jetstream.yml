@@ -79,10 +79,7 @@ jobs:
       # add a helpful message about where to find generated SQL and data processing estimates
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          console.log("testing");
-          console.log(process.env.JETSTREAM_EXIT_CODE);
-          
+        script: |          
           await github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -90,10 +87,8 @@ jobs:
             body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
           });
 
-          console.log("testing2");
-
           /* add a helpful message to the PR about high data processing estimates */
-          if (process.env.JETSTREAM_EXIT_CODE == "2") {
+          if (process.env.JETSTREAM_EXIT_CODE == "3") {
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
