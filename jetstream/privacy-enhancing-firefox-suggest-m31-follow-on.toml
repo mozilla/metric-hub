@@ -1,13 +1,11 @@
 [experiment]
-end_date = "2026-02-10"
+end_date = "2026-02-09"
 
 [experiment.exposure_signal]
 
 name = "urlbar_usage"
 friendly_name = "URL bar usage"
 description = "Clients that engage with the URL bar"
-data_source = "urlbar_usage_clients"
-select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
 data_source = "urlbar_usage_clients"
 select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
 
