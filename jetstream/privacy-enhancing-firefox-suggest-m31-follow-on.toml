@@ -9,11 +9,6 @@ description = "Clients that engage with the URL bar"
 data_source = "urlbar_usage_clients"
 select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
 
-
-experiments_column_type = "none"
-friendly_name = "urlbar usage clients"
-description = "Events filtered to only include urlbar usage"
-
 [metrics]
 weekly = ["suggest_optout_rate", "sponsored_suggest_optout_rate"]
 
@@ -51,3 +46,6 @@ from_expression = """(
   GROUP BY ALL
 )"""
 
+experiments_column_type = "none"
+friendly_name = "urlbar usage clients"
+description = "Events filtered to only include urlbar usage"
