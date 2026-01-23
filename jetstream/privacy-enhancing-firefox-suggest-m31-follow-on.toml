@@ -8,6 +8,8 @@ friendly_name = "URL bar usage"
 description = "Clients that engage with the URL bar"
 data_source = "urlbar_usage_clients"
 select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
+data_source = "urlbar_usage_clients"
+select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
 
 [metrics]
 weekly = ["suggest_optout_rate", "sponsored_suggest_optout_rate"]
@@ -49,5 +51,3 @@ from_expression = """(
 experiments_column_type = "none"
 friendly_name = "urlbar usage clients"
 description = "Events filtered to only include urlbar usage"
-
-[data_sources.oops_empty_one]

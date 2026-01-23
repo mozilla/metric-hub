@@ -76,18 +76,13 @@ jobs:
             issue_number: context.issue.number,
             body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
           });
-    - name: Validation Data Warning Message
-      uses: actions/github-script@v8
-      if: ${{ github.event_name == 'pull_request' && failure() }}
-      # add a helpful message to the PR about high data processing estimates
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
+
+          /* add a helpful message to the PR about high data processing estimates */
           if (process.env.JETSTREAM_EXIT_CODE == "3") {
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: "⚠️ Experiment metrics query data processing estimate exceeded high threshold and may fail. Updating the configuration is recommended.\n\nThis does not block merging, but experiment analysis may timeout and require config changes."
+              body: "⚠️ Experiment metrics query data processing estimate exceeded high threshold and may timeout during analysis.\n\nThis does not block merging, but experiment analysis may timeout and require config changes."
             });
           }
