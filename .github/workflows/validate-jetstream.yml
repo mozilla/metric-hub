@@ -83,7 +83,7 @@ jobs:
           console.log("testing");
           console.log(process.env.JETSTREAM_EXIT_CODE);
           
-          await github.issues.createComment({
+          await github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
@@ -94,7 +94,7 @@ jobs:
 
           /* add a helpful message to the PR about high data processing estimates */
           if (process.env.JETSTREAM_EXIT_CODE == "2") {
-            await github.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
