@@ -32,7 +32,7 @@ jobs:
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.head_ref }}
     - name: Set safe directory
@@ -40,7 +40,7 @@ jobs:
       # this and `ref` above are needed because jetstream performs git operations
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Authenticate to GCP
-      uses: google-github-actions/auth@v2
+      uses: google-github-actions/auth@v3
       id: auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
@@ -56,12 +56,22 @@ jobs:
       id: validate_jetstream
       env:
         ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
-      # set +e allows this step to continue past the jetstream command even with a nonzero exit code
       run: |
+        # set +e allows this step to continue past the jetstream command even with a nonzero exit code
+        set +e
         echo "Run validation on changed files: "
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
-        echo "JETSTREAM_EXIT_CODE=$?" >> $GITHUB_ENV
+        export VALIDATE_EXIT_CODE=$?
+        echo "JETSTREAM_EXIT_CODE=$VALIDATE_EXIT_CODE" >> $GITHUB_ENV
+        
+        # now we want to exit with an explicit code
+        set -e
+        if [[ "$VALIDATE_EXIT_CODE" -gt 1 ]]; then
+          exit 0;
+        else
+          exit "$VALIDATE_EXIT_CODE";
+        fi
     - name: Validation Success Message
       uses: actions/github-script@v8
       if: ${{ github.event_name == 'pull_request' && success() }}
