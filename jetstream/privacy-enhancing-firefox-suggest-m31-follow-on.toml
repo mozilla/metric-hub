@@ -34,7 +34,7 @@ from_expression = """(
     legacy_telemetry_client_id as client_id,
     profile_group_id,
     CAST(submission_timestamp as DATE) as submission_date,
-    COUNT(1) as urlbar_usage
+    COUNT(1) as urlbar_usage,
     LOGICAL_OR(COALESCE(CAST(JSON_VALUE(metrics.boolean.urlbar_pref_suggest_all) AS BOOL), FALSE)) AS suggest_enabled,
     LOGICAL_OR(COALESCE(CAST(JSON_VALUE(metrics.boolean.urlbar_pref_suggest_sponsored) AS BOOL), FALSE)) AS sponsored_suggest_enabled
 
