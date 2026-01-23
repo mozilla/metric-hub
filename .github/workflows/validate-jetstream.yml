@@ -63,6 +63,7 @@ jobs:
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
         export VALIDATE_EXIT_CODE=$?
+        echo "test"
         echo "JETSTREAM_EXIT_CODE=$VALIDATE_EXIT_CODE" >> $GITHUB_ENV
         
         # now we want to exit with an explicit code
