@@ -64,7 +64,6 @@ jobs:
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
         export VALIDATE_EXIT_CODE=$?
-        echo "test"
         echo "JETSTREAM_EXIT_CODE=$VALIDATE_EXIT_CODE" >> $GITHUB_ENV
         
         # now we want to exit with an explicit code
@@ -81,16 +80,21 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          github.rest.issues.createComment({
+          console.log("testing");
+          console.log(process.env.JETSTREAM_EXIT_CODE);
+          
+          await github.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
             body: "✅ Jetstream Validation is complete. Check the CI logs for this step for **Query SQL** and **data processing estimates**."
           });
 
+          console.log("testing2");
+
           /* add a helpful message to the PR about high data processing estimates */
-          if (process.env.JETSTREAM_EXIT_CODE == "3") {
-            github.rest.issues.createComment({
+          if (process.env.JETSTREAM_EXIT_CODE == "2") {
+            await github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
