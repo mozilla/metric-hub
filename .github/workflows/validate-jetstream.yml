@@ -58,7 +58,6 @@ jobs:
         ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
       # set +e allows this step to continue past the jetstream command even with a nonzero exit code
       run: |
-        set +e
         echo "Run validation on changed files: "
         echo "jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES"
         jetstream validate_config --config_repos='.' --config_repos=jetstream/ $ALL_CHANGED_FILES
