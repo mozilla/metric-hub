@@ -54,6 +54,7 @@ jobs:
       run: echo "GOOGLE_GHA_ID_TOKEN=$GOOGLE_GHA_ID_TOKEN" >> $GITHUB_ENV
     - name: Validate jetstream config files
       id: validate_jetstream
+      shell: bash {0}
       env:
         ALL_CHANGED_FILES: ${{ needs.changed.outputs.all_changed_files }}
       run: |
