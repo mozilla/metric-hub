@@ -7,71 +7,65 @@ reference_branch = "control"
 
 overall = ['urlbar_topsite_clicks']
 
-[metrics.organic_pocket_clicks]
+[metrics.sponsored_content_ctr]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.newtab_searches]
+[metrics.organic_content_impressions]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.newtab_pocket_enabled]
+[metrics.organic_content_clicks]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.newtab_sponsored_pocket_stories_enabled]
+[metrics.sponsored_content_impressions]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.organic_pocket_impressions]
+[metrics.sponsored_content_clicks]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
-
-[metrics.sponsored_pocket_ctr]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
-
-[metrics.any_sponsored_tiles_dismissals]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
-
-
-[metrics.sponsored_tiles_dismissals_pos1_2]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
-
-[metrics.newtab_any_searches]
-select_expression = 'SUM(0)'
-data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
 [metrics.newtab_gt4_searches]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.sponsored_pocket_clicks]
+[metrics.newtab_any_searches]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.sponsored_pocket_impressions]
+[metrics.newtab_engagement]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
 
-[metrics.sponsored_tile_ctr]
+[metrics.newtab_homepage_enabled]
 select_expression = 'SUM(0)'
 data_source = "noop_source"
-statistics = { bootstrap_mean = {} }
+
+[metrics.any_organic_content_clicks]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_sponsored_content_stories_enabled]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_content_enabled]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_ad_click_rate]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_engaged_visits]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_visits]
+select_expression = 'SUM(0)'
+data_source = "noop_source"
 
 [metrics.urlbar_topsite_clicks]
 select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
