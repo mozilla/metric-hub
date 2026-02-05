@@ -1,6 +1,5 @@
 [experiment]
-#end_date = "2026-02-10"
-end_date = "2026-01-28"
+end_date = "2026-02-12"
 
 [experiment.exposure_signal]
 
