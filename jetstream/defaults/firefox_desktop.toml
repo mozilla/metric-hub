@@ -1,7 +1,13 @@
 # This defines the default metrics and statistics calculated for each experiment
 
 [metrics]
-daily = ["retained", "unenroll", "client_level_daily_active_users_v2"]
+daily = [
+  "retained",
+  "unenroll",
+  "client_level_daily_active_users_v2",
+  "active_hours",
+  "search_count",
+]
 
 weekly = [
   "active_hours",

@@ -1,5 +1,10 @@
 [metrics]
-daily = ["retained", "client_level_daily_active_users_v2"]
+daily = [
+    "retained",
+    "client_level_daily_active_users_v2",
+    "active_hours",
+    "total_uri_count",
+]
 weekly = [
     "retained",
     "active_hours",
@@ -66,7 +71,6 @@ empirical_cdf = {}
 drop_highest = 0.0
 [metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
-
 
 
 ##
