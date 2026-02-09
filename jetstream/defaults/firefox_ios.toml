@@ -53,7 +53,6 @@ binomial = {}
 
 [metrics.active_hours.statistics]
 deciles = {}
-bootstrap_mean = {}
 [metrics.active_hours.statistics.linear_model_mean]
 [metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
@@ -62,7 +61,6 @@ period = "preenrollment_week"
 
 [metrics.days_of_use.statistics]
 deciles = {}
-bootstrap_mean = { drop_highest = 0 }
 empirical_cdf = {}
 [metrics.days_of_use.statistics.linear_model_mean]
 drop_highest = 0.0
@@ -73,7 +71,6 @@ period = "preenrollment_week"
 
 [metrics.search_count.statistics]
 deciles = {}
-bootstrap_mean = {}
 [metrics.search_count.statistics.linear_model_mean]
 [metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
@@ -88,7 +85,6 @@ data_source = "mobile_search_clients_engines_sources_daily"
 
 [metrics.serp_ad_clicks.statistics]
 deciles = {}
-bootstrap_mean = {}
 [metrics.serp_ad_clicks.statistics.linear_model_mean]
 [metrics.serp_ad_clicks.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
@@ -104,7 +100,6 @@ description = "Total number of URIs visited by each client."
 
 [metrics.total_uri_count.statistics]
 deciles = {}
-bootstrap_mean = {}
 [metrics.total_uri_count.statistics.linear_model_mean]
 [metrics.total_uri_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
