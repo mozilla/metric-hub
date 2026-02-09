@@ -4,6 +4,7 @@ daily = [
     "client_level_daily_active_users_v2",
     "active_hours",
     "search_count",
+    "total_uri_count",
 ]
 weekly = [
     "retained",
@@ -12,6 +13,7 @@ weekly = [
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
+    "total_uri_count",
 ]
 overall = [
     "active_hours",
@@ -19,6 +21,7 @@ overall = [
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
+    "total_uri_count",
 ]
 
 preenrollment_weekly = [
@@ -27,6 +30,7 @@ preenrollment_weekly = [
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
+    "total_uri_count",
 ]
 
 preenrollment_days28 = [
@@ -35,6 +39,7 @@ preenrollment_days28 = [
     "search_count",
     "serp_ad_clicks",
     "client_level_daily_active_users_v2",
+    "total_uri_count",
 ]
 
 [metrics.retained]
@@ -90,3 +95,16 @@ period = "preenrollment_week"
 
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
+
+[metrics.total_uri_count]
+friendly_name = "Total URI Count"
+select_expression = "{{agg_sum('metrics.counter.tabs_normal_and_private_uri_count')}}"
+data_source = "metrics"
+description = "Total number of URIs visited by each client."
+
+[metrics.total_uri_count.statistics]
+deciles = {}
+bootstrap_mean = {}
+[metrics.total_uri_count.statistics.linear_model_mean]
+[metrics.total_uri_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
