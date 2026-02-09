@@ -545,3 +545,22 @@ AND (newtab_clients_daily_aggregates.sponsored_topsites_enabled = newtab_clients
 AND (newtab_clients_daily_aggregates.organic_topsites_enabled = newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled OR (newtab_clients_daily_aggregates.organic_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.newtab_search_enabled = newtab_clients_daily_aggregates_base_fields.newtab_search_enabled OR (newtab_clients_daily_aggregates.newtab_search_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_search_enabled IS NULL ))
 '''
+
+# New Profiles 
+
+[metrics.new_profile_count]
+data_source = "desktop_new_profiles"
+select_expression = "SUM(new_profiles)"
+
+# raw new profile count
+[metrics.new_profile_count.statistics.sum]
+[metrics.new_profile_count.statistics.rolling_average]
+aggregations = ["sum", "avg"]
+window_sizes = [24]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change"] }
+
+[data_sources.desktop_new_profiles]
+from_expression = "moz-fx-data-shared-prod.telemetry.desktop_new_profiles"
+friendly_name = "Desktop New Profiles"
+submission_date_column = "first_seen_date"
+client_id_column = "NULL"
