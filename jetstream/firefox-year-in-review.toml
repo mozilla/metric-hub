@@ -1,0 +1,51 @@
+[experiment]
+
+segments = [
+  "activity_infrequent",
+  "activity_casual",
+  "activity_core",
+  "regular_users_v3",
+
+  "profile_age_0_to_28_days",
+  "profile_age_29_to_180_days",
+  "profile_age_more_than_180_days",
+  "os_windows",
+  "os_mac",
+  "os_linux",
+]
+
+[segments.profile_age_0_to_28_days]
+friendly_name = "Profile Age 0 to 28 days"
+description = "Time since first-seen 0-28 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 28), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_29_to_180_days]
+friendly_name = "Profile Age 29 to 180 days"
+description = "Time since first-seen 29-180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 29 AND 180), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_more_than_180_days]
+friendly_name = "Profile Age more than 180 days"
+description = "Time since first-seen more than 180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 180), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.os_windows]
+friendly_name = "Windows"
+description = "Users on Windows"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) LIKE '%windows%'), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.os_mac]
+friendly_name = "Mac"
+description = "Users on Mac"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'darwin'), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.os_linux]
+friendly_name = "Linux"
+description = "Users on Linux"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'linux'), FALSE)"
+data_source = "clients_last_seen"

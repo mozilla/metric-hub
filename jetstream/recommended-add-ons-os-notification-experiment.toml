@@ -129,10 +129,6 @@ segments = [
 
 weekly = [
   "is_default_browser",
-  "number_of_desktop_launches",
-  "number_of_taskbar_launches",
-  "number_of_startmenu_launches",
-  "number_of_taskbartab_launches",
   "ubo_newly_enabled",
   "at_least_one_add_on_installed",
   "at_least_two_add_ons_installed",
@@ -143,10 +139,6 @@ weekly = [
 
 overall = [
   "is_default_browser",
-  "number_of_desktop_launches",
-  "number_of_taskbar_launches",
-  "number_of_startmenu_launches",
-  "number_of_taskbartab_launches",
   "ubo_newly_enabled",
   "at_least_one_add_on_installed",
   "at_least_two_add_ons_installed",
@@ -155,10 +147,6 @@ overall = [
   "searches_with_no_ad_blocker",
 ]
 
-[metrics.number_of_desktop_launches.statistics.bootstrap_mean]
-[metrics.number_of_taskbar_launches.statistics.bootstrap_mean]
-[metrics.number_of_startmenu_launches.statistics.bootstrap_mean]
-[metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
 [metrics.ubo_newly_enabled.statistics.binomial]
 [metrics.at_least_one_add_on_installed.statistics.binomial]
 [metrics.at_least_two_add_ons_installed.statistics.binomial]

@@ -1,0 +1,51 @@
+[experiment]
+end_date = "2026-02-12"
+
+[experiment.exposure_signal]
+
+name = "urlbar_usage"
+friendly_name = "URL bar usage"
+description = "Clients that engage with the URL bar"
+data_source = "urlbar_usage_clients"
+select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
+
+[metrics]
+weekly = ["suggest_optout_rate", "sponsored_suggest_optout_rate"]
+
+overall = ["suggest_optout_rate", "sponsored_suggest_optout_rate"]
+
+## Suggest opt-out
+[metrics.suggest_optout_rate]
+select_expression = "NOT COALESCE(MAX_BY(suggest_enabled, submission_date), FALSE)"
+data_source = "urlbar_usage_clients"
+
+## Sponsored suggest opt-out
+[metrics.sponsored_suggest_optout_rate]
+select_expression = "COALESCE(MAX_BY((NOT sponsored_suggest_enabled) AND suggest_enabled, submission_date), FALSE)"
+data_source = "urlbar_usage_clients"
+
+[metrics.suggest_optout_rate.statistics.binomial]
+[metrics.sponsored_suggest_optout_rate.statistics.binomial]
+
+
+[data_sources.urlbar_usage_clients]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    COUNT(1) as urlbar_usage,
+    LOGICAL_OR(COALESCE(CAST(JSON_VALUE(metrics.boolean.urlbar_pref_suggest_all) AS BOOL), FALSE)) AS suggest_enabled,
+    LOGICAL_OR(COALESCE(CAST(JSON_VALUE(metrics.boolean.urlbar_pref_suggest_sponsored) AS BOOL), FALSE)) AS sponsored_suggest_enabled
+
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'urlbar'
+    AND event_name IN ('engagement', 'abandonment')
+  GROUP BY ALL
+)"""
+
+experiments_column_type = "none"
+friendly_name = "urlbar usage clients"
+description = "Events filtered to only include urlbar usage"
