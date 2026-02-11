@@ -1509,15 +1509,9 @@ data_source = "clients_daily"
 friendly_name = "Retained"
 description = "Records whether a client submitted any pings (i.e. used Firefox)."
 
-[metrics.retention_active_in_last_3_days]
-select_expression = "COALESCE(active_in_last_3_days, FALSE)"
-data_source = "desktop_retention_clients"
-friendly_name = "3 Days Retention"
-description = "Records whether a client submitted any pings (i.e. used Firefox) on any of the last 3 days."
-
 [metrics.active_in_last_3_days]
-select_expression = "COALESCE(days_since_desktop_active, 30) < 3"
-data_source = "firefox_desktop_baseline_active_users_view"
+select_expression = "COALESCE(MIN(days_since_desktop_active), 30) < 3"
+data_source = "desktop_baseline_active_users_legacy"
 friendly_name = "3 Days Retention"
 description = "Records whether a client submitted any pings (i.e. used Firefox) on any of the last 3 days."
 
@@ -2216,18 +2210,23 @@ submission_date_column = "submission_date"
 client_id_column = "client_id"
 glean_client_id_column = "client_id"
 legacy_client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "none"
+experiments_column_type = "glean"
 deprecated = false
 
-[data_sources.desktop_retention_clients]
-friendly_name = "Desktop Retention Clients"
-description = "Contains retention information by client."
-from_expression = "mozdata.firefox_desktop.desktop_retention_clients"
+[data_sources.desktop_baseline_active_users_legacy]
+friendly_name = "Firefox Desktop Baseline Active Users"
+description = "Client-level table that indicates whether a client meets 'active user' criteria on a given submission_date."
+from_expression = """(
+    SELECT *
+     FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_active_users`
+    WHERE is_desktop
+)"""
 submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
-legacy_client_id_column = "legacy_telemetry_client_id"
 glean_client_id_column = "client_id"
-experiments_column_type = "none"
+legacy_client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "glean"
+deprecated = false
 
 [data_sources.site_breakage_events]
 from_expression = """(
