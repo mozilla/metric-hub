@@ -7,7 +7,8 @@ daily = [
   "client_level_daily_active_users_v2",
   "active_hours",
   "search_count",
-  "active_last_3_days",
+  "active_in_last_3_days",
+  "retention_active_in_last_3_days",
 ]
 
 weekly = [
@@ -96,7 +97,8 @@ period = "preenrollment_week"
 [metrics.retained.statistics.binomial]
 
 
-[metrics.active_last_3_days.statistics.binomial]
+[metrics.active_in_last_3_days.statistics.binomial]
+[metrics.retention_active_in_last_3_days.statistics.binomial]
 
 
 [metrics.uri_count.statistics.linear_model_mean]
