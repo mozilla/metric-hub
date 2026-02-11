@@ -2210,7 +2210,7 @@ submission_date_column = "submission_date"
 client_id_column = "client_id"
 glean_client_id_column = "client_id"
 legacy_client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "glean"
+experiments_column_type = "native"
 deprecated = false
 
 [data_sources.desktop_baseline_active_users_legacy]
@@ -2225,7 +2225,7 @@ submission_date_column = "submission_date"
 client_id_column = "legacy_telemetry_client_id"
 glean_client_id_column = "client_id"
 legacy_client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "glean"
+experiments_column_type = "native"
 deprecated = false
 
 [data_sources.site_breakage_events]
