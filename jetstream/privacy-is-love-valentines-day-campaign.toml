@@ -1,5 +1,16 @@
 [experiment]
 
+[metrics]
+weekly = ["opened_private_window"]
+overall = ["opened_private_window"]
+
+
+[metrics.opened_private_window]
+data_source = "clients_daily"
+select_expression = "COALESCE(MAX(CAST(dom_parentprocess_private_window_used AS int)), 0)"
+
+[metrics.opened_private_window.statistics.binomial]
+
 segments = [
   "activity_infrequent",
   "activity_casual",
