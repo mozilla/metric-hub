@@ -1,5 +1,8 @@
 [experiment]
 
+end_date = "2026-03-03"
+
+
 [metrics]
 weekly = ["opened_private_window"]
 overall = ["opened_private_window"]
