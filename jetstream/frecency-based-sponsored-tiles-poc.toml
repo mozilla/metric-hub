@@ -1,5 +1,11 @@
+[experiment]
+
+end_date = "2026-02-22"
+enrollment_period = 5
+
 # Third tile metrics
 [metrics]
+
 daily = ["total_third_tile_impressions",
             "total_third_tile_clicks",
             "total_third_tile_ctr"]
