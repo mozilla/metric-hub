@@ -18,8 +18,8 @@ FROM `moz-fx-data-shared-prod.firefox_desktop.messaging_system` AS messaging
 INNER JOIN `mozdata.telemetry.clients_daily` AS clients
 ON messaging.metrics.uuid.messaging_system_client_id = clients.client_id
 AND DATE(messaging.submission_timestamp) = clients.submission_date
-WHERE metrics.string.messaging_system_ping_type = 'toast_notification')
-AND clients.submission_date BETWEEN '{{experiment.start_date_str}}' AND '{{experiment.last_enrollment_date_str}}'
+WHERE metrics.string.messaging_system_ping_type = 'toast_notification'
+AND clients.submission_date BETWEEN '{{experiment.start_date_str}}' AND '{{experiment.last_enrollment_date_str}}')
 '''
 experiments_column_type = "glean"
 friendly_name = "Messaging System Spotlight Impressions"
