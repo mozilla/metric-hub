@@ -1,0 +1,29 @@
+[experiment]
+
+[experiment.exposure_signal]
+description = "filters to clients with experiment's spotlight message impression"
+name = "spotlight_exposure"
+friendly_name = "Spotlight Exposure"
+select_expression = """(
+    COALESCE(mozfun.map.get_key(ping_info.experiments, 'set-to-default-guidance-notification') IS NOT NULL
+             AND metrics.text2.messaging_system_message_id IN ('SET_DEFAULT_BROWSER_GUIDANCE_NOTIFICATION_WIN11', 'SET_T0_DEFAULT_GUIDANCE_NOTIFICATION_A', 'SET_T0_DEFAULT_GUIDANCE_NOTIFICATION_B'), FALSE)
+)"""
+data_source = "spotlight_impressions"
+window_start = 0
+window_end = "analysis_window_end"
+
+[data_sources]
+[data_sources.spotlight_impressions]
+from_expression = '''
+(SELECT messaging.*, messaging.metrics.uuid.messaging_system_client_id AS client_id, DATE(messaging.submission_timestamp) AS submission_date, clients.profile_group_id
+FROM `moz-fx-data-shared-prod.firefox_desktop.messaging_system` AS messaging
+INNER JOIN `mozdata.telemetry.clients_daily` AS clients
+ON messaging.metrics.uuid.messaging_system_client_id = clients.client_id
+AND DATE(messaging.submission_timestamp) = clients.submission_date
+WHERE metrics.string.messaging_system_ping_type = 'toast_notification'
+AND clients.submission_date BETWEEN '2026-01-26' AND '2026-02-24'
+AND DATE(messaging.submission_timestamp) BETWEEN '2026-01-26' AND '2026-02-24')
+'''
+experiments_column_type = "glean"
+friendly_name = "Messaging System Spotlight Impressions"
+description = "Spotlight Messaging Impressions"
