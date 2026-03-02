@@ -3,17 +3,6 @@
 enrollment_period = 7
 end_date = "2026-03-03"
 
-
-[metrics]
-weekly = ["opened_private_window"]
-overall = ["opened_private_window"]
-
-[metrics.opened_private_window]
-data_source = "clients_daily"
-select_expression = "COALESCE(MAX(CAST(dom_parentprocess_private_window_used AS int)), 0)"
-
-[metrics.opened_private_window.statistics.binomial]
-
 segments = [
   "activity_infrequent",
   "activity_casual",
@@ -31,6 +20,20 @@ segments = [
   "country_tier_1",
   "country_tier_other",
 ]
+
+
+[metrics]
+weekly = ["opened_private_window"]
+overall = ["opened_private_window"]
+
+[metrics.opened_private_window]
+data_source = "clients_daily"
+select_expression = "COALESCE(MAX(CAST(dom_parentprocess_private_window_used AS int)), 0)"
+
+[metrics.opened_private_window.statistics.binomial]
+
+
+[segments]
 
 [segments.profile_age_0_to_28_days]
 friendly_name = "Profile Age 0 to 28 days"
