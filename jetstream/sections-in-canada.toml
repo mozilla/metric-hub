@@ -1,2 +1,26 @@
 [experiment]
 end_date = "2026-03-04"
+
+[metrics]
+[metrics.saw_newtab]
+friendly_name = "No-op Ever saw New Tab"
+description = "Skipped version of the metric."
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[metrics.newtab_sessions]
+friendly_name = "No-op Count of New Tab sessions"
+description = "Skipped version of the metric."
+select_expression = 'SUM(0)'
+data_source = "noop_source"
+
+[data_sources.noop_source]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"
