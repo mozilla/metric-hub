@@ -1,0 +1,265 @@
+[experiment]
+analysis_unit = "client_id"
+
+enrollment_query = """
+SELECT * FROM
+(
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date. This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS analysis_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS analysis_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+    AND sample_id < 100
+GROUP BY
+    analysis_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
+"""
+
+segments = [
+#   CDOU (cumulative days of use)
+  "cummulative_days_of_use_0",
+  "cummulative_days_of_use_1",
+  "cummulative_days_of_use_2_more",
+
+#   Onboarding Intent
+  "onboarding_intent_privacy_and_security",
+  "onboarding_intent_productivity",
+  "onboarding_intent_other",
+
+#   Onboarding Purpose
+  "onboarding_purpose_work",
+  "onboarding_purpose_school",
+  "onboarding_purpose_personal",
+]
+
+####################################################
+# Define the CDOU (cumulative days of use) segments
+
+[segments.cummulative_days_of_use_0]
+friendly_name = "Cummulative Days of use 0"
+description = "New Clients who have 0 active days prior to enrollment"
+select_expression = "MAX(submission_date) IS NULL"
+data_source = "active_users_last_seen"
+window_start = -3
+window_end = -1
+
+[segments.cummulative_days_of_use_1]
+friendly_name = "Cummulative Days of use 1"
+description = "New Clients who have 1 active days prior to enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) = 1, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -3
+window_end = -1
+
+[segments.cummulative_days_of_use_2_more]
+friendly_name = "Cummulative Days of use 2 or more"
+description = "New Clients who have 2 or more active days prior to enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 2, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -3
+window_end = -1
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2025-02-17', INTERVAL 3 DAY)
+)"""
+window_start = -3
+window_end = "analysis_window_end"
+
+####################################################
+# Define the Onboarding Intent Segments
+
+[segments.onboarding_intent_privacy_and_security]
+friendly_name = "Onboarding Intent privacy-and-security"
+description = "New Clients who selected Privacy-and-security as onboarding intent"
+select_expression = "COALESCE(selection LIKE '%Privacy and Security%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+[segments.onboarding_intent_productivity]
+friendly_name = "Onboarding Intent Productivity"
+description = "New Clients who selected Productivity as onboarding intent"
+select_expression = "COALESCE(selection LIKE '%Productivity%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+[segments.onboarding_intent_other]
+friendly_name = "Onboarding Intent Other"
+description = "New Clients who selected Other as onboarding intent"
+select_expression = "COALESCE(selection LIKE '%Other%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+####################################################
+# Define the Onboarding Intent Segments
+
+[segments.onboarding_purpose_work]
+friendly_name = "Onboarding Purpose Work"
+description = "New Clients who selected Work as onboarding purpose"
+select_expression = "COALESCE(selection LIKE '%Work%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+[segments.onboarding_purpose_school]
+friendly_name = "Onboarding Purpose School"
+description = "New Clients who selected School as onboarding purpose"
+select_expression = "COALESCE(selection LIKE '%School%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+[segments.onboarding_purpose_personal]
+friendly_name = "Onboarding Purpose Personal"
+description = "New Clients who selected Personal as onboarding purpose"
+select_expression = "COALESCE(selection LIKE '%Personal%', FALSE)"
+data_source = "onboarding_selection"
+window_start = -3
+
+[segments.data_sources.onboarding_selection]
+from_expression = """(
+WITH 
+ExperimentEvents AS (
+  SELECT
+    client_id,
+    mozfun.map.get_key(experiments, 'onboarding-personalized-addons').branch AS branch,
+    JSON_EXTRACT_ARRAY(event_context, '$.source')  AS checkbox_sources
+  FROM `moz-fx-data-shared-prod.firefox_desktop.onboarding`
+  WHERE 
+    DATE(submission_timestamp) >= '2026-02-14'
+    AND event = 'SELECT_CHECKBOX'
+),
+CheckboxSelectionByClientID AS (
+  SELECT
+    client_id,
+    ARRAY_CONCAT_AGG(checkbox_sources) AS all_selected_checkboxes
+  FROM ExperimentEvents
+  GROUP BY client_id
+)
+SELECT 
+  client_id,
+  ARRAY_TO_STRING(
+      ARRAY_AGG(
+        CASE
+            WHEN s = '"checkbox-use-case-1"' THEN 'Personal'
+            WHEN s = '"checkbox-use-case-2"' THEN 'School'
+            WHEN s = '"checkbox-use-case-3"' THEN 'Work'
+            WHEN s = '"checkbox-motivation-1"' THEN 'Privacy and Security'
+            WHEN s = '"checkbox-motivation-2"' THEN 'Productivity'
+            WHEN s = '"checkbox-motivation-3"' THEN 'Other'
+        END ),
+      ', '
+    ) AS selection
+FROM CheckboxSelectionByClientID, UNNEST(all_selected_checkboxes) AS s
+WHERE 
+  ARRAY_LENGTH(all_selected_checkboxes) > 0
+  AND s IN ('"checkbox-use-case-1"',
+    '"checkbox-use-case-2"',
+    '"checkbox-use-case-3"',
+    '"checkbox-motivation-1"',
+    '"checkbox-motivation-2"',
+    '"checkbox-motivation-3"')
+GROUP BY
+  client_id
+)"""
+window_start = -3
+window_end = "analysis_window_end"
