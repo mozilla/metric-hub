@@ -1,5 +1,6 @@
 """Experimenter API client."""
 
+import asyncio
 import logging
 import time
 from typing import Any
@@ -30,10 +31,10 @@ def retry_get(url: str, max_retries: int = MAX_RETRIES) -> Any:
                 raise Exception(f"Failed to fetch {url} after {max_retries} retries") from e
 
 
-def fetch_experiments() -> list[dict[str, Any]]:
+async def fetch_experiments() -> list[dict[str, Any]]:
     """Fetch all experiments from Experimenter API."""
     try:
-        return retry_get(EXPERIMENTER_API_URL)
+        return await asyncio.to_thread(retry_get, EXPERIMENTER_API_URL)
     except Exception as e:
         logger.error(f"Error fetching experiments from Experimenter: {e}")
         return []

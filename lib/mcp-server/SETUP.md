@@ -7,7 +7,7 @@ The Metric Hub MCP server is deployed on Cloud Run. Connect your MCP client to t
 ### Claude CLI
 
 ```bash
-claude mcp add --transport http metric-hub https://<cloud-run-url>/mcp
+claude mcp add --transport sse metric-hub https://metric-hub-mcp-744009727678.us-west1.run.app/sse
 ```
 
 Or edit `~/.claude/mcp.json` manually:
@@ -16,8 +16,8 @@ Or edit `~/.claude/mcp.json` manually:
 {
   "mcpServers": {
     "metric-hub": {
-      "type": "http",
-      "url": "https://<cloud-run-url>/mcp"
+      "type": "claude mcp add --transport sse metric-hub https://metric-hub-mcp-744009727678.us-west1.run.app/sse",
+      "url": "https://metric-hub-mcp-744009727678.us-west1.run.app/sse"
     }
   }
 }
@@ -28,7 +28,7 @@ Verify with `claude mcp list`.
 ### Gemini CLI
 
 ```bash
-gemini mcp add metric-hub https://<cloud-run-url>/mcp
+gemini mcp add metric-hub https://metric-hub-mcp-744009727678.us-west1.run.app/sse
 ```
 
 Or edit `~/.config/gemini-cli/settings.json` manually:
@@ -37,7 +37,7 @@ Or edit `~/.config/gemini-cli/settings.json` manually:
 {
   "mcpServers": {
     "metric-hub": {
-      "url": "https://<cloud-run-url>/mcp",
+      "url": "https://metric-hub-mcp-744009727678.us-west1.run.app/sse",
       "timeout": 30000
     }
   }
@@ -48,7 +48,7 @@ Verify the connection with `/mcp` — `metric-hub` should show as **CONNECTED**.
 
 ### Other MCP Clients
 
-Connect to `https://<cloud-run-url>/mcp` using SSE or streamable HTTP transport.
+Connect to `https://metric-hub-mcp-744009727678.us-west1.run.app/sse` using SSE or streamable HTTP transport.
 
 ## Environment Variables (Cloud Run)
 
@@ -61,7 +61,7 @@ Connect to `https://<cloud-run-url>/mcp` using SSE or streamable HTTP transport.
 ## Testing
 
 ```bash
-npx @modelcontextprotocol/inspector https://<cloud-run-url>/mcp
+npx @modelcontextprotocol/inspector https://metric-hub-mcp-744009727678.us-west1.run.app/sse
 ```
 
 ## Local Development

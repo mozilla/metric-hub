@@ -3,6 +3,8 @@
 import logging
 from typing import Any
 
+import asyncio
+
 import requests
 from mcp.types import TextContent
 
@@ -22,21 +24,21 @@ PLATFORM_TO_BQ_DATASET: dict[str, str] = {
 }
 
 
-def _fetch_glean_metrics(product: str) -> dict:
-    """Fetch all metrics for a product from the Glean probe scraper."""
+def _fetch_glean_metrics_sync(product: str) -> dict:
     probe_product = product.replace("_", "-")
     url = f"{GLEAN_DICTIONARY_BASE}/glean/{probe_product}/metrics"
     try:
-        response = requests.get(
-            url,
-            timeout=30,
-            headers={"User-Agent": "metric-hub-mcp/0.1.0"},
-        )
+        response = requests.get(url, timeout=30, headers={"User-Agent": "metric-hub-mcp/0.1.0"})
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
         logger.error(f"Failed to fetch Glean metrics for {product}: {e}")
         return {}
+
+
+async def _fetch_glean_metrics(product: str) -> dict:
+    """Fetch all metrics for a product from the Glean probe scraper."""
+    return await asyncio.to_thread(_fetch_glean_metrics_sync, product)
 
 
 LOOKER_BASE = "https://mozilla.cloud.looker.com"
@@ -88,6 +90,10 @@ def _build_looker_url(
         if filters.get("os"):
             params.append(("f[event_funnel.os]", filters["os"]))
 
+    fields = ",".join(f"event_funnel.step_{i}_clients" for i in range(1, len(steps) + 1))
+    params.append(("fields", fields))
+    params.append(("toggle", "vis,vse"))
+
     return f"{LOOKER_BASE}/explore/{product}/event_funnel?{urlencode(params)}"
 
 
@@ -97,7 +103,7 @@ async def handle_search_glean_events(arguments: dict[str, Any]) -> list[TextCont
     product = arguments.get("product", "firefox_desktop")
     query = arguments["query"].lower()
 
-    all_metrics = _fetch_glean_metrics(product)
+    all_metrics = await _fetch_glean_metrics(product)
     if not all_metrics:
         return [TextContent(type="text", text=f"Failed to fetch metrics for '{product}' from Glean.")]
 
@@ -156,7 +162,7 @@ async def handle_get_glean_event(arguments: dict[str, Any]) -> list[TextContent]
     product = arguments.get("product", "firefox_desktop")
     metric_name = arguments["metric_name"]
 
-    all_metrics = _fetch_glean_metrics(product)
+    all_metrics = await _fetch_glean_metrics(product)
     if not all_metrics:
         return [TextContent(type="text", text=f"Failed to fetch metrics for '{product}' from Glean.")]
 
@@ -203,7 +209,7 @@ async def handle_list_glean_event_categories(arguments: dict[str, Any]) -> list[
     """List all event categories for a product."""
     product = arguments.get("product", "firefox_desktop")
 
-    all_metrics = _fetch_glean_metrics(product)
+    all_metrics = await _fetch_glean_metrics(product)
     if not all_metrics:
         return [TextContent(type="text", text=f"Failed to fetch metrics for '{product}' from Glean.")]
 
@@ -246,7 +252,7 @@ async def handle_build_funnel_url(arguments: dict[str, Any]) -> list[TextContent
         return [TextContent(type="text", text="The event_funnel explore supports up to 4 steps.")]
 
     # Validate events against Glean
-    all_metrics = _fetch_glean_metrics(product)
+    all_metrics = await _fetch_glean_metrics(product)
     validation_notes: list[str] = []
     if all_metrics:
         for step in steps:
@@ -284,7 +290,7 @@ async def handle_build_funnel_url(arguments: dict[str, Any]) -> list[TextContent
         for k, v in filters.items():
             result += f"- **{k}:** {v}\n"
 
-    result += f"\n## Looker Explore\n\n[Open in Looker]({url})\n\n```\n{url}\n```\n"
+    result += f"\n## Looker Explore\n\nOpen with: `open \"{url}\"`\n"
 
     return [TextContent(type="text", text=result)]
 

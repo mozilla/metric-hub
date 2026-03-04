@@ -417,24 +417,19 @@ async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     """Run the MCP server via HTTP SSE (Cloud Run mode)."""
     from mcp.server.sse import SseServerTransport
     from starlette.applications import Starlette
-    from starlette.responses import Response
-    from starlette.routing import Route
+    from starlette.routing import Mount, Route
     import uvicorn
 
-    async def handle_sse(_request):
-        async with SseServerTransport("/messages") as (read_stream, write_stream):
-            await app.run(read_stream, write_stream, app.create_initialization_options())
-            return Response()
+    sse = SseServerTransport("/messages/")
 
-    async def handle_messages(_request):
-        async with SseServerTransport("/messages") as (read_stream, write_stream):
-            await app.run(read_stream, write_stream, app.create_initialization_options())
-            return Response()
+    async def handle_sse(request):
+        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+            await app.run(streams[0], streams[1], app.create_initialization_options())
 
     starlette_app = Starlette(
         routes=[
             Route("/sse", endpoint=handle_sse),
-            Route("/messages", endpoint=handle_messages, methods=["POST"]),
+            Mount("/messages/", app=sse.handle_post_message),
         ]
     )
 
@@ -450,16 +445,14 @@ def cli() -> None:
 
 def cli_http() -> None:
     """CLI entry point for HTTP/SSE mode (Cloud Run)."""
-    import argparse
     import asyncio
+    import os
 
-    parser = argparse.ArgumentParser(description="Run Metric Hub MCP Server in HTTP/SSE mode")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
-    args = parser.parse_args()
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", 8080))
 
-    logger.info(f"Starting Metric Hub MCP Server on {args.host}:{args.port}")
-    asyncio.run(run_sse_server(host=args.host, port=args.port))
+    logger.info(f"Starting Metric Hub MCP Server on {host}:{port}")
+    asyncio.run(run_sse_server(host=host, port=port))
 
 
 if __name__ == "__main__":

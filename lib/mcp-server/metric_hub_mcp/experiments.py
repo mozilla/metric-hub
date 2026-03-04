@@ -31,7 +31,7 @@ async def handle_list_experiments(arguments: dict[str, Any]) -> list[TextContent
     app_name_filter = arguments.get("app_name")
     is_rollout_filter = arguments.get("is_rollout")
 
-    experiments = fetch_experiments()
+    experiments = await fetch_experiments()
 
     if not experiments:
         return [TextContent(type="text", text="No experiments found or error fetching from Experimenter")]
@@ -99,7 +99,7 @@ async def handle_get_experiment(arguments: dict[str, Any]) -> list[TextContent]:
     """Get detailed information about a specific experiment from Experimenter."""
     slug = arguments["slug"]
 
-    experiments = fetch_experiments()
+    experiments = await fetch_experiments()
     if not experiments:
         return [TextContent(type="text", text="Error fetching experiments from Experimenter")]
 
