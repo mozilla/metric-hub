@@ -140,7 +140,7 @@ window_end = -1
 [segments.cumulative_days_of_use_1]
 friendly_name = "Cumulative Days of use 1"
 description = "New Clients who have 1 active days prior to enrollment"
-select_expression = "COUNT(submission_date) = 1, FALSE)"
+select_expression = "COALESCE(COUNT(submission_date) = 1, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -3
 window_end = -1
@@ -148,7 +148,7 @@ window_end = -1
 [segments.cumulative_days_of_use_2_more]
 friendly_name = "Cumulative Days of use 2 or more"
 description = "New Clients who have 2 or more active days prior to enrollment"
-select_expression = "COUNT(submission_date) >= 2, FALSE)"
+select_expression = "COALESCE(COUNT(submission_date) >= 2, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -3
 window_end = -1
