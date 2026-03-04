@@ -111,9 +111,9 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 
 segments = [
 #   CDOU (cumulative days of use)
-  "cummulative_days_of_use_0",
-  "cummulative_days_of_use_1",
-  "cummulative_days_of_use_2_more",
+  "cumulative_days_of_use_0",
+  "cumulative_days_of_use_1",
+  "cumulative_days_of_use_2_more",
 
 #   Onboarding Intent
   "onboarding_intent_privacy_and_security",
@@ -129,24 +129,24 @@ segments = [
 ####################################################
 # Define the CDOU (cumulative days of use) segments
 
-[segments.cummulative_days_of_use_0]
-friendly_name = "Cummulative Days of use 0"
+[segments.cumulative_days_of_use_0]
+friendly_name = "Cumulative Days of use 0"
 description = "New Clients who have 0 active days prior to enrollment"
-select_expression = "MAX(submission_date) IS NULL"
+select_expression = "MAX(submission_date) IS NULL OR COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) = 0"
 data_source = "active_users_last_seen"
 window_start = -3
 window_end = -1
 
-[segments.cummulative_days_of_use_1]
-friendly_name = "Cummulative Days of use 1"
+[segments.cumulative_days_of_use_1]
+friendly_name = "Cumulative Days of use 1"
 description = "New Clients who have 1 active days prior to enrollment"
 select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) = 1, FALSE)"
 data_source = "active_users_last_seen"
 window_start = -3
 window_end = -1
 
-[segments.cummulative_days_of_use_2_more]
-friendly_name = "Cummulative Days of use 2 or more"
+[segments.cumulative_days_of_use_2_more]
+friendly_name = "Cumulative Days of use 2 or more"
 description = "New Clients who have 2 or more active days prior to enrollment"
 select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 2, FALSE)"
 data_source = "active_users_last_seen"
@@ -162,7 +162,7 @@ from_expression = """(
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
-    AND submission_date >= DATE_SUB('2025-02-17', INTERVAL 3 DAY)
+    AND submission_date >= DATE_SUB('2026-02-17', INTERVAL 3 DAY)
 )"""
 window_start = -3
 
