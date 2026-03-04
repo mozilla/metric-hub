@@ -165,7 +165,6 @@ from_expression = """(
     AND submission_date >= DATE_SUB('2025-02-17', INTERVAL 3 DAY)
 )"""
 window_start = -3
-window_end = "analysis_window_end"
 
 ####################################################
 # Define the Onboarding Intent Segments
@@ -176,6 +175,7 @@ description = "New Clients who selected Privacy-and-security as onboarding inten
 select_expression = "COALESCE(selection LIKE '%Privacy and Security%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 [segments.onboarding_intent_productivity]
 friendly_name = "Onboarding Intent Productivity"
@@ -183,6 +183,7 @@ description = "New Clients who selected Productivity as onboarding intent"
 select_expression = "COALESCE(selection LIKE '%Productivity%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 [segments.onboarding_intent_other]
 friendly_name = "Onboarding Intent Other"
@@ -190,6 +191,7 @@ description = "New Clients who selected Other as onboarding intent"
 select_expression = "COALESCE(selection LIKE '%Other%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 ####################################################
 # Define the Onboarding Intent Segments
@@ -200,6 +202,7 @@ description = "New Clients who selected Work as onboarding purpose"
 select_expression = "COALESCE(selection LIKE '%Work%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 [segments.onboarding_purpose_school]
 friendly_name = "Onboarding Purpose School"
@@ -207,6 +210,7 @@ description = "New Clients who selected School as onboarding purpose"
 select_expression = "COALESCE(selection LIKE '%School%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 [segments.onboarding_purpose_personal]
 friendly_name = "Onboarding Purpose Personal"
@@ -214,6 +218,7 @@ description = "New Clients who selected Personal as onboarding purpose"
 select_expression = "COALESCE(selection LIKE '%Personal%', FALSE)"
 data_source = "onboarding_selection"
 window_start = -3
+window_end = "analysis_window_end"
 
 [segments.data_sources.onboarding_selection]
 from_expression = """(
@@ -262,4 +267,3 @@ GROUP BY
   client_id
 )"""
 window_start = -3
-window_end = "analysis_window_end"
