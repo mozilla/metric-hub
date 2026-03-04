@@ -226,6 +226,7 @@ WITH
 ExperimentEvents AS (
   SELECT
     client_id,
+    DATE(submission_timestamp) AS submission_date,
     mozfun.map.get_key(experiments, 'onboarding-personalized-addons').branch AS branch,
     JSON_EXTRACT_ARRAY(event_context, '$.source')  AS checkbox_sources
   FROM `moz-fx-data-shared-prod.firefox_desktop.onboarding`
@@ -236,12 +237,16 @@ ExperimentEvents AS (
 CheckboxSelectionByClientID AS (
   SELECT
     client_id,
+    submission_date
     ARRAY_CONCAT_AGG(checkbox_sources) AS all_selected_checkboxes
   FROM ExperimentEvents
-  GROUP BY client_id
+  GROUP BY
+    client_id,
+    submission_date
 )
 SELECT 
   client_id,
+  submission_date,
   ARRAY_TO_STRING(
       ARRAY_AGG(
         CASE
@@ -264,6 +269,7 @@ WHERE
     '"checkbox-motivation-2"',
     '"checkbox-motivation-3"')
 GROUP BY
-  client_id
+  client_id,
+  submission_date
 )"""
 window_start = -3
