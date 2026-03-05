@@ -1,5 +1,4 @@
 [experiment]
-end_date = "2026-02-06"
 reference_branch = "control"
 
 [metrics]
