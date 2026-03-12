@@ -1,3 +1,6 @@
+[experiment]
+enrollment_period = 14
+
 [metrics]
 weekly = ["spoc_tiles_impressions", "spoc_tiles_clicks"]
 overall = ["spoc_tiles_impressions", "spoc_tiles_clicks"]
