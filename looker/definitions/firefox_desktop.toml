@@ -36,6 +36,7 @@ description = "(non-official) Monthly active users on desktop based on engagment
 
 
 [metrics.desktop_engagement_dau_v1.statistics.sum]
+[metrics.desktop_engagement_dau_v1.statistics.average]
 [metrics.desktop_engagement_wau_v1.statistics.sum]
 [metrics.desktop_engagement_mau_v1.statistics.sum]
 
@@ -44,7 +45,9 @@ numerator = "desktop_engagement_dau_v1.sum"
 denominator = "desktop_engagement_mau_v1.sum"
 
 [metrics.desktop_engagement_dau_v1.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
 window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
 
 ## New Tab metrics
@@ -520,7 +523,7 @@ client_id_column = "NULL"
 columns_as_dimensions = false
 
 [data_sources.newtab_clients_daily_aggregates_base_fields]
-from_expression = '''(SELECT 
+from_expression = '''(SELECT
 submission_date, app_version, os, channel, locale, country, homepage_category, newtab_category,
 organic_content_enabled, sponsored_content_enabled, sponsored_topsites_enabled, organic_topsites_enabled, newtab_search_enabled
 FROM moz-fx-data-shared-prod.firefox_desktop_derived.newtab_clients_daily_aggregates_v2)'''
@@ -531,7 +534,7 @@ columns_as_dimensions = true
 [data_sources.newtab_clients_daily_aggregates.joins.newtab_clients_daily_aggregates_base_fields]
 relationship = "one_to_one"
 on_expression = '''
-(newtab_clients_daily_aggregates.submission_date = newtab_clients_daily_aggregates_base_fields.submission_date OR (newtab_clients_daily_aggregates.submission_date IS NULL AND newtab_clients_daily_aggregates_base_fields.submission_date IS NULL )) 
+(newtab_clients_daily_aggregates.submission_date = newtab_clients_daily_aggregates_base_fields.submission_date OR (newtab_clients_daily_aggregates.submission_date IS NULL AND newtab_clients_daily_aggregates_base_fields.submission_date IS NULL ))
 AND (newtab_clients_daily_aggregates.app_version = newtab_clients_daily_aggregates_base_fields.app_version OR (newtab_clients_daily_aggregates.app_version IS NULL AND newtab_clients_daily_aggregates_base_fields.app_version IS NULL ))
 AND (newtab_clients_daily_aggregates.os = newtab_clients_daily_aggregates_base_fields.os OR (newtab_clients_daily_aggregates.os IS NULL AND newtab_clients_daily_aggregates_base_fields.os IS NULL ))
 AND (newtab_clients_daily_aggregates.channel = newtab_clients_daily_aggregates_base_fields.channel OR (newtab_clients_daily_aggregates.channel IS NULL AND newtab_clients_daily_aggregates_base_fields.channel IS NULL ))
@@ -545,3 +548,88 @@ AND (newtab_clients_daily_aggregates.sponsored_topsites_enabled = newtab_clients
 AND (newtab_clients_daily_aggregates.organic_topsites_enabled = newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled OR (newtab_clients_daily_aggregates.organic_topsites_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.organic_topsites_enabled IS NULL ))
 AND (newtab_clients_daily_aggregates.newtab_search_enabled = newtab_clients_daily_aggregates_base_fields.newtab_search_enabled OR (newtab_clients_daily_aggregates.newtab_search_enabled IS NULL AND newtab_clients_daily_aggregates_base_fields.newtab_search_enabled IS NULL ))
 '''
+
+# New Profiles
+
+[metrics.new_profile_count]
+data_source = "desktop_new_profiles"
+select_expression = "SUM(new_profiles)"
+
+# raw new profile count
+[metrics.new_profile_count.statistics.sum]
+[metrics.new_profile_count.statistics.rolling_average]
+aggregations = ["sum", "avg"]
+window_sizes = [28] #28 days for rolling average
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+
+[data_sources.desktop_new_profiles]
+from_expression = "moz-fx-data-shared-prod.telemetry.desktop_new_profiles"
+friendly_name = "Desktop New Profiles"
+submission_date_column = "first_seen_date"
+client_id_column = "NULL"
+
+# Retention
+
+[metrics.new_profile_retention_count]
+data_source = "desktop_retention_by_first_seen_date"
+select_expression = "SUM(retained_week_4_new_profiles)"
+friendly_name = "New Profile Retention Count"
+description = "Count of new profiles retained at week 4, by first seen date"
+
+[metrics.new_profile_retention_count.statistics.sum]
+[metrics.new_profile_retention_count.statistics.average]
+[metrics.new_profile_retention_count.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
+window_sizes = [28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+[metrics.new_profile_retention_count.statistics.ratio]
+numerator = "new_profile_retention_count.sum"
+denominator = "new_profile_active_count.sum"
+
+
+[metrics.new_profile_active_count]
+data_source = "desktop_retention_by_first_seen_date"
+select_expression = "SUM(new_profiles_metric_date)"
+friendly_name = "New Profile Active Count"
+description = "Count of new profiles on metric date, by first seen date"
+
+[metrics.new_profile_active_count.statistics.sum]
+
+[metrics.retention_count]
+data_source = "desktop_retention_by_metric_date"
+select_expression = "SUM(retained_week_4)"
+friendly_name = "Retention Count"
+description = "Count of clients retained at week 4, by metric date"
+
+[metrics.retention_count.statistics.sum]
+[metrics.retention_count.statistics.average]
+[metrics.retention_count.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
+window_sizes = [28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+[metrics.retention_count.statistics.ratio]
+numerator = "retention_count.sum"
+denominator = "active_count.sum"
+
+[metrics.active_count]
+data_source = "desktop_retention_by_metric_date"
+select_expression = "SUM(active_metric_date)"
+friendly_name = "Active Count"
+description = "Count of clients active on metric date"
+
+[metrics.active_count.statistics.sum]
+
+[data_sources.desktop_retention_by_first_seen_date]
+from_expression = "moz-fx-data-shared-prod.telemetry.desktop_retention"
+friendly_name = "Desktop Retention (by First Seen Date)"
+submission_date_column = "first_seen_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+[data_sources.desktop_retention_by_metric_date]
+from_expression = "moz-fx-data-shared-prod.telemetry.desktop_retention"
+friendly_name = "Desktop Retention (by Metric Date)"
+submission_date_column = "metric_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
