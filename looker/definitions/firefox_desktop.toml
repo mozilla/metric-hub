@@ -36,6 +36,7 @@ description = "(non-official) Monthly active users on desktop based on engagment
 
 
 [metrics.desktop_engagement_dau_v1.statistics.sum]
+[metrics.desktop_engagement_dau_v1.statistics.average]
 [metrics.desktop_engagement_wau_v1.statistics.sum]
 [metrics.desktop_engagement_mau_v1.statistics.sum]
 
@@ -44,7 +45,9 @@ numerator = "desktop_engagement_dau_v1.sum"
 denominator = "desktop_engagement_mau_v1.sum"
 
 [metrics.desktop_engagement_dau_v1.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
 window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
 
 ## New Tab metrics
@@ -499,7 +502,8 @@ submission_date_column = "submission_date"
 description = "Aggregated DAU, WAU, and MAU by different attributes for engagement ratio calculation."
 friendly_name = "Desktop Engagement"
 client_id_column = "NULL"
-columns_as_dimensions = true
+columns_as_dimensions =
+ true
 
 [data_sources.desktop_engagement_v1.joins.countries]
 relationship = "one_to_many"
