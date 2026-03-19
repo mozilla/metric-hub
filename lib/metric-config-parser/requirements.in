@@ -6,25 +6,25 @@
 #
 annotated-types==0.7.0
     # via pydantic
-attrs==25.4.0
+attrs==26.1.0
     # via
     #   cattrs
     #   jsonschema
     #   mozilla-metric-config-parser
     #   referencing
-cattrs==25.3.0
+cattrs==26.1.0
     # via mozilla-metric-config-parser
-certifi==2026.1.4
+certifi==2026.2.25
     # via requests
-charset-normalizer==3.4.4
+charset-normalizer==3.4.6
     # via requests
 click==8.3.1
     # via mozilla-metric-config-parser
-coverage[toml]==7.13.4
+coverage[toml]==7.13.5
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
-faker==40.4.0
+faker==40.11.0
     # via polyfactory
 gitdb==4.0.12
     # via gitpython
@@ -77,7 +77,7 @@ pytest-cov==7.0.0
     # via mozilla-metric-config-parser
 pytest-ruff==0.5
     # via mozilla-metric-config-parser
-pytz==2025.2
+pytz==2026.1.post1
     # via mozilla-metric-config-parser
 referencing==0.37.0
     # via
@@ -89,19 +89,19 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.1
+ruff==0.15.6
     # via
     #   mozilla-metric-config-parser
     #   pytest-ruff
-smmap==5.0.2
+smmap==5.0.3
     # via gitdb
 toml==0.10.2
     # via mozilla-metric-config-parser
 types-futures==3.3.8
     # via mozilla-metric-config-parser
-types-protobuf==6.32.1.20251210
+types-protobuf==6.32.1.20260221
     # via mozilla-metric-config-parser
-types-pytz==2025.2.0.20251108
+types-pytz==2026.1.1.20260304
     # via mozilla-metric-config-parser
 types-pyyaml==6.0.12.20250915
     # via mozilla-metric-config-parser
