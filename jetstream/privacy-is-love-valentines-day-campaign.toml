@@ -44,16 +44,17 @@ from_expression = """(
         es.client_id,
         es.legacy_telemetry_client_id,
         es.profile_group_id,
-        DATE(es.submission_timestamp) AS submission_date,
+        MIN(DATE(es.submission_timestamp)) AS submission_date,
         TRUE AS exposed,
-        bcd.is_default_browser
+        LOGICAL_OR(bcd.is_default_browser) AS is_default_browser
     FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` es
     LEFT JOIN `moz-fx-data-shared-prod.firefox_desktop.baseline_clients_daily` bcd
         ON es.legacy_telemetry_client_id = bcd.legacy_telemetry_client_id
         AND bcd.submission_date = DATE(es.submission_timestamp)
     WHERE es.event_category = 'nimbus_events'
         AND es.event_name = 'exposure'
-        AND JSON_EXTRACT_SCALAR(es.event_extra, '$.experiment') = 'privacy-is-love-valentines-day-campaign'
+        AND JSON_VALUE(es.event_extra, '$.experiment') = 'privacy-is-love-valentines-day-campaign'
+    GROUP BY ALL
 )"""
 experiments_column_type = "none"
 client_id_column = "legacy_telemetry_client_id"
