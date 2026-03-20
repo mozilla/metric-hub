@@ -58,6 +58,7 @@ from_expression = """(
     WHERE es.event_category = 'nimbus_events'
         AND es.event_name = 'exposure'
         AND JSON_VALUE(es.event_extra, '$.experiment') = 'privacy-is-love-valentines-day-campaign'
+        AND DATE(es.submission_timestamp) BETWEEN '2026-02-10' AND '2026-03-03'
     GROUP BY ALL
 )"""
 experiments_column_type = "none"
