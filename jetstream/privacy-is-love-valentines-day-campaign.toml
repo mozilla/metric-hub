@@ -48,7 +48,11 @@ from_expression = """(
         TRUE AS exposed,
         LOGICAL_OR(bcd.is_default_browser) AS is_default_browser
     FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` es
-    LEFT JOIN `moz-fx-data-shared-prod.firefox_desktop.baseline_clients_daily` bcd
+    LEFT JOIN (
+        SELECT legacy_telemetry_client_id, submission_date, is_default_browser
+        FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_clients_daily`
+        WHERE submission_date BETWEEN '2026-02-10' AND '2026-03-03'
+    ) bcd
         ON es.legacy_telemetry_client_id = bcd.legacy_telemetry_client_id
         AND bcd.submission_date = DATE(es.submission_timestamp)
     WHERE es.event_category = 'nimbus_events'
