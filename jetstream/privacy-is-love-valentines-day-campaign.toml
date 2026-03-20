@@ -19,7 +19,51 @@ segments = [
 
   "country_tier_1",
   "country_tier_other",
+
+  "not_default_at_exposure",
 ]
+
+# Custom exposure signal: redefine "exposed" to exclude clients who were the
+# default browser on the day of exposure. Treatment B's message-level targeting
+# includes !isDefaultBrowser but Control/Treatment A do not, creating asymmetric
+# exposure populations. This makes all branches symmetric by joining exposure
+# events with baseline_clients_daily (Glean baseline ping, better coverage than
+# legacy clients_daily) to check default status at exposure time.
+[experiment.exposure_signal]
+name = "non_default_exposure"
+friendly_name = "Exposure among non-default-browser users"
+description = "Nimbus exposure event, restricted to clients who were not the default browser on the day of exposure"
+select_expression = "COALESCE(exposed AND NOT is_default_browser, FALSE)"
+data_source = "exposure_with_default_status"
+window_start = 0
+window_end = "analysis_window_end"
+
+[data_sources.exposure_with_default_status]
+from_expression = """(
+    SELECT
+        es.client_id,
+        es.legacy_telemetry_client_id,
+        es.profile_group_id,
+        MIN(DATE(es.submission_timestamp)) AS submission_date,
+        TRUE AS exposed,
+        LOGICAL_OR(bcd.is_default_browser) AS is_default_browser
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream` es
+    LEFT JOIN (
+        SELECT legacy_telemetry_client_id, submission_date, is_default_browser
+        FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_clients_daily`
+        WHERE submission_date BETWEEN '2026-02-10' AND '2026-03-03'
+    ) bcd
+        ON es.legacy_telemetry_client_id = bcd.legacy_telemetry_client_id
+        AND bcd.submission_date = DATE(es.submission_timestamp)
+    WHERE es.event_category = 'nimbus_events'
+        AND es.event_name = 'exposure'
+        AND JSON_VALUE(es.event_extra, '$.experiment') = 'privacy-is-love-valentines-day-campaign'
+        AND DATE(es.submission_timestamp) BETWEEN '2026-02-10' AND '2026-03-03'
+    GROUP BY ALL
+)"""
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
+analysis_units = ["profile_group_id", "client_id"]
 
 
 [metrics]
@@ -34,6 +78,12 @@ select_expression = "COALESCE(MAX(CAST(dom_parentprocess_private_window_used AS 
 
 
 [segments]
+
+[segments.not_default_at_exposure]
+friendly_name = "Not default browser during analysis"
+description = "Clients who were never the default browser during the analysis window"
+select_expression = "COALESCE(LOGICAL_AND(NOT is_default_browser), FALSE)"
+data_source = "clients_daily"
 
 [segments.profile_age_0_to_28_days]
 friendly_name = "Profile Age 0 to 28 days"
