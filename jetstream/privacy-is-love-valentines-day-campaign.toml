@@ -1,5 +1,37 @@
 [experiment]
 
+# Filter enrollment to exclude users who were default browser in the 28 days
+# before enrollment. This corrects for a targeting asymmetry where Treatment B's
+# recipe includes !isDefaultBrowser at exposure time but Control and Treatment A
+# do not. By removing pre-enrollment default users from all branches, both
+# enrollment-basis and exposure-basis Jetstream results will be on a
+# compositionally equivalent population.
+#
+# See: https://github.com/mozilla/growth-pm-os (experiment analysis docs)
+enrollment_query = """
+SELECT
+    e.client_id,
+    `mozfun.map.get_key`(e.event_map_values, 'branch') AS branch,
+    MIN(e.submission_date) AS enrollment_date,
+    COUNT(e.submission_date) AS num_enrollment_events
+FROM
+    `moz-fx-data-shared-prod.telemetry.events` e
+LEFT JOIN (
+    SELECT DISTINCT client_id
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE submission_date BETWEEN '2026-01-13' AND '2026-02-09'
+      AND is_default_browser = TRUE
+) default_clients
+ON e.client_id = default_clients.client_id
+WHERE
+    e.event_category = 'normandy'
+    AND e.event_method = 'enroll'
+    AND e.submission_date BETWEEN '2026-02-10' AND '2026-02-17'
+    AND e.event_string_value = 'privacy-is-love-valentines-day-campaign'
+    AND default_clients.client_id IS NULL
+GROUP BY e.client_id, branch
+"""
+
 enrollment_period = 7
 end_date = "2026-03-03"
 
