@@ -40,12 +40,8 @@ description = "(non-official) Monthly active users on desktop based on engagment
 [metrics.desktop_engagement_wau_v1.statistics.sum]
 [metrics.desktop_engagement_mau_v1.statistics.sum]
 
-[metrics.desktop_engagement_dau_v1.statistics.ratio]
-numerator = "desktop_engagement_dau_v1.sum"
-denominator = "desktop_engagement_mau_v1.sum"
-
 [metrics.desktop_engagement_dau_v1.statistics.rolling_average]
-aggregations = ["sum", "average", "ratio"]
+aggregations = ["sum", "average"]
 window_sizes = [1, 7, 28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
@@ -571,27 +567,24 @@ client_id_column = "NULL"
 # Retention
 
 [metrics.new_profile_retention_count]
-data_source = "desktop_retention_by_first_seen_date"
+data_source = "desktop_retention_by_metric_date"
 select_expression = "SUM(retained_week_4_new_profiles)"
 friendly_name = "New Profile Retention Count"
-description = "Count of new profiles retained at week 4, by first seen date"
+description = "Count of new profiles retained at week 4, by metric date"
 
 [metrics.new_profile_retention_count.statistics.sum]
 [metrics.new_profile_retention_count.statistics.average]
 [metrics.new_profile_retention_count.statistics.rolling_average]
-aggregations = ["sum", "average", "ratio"]
+aggregations = ["sum", "average"]
 window_sizes = [28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
-[metrics.new_profile_retention_count.statistics.ratio]
-numerator = "new_profile_retention_count.sum"
-denominator = "new_profile_active_count.sum"
 
 
 [metrics.new_profile_active_count]
-data_source = "desktop_retention_by_first_seen_date"
+data_source = "desktop_retention_by_metric_date"
 select_expression = "SUM(new_profiles_metric_date)"
 friendly_name = "New Profile Active Count"
-description = "Count of new profiles on metric date, by first seen date"
+description = "Count of new profiles on metric date, by metric date"
 
 [metrics.new_profile_active_count.statistics.sum]
 
@@ -618,13 +611,6 @@ friendly_name = "Active Count"
 description = "Count of clients active on metric date"
 
 [metrics.active_count.statistics.sum]
-
-[data_sources.desktop_retention_by_first_seen_date]
-from_expression = "moz-fx-data-shared-prod.telemetry.desktop_retention"
-friendly_name = "Desktop Retention (by First Seen Date)"
-submission_date_column = "first_seen_date"
-client_id_column = "NULL"
-columns_as_dimensions = true
 
 [data_sources.desktop_retention_by_metric_date]
 from_expression = "moz-fx-data-shared-prod.telemetry.desktop_retention"
