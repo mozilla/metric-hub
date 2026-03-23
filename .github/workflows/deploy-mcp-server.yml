@@ -1,0 +1,40 @@
+name: "Deploy MCP Server"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/mcp-server/**'
+
+jobs:
+  changed:
+    uses: ./.github/workflows/changed-files.yml
+    with:
+      path_filter: |
+        lib/mcp-server/**
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: changed
+    if: needs.changed.outputs.any_changed == 'true'
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_JETSTREAM_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: metric-hub-mcp
+          region: us-west1
+          source: lib/mcp-server
