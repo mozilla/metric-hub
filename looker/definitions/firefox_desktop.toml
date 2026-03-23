@@ -574,6 +574,11 @@ description = "Count of new profiles retained at week 4, by metric date"
 
 [metrics.new_profile_retention_count.statistics.sum]
 [metrics.new_profile_retention_count.statistics.average]
+
+[metrics.new_profile_retention_count.statistics.ratio]
+numerator = "new_profile_retention_count.sum"
+denominator = "new_profile_active_count.sum"
+
 [metrics.new_profile_retention_count.statistics.rolling_average]
 aggregations = ["sum", "average"]
 window_sizes = [28]
