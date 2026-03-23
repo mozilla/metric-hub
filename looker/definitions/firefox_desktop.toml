@@ -605,13 +605,15 @@ description = "Count of clients retained at week 4, by metric date"
 
 [metrics.retention_count.statistics.sum]
 [metrics.retention_count.statistics.average]
+
+[metrics.retention_count.statistics.ratio]
+numerator = "retention_count.sum"
+denominator = "active_count.sum"
+
 [metrics.retention_count.statistics.rolling_average]
 aggregations = ["sum", "average", "ratio"]
 window_sizes = [28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
-[metrics.retention_count.statistics.ratio]
-numerator = "retention_count.sum"
-denominator = "active_count.sum"
 
 [metrics.active_count]
 data_source = "desktop_retention_by_metric_date"
