@@ -559,7 +559,7 @@ select_expression = "SUM(new_profiles)"
 [metrics.new_profile_count.statistics.sum]
 [metrics.new_profile_count.statistics.rolling_average]
 aggregations = ["sum", "avg"]
-window_sizes = [28] #28 days for rolling average
+window_sizes = [1, 7, 28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
 [data_sources.desktop_new_profiles]
@@ -585,7 +585,7 @@ denominator = "new_profile_active_count.sum"
 
 [metrics.new_profile_retention_count.statistics.rolling_average]
 aggregations = ["sum", "average", "ratio"]
-window_sizes = [28]
+window_sizes = [1, 7, 28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
 
@@ -612,7 +612,7 @@ denominator = "active_count.sum"
 
 [metrics.retention_count.statistics.rolling_average]
 aggregations = ["sum", "average", "ratio"]
-window_sizes = [28]
+window_sizes = [1, 7, 28]
 period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
 
 [metrics.active_count]
