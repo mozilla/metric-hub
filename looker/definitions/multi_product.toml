@@ -1,2 +1,127 @@
 [data_sources.'*']
 columns_as_dimensions = true
+
+# Mobile OKR metrics
+
+## New Profiles
+
+[metrics.mobile_new_profile_count]
+data_source = "mobile_new_profiles"
+select_expression = "SUM(new_profiles)"
+friendly_name = "Mobile New Profile Count"
+description = "Count of new mobile profiles"
+
+[metrics.mobile_new_profile_count.statistics.sum]
+[metrics.mobile_new_profile_count.statistics.rolling_average]
+aggregations = ["sum"]
+window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+
+[data_sources.mobile_new_profiles]
+from_expression = "moz-fx-data-shared-prod.telemetry.mobile_new_profiles"
+friendly_name = "Mobile New Profiles"
+submission_date_column = "first_seen_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+## Engagement
+
+[metrics.mobile_engagement_dau]
+data_source = "mobile_engagement"
+select_expression = "SUM(dau)"
+friendly_name = "Mobile DAU"
+description = "Daily active users on mobile"
+
+[metrics.mobile_engagement_wau]
+data_source = "mobile_engagement"
+select_expression = "SUM(wau)"
+friendly_name = "Mobile WAU"
+description = "Weekly active users on mobile"
+
+[metrics.mobile_engagement_mau]
+data_source = "mobile_engagement"
+select_expression = "SUM(mau)"
+friendly_name = "Mobile MAU"
+description = "Monthly active users on mobile"
+
+[metrics.mobile_engagement_dau.statistics.sum]
+[metrics.mobile_engagement_dau.statistics.average]
+[metrics.mobile_engagement_wau.statistics.sum]
+[metrics.mobile_engagement_mau.statistics.sum]
+
+[metrics.mobile_engagement_dau.statistics.ratio]
+numerator = "mobile_engagement_dau.sum"
+denominator = "mobile_engagement_mau.sum"
+
+[metrics.mobile_engagement_dau.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
+window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+
+[data_sources.mobile_engagement]
+from_expression = "moz-fx-data-shared-prod.telemetry.mobile_engagement"
+friendly_name = "Mobile Engagement"
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
+
+## Retention
+
+[metrics.mobile_new_profile_retention_count]
+data_source = "mobile_retention_by_metric_date"
+select_expression = "SUM(retained_week_4_new_profiles)"
+friendly_name = "Mobile New Profile Retention Count"
+description = "Count of new mobile profiles retained at week 4, by metric date"
+
+[metrics.mobile_new_profile_active_count]
+data_source = "mobile_retention_by_metric_date"
+select_expression = "SUM(new_profiles_metric_date)"
+friendly_name = "Mobile New Profile Active Count"
+description = "Count of new mobile profiles on metric date"
+
+[metrics.mobile_retention_count]
+data_source = "mobile_retention_by_metric_date"
+select_expression = "SUM(retained_week_4)"
+friendly_name = "Mobile Retention Count"
+description = "Count of mobile clients retained at week 4, by metric date"
+
+[metrics.mobile_active_count]
+data_source = "mobile_retention_by_metric_date"
+select_expression = "SUM(active_metric_date)"
+friendly_name = "Mobile Active Count"
+description = "Count of mobile clients active on metric date"
+
+[metrics.mobile_new_profile_retention_count.statistics.sum]
+[metrics.mobile_new_profile_retention_count.statistics.average]
+
+[metrics.mobile_new_profile_retention_count.statistics.ratio]
+numerator = "mobile_new_profile_retention_count.sum"
+denominator = "mobile_new_profile_active_count.sum"
+
+[metrics.mobile_new_profile_retention_count.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
+window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+
+[metrics.mobile_new_profile_active_count.statistics.sum]
+
+[metrics.mobile_retention_count.statistics.sum]
+[metrics.mobile_retention_count.statistics.average]
+
+[metrics.mobile_retention_count.statistics.ratio]
+numerator = "mobile_retention_count.sum"
+denominator = "mobile_active_count.sum"
+
+[metrics.mobile_retention_count.statistics.rolling_average]
+aggregations = ["sum", "average", "ratio"]
+window_sizes = [1, 7, 28]
+period_over_period = { periods = [365], kinds = ["previous", "relative_change", "difference"] }
+
+[metrics.mobile_active_count.statistics.sum]
+
+[data_sources.mobile_retention_by_metric_date]
+from_expression = "moz-fx-data-shared-prod.telemetry.mobile_retention"
+friendly_name = "Mobile Retention (by Metric Date)"
+submission_date_column = "metric_date"
+client_id_column = "NULL"
+columns_as_dimensions = true
