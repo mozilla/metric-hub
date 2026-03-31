@@ -568,6 +568,11 @@ friendly_name = "Desktop New Profiles"
 submission_date_column = "first_seen_date"
 client_id_column = "NULL"
 
+[data_sources.desktop_new_profiles.joins.countries]
+relationship = "one_to_many"
+on_expression = "desktop_new_profiles.country = countries.code"
+
+
 # Retention
 
 [metrics.new_profile_retention_count]
