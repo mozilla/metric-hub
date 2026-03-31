@@ -1,6 +1,14 @@
 [data_sources.'*']
 columns_as_dimensions = true
 
+[data_sources.countries]
+from_expression = "mozdata.static.country_codes_v1"
+client_id_column = "code"
+friendly_name = "Countries"
+description = "Countries"
+columns_as_dimensions = true
+submission_date_column = "NULL"
+
 # Mobile OKR metrics
 
 ## New Profiles
