@@ -635,3 +635,7 @@ submission_date_column = "metric_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
 
+[data_sources.desktop_retention_by_metric_date.joins.countries]
+relationship = "one_to_many"
+on_expression = "desktop_retention_by_metric_date.country = countries.code"
+

@@ -1,6 +1,14 @@
 [data_sources.'*']
 columns_as_dimensions = true
 
+[data_sources.countries]
+from_expression = "mozdata.static.country_codes_v1"
+client_id_column = "code"
+friendly_name = "Countries"
+description = "Countries"
+columns_as_dimensions = true
+submission_date_column = "NULL"
+
 # Mobile OKR metrics
 
 ## New Profiles
@@ -23,6 +31,10 @@ friendly_name = "Mobile New Profiles"
 submission_date_column = "first_seen_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
+
+[data_sources.mobile_new_profiles.joins.countries]
+relationship = "one_to_many"
+on_expression = "mobile_new_profiles.country = countries.code"
 
 ## Engagement
 
@@ -64,6 +76,10 @@ friendly_name = "Mobile Engagement"
 submission_date_column = "submission_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
+
+[data_sources.mobile_engagement.joins.countries]
+relationship = "one_to_many"
+on_expression = "mobile_engagement.country = countries.code"
 
 ## Retention
 
@@ -125,3 +141,7 @@ friendly_name = "Mobile Retention (by Metric Date)"
 submission_date_column = "metric_date"
 client_id_column = "NULL"
 columns_as_dimensions = true
+
+[data_sources.mobile_retention_by_metric_date.joins.countries]
+relationship = "one_to_many"
+on_expression = "mobile_retention_by_metric_date.country = countries.code"
