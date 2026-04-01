@@ -2,7 +2,19 @@
 columns_as_dimensions = true
 
 [data_sources.countries]
-from_expression = "mozdata.static.country_codes_v1"
+from_expression = """
+(
+  SELECT
+    *,
+    CASE
+      WHEN region_name = 'Europe' THEN 'Europe'
+      WHEN region_name = 'North America' THEN 'North America'
+      ELSE 'Other'
+    END AS fx_region
+  FROM
+  mozdata.static.country_codes_v1
+)
+"""
 client_id_column = "code"
 friendly_name = "Countries"
 description = "Countries"
