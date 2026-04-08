@@ -255,7 +255,7 @@ from_expression = """(
     week_2_retention AS (
         SELECT
             bse.* EXCEPT(event_extra),
-            ANY_VALUE(event_extra) AS event_extra,
+            ANY_VALUE(bse.event_extra) AS event_extra,
             LOGICAL_OR(COALESCE(wke.used_splitview, FALSE)) AS week_2_retained
         FROM
             feature_usage AS bse
@@ -269,7 +269,7 @@ from_expression = """(
     )
     SELECT
         bse.* EXCEPT(event_extra),
-        ANY_VALUE(event_extra) AS event_extra,
+        ANY_VALUE(bse.event_extra) AS event_extra,
         LOGICAL_OR(COALESCE(wke.used_splitview, FALSE)) AS week_4_retained
     FROM
         week_2_retention AS bse
