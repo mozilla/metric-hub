@@ -240,7 +240,7 @@ from_expression = """(
     feature_usage AS (
         SELECT DISTINCT
             DATE(submission_timestamp) AS submission_date,
-            client_info.client_id AS client_id,
+            client_id,
             event_extra,
             TRUE AS used_splitview
         FROM 
