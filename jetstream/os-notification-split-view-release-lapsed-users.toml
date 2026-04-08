@@ -280,3 +280,4 @@ from_expression = """(
 description = "Splitview Feature Usage and Retention using 'splitview.start'"
 friendly_name = "Splitview Feature Usage and Retention'"
 experiments_column_type = "events_stream"
+client_id_column = "client_id"
