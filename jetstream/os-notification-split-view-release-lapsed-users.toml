@@ -238,7 +238,7 @@ window_start = -183
 from_expression = """(
     WITH
     feature_usage AS (
-        SELECT DISTINCT
+        SELECT
             DATE(submission_timestamp) AS submission_date,
             client_id,
             TRUE AS used_splitview,
