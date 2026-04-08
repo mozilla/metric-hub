@@ -123,7 +123,7 @@ select_expression = "LOGICAL_OR(COALESCE(week_4_retained, FALSE))"
 
 [metrics.splitview_uri_count]
 data_source = "metrics"
-select_expression = "COALESCE(SUM(metrics.labeled_counter.splitview_uri_count), 0)"
+select_expression = "SUM(COALESCE(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.splitview_uri_count), 0))"
 
 [metrics.splitview_week_2_retention.statistics.binomial]
 [metrics.splitview_week_4_retention.statistics.binomial]
