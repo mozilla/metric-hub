@@ -244,11 +244,10 @@ from_expression = """(
             ping_info,
             TRUE AS used_splitview
         FROM 
-            `moz-fx-data-shared-prod.firefox_desktop.events` e,
-            UNNEST(e.events) event
+            `moz-fx-data-shared-prod.firefox_desktop.events_stream`
         WHERE 
-            event.category = 'splitview'
-            AND event.name = 'start'
+            event_category = 'splitview'
+            AND event_name = 'start'
             AND DATE(submission_timestamp) BETWEEN '2026-03-26' AND '2026-04-30'
     ),
     week_2_retention AS (
@@ -280,4 +279,4 @@ from_expression = """(
 )"""
 description = "Splitview Feature Usage and Retention using 'splitview.start'"
 friendly_name = "Splitview Feature Usage and Retention'"
-experiments_column_type = "glean"
+experiments_column_type = "events_stream"
