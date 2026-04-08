@@ -241,7 +241,7 @@ from_expression = """(
         SELECT DISTINCT
             DATE(submission_timestamp) AS submission_date,
             client_id,
-            TRUE AS used_splitview
+            TRUE AS used_splitview,
             ANY_VALUE(event_extra) AS event_extra,
         FROM 
             `moz-fx-data-shared-prod.firefox_desktop.events_stream`
