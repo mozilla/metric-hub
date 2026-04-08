@@ -240,13 +240,15 @@ from_expression = """(
     feature_usage AS (
         SELECT DISTINCT
             DATE(submission_timestamp) AS submission_date,
-            client_id,
+            client_info.client_id AS client_id,
+            ping_info,
             TRUE AS used_splitview
         FROM 
-            `moz-fx-data-shared-prod.firefox_desktop.events_stream` 
+            `moz-fx-data-shared-prod.firefox_desktop.events` e,
+            UNNEST(e.events) event
         WHERE 
-            event_category = 'splitview'
-            AND event_name = 'start'
+            event.category = 'splitview'
+            AND event.name = 'start'
             AND DATE(submission_timestamp) BETWEEN '2026-03-26' AND '2026-04-30'
     ),
     week_2_retention AS (
