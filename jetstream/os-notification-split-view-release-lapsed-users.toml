@@ -278,6 +278,6 @@ from_expression = """(
         ALL
 )"""
 description = "Splitview Feature Usage and Retention using 'splitview.start'"
-friendly_name = "Splitview Feature Usage and Retention'"
-experiments_column_type = "events_stream"
+friendly_name = "Splitview Feature Usage and Retention"
 client_id_column = "client_id"
+experiments_column_type = "events_stream"
