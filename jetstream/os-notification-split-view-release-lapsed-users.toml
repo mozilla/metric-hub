@@ -130,11 +130,11 @@ weekly = ["splitview_week_2_retention", "splitview_week_4_retention", "splitview
 overall = ["splitview_week_2_retention", "splitview_week_4_retention", "splitview_uri_count"]
 
 [metrics.splitview_week_2_retention]
-data_source = "splitview_feature_usage_retention"
+data_source = "splitview_feature_retention"
 select_expression = "LOGICAL_OR(COALESCE(week_2_retained, FALSE))"
 
 [metrics.splitview_week_4_retention]
-data_source = "splitview_feature_usage_retention"
+data_source = "splitview_feature_retention"
 select_expression = "LOGICAL_OR(COALESCE(week_4_retained, FALSE))"
 
 [metrics.splitview_uri_count]
@@ -212,13 +212,13 @@ window_end = -1
 friendly_name = "Used Splitview at least Once"
 description = "Clients who used splitview at least once during the experiment"
 select_expression = "LOGICAL_OR(COALESCE(used_splitview, FALSE))"
-data_source = "splitview_feature_usage_retention"
+data_source = "splitview_feature_usage"
 
 [segments.never_used_splitview]
 friendly_name = "Never Used Splitview"
 description = "Clients who never used splitview the experiment"
 select_expression = "NOT LOGICAL_OR(COALESCE(used_splitview, FALSE))"
-data_source = "splitview_feature_usage_retention"
+data_source = "splitview_feature_usage"
 
 [segments.data_sources.active_users_last_seen]
 from_expression = """(
@@ -233,7 +233,29 @@ from_expression = """(
 )"""
 window_start = -183
 
-[segments.data_sources.splitview_feature_usage_retention]
+[segments.data_sources.splitview_feature_usage]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        client_id,
+        TRUE AS used_splitview,
+        ANY_VALUE(event_extra) AS event_extra,
+    FROM 
+        `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    WHERE 
+        event_category = 'splitview'
+        AND event_name = 'start'
+        AND DATE(submission_timestamp) BETWEEN '2026-03-26' AND '2026-04-30'
+    GROUP BY
+        ALL
+)"""
+description = "Splitview Feature Usage and Retention using 'splitview.start'"
+friendly_name = "Splitview Feature Usage and Retention"
+client_id_column = "client_id"
+experiments_column_type = "events_stream"
+
+
+[data_sources.splitview_feature_retention]
 from_expression = """(
     WITH
     feature_usage AS (
