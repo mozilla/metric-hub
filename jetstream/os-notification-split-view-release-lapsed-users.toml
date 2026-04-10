@@ -1,6 +1,21 @@
 [experiment]
 analysis_unit = "client_id"
 
+segments = [
+  "last_dau_28_to_34_days_ago",
+  "last_dau_35_to_59_days_ago",
+  "last_dau_60_to_119_days_ago",
+  "last_dau_120_to_179_days_ago",
+  "new_or_last_dau_180plus_days_ago",
+
+  "fr_locale",
+  "de_locale",
+  "en_locale",
+
+  "used_splitview_at_least_once",
+  "never_used_splitview",
+]
+
 enrollment_query = """
 SELECT * FROM
 (
@@ -109,20 +124,6 @@ GROUP BY
 QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
 """
 
-segments = [
-  "last_dau_28_to_34_days_ago",
-  "last_dau_35_to_59_days_ago",
-  "last_dau_60_to_119_days_ago",
-  "last_dau_120_to_179_days_ago",
-  "new_or_last_dau_180plus_days_ago",
-
-  "fr_locale",
-  "de_locale",
-  "en_locale",
-
-  "used_splitview_at_least_once",
-  "never_used_splitview",
-]
 
 [metrics]
 weekly = ["splitview_week_2_retention", "splitview_week_4_retention", "splitview_uri_count"]
