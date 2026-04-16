@@ -16,7 +16,7 @@ Or edit `~/.claude/mcp.json` manually:
 {
   "mcpServers": {
     "metric-hub": {
-      "type": "claude mcp add --transport sse metric-hub https://metric-hub-mcp-744009727678.us-west1.run.app/sse",
+      "type": "sse",
       "url": "https://metric-hub-mcp-744009727678.us-west1.run.app/sse"
     }
   }
