@@ -1,3 +1,5 @@
+[experiment]
+
 segments = [
   "activity_infrequent",
   "activity_casual",
