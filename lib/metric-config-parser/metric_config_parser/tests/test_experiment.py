@@ -12,7 +12,7 @@ from mozilla_nimbus_schemas import RandomizationUnit
 from metric_config_parser import AnalysisUnit
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.errors import NoEndDateException
-from metric_config_parser.experiment import Branch, BucketConfig, Experiment
+from metric_config_parser.experiment import Branch, BucketConfig, EnrollmentsQueryType, Experiment
 from metric_config_parser.metric import AnalysisPeriod
 from metric_config_parser.segment import Segment
 
@@ -92,6 +92,33 @@ class TestExperimentSpec:
             """
             [experiment]
             analysis_unit = "not_valid_id"
+            """
+        )
+
+        with pytest.raises(ClassValidationError):
+            AnalysisSpec.from_dict(toml.loads(conf))
+
+    def test_enrollments_query_type(self, experiments, config_collection):
+        trivial = AnalysisSpec().resolve(experiments[0], config_collection)
+        assert trivial.experiment.enrollments_query_type is None
+
+        conf = dedent(
+            """
+            [experiment]
+            enrollments_query_type = "background-update"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        configured = spec.resolve(experiments[0], config_collection)
+        assert (
+            configured.experiment.enrollments_query_type == EnrollmentsQueryType.BACKGROUND_UPDATE
+        )
+
+    def test_enrollments_query_type_invalid(self):
+        conf = dedent(
+            """
+            [experiment]
+            enrollments_query_type = "not-valid-type"
             """
         )
 

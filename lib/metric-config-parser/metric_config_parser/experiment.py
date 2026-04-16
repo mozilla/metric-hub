@@ -1,5 +1,6 @@
 import datetime as dt
 import enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 import attr
@@ -44,6 +45,14 @@ class BucketConfig:
     start: int
     count: int
     total: int = 10000
+
+
+class EnrollmentsQueryType(StrEnum):
+    CIRRUS = "cirrus"
+    FENIX_FALLBACK = "fenix-fallback"
+    NORMANDY = "normandy"
+    GLEAN_EVENT = "glean-event"
+    BACKGROUND_UPDATE = "background-update"
 
 
 @attr.s(auto_attribs=True, kw_only=True, slots=True, frozen=True)
@@ -238,6 +247,12 @@ class ExperimentConfiguration:
     def dataset_id(self) -> str | None:
         return self.experiment_spec.dataset_id
 
+    @property
+    def enrollments_query_type(self) -> EnrollmentsQueryType | None:
+        if self.experiment_spec.enrollments_query_type:
+            return EnrollmentsQueryType(self.experiment_spec.enrollments_query_type)
+        return None
+
     def has_external_config_overrides(self) -> bool:
         """Check whether the external config overrides experiment configuration."""
         return (
@@ -276,6 +291,11 @@ def _validate_analysis_unit(instance: Any, attribute, value):
         AnalysisUnit(value)
 
 
+def _validate_enrollments_query_type(instance: Any, attribute, value):
+    if value is not None:
+        EnrollmentsQueryType(value)
+
+
 @attr.s(auto_attribs=True, kw_only=True)
 class ExperimentSpec:
     """Describes the interface for overriding experiment details."""
@@ -292,6 +312,9 @@ class ExperimentSpec:
     dataset_id: str | None = attr.ib(default=None, validator=_validate_dataset_id)
     sample_size: int | None = None
     analysis_unit: str | None = attr.ib(default=None, validator=_validate_analysis_unit)
+    enrollments_query_type: str | None = attr.ib(
+        default=None, validator=_validate_enrollments_query_type
+    )
 
     def resolve(
         self,
