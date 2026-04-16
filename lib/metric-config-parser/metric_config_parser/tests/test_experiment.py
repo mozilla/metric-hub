@@ -100,7 +100,7 @@ class TestExperimentSpec:
 
     def test_enrollments_query_type(self, experiments, config_collection):
         trivial = AnalysisSpec().resolve(experiments[0], config_collection)
-        assert trivial.experiment.enrollments_query_type == EnrollmentsQueryType.NORMANDY
+        assert trivial.experiment.enrollments_query_type is None
 
         conf = dedent(
             """
@@ -118,7 +118,7 @@ class TestExperimentSpec:
         conf = dedent(
             """
             [experiment]
-            enrollments_query_type = "not_valid_type"
+            enrollments_query_type = "not-valid-type"
             """
         )
 

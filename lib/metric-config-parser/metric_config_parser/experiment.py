@@ -52,7 +52,7 @@ class EnrollmentsQueryType(StrEnum):
     FENIX_FALLBACK = "fenix-fallback"
     NORMANDY = "normandy"
     GLEAN_EVENT = "glean-event"
-    BACKGROUND_UDPATE = "background-update"
+    BACKGROUND_UPDATE = "background-update"
 
 
 @attr.s(auto_attribs=True, kw_only=True, slots=True, frozen=True)
@@ -246,6 +246,12 @@ class ExperimentConfiguration:
     @property
     def dataset_id(self) -> str | None:
         return self.experiment_spec.dataset_id
+
+    @property
+    def enrollments_query_type(self) -> EnrollmentsQueryType | None:
+        if self.experiment_spec.enrollments_query_type:
+            return EnrollmentsQueryType(self.experiment_spec.enrollments_query_type)
+        return None
 
     def has_external_config_overrides(self) -> bool:
         """Check whether the external config overrides experiment configuration."""
