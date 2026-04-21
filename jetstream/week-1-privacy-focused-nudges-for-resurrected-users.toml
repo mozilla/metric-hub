@@ -1,3 +1,4 @@
+[experiment]
 segments = [
   "activity_infrequent",
   "activity_casual",
@@ -12,8 +13,6 @@ segments = [
   "os_mac",
   "os_linux",
 ]
-
-[segments]
 
 [segments.profile_age_0_to_28_days]
 friendly_name = "Profile Age 0 to 28 days"
