@@ -28,6 +28,7 @@ description = "How often users saw Spotlight during an analysis window"
 select_expression = "COUNTIF(event = 'IMPRESSION' AND message_id = '{{ parameters.message_id }}')"
 data_source = "spotlight"
 statistics = { bootstrap_mean = {} }
+analysis_units = ["client_id"]
 
 [metrics.spotlight_clicks]
 friendly_name = "Spotlight Clicks"
@@ -35,6 +36,7 @@ description = "How often users clicked Spotlight during an analysis window"
 select_expression = "COUNTIF(event = 'CLICK' AND message_id = '{{ parameters.message_id }}')"
 data_source = "spotlight"
 statistics = { bootstrap_mean = {} }
+analysis_units = ["client_id"]
 
 [metrics.spotlight_dismisses]
 friendly_name = "Spotlight Dismisses"
@@ -42,6 +44,7 @@ description = "How often users dismissed Spotlight during an analysis window"
 select_expression = "COUNTIF(event = 'DISMISS' AND message_id = '{{ parameters.message_id }}')"
 data_source = "spotlight"
 statistics = { bootstrap_mean = {} }
+analysis_units = ["client_id"]
 
 [data_sources.spotlight]
 from_expression = """
