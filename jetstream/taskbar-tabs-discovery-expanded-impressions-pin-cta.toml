@@ -1,6 +1,5 @@
 [experiment]
-enrollment_period = 15
-end_date = "2026-05-06"
+enrollment_period = 14
 
 segments = [
   "activity_infrequent",
@@ -54,13 +53,13 @@ drop_highest = 0.0005
 [metrics.any_web_app_installed.statistics.binomial]
 [metrics.any_web_app_pinned.statistics.binomial]
 [metrics.number_of_desktop_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
+drop_highest = 0.005
 [metrics.number_of_taskbar_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
+drop_highest = 0.005
 [metrics.number_of_startmenu_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
+drop_highest = 0.005
 [metrics.number_of_taskbartab_launches.statistics.bootstrap_mean]
-drop_highest = 0.0005
+drop_highest = 0.005
 
 # ============================================================================
 # CUSTOM METRICS - Web App (Taskbar Tabs) activity
