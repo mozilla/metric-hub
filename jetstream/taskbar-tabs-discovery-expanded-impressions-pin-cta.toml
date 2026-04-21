@@ -199,3 +199,37 @@ select_expression = "COALESCE(NOT LOGICAL_OR(event_name IN ('install', 'pin', 'a
 data_source = "web_app_events"
 window_start = -365
 window_end = -1
+
+# ============================================================================
+# SEGMENT DATA SOURCE - Web App events
+# ============================================================================
+# Segments have their own data_sources namespace, distinct from metric
+# data sources. Duplicated from [data_sources.web_app_events] above so the
+# ever/never_used_taskbar_tabs_pre_enrollment segments can reference it.
+
+[segments.data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+friendly_name = "Web App Events (segments)"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts, for use in segments"
