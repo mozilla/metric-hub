@@ -127,7 +127,4 @@ class FeatmonSpec:
         config_dir = repo_path / FEATMON_DIR
         if not config_dir.is_dir():
             return []
-        return [
-            (p.stem, FeatmonSpec.from_file(p))
-            for p in sorted(config_dir.glob("*.toml"))
-        ]
+        return [(p.stem, FeatmonSpec.from_file(p)) for p in sorted(config_dir.glob("*.toml"))]
