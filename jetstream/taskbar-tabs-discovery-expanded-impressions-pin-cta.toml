@@ -43,7 +43,7 @@ overall = [
   "number_of_taskbartab_launches",
 ]
 
-[metrics.installed_web_apps.statistics.bootstrap_mean]
+[metrics.installed_web_apps.statistics.linear_model_mean]
 drop_highest = 0.05
 [metrics.pinned_apps.statistics.bootstrap_mean]
 drop_highest = 0.05
