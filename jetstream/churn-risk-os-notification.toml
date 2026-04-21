@@ -1,6 +1,5 @@
 [experiment]
 analysis_unit = "client_id"
-end_date = "2026-05-06"
 enrollment_period = 7
 
 enrollment_query = """
@@ -159,9 +158,9 @@ overall = [
 ]
 
 [metrics.ubo_newly_enabled.statistics.binomial]
-[metrics.searches_with_serp_ad_blocker.statistics.bootstrap_mean]
-[metrics.searches_with_non_serp_ad_blocker.statistics.bootstrap_mean]
-[metrics.searches_with_no_ad_blocker.statistics.bootstrap_mean]
+[metrics.searches_with_serp_ad_blocker.statistics.linear_model_mean]
+[metrics.searches_with_non_serp_ad_blocker.statistics.linear_model_mean]
+[metrics.searches_with_no_ad_blocker.statistics.linear_model_mean]
 
 [metrics.ubo_newly_enabled]
 friendly_name = "uBO newly enabled"
