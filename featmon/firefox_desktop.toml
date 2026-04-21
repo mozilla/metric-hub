@@ -1,0 +1,115 @@
+# Data sources define the BigQuery tables used for feature monitoring.
+# Each data source specifies:
+#   - analysis_unit_id: field used to identify analysis units (client/profile IDs)
+#   - table_name: the BigQuery table name within the application dataset
+#   - type: one of "metrics", "event_stream", or "clients_daily"
+#   - dimensions: optional fields to group metrics by
+
+[data_sources.metrics]
+analysis_unit_id = "metrics.uuid.legacy_telemetry_profile_group_id"
+table_name = "metrics"
+type = "metrics"
+
+[data_sources.metrics.dimensions]
+app_display_version = { field = "client_info.app_display_version" }
+app_version_major = {}
+app_version_minor = {}
+app_version_patch = {}
+locale = { field = "client_info.locale" }
+normalized_channel = {}
+normalized_os = {}
+normalized_os_version = {}
+normalized_country_code = { value_in = ["CA", "DE", "FR", "GB", "US"], default_value = "OTHER" }
+
+[data_sources.events_stream]
+analysis_unit_id = "profile_group_id"
+table_name = "events_stream"
+type = "event_stream"
+
+[data_sources.newtab]
+analysis_unit_id = "metrics.uuid.legacy_telemetry_profile_group_id"
+table_name = "newtab"
+type = "metrics"
+
+# Features define which metrics to collect from which data sources.
+# Each feature key is snake_case. Use `slug` to specify the actual Nimbus
+# feature name when it differs from the key (e.g. when hyphens or camelCase
+# are present in the real Nimbus feature ID).
+# For boolean, quantity, and labeled_* types: keys are metric names.
+# For event type: keys are categories, then event names.
+
+[features.address_autofill_feature]
+slug = "address-autofill-feature"
+
+[features.address_autofill_feature.metrics_by_source.metrics.boolean]
+formautofill_availability = {}
+
+[features.address_autofill_feature.metrics_by_source.metrics.labeled_counter.login_autofill]
+field = "metrics.labeled_counter.pwmgr_form_autofill_result"
+aggregators = ["sum", "avg"]
+label_in = ["filled", "filled_username_only_form"]
+
+[features.address_autofill_feature.metrics_by_source.metrics.quantity]
+formautofill_addresses_autofill_profiles_count = {}
+
+[features.address_autofill_feature.metrics_by_source.events_stream.event.address]
+detected_address_form = {}
+popup_shown_address_form = {}
+filled_address_form = {}
+filled_on_fields_update_address_form = {}
+filled_modified_address_form = {}
+submitted_address_form = {}
+cleared_address_form = {}
+detected_address_form_ext = {}
+filled_address_form_ext = {}
+submitted_address_form_ext = {}
+
+[features.address_autofill_feature.metrics_by_source.events_stream.event.formautofill]
+iframe_layout_detection = {}
+
+[features.newtab_trainhop_addon]
+slug = "newtabTrainhopAddon"
+
+[features.newtab_trainhop_addon.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_sponsored_content]
+slug = "newtabSponsoredContent"
+
+[features.newtab_sponsored_content.metrics_by_source.newtab.boolean]
+pocket_is_signed_in = {}
+pocket_enabled = {}
+pocket_sponsored_stories_enabled = {}
+topsites_enabled = {}
+topsites_sponsored_enabled = {}
+
+[features.newtab_sponsored_content.metrics_by_source.newtab.quantity]
+topsites_rows = {}
+topsites_sponsored_tiles_configured = {}
+
+[features.newtab_sponsored_content.metrics_by_source.newtab.event.pocket]
+click = {}
+impression = {}
+dismiss = {}
+save = {}
+
+[features.newtab_sponsored_content.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+pin = {}
+unpin = {}
+add = {}
+edit = {}
+show_privacy_click = {}
+dismiss = {}
+pref_changed = {}
+
+[features.new_tab_sections_experiment]
+slug = "newTabSectionsExperiment"
+
+[features.new_tab_sections_experiment.metrics_by_source.newtab.event.newtab]
+sections_impression = {}
+sections_follow_section = {}
+sections_unfollow_section = {}
+sections_block_section = {}
+sections_unblock_section = {}
