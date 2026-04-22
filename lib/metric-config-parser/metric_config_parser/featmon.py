@@ -10,21 +10,21 @@ Each file defines:
 
 The ``dataset`` is derived from the filename stem (e.g. ``firefox_desktop.toml``
 → ``firefox_desktop``).
+
+Featmon configs are loaded automatically by ``ConfigCollection.from_github_repo()``
+and are accessible via ``ConfigCollection.featmon_configs``.
 """
 
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 import attr
 import toml
-from git import Repo
 
 VALID_SOURCE_TYPES = frozenset({"metrics", "event_stream", "clients_daily"})
 
 FEATMON_DIR = "featmon"
-METRIC_HUB_URL = "https://github.com/mozilla/metric-hub"
 
 
 @attr.s(auto_attribs=True)
@@ -59,25 +59,15 @@ class FeatureSpec:
 class FeatmonSpec:
     """Represents a Nimbus feature monitoring config file for a single application.
 
-    The expected use is like::
+    The expected use is via ``ConfigCollection``::
 
-        FeatmonSpec.from_file(Path("featmon/firefox_desktop.toml"))
+        collection = ConfigCollection.from_github_repo()
+        for app_name, spec in collection.featmon_configs.items():
+            ...
 
     Config files are TOML and live in ``featmon/`` in metric-hub, one per
     application (e.g. ``firefox_desktop.toml``).  The ``dataset`` is inferred
     from the filename stem so it does not need to be repeated in the file.
-
-    To load all configs from a metric-hub repo checkout::
-
-        specs = FeatmonSpec.configs_from_repo(Path("/path/to/metric-hub"))
-        for app_name, spec in specs:
-            ...
-
-    To load configs directly from GitHub (or a local clone)::
-
-        specs = FeatmonSpec.from_github_repo()                        # clones metric-hub
-        specs = FeatmonSpec.from_github_repo("/path/to/metric-hub")   # local clone
-        specs = FeatmonSpec.from_github_repo("https://github.com/...") # custom URL
     """
 
     dataset: str
@@ -121,45 +111,3 @@ class FeatmonSpec:
         → dataset ``firefox_desktop``).
         """
         return cls.from_dict(toml.load(str(path)), dataset=path.stem)
-
-    @staticmethod
-    def configs_from_repo(repo_path: Path) -> "list[tuple[str, FeatmonSpec]]":
-        """Load all featmon configs from a metric-hub checkout.
-
-        Args:
-            repo_path: Path to the root of a metric-hub repository checkout.
-
-        Returns:
-            Sorted list of ``(app_name, spec)`` tuples, one per TOML file found
-            in the ``featmon/`` directory.
-        """
-        config_dir = repo_path / FEATMON_DIR
-        if not config_dir.is_dir():
-            return []
-        return [(p.stem, FeatmonSpec.from_file(p)) for p in sorted(config_dir.glob("*.toml"))]
-
-    @classmethod
-    def from_github_repo(cls, repo_url: str | None = None) -> "list[tuple[str, FeatmonSpec]]":
-        """Load all featmon configs from a metric-hub repo URL or local path.
-
-        If ``repo_url`` is a local directory, reads configs directly from it.
-        If ``repo_url`` is a GitHub URL (or ``None``, which defaults to the
-        canonical metric-hub URL), the repo is cloned to a temporary directory.
-
-        Args:
-            repo_url: Local path or GitHub URL of a metric-hub checkout.
-                      Defaults to ``https://github.com/mozilla/metric-hub``.
-
-        Returns:
-            Sorted list of ``(app_name, spec)`` tuples.
-        """
-        url = repo_url or METRIC_HUB_URL
-
-        if Path(url).exists() and Path(url).is_dir():
-            repo_path = Path(url)
-        else:
-            tmp_dir = Path(tempfile.mkdtemp())
-            Repo.clone_from(url, tmp_dir)
-            repo_path = tmp_dir
-
-        return cls.configs_from_repo(repo_path)

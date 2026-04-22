@@ -23,6 +23,7 @@ from metric_config_parser.segment import SegmentDataSourceDefinition, SegmentDef
 from .analysis import AnalysisSpec
 from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
+from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
@@ -314,6 +315,7 @@ class ConfigCollection:
     functions: FunctionsSpec | None = None
     repos: list[Repository] = attr.Factory(list)  # repos configs were loaded from
     is_private: bool = False
+    featmon_configs: dict[str, FeatmonSpec] = attr.Factory(dict)
 
     repo_url = "https://github.com/mozilla/metric-hub"
 
@@ -479,6 +481,13 @@ class ConfigCollection:
         for functions_file in files_path.glob(f"{DEFINITIONS_DIR}/{FUNCTIONS_FILE}"):
             functions_spec = FunctionsSpec.from_dict(toml.load(functions_file))
 
+        featmon_dir = files_path / FEATMON_DIR
+        featmon_configs = (
+            {p.stem: FeatmonSpec.from_file(p) for p in sorted(featmon_dir.glob("*.toml"))}
+            if featmon_dir.is_dir()
+            else {}
+        )
+
         return cls(
             external_configs,
             outcomes,
@@ -494,6 +503,7 @@ class ConfigCollection:
                 )
             ],
             is_private=is_private,
+            featmon_configs=featmon_configs,
         )
 
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
@@ -801,6 +811,9 @@ class ConfigCollection:
             self.functions = FunctionsSpec(functions=functions)
         else:
             self.functions.functions = functions
+
+        # merge featmon configs (other takes precedence)
+        self.featmon_configs = {**self.featmon_configs, **other.featmon_configs}
 
         self.repos += other.repos
 
