@@ -1,2 +1,91 @@
 [experiment]
 enrollment_period = 5
+
+[metrics]
+daily = ["retained_dau", "vpn_started", "vpn_get_started"]
+weekly = ["vpn_started", "vpn_get_started", "vpn_started_count"]
+overall = ["vpn_started", "vpn_get_started", "vpn_started_count"]
+
+[metrics.retained_dau]
+data_source = "firefox_desktop_active_users_view"
+select_expression = "COALESCE(LOGICAL_OR(is_dau), FALSE)"
+friendly_name = "Retained (DAU)"
+description = "Whether the client had at least one DAU-qualifying day in the analysis window (is_dau = TRUE on any day)."
+
+[metrics.retained_dau.statistics.binomial]
+
+[metrics.vpn_started]
+data_source = "ipprotection_events"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'started'), FALSE)"
+friendly_name = "VPN Started"
+description = "Whether the client turned on VPN at least once in the analysis window (ipprotection.started event fired). Cross-check: should be ~0 in holdback control, >0 in mvp-beta treatment."
+
+[metrics.vpn_started.statistics.binomial]
+
+[metrics.vpn_get_started]
+data_source = "ipprotection_events"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'get_started'), FALSE)"
+friendly_name = "VPN Get Started Clicked"
+description = "Whether the client entered the VPN signup funnel at least once in the analysis window (ipprotection.get_started event fired)."
+
+[metrics.vpn_get_started.statistics.binomial]
+
+[metrics.vpn_started_count]
+data_source = "ipprotection_events"
+select_expression = "COUNTIF(event_name = 'started')"
+friendly_name = "VPN Start Count"
+description = "Number of VPN session starts (ipprotection.started events) during the analysis window."
+
+[metrics.vpn_started_count.statistics.bootstrap_mean]
+
+[data_sources]
+
+[data_sources.ipprotection_events]
+from_expression = """(
+    SELECT
+        legacy_telemetry_client_id AS client_id,
+        profile_group_id,
+        DATE(submission_timestamp) AS submission_date,
+        experiments,
+        event_name,
+        event_extra,
+    FROM `mozdata.firefox_desktop.events_stream`
+    WHERE event_category = 'ipprotection'
+)"""
+experiments_column_type = "events_stream"
+friendly_name = "IP Protection (VPN) Events"
+description = "Glean events_stream filtered to event_category = 'ipprotection' (get_started, started, stopped)"
+
+[segments]
+
+[segments.country_de]
+data_source = "clients_daily"
+friendly_name = "Country: Germany"
+description = "Clients in Germany (DE) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'DE'), FALSE)"
+
+[segments.country_fr]
+data_source = "clients_daily"
+friendly_name = "Country: France"
+description = "Clients in France (FR) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'FR'), FALSE)"
+
+[segments.country_gb]
+data_source = "clients_daily"
+friendly_name = "Country: United Kingdom"
+description = "Clients in the United Kingdom (GB) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'GB'), FALSE)"
+
+[segments.country_us]
+data_source = "clients_daily"
+friendly_name = "Country: United States"
+description = "Clients in the United States (US) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'US'), FALSE)"
+
+[segments.new_users]
+data_source = "clients_last_seen"
+friendly_name = "New Users"
+description = "Clients enrolled on their first day with Firefox (first_seen_date = enrollment_date)"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen = 0), FALSE)"
+window_start = 0
+window_end = 0
