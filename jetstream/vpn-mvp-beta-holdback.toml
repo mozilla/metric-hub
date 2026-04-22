@@ -1,5 +1,12 @@
 [experiment]
-enrollment_period = 5
+enrollment_period = 8
+segments = [
+  "country_de",
+  "country_fr",
+  "country_gb",
+  "country_us",
+  "new_users",
+]
 
 [metrics]
 daily = ["retained_dau", "vpn_started", "vpn_get_started"]
