@@ -979,8 +979,10 @@ class TestFeatmonConfig:
         from metric_config_parser.featmon import FeatmonSpec
 
         spec = FeatmonSpec.from_dict(
-            {"data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
-             "features": {}},
+            {
+                "data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
+                "features": {},
+            },
             dataset="firefox_desktop",
         )
         config = FeatmonConfig(slug="firefox_desktop", spec=spec)
@@ -992,8 +994,10 @@ class TestFeatmonConfig:
         from metric_config_parser.featmon import FeatmonSpec
 
         spec = FeatmonSpec.from_dict(
-            {"data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
-             "features": {}},
+            {
+                "data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
+                "features": {},
+            },
             dataset="firefox_desktop",
         )
         config = FeatmonConfig(slug="firefox_desktop", spec=spec)
