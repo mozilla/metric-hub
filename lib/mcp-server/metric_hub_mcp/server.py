@@ -20,6 +20,10 @@ from .experiments import (
     handle_list_experiment_configs,
     handle_list_experiments,
 )
+from .featmon import (
+    handle_get_monitored_feature,
+    handle_list_monitored_features,
+)
 from .funnels import (
     handle_build_funnel_url,
     handle_get_glean_event,
@@ -59,8 +63,16 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "platform": {"type": "string", "description": "Platform name (e.g., 'firefox_desktop', 'fenix', 'ads')"},
-                    "category": {"type": "string", "description": "Optional: filter by category (e.g., 'search', 'performance')"},
+                    "platform": {
+                        "type": "string",
+                        "description": "Platform name (e.g., 'firefox_desktop', 'fenix', 'ads')",
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": (
+                            "Optional: filter by category (e.g., 'search', 'performance')"
+                        ),
+                    },
                 },
                 "required": ["platform"],
             },
@@ -95,7 +107,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "platform": {"type": "string", "description": "Platform name"},
-                    "data_source_name": {"type": "string", "description": "Name of the data source"},
+                    "data_source_name": {
+                        "type": "string",
+                        "description": "Name of the data source",
+                    },
                 },
                 "required": ["platform", "data_source_name"],
             },
@@ -107,7 +122,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
-                    "platform": {"type": "string", "description": "Optional: limit search to a specific platform"},
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: limit search to a specific platform",
+                    },
                 },
                 "required": ["query"],
             },
@@ -118,7 +136,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "metric_name": {"type": "string", "description": "Name for the new metric (snake_case)"},
+                    "metric_name": {
+                        "type": "string",
+                        "description": "Name for the new metric (snake_case)",
+                    },
                     "data_source": {"type": "string", "description": "Data source to use"},
                     "metric_type": {
                         "type": "string",
@@ -143,7 +164,10 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="list_experiment_configs",
-            description="List configuration files. Use 'jetstream' for experiment configs, 'opmon' for operational monitoring, 'looker' for Looker configs",
+            description=(
+                "List configuration files. Use 'jetstream' for experiment configs,"
+                " 'opmon' for operational monitoring, 'looker' for Looker configs"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -158,7 +182,10 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_experiment_config",
-            description="Get the contents of an existing configuration file from jetstream/, opmon/, or looker/ folders",
+            description=(
+                "Get the contents of an existing configuration file"
+                " from jetstream/, opmon/, or looker/ folders"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -166,7 +193,10 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "enum": ["jetstream", "opmon", "looker"],
                     },
-                    "config_slug": {"type": "string", "description": "Config slug (filename without .toml extension)"},
+                    "config_slug": {
+                        "type": "string",
+                        "description": "Config slug (filename without .toml extension)",
+                    },
                 },
                 "required": ["config_type", "config_slug"],
             },
@@ -182,15 +212,24 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "enum": ["jetstream", "opmon", "looker"],
                     },
-                    "base_config_slug": {"type": "string", "description": "Optional: existing config slug to copy from"},
-                    "config_content": {"type": "string", "description": "Optional: TOML content for the new config"},
+                    "base_config_slug": {
+                        "type": "string",
+                        "description": "Optional: existing config slug to copy from",
+                    },
+                    "config_content": {
+                        "type": "string",
+                        "description": "Optional: TOML content for the new config",
+                    },
                 },
                 "required": ["new_config_slug", "config_type"],
             },
         ),
         Tool(
             name="generate_config_template",
-            description="Generate a template for a new configuration (jetstream experiment, opmon monitoring, or looker dashboard)",
+            description=(
+                "Generate a template for a new configuration"
+                " (jetstream experiment, opmon monitoring, or looker dashboard)"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -200,7 +239,11 @@ async def list_tools() -> list[Tool]:
                     },
                     "template_type": {
                         "type": "string",
-                        "description": "Template type. jetstream: 'basic', 'with_segments', 'with_custom_metrics', 'with_custom_data_source'. opmon: 'basic', 'with_dimensions'. looker: 'basic'",
+                        "description": (
+                            "Template type. jetstream: 'basic', 'with_segments',"
+                            " 'with_custom_metrics', 'with_custom_data_source'."
+                            " opmon: 'basic', 'with_dimensions'. looker: 'basic'"
+                        ),
                     },
                     "platform": {"type": "string", "description": "Platform name"},
                 },
@@ -232,13 +275,19 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="list_glean_event_categories",
-            description="List all Glean event categories for a product. Use this to orient when you don't know where to start.",
+            description=(
+                "List all Glean event categories for a product."
+                " Use this to orient when you don't know where to start."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "product": {
                         "type": "string",
-                        "description": "Platform name (e.g. 'firefox_desktop', 'fenix'). Defaults to 'firefox_desktop'.",
+                        "description": (
+                            "Platform name (e.g. 'firefox_desktop', 'fenix')."
+                            " Defaults to 'firefox_desktop'."
+                        ),
                     },
                 },
                 "required": [],
@@ -246,14 +295,24 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="search_glean_events",
-            description="Search Glean events for a product by name, category, description, or tag. Returns event_category, event_name, and BigQuery details needed to build a funnel.",
+            description=(
+                "Search Glean events for a product by name, category, description, or tag."
+                " Returns event_category, event_name, and BigQuery details"
+                " needed to build a funnel."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Search term (e.g. 'tab group', 'create', 'save')"},
+                    "query": {
+                        "type": "string",
+                        "description": "Search term (e.g. 'tab group', 'create', 'save')",
+                    },
                     "product": {
                         "type": "string",
-                        "description": "Platform name (e.g. 'firefox_desktop', 'fenix'). Defaults to 'firefox_desktop'.",
+                        "description": (
+                            "Platform name (e.g. 'firefox_desktop', 'fenix')."
+                            " Defaults to 'firefox_desktop'."
+                        ),
                     },
                 },
                 "required": ["query"],
@@ -261,7 +320,10 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_glean_event",
-            description="Get full details for a specific Glean event including BigQuery table, filter, and extra keys.",
+            description=(
+                "Get full details for a specific Glean event"
+                " including BigQuery table, filter, and extra keys."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -279,26 +341,46 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="build_funnel_url",
-            description="Generate a Looker event_funnel explore URL pre-populated with funnel steps. Validates events against the Glean dictionary. Supports up to 4 steps.",
+            description=(
+                "Generate a Looker event_funnel explore URL pre-populated with funnel steps."
+                " Validates events against the Glean dictionary. Supports up to 4 steps."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "steps": {
                         "type": "array",
-                        "description": "Ordered funnel steps. Each step needs event_category, event_name, and optionally label and description.",
+                        "description": (
+                            "Ordered funnel steps. Each step needs event_category,"
+                            " event_name, and optionally label and description."
+                        ),
                         "items": {
                             "type": "object",
                             "properties": {
                                 "event_category": {"type": "string"},
                                 "event_name": {"type": "string"},
-                                "label": {"type": "string", "description": "Snake_case label for this step (e.g. 'created', 'saved')"},
+                                "label": {
+                                    "type": "string",
+                                    "description": (
+                                        "Snake_case label for this step (e.g. 'created', 'saved')"
+                                    ),
+                                },
                                 "description": {"type": "string"},
                                 "extra": {
                                     "type": "object",
                                     "description": "Optional extra key filter for this step.",
                                     "properties": {
-                                        "key": {"type": "string", "description": "Extra field path, e.g. 'strings.action', 'booleans.checked', 'quantities.duration_ms'"},
-                                        "value": {"type": "string", "description": "Value to filter on"},
+                                        "key": {
+                                            "type": "string",
+                                            "description": (
+                                                "Extra field path, e.g. 'strings.action',"
+                                                " 'booleans.checked', 'quantities.duration_ms'"
+                                            ),
+                                        },
+                                        "value": {
+                                            "type": "string",
+                                            "description": "Value to filter on",
+                                        },
                                     },
                                     "required": ["key", "value"],
                                 },
@@ -321,12 +403,60 @@ async def list_tools() -> list[Tool]:
                                 ],
                                 "description": "Country code(s) (e.g. 'US' or ['US', 'CA'])",
                             },
-                            "channel": {"type": "string", "description": "Release channel (e.g. 'release', 'beta', 'nightly')"},
-                            "os": {"type": "string", "description": "Operating system (e.g. 'Windows', 'Mac', 'Linux')"},
+                            "channel": {
+                                "type": "string",
+                                "description": (
+                                    "Release channel (e.g. 'release', 'beta', 'nightly')"
+                                ),
+                            },
+                            "os": {
+                                "type": "string",
+                                "description": "Operating system (e.g. 'Windows', 'Mac', 'Linux')",
+                            },
                         },
                     },
                 },
                 "required": ["steps"],
+            },
+        ),
+        Tool(
+            name="list_monitored_features",
+            description=(
+                "List all Nimbus features that have feature monitoring (featmon) configs,"
+                " showing which metrics are tracked per feature"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: filter by platform (e.g. 'firefox_desktop')",
+                    },
+                },
+                "required": [],
+            },
+        ),
+        Tool(
+            name="get_monitored_feature",
+            description=(
+                "Get detailed feature monitoring config for a specific Nimbus feature,"
+                " including all tracked metrics and data sources"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "feature_slug": {
+                        "type": "string",
+                        "description": (
+                            "Nimbus feature slug (e.g. 'address-autofill-feature') or TOML key"
+                        ),
+                    },
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: platform name (e.g. 'firefox_desktop')",
+                    },
+                },
+                "required": ["feature_slug"],
             },
         ),
         Tool(
@@ -335,16 +465,24 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "status": {"type": "string", "description": "Filter by status: 'Live' or 'Complete'"},
+                    "status": {
+                        "type": "string",
+                        "description": "Filter by status: 'Live' or 'Complete'",
+                    },
                     "app_name": {"type": "string", "description": "Filter by application name"},
-                    "is_rollout": {"type": "boolean", "description": "Filter to rollouts (true) or experiments (false)"},
+                    "is_rollout": {
+                        "type": "boolean",
+                        "description": "Filter to rollouts (true) or experiments (false)",
+                    },
                 },
                 "required": [],
             },
         ),
         Tool(
             name="get_experiment",
-            description="Get detailed information about a specific experiment or rollout from Experimenter",
+            description=(
+                "Get detailed information about a specific experiment or rollout from Experimenter"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -357,7 +495,9 @@ async def list_tools() -> list[Tool]:
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageContent | EmbeddedResource]:
+async def call_tool(
+    name: str, arguments: Any
+) -> list[TextContent | ImageContent | EmbeddedResource]:
     try:
         match name:
             case "list_platforms":
@@ -396,6 +536,10 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
                 return await handle_get_glean_event(arguments)
             case "build_funnel_url":
                 return await handle_build_funnel_url(arguments)
+            case "list_monitored_features":
+                return await handle_list_monitored_features(arguments)
+            case "get_monitored_feature":
+                return await handle_get_monitored_feature(arguments)
             case "list_experiments":
                 return await handle_list_experiments(arguments)
             case "get_experiment":
@@ -415,10 +559,10 @@ async def main() -> None:
 
 async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     """Run the MCP server via HTTP SSE (Cloud Run mode)."""
+    import uvicorn
     from mcp.server.sse import SseServerTransport
     from starlette.applications import Starlette
     from starlette.routing import Mount, Route
-    import uvicorn
 
     sse = SseServerTransport("/messages/")
 
@@ -440,6 +584,7 @@ async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
 def cli() -> None:
     """CLI entry point for local stdio mode."""
     import asyncio
+
     asyncio.run(main())
 
 
