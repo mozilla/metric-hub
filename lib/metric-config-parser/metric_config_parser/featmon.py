@@ -62,7 +62,7 @@ class FeatmonSpec:
     The expected use is via ``ConfigCollection``::
 
         collection = ConfigCollection.from_github_repo()
-        for app_name, spec in collection.featmon_configs.items():
+        for app_config in collection.featmon_configs:
             ...
 
     Config files are TOML and live in ``featmon/`` in metric-hub, one per
