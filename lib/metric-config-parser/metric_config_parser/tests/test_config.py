@@ -18,8 +18,10 @@ from metric_config_parser.config import (
     ConfigCollection,
     DefaultConfig,
     DefinitionConfig,
+    FeatmonConfig,
     LocalConfigCollection,
     Outcome,
+    entity_from_path,
 )
 from metric_config_parser.data_source import DataSourceJoinRelationship
 from metric_config_parser.errors import DefinitionNotFound
@@ -952,3 +954,97 @@ class TestConfigIntegration:
 
         outcomes = [o.slug for o in config_collection.outcomes]
         assert len(outcomes) == 4
+
+
+class TestFeatmonConfig:
+    FIREFOX_DESKTOP_TOML = dedent(
+        """
+        [data_sources.metrics]
+        table_name = "metrics"
+        type = "metrics"
+        analysis_unit_id = "metrics.uuid.legacy_telemetry_profile_group_id"
+
+        [data_sources.metrics.dimensions]
+        normalized_channel = {}
+
+        [features.my_feature]
+        slug = "my-feature"
+
+        [features.my_feature.metrics_by_source.metrics.boolean]
+        some_flag = {}
+        """
+    )
+
+    def test_featmon_config_attributes(self):
+        from metric_config_parser.featmon import FeatmonSpec
+
+        spec = FeatmonSpec.from_dict(
+            {"data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
+             "features": {}},
+            dataset="firefox_desktop",
+        )
+        config = FeatmonConfig(slug="firefox_desktop", spec=spec)
+        assert config.slug == "firefox_desktop"
+        assert config.spec.dataset == "firefox_desktop"
+        assert "metrics" in config.spec.data_sources
+
+    def test_featmon_config_validate_is_noop(self):
+        from metric_config_parser.featmon import FeatmonSpec
+
+        spec = FeatmonSpec.from_dict(
+            {"data_sources": {"metrics": {"table_name": "metrics", "type": "metrics"}},
+             "features": {}},
+            dataset="firefox_desktop",
+        )
+        config = FeatmonConfig(slug="firefox_desktop", spec=spec)
+        # validate() is a stub; validation happens in FeatmonSpec.__attrs_post_init__
+        config.validate(ConfigCollection())  # must not raise
+
+    def test_entity_from_path_recognizes_featmon(self, tmp_path):
+        featmon_dir = tmp_path / "featmon"
+        featmon_dir.mkdir()
+        (featmon_dir / "firefox_desktop.toml").write_text(self.FIREFOX_DESKTOP_TOML)
+        entity = entity_from_path(featmon_dir / "firefox_desktop.toml")
+        assert isinstance(entity, FeatmonConfig)
+        assert entity.slug == "firefox_desktop"
+        assert entity.spec.dataset == "firefox_desktop"
+        assert "my_feature" in entity.spec.features
+        assert entity.spec.features["my_feature"].nimbus_slug() == "my-feature"
+
+    def test_config_collection_loads_featmon_from_local_repo(self, tmp_path):
+        r = Repo.init(tmp_path)
+        r.config_writer().set_value("user", "name", "test").release()
+        r.config_writer().set_value("user", "email", "test@example.com").release()
+        r.config_writer().set_value("commit", "gpgsign", "false").release()
+
+        featmon_dir = tmp_path / "featmon"
+        featmon_dir.mkdir()
+        (featmon_dir / "firefox_desktop.toml").write_text(self.FIREFOX_DESKTOP_TOML)
+        r.git.add(".")
+        r.git.commit("-m", "add featmon config")
+
+        collection = ConfigCollection.from_github_repo(tmp_path)
+        assert len(collection.featmon_configs) == 1
+        app = collection.featmon_configs[0]
+        assert app.slug == "firefox_desktop"
+        assert app.spec.dataset == "firefox_desktop"
+        assert "my_feature" in app.spec.features
+
+    def test_featmon_merge(self, tmp_path):
+        r = Repo.init(tmp_path)
+        r.config_writer().set_value("user", "name", "test").release()
+        r.config_writer().set_value("user", "email", "test@example.com").release()
+        r.config_writer().set_value("commit", "gpgsign", "false").release()
+
+        featmon_dir = tmp_path / "featmon"
+        featmon_dir.mkdir()
+        (featmon_dir / "firefox_desktop.toml").write_text(self.FIREFOX_DESKTOP_TOML)
+        r.git.add(".")
+        r.git.commit("-m", "add featmon config")
+
+        collection1 = ConfigCollection.from_github_repo(tmp_path)
+        collection2 = ConfigCollection.from_github_repo(tmp_path)
+
+        collection1.merge(collection2)
+        # after merge, de-duplication by slug should keep only one entry
+        assert len(collection1.featmon_configs) == 1
