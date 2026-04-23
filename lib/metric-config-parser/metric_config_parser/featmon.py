@@ -10,6 +10,9 @@ Each file defines:
 
 The ``dataset`` is derived from the filename stem (e.g. ``firefox_desktop.toml``
 → ``firefox_desktop``).
+
+Featmon configs are loaded automatically by ``ConfigCollection.from_github_repo()``
+and are accessible via ``ConfigCollection.featmon_configs``.
 """
 
 from collections.abc import Mapping
@@ -56,19 +59,15 @@ class FeatureSpec:
 class FeatmonSpec:
     """Represents a Nimbus feature monitoring config file for a single application.
 
-    The expected use is like::
+    The expected use is via ``ConfigCollection``::
 
-        FeatmonSpec.from_file(Path("featmon/firefox_desktop.toml"))
+        collection = ConfigCollection.from_github_repo()
+        for app_config in collection.featmon_configs:
+            ...
 
     Config files are TOML and live in ``featmon/`` in metric-hub, one per
     application (e.g. ``firefox_desktop.toml``).  The ``dataset`` is inferred
     from the filename stem so it does not need to be repeated in the file.
-
-    To load all configs from a metric-hub repo checkout::
-
-        specs = FeatmonSpec.configs_from_repo(Path("/path/to/metric-hub"))
-        for app_name, spec in specs:
-            ...
     """
 
     dataset: str
@@ -112,19 +111,3 @@ class FeatmonSpec:
         → dataset ``firefox_desktop``).
         """
         return cls.from_dict(toml.load(str(path)), dataset=path.stem)
-
-    @staticmethod
-    def configs_from_repo(repo_path: Path) -> "list[tuple[str, FeatmonSpec]]":
-        """Load all featmon configs from a metric-hub checkout.
-
-        Args:
-            repo_path: Path to the root of a metric-hub repository checkout.
-
-        Returns:
-            Sorted list of ``(app_name, spec)`` tuples, one per TOML file found
-            in the ``featmon/`` directory.
-        """
-        config_dir = repo_path / FEATMON_DIR
-        if not config_dir.is_dir():
-            return []
-        return [(p.stem, FeatmonSpec.from_file(p)) for p in sorted(config_dir.glob("*.toml"))]

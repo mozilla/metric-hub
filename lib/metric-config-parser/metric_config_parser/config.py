@@ -23,6 +23,7 @@ from metric_config_parser.segment import SegmentDataSourceDefinition, SegmentDef
 from .analysis import AnalysisSpec
 from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
+from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
@@ -213,17 +214,40 @@ class DefinitionConfig(Config):
         analysis_spec.resolve(dummy_experiment, configs)
 
 
+@attr.s(auto_attribs=True)
+class FeatmonConfig:
+    """Represents a feature monitoring config file for a single application."""
+
+    slug: str  # app name inferred from file stem (e.g. "firefox_desktop")
+    spec: FeatmonSpec
+
+    def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
+        # Structural validation (e.g. valid source types) is already performed by
+        # FeatmonSpec.__attrs_post_init__ at parse time. No cross-config validation
+        # is needed here, so this stub intentionally does nothing.
+        pass
+
+
 def entity_from_path(
     path: Path, is_private: bool = False
-) -> Config | Outcome | DefaultConfig | DefinitionConfig | FunctionsSpec:
+) -> Config | Outcome | DefaultConfig | DefinitionConfig | FunctionsSpec | FeatmonConfig:
     is_outcome = path.parent.parent.name == OUTCOMES_DIR
     is_default_config = path.parent.name == DEFAULTS_DIR
     is_definition_config = path.parent.name == DEFINITIONS_DIR
+    is_featmon = path.parent.name == FEATMON_DIR
     slug = path.stem
 
-    validate_config_settings(path)
-
     config_dict = toml.loads(path.read_text())
+
+    # featmon TOMLs have their own schema (data_sources/features) that is not
+    # compatible with validate_config_settings, which checks jetstream/opmon keys
+    if is_featmon:
+        return FeatmonConfig(
+            slug=slug,
+            spec=FeatmonSpec.from_dict(config_dict, dataset=slug),
+        )
+
+    validate_config_settings(path)
 
     if is_outcome:
         platform = path.parent.name
@@ -314,6 +338,7 @@ class ConfigCollection:
     functions: FunctionsSpec | None = None
     repos: list[Repository] = attr.Factory(list)  # repos configs were loaded from
     is_private: bool = False
+    featmon_configs: list[FeatmonConfig] = attr.Factory(list)
 
     repo_url = "https://github.com/mozilla/metric-hub"
 
@@ -479,6 +504,17 @@ class ConfigCollection:
         for functions_file in files_path.glob(f"{DEFINITIONS_DIR}/{FUNCTIONS_FILE}"):
             functions_spec = FunctionsSpec.from_dict(toml.load(functions_file))
 
+        featmons = []
+        featmon_dir = files_path / FEATMON_DIR
+        if featmon_dir.is_dir():
+            for featmon_file in sorted(featmon_dir.glob("*.toml")):
+                featmons.append(
+                    FeatmonConfig(
+                        slug=featmon_file.stem,
+                        spec=FeatmonSpec.from_file(featmon_file),
+                    )
+                )
+
         return cls(
             external_configs,
             outcomes,
@@ -494,6 +530,7 @@ class ConfigCollection:
                 )
             ],
             is_private=is_private,
+            featmon_configs=featmons,
         )
 
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
@@ -802,6 +839,13 @@ class ConfigCollection:
         else:
             self.functions.functions = functions
 
+        # merge featmon configs (other takes precedence)
+        featmons = {fc.slug: fc for fc in deepcopy(other.featmon_configs)}
+        for fc in self.featmon_configs:
+            if fc.slug not in featmons:
+                featmons[fc.slug] = fc
+        self.featmon_configs = list(featmons.values())
+
         self.repos += other.repos
 
 
@@ -899,6 +943,17 @@ class LocalConfigCollection(ConfigCollection):
         for functions_file in files_path.glob(f"{DEFINITIONS_DIR}/{FUNCTIONS_FILE}"):
             functions_spec = FunctionsSpec.from_dict(toml.load(functions_file))
 
+        featmons = []
+        featmon_dir = files_path / FEATMON_DIR
+        if featmon_dir.is_dir():
+            for featmon_file in sorted(featmon_dir.glob("*.toml")):
+                featmons.append(
+                    FeatmonConfig(
+                        slug=featmon_file.stem,
+                        spec=FeatmonSpec.from_file(featmon_file),
+                    )
+                )
+
         return cls(
             external_configs,
             outcomes,
@@ -907,6 +962,7 @@ class LocalConfigCollection(ConfigCollection):
             functions_spec,
             repos=[],
             is_private=is_private,
+            featmon_configs=featmons,
         )
 
     @classmethod
