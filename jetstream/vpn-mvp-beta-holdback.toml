@@ -6,6 +6,7 @@ segments = [
   "country_gb",
   "country_us",
   "new_users",
+  "used_pbm",
 ]
 
 [metrics]
@@ -96,3 +97,11 @@ description = "Clients enrolled on their first day with Firefox (first_seen_date
 select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen = 0), FALSE)"
 window_start = 0
 window_end = 0
+
+[segments.used_pbm]
+data_source = "clients_daily"
+friendly_name = "Used PBM (first 7 days)"
+description = "Opened at least one private window on any of the 7 days post-enrollment."
+select_expression = "COALESCE(LOGICAL_OR(dom_parentprocess_private_window_used), FALSE)"
+window_start = 0
+window_end = 6
