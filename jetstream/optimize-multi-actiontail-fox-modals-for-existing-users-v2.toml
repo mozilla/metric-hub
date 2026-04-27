@@ -9,8 +9,14 @@ segments = [
 ]
 
 [metrics]
+# Note: is_default_browser and retained auto-apply, but we re-list them here to
+# force the Experimenter UI Results tab to surface them alongside is_pinned.
+# Both are binomial in definitions/firefox_desktop.toml — re-listing preserves
+# the default stat (no CUPED concern; binomial doesn't use covariate adjustment).
 weekly = [
+  "is_default_browser",
   "is_pinned",
+  "retained",
   "imported_bookmarks",
   "imported_history",
   "imported_logins",
@@ -20,7 +26,9 @@ weekly = [
   "shutdown_hangs",
 ]
 overall = [
+  "is_default_browser",
   "is_pinned",
+  "retained",
   "imported_bookmarks",
   "imported_history",
   "imported_logins",
