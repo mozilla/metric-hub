@@ -8,11 +8,13 @@ segments = [
 
 [metrics]
 weekly = [
+    "is_default_browser",
     "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
 ]
 overall = [
+    "is_default_browser",
     "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
