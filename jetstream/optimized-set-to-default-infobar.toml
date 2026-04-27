@@ -1,0 +1,55 @@
+[experiment]
+segments = [
+    "profile_age_0_to_7_days",
+    "profile_age_7_to_28_days",
+    "profile_age_more_than_28_days",
+]
+
+
+[metrics]
+weekly = [
+    "is_default_browser_glean",
+    "new_profile_retained_week4",
+    "repeat_first_month_user",
+]
+overall = [
+    "is_default_browser_glean",
+    "new_profile_retained_week4",
+    "repeat_first_month_user",
+]
+
+
+[segments]
+
+[segments.profile_age_0_to_7_days]
+select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = '0_to_7_days', FALSE)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_7_to_28_days]
+select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = '7_to_28_days', FALSE)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_more_than_28_days]
+select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = 'more_than_28_days', FALSE)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+
+[segments.data_sources]
+
+[segments.data_sources.clients_last_seen_with_profile_age]
+from_expression = """(
+    SELECT
+        *,
+        CASE
+            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) < 7 THEN '0_to_7_days'
+            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) BETWEEN 7 AND 27 THEN '7_to_28_days'
+            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) >= 28 THEN 'more_than_28_days'
+        END AS profile_age_bucket
+    FROM mozdata.telemetry.clients_last_seen
+)"""
