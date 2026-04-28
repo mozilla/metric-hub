@@ -5,6 +5,7 @@ daily = [
     "active_hours",
     "total_uri_count",
     "search_count",
+    "active_in_last_3_days",
 ]
 weekly = [
     "retained",
@@ -60,6 +61,9 @@ select_expression = "COALESCE(COUNT(document_id), 0) > 0"
 data_source = "baseline"
 
 [metrics.retained.statistics]
+binomial = {}
+
+[metrics.active_in_last_3_days.statistics]
 binomial = {}
 
 ##
