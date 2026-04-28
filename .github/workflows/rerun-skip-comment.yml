@@ -27,5 +27,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
-            body: "⚠️ Changing default metrics will cause all experiments that are currently live to get rerun after this change has been merged. This may come with a substantial cost. To skip reruns, add `[ci skip-rerun]` to the PR message."
+            body: "⚠️ Changing default metrics will cause all experiments that are currently live to get rerun after this change has been merged. This may come with a substantial cost. To skip reruns, add `[ci rerun-skip]` to the PR message."
           })
