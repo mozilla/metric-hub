@@ -11,9 +11,6 @@ segments = [
   "fr_locale",
   "de_locale",
   "en_locale",
-
-  "used_splitview_at_least_once",
-  "never_used_splitview",
 ]
 
 enrollment_query = """
@@ -149,16 +146,22 @@ select_expression = "SUM(COALESCE(mozfun.map.extract_keyed_scalar_sum(metrics.la
 [segments]
 
 [segments.fr_locale]
+friendly_name = "FR locale (pre-enrollment)"
+description = "Clients who reported an fr* locale on any clients_daily ping in the 365 days before enrollment"
 select_expression = """COALESCE(LOGICAL_OR(locale LIKE "fr%"), FALSE)"""
-data_source = 'clients_daily'
+data_source = "client_locale_history"
 
 [segments.de_locale]
+friendly_name = "DE locale (pre-enrollment)"
+description = "Clients who reported a de* locale on any clients_daily ping in the 365 days before enrollment"
 select_expression = """COALESCE(LOGICAL_OR(locale LIKE "de%"), FALSE)"""
-data_source = 'clients_daily'
+data_source = "client_locale_history"
 
 [segments.en_locale]
+friendly_name = "EN locale (pre-enrollment)"
+description = "Clients who reported an en-* locale on any clients_daily ping in the 365 days before enrollment"
 select_expression = """COALESCE(LOGICAL_OR(locale LIKE "en-%"), FALSE)"""
-data_source = 'clients_daily'
+data_source = "client_locale_history"
 
 [segments.last_dau_28_to_34_days_ago]
 friendly_name = "Last DAU 28 to 34 days ago"
@@ -208,18 +211,6 @@ window_start = -183
 window_end = -1
 
 
-[segments.used_splitview_at_least_once]
-friendly_name = "Used Splitview at least Once"
-description = "Clients who used splitview at least once during the experiment"
-select_expression = "LOGICAL_OR(COALESCE(used_splitview, FALSE))"
-data_source = "splitview_feature_usage"
-
-[segments.never_used_splitview]
-friendly_name = "Never Used Splitview"
-description = "Clients who never used splitview the experiment"
-select_expression = "NOT LOGICAL_OR(COALESCE(used_splitview, FALSE))"
-data_source = "splitview_feature_usage"
-
 [segments.data_sources.active_users_last_seen]
 from_expression = """(
   SELECT
@@ -233,26 +224,21 @@ from_expression = """(
 )"""
 window_start = -183
 
-[segments.data_sources.splitview_feature_usage]
+[segments.data_sources.client_locale_history]
 from_expression = """(
-    SELECT
-        DATE(submission_timestamp) AS submission_date,
-        client_id,
-        TRUE AS used_splitview,
-        ANY_VALUE(event_extra) AS event_extra,
-    FROM 
-        `moz-fx-data-shared-prod.firefox_desktop.events_stream`
-    WHERE 
-        event_category = 'splitview'
-        AND event_name = 'start'
-        AND DATE(submission_timestamp) BETWEEN '2026-03-26' AND '2026-04-30'
-    GROUP BY
-        ALL
+  SELECT
+    client_id,
+    profile_group_id,
+    locale,
+    submission_date
+  FROM `mozdata.telemetry.clients_daily`
+  WHERE submission_date >= DATE_SUB('2026-03-26', INTERVAL 365 DAY)
+    AND submission_date < '2026-03-26'
 )"""
-description = "Splitview Feature Usage and Retention using 'splitview.start'"
-friendly_name = "Splitview Feature Usage and Retention"
-client_id_column = "client_id"
-experiments_column_type = "events_stream"
+description = "Pre-enrollment locale history from clients_daily, looking back 365 days before the experiment start."
+friendly_name = "Client locale history (pre-enrollment)"
+window_start = -365
+window_end = -1
 
 
 [data_sources.splitview_feature_retention]
