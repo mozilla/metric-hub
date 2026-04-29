@@ -2,7 +2,7 @@
 # Each data source specifies:
 #   - analysis_unit_id: field used to identify analysis units (client/profile IDs)
 #   - table_name: the BigQuery table name within the application dataset
-#   - type: one of "metrics", "event_stream", or "clients_daily"
+#   - type: one of "metrics", "events_stream", or "clients_daily"
 #   - dimensions: optional fields to group metrics by
 
 [data_sources.metrics]
@@ -24,7 +24,7 @@ normalized_country_code = { value_in = ["CA", "DE", "FR", "GB", "US"], default_v
 [data_sources.events_stream]
 analysis_unit_id = "profile_group_id"
 table_name = "events_stream"
-type = "event_stream"
+type = "events_stream"
 
 [data_sources.newtab]
 analysis_unit_id = "metrics.uuid.legacy_telemetry_profile_group_id"

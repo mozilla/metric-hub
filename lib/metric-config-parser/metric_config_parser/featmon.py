@@ -5,7 +5,7 @@ checkout, with one TOML file per application (e.g. ``firefox_desktop.toml``).
 
 Each file defines:
 - ``data_sources``: BigQuery tables to query, each with a ``type`` of
-  ``"metrics"``, ``"event_stream"``, or ``"clients_daily"``
+  ``"metrics"``, ``"events_stream"``, or ``"clients_daily"``
 - ``features``: Nimbus features and the metrics to collect per source table
 
 The ``dataset`` is derived from the filename stem (e.g. ``firefox_desktop.toml``
@@ -16,15 +16,23 @@ and are accessible via ``ConfigCollection.featmon_configs``.
 """
 
 from collections.abc import Mapping
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 import attr
 import toml
 
-VALID_SOURCE_TYPES = frozenset({"metrics", "event_stream", "clients_daily"})
-
 FEATMON_DIR = "featmon"
+
+
+class DataSourceType(StrEnum):
+    """Valid BigQuery source table types for featmon configs."""
+
+    METRICS = "metrics"
+    EVENTS_STREAM = "events_stream"
+    DEPRECATED_EVENT_STREAM = "event_stream"  # deprecated alias, use events_stream
+    CLIENTS_DAILY = "clients_daily"
 
 
 @attr.s(auto_attribs=True)
@@ -33,7 +41,7 @@ class SourceTableSpec:
 
     name: str
     table_name: str
-    type: str = "metrics"
+    type: str = DataSourceType.METRICS.value
     analysis_unit_id: str = "client_info.client_id"
     dimensions: dict[str, Any] = attr.Factory(dict)
 
@@ -45,6 +53,7 @@ class FeatureSpec:
     name: str
     slug: str | None = None
     metrics_by_source: dict[str, Any] = attr.Factory(dict)
+    ratios: list[list[str]] = attr.Factory(list)
 
     def nimbus_slug(self) -> str:
         """Return the Nimbus slug for this feature.
@@ -79,11 +88,12 @@ class FeatmonSpec:
 
     def _validate(self) -> None:
         """Validate data source types."""
+        valid = {t.value for t in DataSourceType}
         for name, source in self.data_sources.items():
-            if source.type not in VALID_SOURCE_TYPES:
+            if source.type not in valid:
                 raise ValueError(
                     f"data_source '{name}' has invalid type '{source.type}'. "
-                    f"Must be one of: {sorted(VALID_SOURCE_TYPES)}"
+                    f"Must be one of: {sorted(valid)}"
                 )
 
     @classmethod
@@ -98,6 +108,7 @@ class FeatmonSpec:
                 name=name,
                 slug=cfg.get("slug"),
                 metrics_by_source=cfg.get("metrics_by_source", {}),
+                ratios=cfg.get("ratios", []),
             )
             for name, cfg in d.get("features", {}).items()
         }
