@@ -12,12 +12,32 @@ weekly = [
     "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
+    "client_level_daily_active_users_v2",
+    "retained",
+    "days_of_use",
+    "uri_count",
+    "active_hours",
+    "search_count",
+    "ad_clicks",
+    "qualified_cumulative_days_of_use",
 ]
 overall = [
     "is_default_browser",
     "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
+    "client_level_daily_active_users_v2",
+    "retained",
+    "days_of_use",
+    "uri_count",
+    "active_hours",
+    "search_count",
+    "ad_clicks",
+    "qualified_cumulative_days_of_use",
+    "organic_search_count",
+    "searches_with_ads",
+    "tagged_search_count",
+    "tagged_follow_on_search_count",
 ]
 
 
