@@ -31,7 +31,6 @@ class DataSourceType(StrEnum):
 
     METRICS = "metrics"
     EVENTS_STREAM = "events_stream"
-    DEPRECATED_EVENT_STREAM = "event_stream"  # deprecated alias, use events_stream
     CLIENTS_DAILY = "clients_daily"
 
 
