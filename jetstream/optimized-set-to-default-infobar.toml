@@ -7,23 +7,13 @@ segments = [
 
 
 [metrics]
-# Auto-applied via jetstream/defaults/firefox_desktop.toml -- not re-listed:
-# active_hours, ad_clicks, days_of_use, retained, uri_count, search_count,
-# qualified_cumulative_days_of_use, is_default_browser,
-# client_level_daily_active_users_v2 (and overall also adds organic_search_count,
-# searches_with_ads, tagged_search_count, tagged_follow_on_search_count).
-
-weekly = [
-    "new_profile_retained_week4",
-    "repeat_first_month_user",
-]
-overall = [
-    "new_profile_retained_week4",
-    "repeat_first_month_user",
-]
-
-[metrics.new_profile_retained_week4.statistics.binomial]
-[metrics.repeat_first_month_user.statistics.binomial]
+# All metrics for this experiment are auto-applied via
+# jetstream/defaults/firefox_desktop.toml: active_hours, ad_clicks, days_of_use,
+# retained, uri_count, search_count, qualified_cumulative_days_of_use,
+# is_default_browser, client_level_daily_active_users_v2 (and overall also adds
+# organic_search_count, searches_with_ads, tagged_search_count,
+# tagged_follow_on_search_count). Retention is captured via the auto-applied
+# `retained` metric (per analysis window, anchored to enrollment).
 
 
 [segments]
