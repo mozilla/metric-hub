@@ -7,56 +7,56 @@ segments = [
 
 
 [metrics]
+# Auto-applied via jetstream/defaults/firefox_desktop.toml -- not re-listed:
+# active_hours, ad_clicks, days_of_use, retained, uri_count, search_count,
+# qualified_cumulative_days_of_use, is_default_browser,
+# client_level_daily_active_users_v2 (and overall also adds organic_search_count,
+# searches_with_ads, tagged_search_count, tagged_follow_on_search_count).
+
 weekly = [
-    "is_default_browser",
-    "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
-    "client_level_daily_active_users_v2",
-    "retained",
-    "days_of_use",
-    "uri_count",
-    "active_hours",
-    "search_count",
-    "ad_clicks",
-    "qualified_cumulative_days_of_use",
 ]
 overall = [
-    "is_default_browser",
-    "is_default_browser_glean",
     "new_profile_retained_week4",
     "repeat_first_month_user",
-    "client_level_daily_active_users_v2",
-    "retained",
-    "days_of_use",
-    "uri_count",
-    "active_hours",
-    "search_count",
-    "ad_clicks",
-    "qualified_cumulative_days_of_use",
-    "organic_search_count",
-    "searches_with_ads",
-    "tagged_search_count",
-    "tagged_follow_on_search_count",
 ]
+
+[metrics.new_profile_retained_week4.statistics.binomial]
+[metrics.repeat_first_month_user.statistics.binomial]
 
 
 [segments]
 
 [segments.profile_age_0_to_7_days]
-select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = '0_to_7_days', FALSE)"""
+friendly_name = "Profile age 0-6 days at enrollment"
+description = "Clients whose first_seen_date is 0-6 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 6,
+    FALSE
+)"""
 data_source = "clients_last_seen_with_profile_age"
 window_start = 0
 window_end = 0
 
 [segments.profile_age_7_to_28_days]
-select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = '7_to_28_days', FALSE)"""
+friendly_name = "Profile age 7-27 days at enrollment"
+description = "Clients whose first_seen_date is 7-27 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 7 AND 27,
+    FALSE
+)"""
 data_source = "clients_last_seen_with_profile_age"
 window_start = 0
 window_end = 0
 
 [segments.profile_age_more_than_28_days]
-select_expression = """COALESCE(ANY_VALUE(profile_age_bucket) = 'more_than_28_days', FALSE)"""
+friendly_name = "Profile age 28+ days at enrollment"
+description = "Clients whose first_seen_date is 28 or more days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) >= 28,
+    FALSE
+)"""
 data_source = "clients_last_seen_with_profile_age"
 window_start = 0
 window_end = 0
@@ -67,11 +67,9 @@ window_end = 0
 [segments.data_sources.clients_last_seen_with_profile_age]
 from_expression = """(
     SELECT
-        *,
-        CASE
-            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) < 7 THEN '0_to_7_days'
-            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) BETWEEN 7 AND 27 THEN '7_to_28_days'
-            WHEN DATE_DIFF(submission_date, first_seen_date, DAY) >= 28 THEN 'more_than_28_days'
-        END AS profile_age_bucket
+        client_id,
+        profile_group_id,
+        submission_date,
+        first_seen_date
     FROM mozdata.telemetry.clients_last_seen
 )"""
