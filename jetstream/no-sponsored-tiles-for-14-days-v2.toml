@@ -2,7 +2,7 @@
 segments = ['playstore']
 
 [segments.playstore]
-data_source = "baseline"
+data_source = "baseline_v2"
 friendly_name = "Play Store Installs"
 description = "Clients who installed from the Play Store (com.android.vending)"
 select_expression = """COALESCE(CAST(MAX(CASE WHEN metrics.string.first_session_install_source = 'com.android.vending' THEN 1 ELSE 0 END) AS BOOL), FALSE)"""
