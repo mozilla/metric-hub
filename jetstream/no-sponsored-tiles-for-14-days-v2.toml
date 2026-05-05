@@ -13,5 +13,7 @@ from_expression = """(
     SELECT
         p.*,
         DATE(p.submission_timestamp) AS submission_date
-    FROM `moz-fx-data-shared-prod.org_mozilla_firefox.baseline` p
+    FROM `moz-fx-data-shared-prod.org_mozilla_firefox.baseline_v2` p
 )"""
+
+
