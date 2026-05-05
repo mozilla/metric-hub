@@ -9,13 +9,6 @@ select_expression = """COALESCE(CAST(MAX(CASE WHEN metrics.string.first_session_
 
 
 [segments.data_sources.baseline]
-from_expression = """(
-    SELECT
-        p.*,
-        client_info.client_id as client_id,
-        DATE(p.submission_timestamp) AS submission_date
-    FROM `moz-fx-data-shared-prod.org_mozilla_firefox.baseline` p
-)"""
-
+from_expression = """(SELECT metrics.string.first_session_install_source,client_info.client_id as client_id, DATE(p.submission_timestamp) AS submission_date FROM `moz-fx-data-shared-prod.org_mozilla_firefox.baseline` p )"""
 
 
