@@ -1,3 +1,7 @@
+{% if outcome_name -%}
+#{{ outcome_name | trim }}
+{% endif %}
+
 {% if outcome_description -%}
 {{ outcome_description | trim }}
 {% endif %}
