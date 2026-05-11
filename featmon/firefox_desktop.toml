@@ -113,3 +113,118 @@ sections_follow_section = {}
 sections_unfollow_section = {}
 sections_block_section = {}
 sections_unblock_section = {}
+
+[features.newtab_trainhop]
+slug = "newtabTrainhop"
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+
+[features.pocket_newtab]
+slug = "pocketNewtab"
+
+[features.pocket_newtab.metrics_by_source.newtab.boolean]
+pocket_is_signed_in = {}
+pocket_enabled = {}
+pocket_sponsored_stories_enabled = {}
+
+[features.pocket_newtab.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.pocket_newtab.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_private_ping]
+slug = "newtabPrivatePing"
+
+[features.newtab_private_ping.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_merino_ohttp]
+slug = "newtabMerinoOhttp"
+
+[features.newtab_merino_ohttp.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_merino_ohttp.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+
+[features.newtab_ad_sizing_experiment]
+slug = "newtabAdSizingExperiment"
+
+[features.newtab_ad_sizing_experiment.metrics_by_source.newtab.boolean]
+topsites_sponsored_enabled = {}
+
+[features.newtab_ad_sizing_experiment.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+dismiss = {}
+
+[features.newtab_promo_card]
+slug = "newtabPromoCard"
+
+[features.newtab_promo_card.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_promo_card.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+dismiss = {}
+
+[features.newtab_inferred_personalization]
+slug = "newtabInferredPersonalization"
+
+[features.newtab_inferred_personalization.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_inferred_personalization.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+
+[features.bookmarks]
+slug = "bookmarks"
+
+[features.bookmarks.metrics_by_source.metrics.boolean]
+bookmarks_has_mobile_bookmarks = {}
+metrics_has_desktop_bookmarks = {}
+
+[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_add]
+aggregators = ["sum"]
+
+[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_open]
+aggregators = ["sum"]
+
+[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_edit]
+aggregators = ["sum"]
+
+[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_delete]
+aggregators = ["sum"]
+
+[features.urlbar]
+slug = "urlbar"
+
+[features.urlbar.metrics_by_source.metrics.boolean]
+urlbar_pref_suggest_all = {}
+urlbar_pref_suggest_sponsored = {}
+urlbar_pref_suggest_nonsponsored = {}
+urlbar_pref_suggest_online_enabled = {}
+
+[features.urlbar.metrics_by_source.metrics.labeled_counter.browser_search_content_urlbar]
+aggregators = ["sum"]
