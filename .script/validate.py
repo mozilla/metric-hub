@@ -18,6 +18,7 @@ import logging
 import multiprocessing
 import sys
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 import google.auth
 from google.auth.transport.requests import Request as GoogleAuthRequest
@@ -120,7 +121,7 @@ def dry_run_query(sql: str) -> None:
             )
         )
         response = json.load(r)
-    except Exception as e:
+    except Exception:
         # This may be a JSONDecode exception or something else.
         # If we got a HTTP exception, that's probably the most interesting thing to raise.
         try:
@@ -152,7 +153,9 @@ def dry_run_query(sql: str) -> None:
         logger.info("Dry run OK")
         return
 
-    raise DryRunFailedError((error and error.get("message", None)) or response["errors"], sql=sql)
+    raise DryRunFailedError(
+        (error and error.get("message", None)) or response["errors"], sql=sql
+    )
 
 
 def _is_sql_valid(sql):
@@ -217,7 +220,9 @@ def validate(path, config_repos):
                 print(e)
             else:
                 if not isinstance(entity, FunctionsSpec):
-                    validation_template = (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
+                    validation_template = (
+                        Path(TEMPLATES_DIR) / "validation_query.sql"
+                    ).read_text()
                     env = config_collection.get_env().from_string(validation_template)
 
                     i = 0
@@ -260,7 +265,9 @@ def validate(path, config_repos):
                                 segments=[],
                                 segment_data_sources=[],
                                 data_sources={
-                                    name: d.resolve(entity.spec, entity, config_collection)
+                                    name: d.resolve(
+                                        entity.spec, entity, config_collection
+                                    )
                                     for name, d in data_sources.items()
                                 },
                             )
@@ -298,7 +305,11 @@ def validate(path, config_repos):
 
     print(f"Dry running {len(sql_to_validate)} SQL query batches")
     with multiprocessing.Pool(multiprocessing.cpu_count()) as p:
+        start = perf_counter()
         result = p.map(_is_sql_valid, sql_to_validate, chunksize=1)
+        end = perf_counter()
+        print(f"Done. ({round(end - start, 1)} seconds)")
+
     if not all(result):
         sys.exit(1)
     print(f"{config_file} OK")
