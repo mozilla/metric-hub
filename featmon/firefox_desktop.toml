@@ -198,37 +198,6 @@ dismiss = {}
 impression = {}
 click = {}
 
-[features.bookmarks]
-slug = "bookmarks"
-
-[features.bookmarks.metrics_by_source.metrics.boolean]
-bookmarks_has_mobile_bookmarks = {}
-metrics_has_desktop_bookmarks = {}
-
-[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_add]
-aggregators = ["sum"]
-
-[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_open]
-aggregators = ["sum"]
-
-[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_edit]
-aggregators = ["sum"]
-
-[features.bookmarks.metrics_by_source.metrics.labeled_counter.bookmarks_delete]
-aggregators = ["sum"]
-
-[features.urlbar]
-slug = "urlbar"
-
-[features.urlbar.metrics_by_source.metrics.boolean]
-urlbar_pref_suggest_all = {}
-urlbar_pref_suggest_sponsored = {}
-urlbar_pref_suggest_nonsponsored = {}
-urlbar_pref_suggest_online_enabled = {}
-
-[features.urlbar.metrics_by_source.metrics.labeled_counter.browser_search_content_urlbar]
-aggregators = ["sum"]
-
 [data_sources.messaging_system]
 analysis_unit_id = "client_info.client_id"
 table_name = "messaging_system"
