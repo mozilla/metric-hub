@@ -51,30 +51,35 @@ CheckboxSelectionByClientID AS (
     submission_date,
     ARRAY_CONCAT_AGG(checkbox_sources) AS all_selected_checkboxes
   FROM ExperimentEvents
-  GROUP BY
+  GROUP BY client_id, submission_date
+),
+SelectionPerClient AS (
+  SELECT
     client_id,
-    submission_date
+    submission_date,
+    ARRAY_TO_STRING(
+        ARRAY_AGG(
+          CASE
+              WHEN s = '"checkbox-motivation-1"' THEN 'Privacy and Security'
+              WHEN s = '"checkbox-motivation-2"' THEN 'Productivity'
+              WHEN s = '"checkbox-motivation-3"' THEN 'Other'
+          END ),
+        ', '
+      ) AS selection
+  FROM CheckboxSelectionByClientID, UNNEST(all_selected_checkboxes) AS s
+  WHERE
+    ARRAY_LENGTH(all_selected_checkboxes) > 0
+    AND s IN ('"checkbox-motivation-1"',
+      '"checkbox-motivation-2"',
+      '"checkbox-motivation-3"')
+  GROUP BY client_id, submission_date
 )
 SELECT
-  client_id,
-  submission_date,
-  ARRAY_TO_STRING(
-      ARRAY_AGG(
-        CASE
-            WHEN s = '"checkbox-motivation-1"' THEN 'Privacy and Security'
-            WHEN s = '"checkbox-motivation-2"' THEN 'Productivity'
-            WHEN s = '"checkbox-motivation-3"' THEN 'Other'
-        END ),
-      ', '
-    ) AS selection
-FROM CheckboxSelectionByClientID, UNNEST(all_selected_checkboxes) AS s
-WHERE
-  ARRAY_LENGTH(all_selected_checkboxes) > 0
-  AND s IN ('"checkbox-motivation-1"',
-    '"checkbox-motivation-2"',
-    '"checkbox-motivation-3"')
-GROUP BY
-  client_id,
-  submission_date
+  cfs.profile_group_id,
+  s.submission_date,
+  s.selection
+FROM SelectionPerClient s
+JOIN `moz-fx-data-shared-prod.telemetry.clients_first_seen` cfs
+  ON cfs.client_id = s.client_id
 )"""
 window_start = -3
