@@ -1,0 +1,18 @@
+## No overrides of existing configuration settings; just adding one custom metric
+##  for feature-specific usage
+
+[metrics]
+
+daily = ["split_view_usage"]
+
+weekly = ["split_view_usage"]
+
+overall = ["split_view_usage"]
+
+[metrics.split_view_usage]
+select_expression = "mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.splitview_uri_count) > 0"
+data_source = "metrics"
+friendly_name = "Split-view feature DAU"
+description = "The number of unique daily clients loading at least one URI in a split view tab pane (either side)."
+
+[metrics.split_view_usage.statistics.binomial]
