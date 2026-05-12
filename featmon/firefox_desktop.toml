@@ -198,6 +198,22 @@ dismiss = {}
 impression = {}
 click = {}
 
+[data_sources.events]
+analysis_unit_id = "client_info.client_id"
+table_name = "events"
+type = "metrics"
+
+[features.urlbar]
+slug = "urlbar"
+
+[features.urlbar.metrics_by_source.events.boolean]
+urlbar_pref_suggest_sponsored = {}
+urlbar_pref_suggest_nonsponsored = {}
+urlbar_pref_suggest_all = {}
+urlbar_pref_suggest_data_collection = {}
+urlbar_pref_suggest_online_available = {}
+urlbar_pref_suggest_online_enabled = {}
+
 [data_sources.messaging_system]
 analysis_unit_id = "client_info.client_id"
 table_name = "messaging_system"
