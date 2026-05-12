@@ -4,13 +4,9 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'definitions/**'
   push:
     branches:
       - main
-    paths:
-      - 'definitions/**'
 
 jobs:
   changed:
