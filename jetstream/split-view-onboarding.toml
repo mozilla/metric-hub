@@ -10,7 +10,7 @@ weekly = ["split_view_usage"]
 overall = ["split_view_usage"]
 
 [metrics.split_view_usage]
-select_expression = "mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.splitview_uri_count) > 0"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.splitview_uri_count) > 0), FALSE)"
 data_source = "metrics"
 friendly_name = "Split-view feature DAU"
 description = "The number of unique daily clients loading at least one URI in a split view tab pane (either side)."
