@@ -4,13 +4,9 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'jetstream/**'
   push:
     branches:
       - main
-    paths:
-      - 'jetstream/**'
 
 jobs:
   changed:
