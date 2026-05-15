@@ -1,5 +1,5 @@
 [experiment]
-enrollment_period = 14
+enrollment_period = 28
 segments = [
   "country_de",
   "country_fr",
