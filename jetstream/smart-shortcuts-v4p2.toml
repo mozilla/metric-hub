@@ -1,6 +1,3 @@
-[experiment]
-reference_branch = "control"
-
 [metrics]
 weekly = [
   "newtab_visits",
@@ -61,6 +58,7 @@ overall = [
 select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
 data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 friendly_name = "Urlbar topsite clicks"
+description = "Total clicks on URL bar top site results."
 [metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
 
 # Copied from jetstream/outcomes/firefox_desktop/newtab_do_no_harm.toml
@@ -78,24 +76,16 @@ friendly_name = "Urlbar topsite clicks"
 [metrics.newtab_any_searches.statistics.binomial]
 [metrics.newtab_gt4_searches.statistics.binomial]
 
-[metrics.sponsored_tile_clicks.statistics.sum]
 [metrics.sponsored_tile_clicks.statistics.linear_model_mean]
-[metrics.sponsored_tile_impressions.statistics.sum]
 [metrics.sponsored_tile_impressions.statistics.linear_model_mean]
 
-[metrics.newtab_organic_topsite_clicks_v2.statistics.sum]
 [metrics.newtab_organic_topsite_clicks_v2.statistics.linear_model_mean]
-[metrics.newtab_organic_topsite_impressions_v2.statistics.sum]
 [metrics.newtab_organic_topsite_impressions_v2.statistics.linear_model_mean]
 
-[metrics.sponsored_content_clicks.statistics.sum]
 [metrics.sponsored_content_clicks.statistics.linear_model_mean]
-[metrics.sponsored_content_impressions.statistics.sum]
 [metrics.sponsored_content_impressions.statistics.linear_model_mean]
 
-[metrics.organic_content_clicks.statistics.sum]
 [metrics.organic_content_clicks.statistics.linear_model_mean]
-[metrics.organic_content_impressions.statistics.sum]
 [metrics.organic_content_impressions.statistics.linear_model_mean]
 
 [metrics.sponsored_tile_ctr.statistics.population_ratio]
