@@ -1,0 +1,124 @@
+[metrics]
+weekly = [
+  "newtab_visits",
+  "newtab_engaged_visits",
+  "newtab_ad_click_rate",
+  "newtab_homepage_enabled",
+  "newtab_engagement",
+  "newtab_any_searches",
+  "newtab_gt4_searches",
+  "sponsored_tile_clicks",
+  "sponsored_tile_impressions",
+  "newtab_organic_topsite_clicks_v2",
+  "newtab_organic_topsite_impressions_v2",
+  "sponsored_content_clicks",
+  "sponsored_content_impressions",
+  "organic_content_clicks",
+  "organic_content_impressions",
+  "sponsored_tile_ctr",
+  "sponsored_content_ctr",
+  "newtab_searches",
+  "newtab_content_enabled",
+  "newtab_sponsored_content_stories_enabled",
+  "any_organic_content_clicks",
+  "newtab_sponsored_tiles_enabled",
+  "any_sponsored_tiles_dismissals",
+  "sponsored_tiles_dismissals",
+]
+
+overall = [
+  "urlbar_topsite_clicks",
+  "newtab_visits",
+  "newtab_engaged_visits",
+  "newtab_ad_click_rate",
+  "newtab_homepage_enabled",
+  "newtab_engagement",
+  "newtab_any_searches",
+  "newtab_gt4_searches",
+  "sponsored_tile_clicks",
+  "sponsored_tile_impressions",
+  "newtab_organic_topsite_clicks_v2",
+  "newtab_organic_topsite_impressions_v2",
+  "sponsored_content_clicks",
+  "sponsored_content_impressions",
+  "organic_content_clicks",
+  "organic_content_impressions",
+  "sponsored_tile_ctr",
+  "sponsored_content_ctr",
+  "newtab_searches",
+  "newtab_content_enabled",
+  "newtab_sponsored_content_stories_enabled",
+  "any_organic_content_clicks",
+  "newtab_sponsored_tiles_enabled",
+  "any_sponsored_tiles_dismissals",
+  "sponsored_tiles_dismissals",
+]
+
+[metrics.urlbar_topsite_clicks]
+select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+friendly_name = "Urlbar topsite clicks"
+description = "Total clicks on URL bar top site results."
+[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]
+
+# Copied from jetstream/outcomes/firefox_desktop/newtab_do_no_harm.toml
+[metrics.newtab_visits.statistics.bootstrap_mean]
+[metrics.newtab_visits.statistics.deciles]
+
+[metrics.newtab_engaged_visits.statistics.bootstrap_mean]
+[metrics.newtab_engaged_visits.statistics.deciles]
+
+[metrics.newtab_ad_click_rate.statistics.bootstrap_mean]
+[metrics.newtab_ad_click_rate.statistics.deciles]
+
+[metrics.newtab_homepage_enabled.statistics.binomial]
+[metrics.newtab_engagement.statistics.binomial]
+[metrics.newtab_any_searches.statistics.binomial]
+[metrics.newtab_gt4_searches.statistics.binomial]
+
+[metrics.sponsored_tile_clicks.statistics.linear_model_mean]
+[metrics.sponsored_tile_impressions.statistics.linear_model_mean]
+
+[metrics.newtab_organic_topsite_clicks_v2.statistics.linear_model_mean]
+[metrics.newtab_organic_topsite_impressions_v2.statistics.linear_model_mean]
+
+[metrics.sponsored_content_clicks.statistics.linear_model_mean]
+[metrics.sponsored_content_impressions.statistics.linear_model_mean]
+
+[metrics.organic_content_clicks.statistics.linear_model_mean]
+[metrics.organic_content_impressions.statistics.linear_model_mean]
+
+[metrics.sponsored_tile_ctr.statistics.population_ratio]
+numerator = 'sponsored_tile_clicks'
+denominator = 'sponsored_tile_impressions'
+
+[metrics.sponsored_content_ctr.statistics.population_ratio]
+numerator = 'sponsored_content_clicks'
+denominator = 'sponsored_content_impressions'
+
+# Copied from jetstream/outcomes/firefox_desktop/pocket_newtab.toml
+[metrics.organic_content_clicks.statistics.bootstrap_mean]
+[metrics.organic_content_clicks.statistics.deciles]
+
+[metrics.sponsored_content_clicks.statistics.bootstrap_mean]
+[metrics.sponsored_content_clicks.statistics.deciles]
+
+[metrics.newtab_searches.statistics.bootstrap_mean]
+[metrics.newtab_searches.statistics.deciles]
+
+[metrics.newtab_content_enabled.statistics.binomial]
+[metrics.newtab_sponsored_content_stories_enabled.statistics.binomial]
+[metrics.any_organic_content_clicks.statistics.binomial]
+
+# Copied from jetstream/outcomes/firefox_desktop/sponsored_tiles.toml
+[metrics.newtab_sponsored_tiles_enabled.statistics.binomial]
+[metrics.any_sponsored_tiles_dismissals.statistics.binomial]
+
+[metrics.sponsored_tiles_dismissals.statistics.bootstrap_mean]
+[metrics.sponsored_tiles_dismissals.statistics.deciles]
+
+[metrics.sponsored_tile_clicks.statistics.bootstrap_mean]
+[metrics.sponsored_tile_clicks.statistics.deciles]
+
+[metrics.sponsored_tile_impressions.statistics.bootstrap_mean]
+[metrics.sponsored_tile_impressions.statistics.deciles]
