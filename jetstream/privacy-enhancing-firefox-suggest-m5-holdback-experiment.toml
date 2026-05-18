@@ -1,6 +1,7 @@
 [experiment]
-enrollment_period = 21
-end_date = "2026-05-01"
+start_date = "2026-04-02"
+enrollment_period = 14
+end_date = "2026-05-14"
 
 [experiment.exposure_signal]
 
