@@ -1,3 +1,7 @@
+{% if outcome_name -%}
+#{{ outcome_name | trim }}
+{% endif %}
+
 {% if outcome_description -%}
 {{ outcome_description | trim }}
 {% endif %}
@@ -11,7 +15,7 @@
 
 ### `{{ metric.name }}` 
 
-**{%- if metric.friendly_name -%}{{ metric.friendly_name }} {% endif %}**
+**{%- if metric.friendly_name -%}{{ metric.friendly_name | trim }}{% endif %}**
 
 {% if metric.description -%}
 {{ metric.description | trim }}

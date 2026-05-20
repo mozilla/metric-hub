@@ -1,0 +1,234 @@
+[experiment]
+enrollment_period = 14
+
+segments = [
+  "activity_infrequent",
+  "activity_casual",
+  "activity_core",
+  "regular_users_v3",
+
+  "profile_age_0_to_28_days",
+  "profile_age_29_to_180_days",
+  "profile_age_more_than_180_days",
+
+  "ever_used_taskbar_tabs_pre_enrollment",
+  "never_used_taskbar_tabs_pre_enrollment",
+]
+
+[metrics]
+
+weekly = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+]
+
+overall = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+]
+
+[metrics.installed_web_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.pinned_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.any_web_app_installed.statistics.binomial]
+[metrics.any_web_app_pinned.statistics.binomial]
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# CUSTOM METRICS - Web App (Taskbar Tabs) activity
+# ============================================================================
+# installed_web_apps / pinned_apps / web_app_launches / web_app_active_users
+# are copied verbatim from taskbar-tabs-discovery.toml.
+# any_web_app_installed / any_web_app_pinned are new binary versions: did the
+# client install/pin at least one web app during the analysis window?
+
+[metrics.installed_web_apps]
+friendly_name = "Installed Web Apps"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.pinned_apps]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web App Launches per user (approx from activate and install events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero web app usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.any_web_app_installed]
+friendly_name = "Any Web App Installed"
+description = "Client had at least one web app install event during the analysis window"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'install'), FALSE)"
+data_source = "web_app_events"
+
+[metrics.any_web_app_pinned]
+friendly_name = "Any Web App Pinned"
+description = "Client had at least one web app pin event during the analysis window"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'pin'), FALSE)"
+data_source = "web_app_events"
+
+# ============================================================================
+# DATA SOURCE - Web App events with cumulative counts
+# ============================================================================
+# Copied verbatim from taskbar-tabs-discovery.toml. Floor 2025-07-31 covers
+# the full history of the `web_app` event category.
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts"
+
+# ============================================================================
+# SEGMENTS - Profile age (copied verbatim from privacy-is-love-valentines-day-campaign)
+# ============================================================================
+
+[segments.profile_age_0_to_28_days]
+friendly_name = "Profile Age 0 to 28 days"
+description = "Time since first-seen 0-28 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 28), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_29_to_180_days]
+friendly_name = "Profile Age 29 to 180 days"
+description = "Time since first-seen 29-180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 29 AND 180), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_more_than_180_days]
+friendly_name = "Profile Age more than 180 days"
+description = "Time since first-seen more than 180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 180), FALSE)"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENTS - Pre-enrollment Taskbar Tabs usage
+# ============================================================================
+# Splits clients on whether they had ANY web_app engagement (install, pin, or
+# activate) in the 365 days before enrollment. This is a pre-treatment trait,
+# so it is a legitimate segmentation.
+#
+# Since the experiment targets users already in the Taskbar Tabs Discovery
+# rollout, everyone has seen the callout. These segments distinguish
+# "callout engaged" vs. "callout ignored" at baseline.
+
+[segments.ever_used_taskbar_tabs_pre_enrollment]
+friendly_name = "Ever used Taskbar Tabs pre-enrollment"
+description = "Client had at least one web_app install/pin/activate event before enrollment"
+select_expression = "COALESCE(LOGICAL_OR(event_name IN ('install', 'pin', 'activate')), FALSE)"
+data_source = "web_app_events"
+window_start = -365
+window_end = -1
+
+[segments.never_used_taskbar_tabs_pre_enrollment]
+friendly_name = "Never used Taskbar Tabs pre-enrollment"
+description = "Client had NO web_app install/pin/activate events before enrollment"
+select_expression = "COALESCE(NOT LOGICAL_OR(event_name IN ('install', 'pin', 'activate')), TRUE)"
+data_source = "web_app_events"
+window_start = -365
+window_end = -1
+
+# ============================================================================
+# SEGMENT DATA SOURCE - Web App events
+# ============================================================================
+# Segments have their own data_sources namespace, distinct from metric
+# data sources. Duplicated from [data_sources.web_app_events] above so the
+# ever/never_used_taskbar_tabs_pre_enrollment segments can reference it.
+
+[segments.data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+friendly_name = "Web App Events (segments)"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts, for use in segments"

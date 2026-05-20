@@ -1,0 +1,65 @@
+[experiment]
+segments = [
+    "profile_age_0_to_7_days",
+    "profile_age_7_to_28_days",
+    "profile_age_more_than_28_days",
+]
+
+
+[metrics]
+# All metrics for this experiment are auto-applied via
+# jetstream/defaults/firefox_desktop.toml: active_hours, ad_clicks, days_of_use,
+# retained, uri_count, search_count, qualified_cumulative_days_of_use,
+# is_default_browser, client_level_daily_active_users_v2 (and overall also adds
+# organic_search_count, searches_with_ads, tagged_search_count,
+# tagged_follow_on_search_count). Retention is captured via the auto-applied
+# `retained` metric (per analysis window, anchored to enrollment).
+
+
+[segments]
+
+[segments.profile_age_0_to_7_days]
+friendly_name = "Profile age 0-6 days at enrollment"
+description = "Clients whose first_seen_date is 0-6 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 6,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_7_to_28_days]
+friendly_name = "Profile age 7-27 days at enrollment"
+description = "Clients whose first_seen_date is 7-27 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 7 AND 27,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_more_than_28_days]
+friendly_name = "Profile age 28+ days at enrollment"
+description = "Clients whose first_seen_date is 28 or more days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) >= 28,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+
+[segments.data_sources]
+
+[segments.data_sources.clients_last_seen_with_profile_age]
+from_expression = """(
+    SELECT
+        client_id,
+        profile_group_id,
+        submission_date,
+        first_seen_date
+    FROM mozdata.telemetry.clients_last_seen
+)"""

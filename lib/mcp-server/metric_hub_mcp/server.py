@@ -20,6 +20,10 @@ from .experiments import (
     handle_list_experiment_configs,
     handle_list_experiments,
 )
+from .featmon import (
+    handle_get_monitored_feature,
+    handle_list_monitored_features,
+)
 from .funnels import (
     handle_build_funnel_url,
     handle_get_glean_event,
@@ -330,6 +334,29 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="list_monitored_features",
+            description="List all Nimbus features that have feature monitoring (featmon) configs, showing which metrics are tracked per feature",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Optional: filter by platform (e.g. 'firefox_desktop')"},
+                },
+                "required": [],
+            },
+        ),
+        Tool(
+            name="get_monitored_feature",
+            description="Get detailed feature monitoring config for a specific Nimbus feature, including all tracked metrics and data sources",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "feature_slug": {"type": "string", "description": "Nimbus feature slug (e.g. 'address-autofill-feature') or TOML key"},
+                    "platform": {"type": "string", "description": "Optional: platform name (e.g. 'firefox_desktop')"},
+                },
+                "required": ["feature_slug"],
+            },
+        ),
+        Tool(
             name="list_experiments",
             description="List experiments and rollouts from Experimenter API",
             inputSchema={
@@ -396,6 +423,10 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageConten
                 return await handle_get_glean_event(arguments)
             case "build_funnel_url":
                 return await handle_build_funnel_url(arguments)
+            case "list_monitored_features":
+                return await handle_list_monitored_features(arguments)
+            case "get_monitored_feature":
+                return await handle_get_monitored_feature(arguments)
             case "list_experiments":
                 return await handle_list_experiments(arguments)
             case "get_experiment":
