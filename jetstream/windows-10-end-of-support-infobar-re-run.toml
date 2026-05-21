@@ -1,0 +1,32 @@
+[experiment]
+
+[metrics]
+# overwrite broken outcome metrics with no-ops
+[metrics.spotlight_impressions]
+friendly_name = "NO-OP Spotlight Impressions"
+description = "no-op placeholder metric to temporarily fix broken outcome metric"
+select_expression = "SUM(0)"
+data_source = "spotlight_noop"
+
+[metrics.spotlight_clicks]
+friendly_name = "NO-OP Spotlight Clicks"
+description = "no-op placeholder metric to temporarily fix broken outcome metric"
+select_expression = "SUM(0)"
+data_source = "spotlight_noop"
+
+[metrics.spotlight_dismisses]
+friendly_name = "NO-OP Spotlight Dismisses"
+description = "no-op placeholder metric to temporarily fix broken outcome metric"
+select_expression = "SUM(0)"
+data_source = "spotlight_noop"
+
+[data_sources.spotlight_noop]
+from_expression = """(
+    SELECT
+        '1234' AS client_id,
+        '12345' AS profile_group_id,
+        DATE('2022-01-01') AS submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "No-Op"
+description = "No-op that creates the required columns"

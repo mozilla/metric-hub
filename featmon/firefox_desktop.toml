@@ -113,3 +113,192 @@ sections_follow_section = {}
 sections_unfollow_section = {}
 sections_block_section = {}
 sections_unblock_section = {}
+
+[features.newtab_trainhop]
+slug = "newtabTrainhop"
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_trainhop.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+
+[features.pocket_newtab]
+slug = "pocketNewtab"
+
+[features.pocket_newtab.metrics_by_source.newtab.boolean]
+pocket_is_signed_in = {}
+pocket_enabled = {}
+pocket_sponsored_stories_enabled = {}
+
+[features.pocket_newtab.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.pocket_newtab.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_private_ping]
+slug = "newtabPrivatePing"
+
+[features.newtab_private_ping.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_merino_ohttp]
+slug = "newtabMerinoOhttp"
+
+[features.newtab_merino_ohttp.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_merino_ohttp.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+
+[features.newtab_ad_sizing_experiment]
+slug = "newtabAdSizingExperiment"
+
+[features.newtab_ad_sizing_experiment.metrics_by_source.newtab.boolean]
+topsites_sponsored_enabled = {}
+
+[features.newtab_ad_sizing_experiment.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+dismiss = {}
+
+[features.newtab_promo_card]
+slug = "newtabPromoCard"
+
+[features.newtab_promo_card.metrics_by_source.newtab.event.newtab]
+opened = {}
+
+[features.newtab_promo_card.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+dismiss = {}
+
+[features.newtab_inferred_personalization]
+slug = "newtabInferredPersonalization"
+
+[features.newtab_inferred_personalization.metrics_by_source.newtab.event.pocket]
+impression = {}
+click = {}
+save = {}
+dismiss = {}
+
+[features.newtab_inferred_personalization.metrics_by_source.newtab.event.topsites]
+impression = {}
+click = {}
+
+[data_sources.events]
+analysis_unit_id = "client_info.client_id"
+table_name = "events"
+type = "metrics"
+
+[features.urlbar]
+slug = "urlbar"
+
+[features.urlbar.metrics_by_source.events.boolean]
+urlbar_pref_suggest_sponsored = {}
+urlbar_pref_suggest_nonsponsored = {}
+urlbar_pref_suggest_all = {}
+urlbar_pref_suggest_data_collection = {}
+urlbar_pref_suggest_online_available = {}
+urlbar_pref_suggest_online_enabled = {}
+
+[data_sources.messaging_system]
+analysis_unit_id = "client_info.client_id"
+table_name = "messaging_system"
+type = "metrics"
+
+[features.infobar]
+slug = "infobar"
+
+[features.infobar.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.aboutwelcome]
+slug = "aboutwelcome"
+
+[features.aboutwelcome.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.feature_callout]
+slug = "featureCallout"
+
+[features.feature_callout.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_bmb_button]
+slug = "fxms-bmb-button"
+
+[features.fxms_bmb_button.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_22]
+slug = "fxms-message-22"
+
+[features.fxms_message_22.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_1]
+slug = "fxms-message-1"
+
+[features.fxms_message_1.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_20]
+slug = "fxms-message-20"
+
+[features.fxms_message_20.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_7]
+slug = "fxms-message-7"
+
+[features.fxms_message_7.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_16]
+slug = "fxms-message-16"
+
+[features.fxms_message_16.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.fxms_message_21]
+slug = "fxms-message-21"
+
+[features.fxms_message_21.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.background_task_message]
+slug = "backgroundTaskMessage"
+
+[features.background_task_message.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}
+
+[features.preonboarding]
+slug = "preonboarding"
+
+[features.preonboarding.metrics_by_source.messaging_system.string]
+messaging_system_event = {}
+messaging_system_ping_type = {}

@@ -1,0 +1,9 @@
+[metrics]
+overall = ['urlbar_topsite_clicks']
+
+[metrics.urlbar_topsite_clicks]
+select_expression = "SUM(IF(product_result_type = 'top_site', urlbar_clicks, 0))"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+friendly_name = "Urlbar topsite clicks"
+description = "Total clicks on URL bar top site results."
+[metrics.urlbar_topsite_clicks.statistics.bootstrap_mean]

@@ -1189,9 +1189,9 @@ Client performed any Newtab Handoff searches during the experiment
 [metrics.newtab_gt4_searches]
 data_source = "newtab_clients_daily"
 select_expression = 'COALESCE(CASE WHEN SUM(search_interaction_count) > 4 THEN 1 ELSE 0 END, 0)'
-friendly_name = "Any Newtab Searches"
+friendly_name = "Greater Than 4 Newtab Searches"
 description = """
-Client performed any Newtab Handoff searches during the experiment
+Client performed at least 5 Newtab Handoff searches during the experiment
 """
 
 [metrics.newtab_searches_with_ads]
@@ -1249,7 +1249,7 @@ Count of clicks on Sponsored content.
 
 [metrics.organic_content_impressions]
 data_source = "newtab_clients_daily"
-select_expression = "COALESCE(SUM(sponsored_content_click_count), 0)"
+select_expression = "COALESCE(SUM(organic_content_impression_count), 0)"
 friendly_name = "Organic Content Impressions"
 type = "scalar"
 description = """
