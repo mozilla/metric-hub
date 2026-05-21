@@ -1,0 +1,27 @@
+[experiment.exposure_signal]
+
+name = "urlbar_usage"
+friendly_name = "URL bar usage"
+description = "Clients that engage with the URL bar"
+data_source = "urlbar_usage_clients"
+select_expression = '''COALESCE(urlbar_usage > 0, FALSE)'''
+
+
+[data_sources.urlbar_usage_clients]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    CAST(submission_timestamp as DATE) as submission_date,
+    COUNT(1) as urlbar_usage
+  FROM
+    `mozdata.firefox_desktop.events_stream`
+  WHERE
+    event_category = 'urlbar'
+    AND event_name IN ('engagement', 'abandonment')
+  GROUP BY ALL
+)"""
+
+experiments_column_type = "none"
+friendly_name = "urlbar usage clients"
+description = "Events filtered to only include urlbar usage"
