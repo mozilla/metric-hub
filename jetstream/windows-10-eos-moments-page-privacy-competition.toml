@@ -1,0 +1,28 @@
+[experiment]
+segments = [
+  # Country default segments
+  "us", "gb", "ca", "de", "it", "fr", "ru", "cn", "pl", "br", "mx", "ar",
+
+  # Activity segments
+  "activity_core", "activity_regular", "activity_casual", "activity_infrequent"
+]
+
+[segments]
+# Some country segments are not in the list of Desktop defaults as of time of writing
+[segments.ar]
+data_source = "clients_daily"
+friendly_name = "Country: Argentina"
+description = "Clients in Argentina (AR) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'AR'), FALSE)"
+
+[segments.cn]
+data_source = "clients_daily"
+friendly_name = "Country: China"
+description = "Clients in China (CN) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'CN'), FALSE)"
+
+[segments.ru]
+data_source = "clients_daily"
+friendly_name = "Country: Russia"
+description = "Clients in Russia (RU) at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(country = 'RU'), FALSE)"
