@@ -20,6 +20,7 @@ normalized_channel = {}
 normalized_os = {}
 normalized_os_version = {}
 normalized_country_code = { value_in = ["CA", "DE", "FR", "GB", "US"], default_value = "OTHER" }
+normalized_channel = {}
 
 [data_sources.events_stream]
 analysis_unit_id = "profile_group_id"
