@@ -63,8 +63,14 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "platform": {"type": "string", "description": "Platform name (e.g., 'firefox_desktop', 'fenix', 'ads')"},
-                    "category": {"type": "string", "description": "Optional: filter by category (e.g., 'search', 'performance')"},
+                    "platform": {
+                        "type": "string",
+                        "description": "Platform name (e.g., 'firefox_desktop', 'fenix', 'ads')",
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Optional: filter by category (e.g., 'search', 'performance')",
+                    },
                 },
                 "required": ["platform"],
             },
@@ -76,7 +82,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "platform": {"type": "string", "description": "Platform name"},
-                    "metric_name": {"type": "string", "description": "Name of the metric"},
+                    "metric_name": {
+                        "type": "string",
+                        "description": "Name of the metric",
+                    },
                 },
                 "required": ["platform", "metric_name"],
             },
@@ -99,7 +108,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "platform": {"type": "string", "description": "Platform name"},
-                    "data_source_name": {"type": "string", "description": "Name of the data source"},
+                    "data_source_name": {
+                        "type": "string",
+                        "description": "Name of the data source",
+                    },
                 },
                 "required": ["platform", "data_source_name"],
             },
@@ -111,7 +123,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
-                    "platform": {"type": "string", "description": "Optional: limit search to a specific platform"},
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: limit search to a specific platform",
+                    },
                 },
                 "required": ["query"],
             },
@@ -122,8 +137,14 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "metric_name": {"type": "string", "description": "Name for the new metric (snake_case)"},
-                    "data_source": {"type": "string", "description": "Data source to use"},
+                    "metric_name": {
+                        "type": "string",
+                        "description": "Name for the new metric (snake_case)",
+                    },
+                    "data_source": {
+                        "type": "string",
+                        "description": "Data source to use",
+                    },
                     "metric_type": {
                         "type": "string",
                         "description": "Type of metric: 'simple', 'derived', or 'custom'",
@@ -140,7 +161,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "platform": {"type": "string", "description": "Platform name"},
-                    "metric_name": {"type": "string", "description": "Name of the metric"},
+                    "metric_name": {
+                        "type": "string",
+                        "description": "Name of the metric",
+                    },
                 },
                 "required": ["platform", "metric_name"],
             },
@@ -170,7 +194,10 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "enum": ["jetstream", "opmon", "looker"],
                     },
-                    "config_slug": {"type": "string", "description": "Config slug (filename without .toml extension)"},
+                    "config_slug": {
+                        "type": "string",
+                        "description": "Config slug (filename without .toml extension)",
+                    },
                 },
                 "required": ["config_type", "config_slug"],
             },
@@ -181,13 +208,22 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "new_config_slug": {"type": "string", "description": "Slug for the new config"},
+                    "new_config_slug": {
+                        "type": "string",
+                        "description": "Slug for the new config",
+                    },
                     "config_type": {
                         "type": "string",
                         "enum": ["jetstream", "opmon", "looker"],
                     },
-                    "base_config_slug": {"type": "string", "description": "Optional: existing config slug to copy from"},
-                    "config_content": {"type": "string", "description": "Optional: TOML content for the new config"},
+                    "base_config_slug": {
+                        "type": "string",
+                        "description": "Optional: existing config slug to copy from",
+                    },
+                    "config_content": {
+                        "type": "string",
+                        "description": "Optional: TOML content for the new config",
+                    },
                 },
                 "required": ["new_config_slug", "config_type"],
             },
@@ -229,7 +265,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "platform": {"type": "string", "description": "Platform name"},
-                    "segment_name": {"type": "string", "description": "Name of the segment"},
+                    "segment_name": {
+                        "type": "string",
+                        "description": "Name of the segment",
+                    },
                 },
                 "required": ["platform", "segment_name"],
             },
@@ -254,7 +293,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Search term (e.g. 'tab group', 'create', 'save')"},
+                    "query": {
+                        "type": "string",
+                        "description": "Search term (e.g. 'tab group', 'create', 'save')",
+                    },
                     "product": {
                         "type": "string",
                         "description": "Platform name (e.g. 'firefox_desktop', 'fenix'). Defaults to 'firefox_desktop'.",
@@ -295,14 +337,23 @@ async def list_tools() -> list[Tool]:
                             "properties": {
                                 "event_category": {"type": "string"},
                                 "event_name": {"type": "string"},
-                                "label": {"type": "string", "description": "Snake_case label for this step (e.g. 'created', 'saved')"},
+                                "label": {
+                                    "type": "string",
+                                    "description": "Snake_case label for this step (e.g. 'created', 'saved')",
+                                },
                                 "description": {"type": "string"},
                                 "extra": {
                                     "type": "object",
                                     "description": "Optional extra key filter for this step.",
                                     "properties": {
-                                        "key": {"type": "string", "description": "Extra field path, e.g. 'strings.action', 'booleans.checked', 'quantities.duration_ms'"},
-                                        "value": {"type": "string", "description": "Value to filter on"},
+                                        "key": {
+                                            "type": "string",
+                                            "description": "Extra field path, e.g. 'strings.action', 'booleans.checked', 'quantities.duration_ms'",
+                                        },
+                                        "value": {
+                                            "type": "string",
+                                            "description": "Value to filter on",
+                                        },
                                     },
                                     "required": ["key", "value"],
                                 },
@@ -325,8 +376,14 @@ async def list_tools() -> list[Tool]:
                                 ],
                                 "description": "Country code(s) (e.g. 'US' or ['US', 'CA'])",
                             },
-                            "channel": {"type": "string", "description": "Release channel (e.g. 'release', 'beta', 'nightly')"},
-                            "os": {"type": "string", "description": "Operating system (e.g. 'Windows', 'Mac', 'Linux')"},
+                            "channel": {
+                                "type": "string",
+                                "description": "Release channel (e.g. 'release', 'beta', 'nightly')",
+                            },
+                            "os": {
+                                "type": "string",
+                                "description": "Operating system (e.g. 'Windows', 'Mac', 'Linux')",
+                            },
                         },
                     },
                 },
@@ -339,7 +396,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "platform": {"type": "string", "description": "Optional: filter by platform (e.g. 'firefox_desktop')"},
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: filter by platform (e.g. 'firefox_desktop')",
+                    },
                 },
                 "required": [],
             },
@@ -350,8 +410,14 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "feature_slug": {"type": "string", "description": "Nimbus feature slug (e.g. 'address-autofill-feature') or TOML key"},
-                    "platform": {"type": "string", "description": "Optional: platform name (e.g. 'firefox_desktop')"},
+                    "feature_slug": {
+                        "type": "string",
+                        "description": "Nimbus feature slug (e.g. 'address-autofill-feature') or TOML key",
+                    },
+                    "platform": {
+                        "type": "string",
+                        "description": "Optional: platform name (e.g. 'firefox_desktop')",
+                    },
                 },
                 "required": ["feature_slug"],
             },
@@ -362,9 +428,18 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "status": {"type": "string", "description": "Filter by status: 'Live' or 'Complete'"},
-                    "app_name": {"type": "string", "description": "Filter by application name"},
-                    "is_rollout": {"type": "boolean", "description": "Filter to rollouts (true) or experiments (false)"},
+                    "status": {
+                        "type": "string",
+                        "description": "Filter by status: 'Live' or 'Complete'",
+                    },
+                    "app_name": {
+                        "type": "string",
+                        "description": "Filter by application name",
+                    },
+                    "is_rollout": {
+                        "type": "boolean",
+                        "description": "Filter to rollouts (true) or experiments (false)",
+                    },
                 },
                 "required": [],
             },
@@ -384,7 +459,9 @@ async def list_tools() -> list[Tool]:
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent | ImageContent | EmbeddedResource]:
+async def call_tool(
+    name: str, arguments: Any
+) -> list[TextContent | ImageContent | EmbeddedResource]:
     try:
         match name:
             case "list_platforms":
@@ -444,9 +521,19 @@ async def main() -> None:
         await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
-async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
-    """Run the MCP server via HTTP SSE (Cloud Run mode)."""
+async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
+    """Run the MCP server with both Streamable HTTP and SSE transports.
+
+    Streamable HTTP is mounted at ``/mcp`` in stateless mode.
+
+    The legacy SSE transport (``GET /sse`` + ``POST /messages/``) is kept for
+    backwards compatibility.
+    """
+    from contextlib import asynccontextmanager
+    from collections.abc import AsyncIterator
+
     from mcp.server.sse import SseServerTransport
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
     from starlette.applications import Starlette
     from starlette.routing import Mount, Route
     import uvicorn
@@ -454,14 +541,32 @@ async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     sse = SseServerTransport("/messages/")
 
     async def handle_sse(request):
-        async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+        async with sse.connect_sse(
+            request.scope, request.receive, request._send
+        ) as streams:
             await app.run(streams[0], streams[1], app.create_initialization_options())
+
+    session_manager = StreamableHTTPSessionManager(
+        app=app,
+        json_response=False,
+        stateless=True,
+    )
+
+    async def handle_streamable_http(scope, receive, send) -> None:
+        await session_manager.handle_request(scope, receive, send)
+
+    @asynccontextmanager
+    async def lifespan(_: Starlette) -> AsyncIterator[None]:
+        async with session_manager.run():
+            yield
 
     starlette_app = Starlette(
         routes=[
+            Mount("/mcp", app=handle_streamable_http),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
-        ]
+        ],
+        lifespan=lifespan,
     )
 
     config = uvicorn.Config(starlette_app, host=host, port=port, log_level="info")
@@ -471,11 +576,12 @@ async def run_sse_server(host: str = "0.0.0.0", port: int = 8080) -> None:
 def cli() -> None:
     """CLI entry point for local stdio mode."""
     import asyncio
+
     asyncio.run(main())
 
 
 def cli_http() -> None:
-    """CLI entry point for HTTP/SSE mode (Cloud Run)."""
+    """CLI entry point for HTTP mode (Cloud Run): Streamable HTTP at /mcp, SSE at /sse."""
     import asyncio
     import os
 
@@ -483,7 +589,7 @@ def cli_http() -> None:
     port = int(os.environ.get("PORT", 8080))
 
     logger.info(f"Starting Metric Hub MCP Server on {host}:{port}")
-    asyncio.run(run_sse_server(host=host, port=port))
+    asyncio.run(run_http_server(host=host, port=port))
 
 
 if __name__ == "__main__":
