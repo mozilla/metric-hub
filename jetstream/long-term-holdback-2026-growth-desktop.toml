@@ -1,0 +1,26 @@
+[experiment]
+enrollment_period = 14
+end_date = "2026-05-26"
+
+# sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
+enrollment_query = """
+  SELECT
+      e.profile_group_id AS analysis_id,
+      `mozfun.map.get_key`(e.event_map_values, 'branch')
+          AS branch,
+      MIN(e.submission_date) AS enrollment_date,
+      COUNT(e.submission_date) AS num_enrollment_events
+  FROM
+      `moz-fx-data-shared-prod.telemetry.events` e
+  WHERE
+      e.event_category = 'normandy'
+      AND e.event_method = 'enroll'
+      AND e.submission_date
+          BETWEEN '2026-01-06' AND '2027-01-06'
+      AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
+      AND (
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery' AND e.sample_id < 5) 
+        OR `mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
+      )
+  GROUP BY ALL
+"""
