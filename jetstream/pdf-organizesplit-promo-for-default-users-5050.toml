@@ -1,0 +1,147 @@
+[experiment]
+segments = [
+    "profile_age_0_to_28_days",
+    "profile_age_more_than_28_days",
+]
+
+
+[metrics]
+
+weekly = [
+    "pdfjs_organize_action_any",
+    "pdfjs_organize_action_copy",
+    "pdfjs_organize_action_cut",
+    "pdfjs_organize_action_delete",
+    "pdfjs_organize_action_move",
+    "pdfjs_organize_action_paste",
+    "pdfjs_organize_action_export_selected",
+    "pdfjs_organize_action_save",
+    "pdfjs_organize_action_merge",
+]
+
+overall = [
+    "pdfjs_organize_action_any",
+    "pdfjs_organize_action_copy",
+    "pdfjs_organize_action_cut",
+    "pdfjs_organize_action_delete",
+    "pdfjs_organize_action_move",
+    "pdfjs_organize_action_paste",
+    "pdfjs_organize_action_export_selected",
+    "pdfjs_organize_action_save",
+    "pdfjs_organize_action_merge",
+]
+
+[metrics.pdfjs_organize_action_any]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "copy")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "cut")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "delete")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "move")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "paste")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "export_selected")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "save")) > 0, FALSE) OR
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "merge")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize/Split — any action"
+description = "Binary: client performed at least one Organize & Split page-management action (copy, cut, delete, move, paste, export_selected, save, merge) during the analysis window."
+[metrics.pdfjs_organize_action_any.statistics.binomial]
+
+[metrics.pdfjs_organize_action_copy]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "copy")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize — copy page"
+description = "Binary: client copied a PDF page via Organize & Split."
+[metrics.pdfjs_organize_action_copy.statistics.binomial]
+
+[metrics.pdfjs_organize_action_cut]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "cut")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize — cut page"
+description = "Binary: client cut a PDF page via Organize & Split."
+[metrics.pdfjs_organize_action_cut.statistics.binomial]
+
+[metrics.pdfjs_organize_action_delete]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "delete")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize — delete page"
+description = "Binary: client deleted a PDF page via Organize & Split."
+[metrics.pdfjs_organize_action_delete.statistics.binomial]
+
+[metrics.pdfjs_organize_action_move]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "move")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize — move page (reorder)"
+description = "Binary: client moved/reordered a PDF page via Organize & Split."
+[metrics.pdfjs_organize_action_move.statistics.binomial]
+
+[metrics.pdfjs_organize_action_paste]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "paste")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize — paste page"
+description = "Binary: client pasted a PDF page via Organize & Split."
+[metrics.pdfjs_organize_action_paste.statistics.binomial]
+
+[metrics.pdfjs_organize_action_export_selected]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "export_selected")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Split — export selected pages"
+description = "Binary: client exported selected pages to a new PDF (the Split action) via Organize & Split."
+[metrics.pdfjs_organize_action_export_selected.statistics.binomial]
+
+[metrics.pdfjs_organize_action_save]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "save")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Organize/Split — save modified PDF"
+description = "Binary: client saved a PDF that had been modified through page organization."
+[metrics.pdfjs_organize_action_save.statistics.binomial]
+
+[metrics.pdfjs_organize_action_merge]
+select_expression = """(
+    COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.pdfjs_organize_action, "merge")) > 0, FALSE)
+)"""
+data_source = "metrics"
+friendly_name = "PDF Split — merge pages from another PDF"
+description = "Binary: client merged pages from another PDF via Organize & Split."
+[metrics.pdfjs_organize_action_merge.statistics.binomial]
+
+
+[segments]
+
+[segments.profile_age_0_to_28_days]
+friendly_name = "Profile age 0-27 days at enrollment"
+description = "Clients whose first_seen_date is 0-27 days before enrollment (new users)"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 27,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_profile_age"
+window_start = 0
+window_end = 0
+
+
+[segments.data_sources]
+
+[segments.data_sources.clients_last_seen_with_profile_age]
+from_expression = """(
+    SELECT
+        client_id,
+        profile_group_id,
+        submission_date,
+        first_seen_date
+    FROM mozdata.telemetry.clients_last_seen
+)"""
