@@ -1,4 +1,6 @@
 [experiment]
+enrollment_period = 14
+end_date = "2026-05-26"
 
 # sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
 enrollment_query = """
