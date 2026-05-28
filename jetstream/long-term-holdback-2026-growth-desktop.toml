@@ -1,5 +1,5 @@
 [experiment]
-enrollment_period = 14
+enrollment_period = 111
 end_date = "2026-05-26"
 
 # sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
@@ -16,11 +16,11 @@ enrollment_query = """
       e.event_category = 'normandy'
       AND e.event_method = 'enroll'
       AND e.submission_date
-          BETWEEN '2026-01-06' AND '2027-01-06'
+          BETWEEN '2026-01-06' AND '2026-04-27'
       AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
       AND (
-        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery' AND e.sample_id < 5) 
-        OR `mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery' AND e.sample_id < 1) 
+        OR (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback' AND e.sample_id < 20 )
       )
   GROUP BY ALL
 """
