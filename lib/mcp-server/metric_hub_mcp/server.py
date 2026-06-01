@@ -1,6 +1,9 @@
 """MCP server for Mozilla Metric Hub."""
 
+import hmac
+import json
 import logging
+import os
 from typing import Any
 
 from mcp.server import Server
@@ -521,6 +524,41 @@ async def main() -> None:
         await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
+class BearerTokenAuth:
+    """ASGI middleware that enforces ``Authorization: Bearer <token>`` when
+    the ``MCP_AUTH_TOKEN`` env-var is set.  When unset, all requests pass through."""
+
+    def __init__(self, app):
+        self.app = app
+        self._expected = os.environ.get("MCP_AUTH_TOKEN")
+
+    async def __call__(self, scope, receive, send):
+        if self._expected and scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            auth = headers.get(b"authorization", b"").decode()
+            token = (
+                auth.removeprefix("Bearer ").strip()
+                if auth.startswith("Bearer ")
+                else ""
+            )
+            if not hmac.compare_digest(token, self._expected):
+                body = json.dumps({"error": "invalid_token"}).encode()
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [
+                            (b"content-type", b"application/json"),
+                            (b"content-length", str(len(body)).encode()),
+                            (b"www-authenticate", b'Bearer error="invalid_token"'),
+                        ],
+                    }
+                )
+                await send({"type": "http.response.body", "body": body})
+                return
+        await self.app(scope, receive, send)
+
+
 async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     """Run the MCP server with both Streamable HTTP and SSE transports.
 
@@ -562,14 +600,25 @@ async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
 
     starlette_app = Starlette(
         routes=[
-            Mount("/mcp", app=handle_streamable_http),
-            Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
         lifespan=lifespan,
     )
 
-    config = uvicorn.Config(starlette_app, host=host, port=port, log_level="info")
+    async def asgi_app(scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            await handle_streamable_http(scope, receive, send)
+        elif scope["type"] == "http" and scope["path"] == "/sse":
+            async with sse.connect_sse(scope, receive, send) as streams:
+                await app.run(
+                    streams[0], streams[1], app.create_initialization_options()
+                )
+        else:
+            await starlette_app(scope, receive, send)
+
+    config = uvicorn.Config(
+        BearerTokenAuth(asgi_app), host=host, port=port, log_level="info"
+    )
     await uvicorn.Server(config).serve()
 
 
