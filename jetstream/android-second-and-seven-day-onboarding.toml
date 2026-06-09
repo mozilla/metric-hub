@@ -1,0 +1,28 @@
+[experiment]
+  segments = ["no_search_widget"]
+
+  [segments.data_sources.events_unnested]
+  from_expression = """(
+    SELECT
+      client_info.client_id as client_id,
+      CAST(submission_timestamp as DATE) as submission_date,
+      *
+    FROM
+      `mozdata.fenix.events_unnested`
+  )"""
+
+  [segments.no_search_widget]
+  select_expression = """
+    NOT COALESCE(CAST(MAX(
+      CASE WHEN event_category = 'onboarding'
+             AND event_name = 'add_search_widget'
+           THEN 1
+           ELSE 0
+      END
+    ) AS BOOL), FALSE)
+  """
+  data_source = "events_unnested"
+
+
+  
+
