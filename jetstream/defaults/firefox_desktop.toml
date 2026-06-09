@@ -96,6 +96,7 @@ period = "preenrollment_week"
 
 
 [metrics.retained.statistics.binomial]
+
 [metrics.retained_dau.statistics.binomial]
 
 
