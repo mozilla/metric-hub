@@ -1,28 +1,34 @@
-[experiment]
-  segments = ["no_search_widget"]
+[metrics]
+  # Compute metrics for weekly and overall analysis windows
+  weekly = ["widget_searches", "non_widget_searches"]
+  overall = ["widget_searches", "non_widget_searches"]
 
-  [segments.data_sources.events_unnested]
-  from_expression = """(
-    SELECT
-      client_info.client_id as client_id,
-      CAST(submission_timestamp as DATE) as submission_date,
-      *
-    FROM
-      `mozdata.fenix.events_unnested`
-  )"""
-
-  [segments.no_search_widget]
+  # Widget Searches Metric
+  [metrics.widget_searches]
   select_expression = """
-    NOT COALESCE(CAST(MAX(
-      CASE WHEN event_category = 'onboarding'
-             AND event_name = 'add_search_widget'
-           THEN 1
-           ELSE 0
-      END
-    ) AS BOOL), FALSE)
+      SUM(CASE WHEN source LIKE '%widget%' THEN sap ELSE 0 END)
   """
-  data_source = "events_unnested"
+  data_source = "mobile_search_clients_engines_sources_daily"
+  bigger_is_better = true
+  friendly_name = "Widget Searches"
+  description = "Total number of searches initiated from widgets (source containing 'widget')"
 
+  [metrics.widget_searches.statistics.bootstrap_mean]
+
+  [metrics.widget_searches.statistics.deciles]
+
+  # Non-Widget Searches Metric
+  [metrics.non_widget_searches]
+  select_expression = """
+      SUM(CASE WHEN source NOT LIKE '%widget%' THEN sap ELSE 0 END)
+  """
+  data_source = "mobile_search_clients_engines_sources_daily"
+  friendly_name = "Non-Widget Searches"
+  description = "Total number of searches not initiated from widgets"
+
+  [metrics.non_widget_searches.statistics.bootstrap_mean]
+
+  [metrics.non_widget_searches.statistics.deciles]
 
   
 
