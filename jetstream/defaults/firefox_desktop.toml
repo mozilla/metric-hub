@@ -3,6 +3,7 @@
 [metrics]
 daily = [
   "retained",
+  "retained_dau",
   "unenroll",
   "client_level_daily_active_users_v2",
   "active_hours",
@@ -15,6 +16,7 @@ weekly = [
   "ad_clicks",
   "days_of_use",
   "retained",
+  "retained_dau",
   "uri_count",
   "search_count",
   "qualified_cumulative_days_of_use",
@@ -94,6 +96,8 @@ period = "preenrollment_week"
 
 
 [metrics.retained.statistics.binomial]
+
+[metrics.retained_dau.statistics.binomial]
 
 
 [metrics.active_in_last_3_days_legacy.statistics.binomial]
