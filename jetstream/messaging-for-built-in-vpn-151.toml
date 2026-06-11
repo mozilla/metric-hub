@@ -1,0 +1,154 @@
+[experiment]
+
+segments = [
+    "onboarding_intent_privacy_and_security",
+    "onboarding_intent_productivity",
+    "onboarding_intent_other",
+    "os_windows",
+    "os_mac",
+    "country_us",
+    "country_de",
+    "country_fr",
+    "country_pl",
+    "country_it",
+]
+
+## Segments — Onboarding Intent (Privacy vs Productivity, per brief Section 6)
+
+[segments.onboarding_intent_privacy_and_security]
+friendly_name = "Onboarding Intent Privacy and Security"
+description = "Users who selected Privacy and Security as onboarding intent"
+select_expression = "LOGICAL_OR(COALESCE(selection LIKE '%Privacy and Security%', FALSE))"
+data_source = "onboarding_selection"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.onboarding_intent_productivity]
+friendly_name = "Onboarding Intent Productivity"
+description = "Users who selected Productivity as onboarding intent"
+select_expression = "LOGICAL_OR(COALESCE(selection LIKE '%Productivity%', FALSE))"
+data_source = "onboarding_selection"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.onboarding_intent_other]
+friendly_name = "Onboarding Intent Other"
+description = "Users who selected Other as onboarding intent"
+select_expression = "LOGICAL_OR(COALESCE(selection LIKE '%Other%', FALSE))"
+data_source = "onboarding_selection"
+window_start = -3
+window_end = "analysis_window_end"
+
+## Segments — OS (Windows and macOS, per brief Section 6)
+
+[segments.os_windows]
+friendly_name = "OS Windows"
+description = "Users on Windows"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) LIKE '%windows%'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.os_mac]
+friendly_name = "OS macOS"
+description = "Users on macOS"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'darwin'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+## Segments — Country (top enrolled markets; all VPN-available in Fx151)
+
+[segments.country_us]
+friendly_name = "Country: United States"
+description = "Users in the United States"
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'US'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.country_de]
+friendly_name = "Country: Germany"
+description = "Users in Germany"
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'DE'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.country_fr]
+friendly_name = "Country: France"
+description = "Users in France"
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'FR'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.country_pl]
+friendly_name = "Country: Poland"
+description = "Users in Poland"
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'PL'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.country_it]
+friendly_name = "Country: Italy"
+description = "Users in Italy"
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'IT'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+## Custom data source for onboarding intent (copied verbatim from the merged kitified config)
+
+[segments.data_sources.onboarding_selection]
+from_expression = """(
+WITH
+ExperimentEvents AS (
+  SELECT
+    client_id,
+    DATE(submission_timestamp) AS submission_date,
+    JSON_EXTRACT_ARRAY(event_context, '$.source') AS checkbox_sources
+  FROM `moz-fx-data-shared-prod.firefox_desktop.onboarding`
+  WHERE
+    DATE(submission_timestamp) >= '2026-04-20'
+    AND event = 'SELECT_CHECKBOX'
+),
+CheckboxSelectionByClientID AS (
+  SELECT
+    client_id,
+    submission_date,
+    ARRAY_CONCAT_AGG(checkbox_sources) AS all_selected_checkboxes
+  FROM ExperimentEvents
+  GROUP BY client_id, submission_date
+),
+SelectionPerClient AS (
+  SELECT
+    client_id,
+    submission_date,
+    ARRAY_TO_STRING(
+        ARRAY_AGG(
+          CASE
+              WHEN s = '"checkbox-motivation-1"' THEN 'Privacy and Security'
+              WHEN s = '"checkbox-motivation-2"' THEN 'Productivity'
+              WHEN s = '"checkbox-motivation-3"' THEN 'Other'
+          END ),
+        ', '
+      ) AS selection
+  FROM CheckboxSelectionByClientID, UNNEST(all_selected_checkboxes) AS s
+  WHERE
+    ARRAY_LENGTH(all_selected_checkboxes) > 0
+    AND s IN ('"checkbox-motivation-1"',
+      '"checkbox-motivation-2"',
+      '"checkbox-motivation-3"')
+  GROUP BY client_id, submission_date
+)
+SELECT
+  cfs.profile_group_id,
+  s.submission_date,
+  s.selection
+FROM SelectionPerClient s
+JOIN `moz-fx-data-shared-prod.telemetry.clients_first_seen` cfs
+  ON cfs.client_id = s.client_id
+)"""
+window_start = -3
