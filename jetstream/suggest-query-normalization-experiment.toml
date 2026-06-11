@@ -1,30 +1,24 @@
 # Custom Jetstream config for: suggest-query-normalization-experiment (Firefox Desktop)
-# Replicates the Query Normalization analysis on-platform. Per-provider rates via
-# population_ratio. Providers: 'market' (finance), 'sports'.
+# Per-provider urlbar match-rate (success) + CTR (guardrail) for 'market' (finance)
+# and 'sports'. Stays on the daily rollup tables (no raw urlbar_events -> no timeout).
 #
-# Data sources: the raw urlbar_events table is too large and times out the analysis,
-# so metrics are sourced from the pre-aggregated
-# urlbar_events_daily_engagement_by_product_result_type table, pre-filtered per
-# provider (one row per client/day/provider with summed impressions and clicks).
-#
-# Winsorization uses the standard population_ratio drop_highest (no bespoke caps),
-# applied per provider by data density:
-#   Finance ('market'): drop_highest = 0.001 — ~9% of clients see a market result,
-#     dense enough for a standard 99.9th-pct trim.
-#   Sports: drop_highest = 0.0 (unwinsorized) — only ~0.5% of clients ever see a
-#     sports result, so any percentile trim degenerates (cap lands at 0 -> NaN).
+# Fixes vs the previous version:
+#  - Impression/click numerators now read the per-product table UNFILTERED and pivot
+#    per provider, so clients who never saw the provider count as 0 (previously they
+#    were dropped, so the metric averaged over "seers" only and inflated the rate —
+#    badly for rare providers like sports).
+#  - Match-rate denominator is now TRUE urlbar sessions from urlbar_events_daily,
+#    not COUNT(1) of product-type rows.
+# CTR is unchanged (it was already correct: clicks/impressions from the same rows).
 
 [experiment]
-# Exposed = had at least one market or sports impression. Sourced from the combined
-# market+sports data source so exposure spans both providers.
 [experiment.exposure_signal]
 name = "exposed_to_market_or_sports"
 friendly_name = "Exposed to a market or sports result"
-description = "Clients with at least one urlbar impression of a market (finance) or sports result."
-select_expression = "urlbar_impressions > 0"
-data_source = "urlbar_clients_market_or_sports"
+description = "Clients with at least one market (finance) or sports urlbar impression."
+select_expression = "LOGICAL_OR(product_result_type IN ('market','sports') AND urlbar_impressions > 0)"
+data_source = "urlbar_product_results"
 window_end = "analysis_window_end"
-
 
 [metrics]
 weekly = [
@@ -40,49 +34,47 @@ overall = [
   "search_count", "active_hours",
 ]
 
-
-# Counts per client (bootstrap_mean). These feed the ratios below; winsorization
-# is applied by the ratio statistics, not here.
-[metrics.total_urlbar_sessions]
-friendly_name = "Total urlbar usage"
-description = "Total urlbar engagement rows per client (urlbar_usage). Match-rate denominator. NOTE: this is urlbar engagement rows, not terminal urlbar sessions as in the original urlbar_events-based config."
-select_expression = "SUM(urlbar_usage)"
-data_source = "urlbar_usage_clients"
-[metrics.total_urlbar_sessions.statistics.bootstrap_mean]
-
+# --- Numerators: pivot the UNFILTERED per-product table (zero-fills non-seers) ---
 [metrics.market_impressions]
 friendly_name = "Finance (market) impressions"
-description = "Urlbar impressions of a market result, per client. Match-rate numerator and CTR denominator."
-select_expression = "SUM(urlbar_impressions)"
-data_source = "urlbar_clients_specific_product_result_type_market"
+description = "Per client: urlbar sessions that surfaced a market result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'market', urlbar_impressions, 0))"
+data_source = "urlbar_product_results"
 [metrics.market_impressions.statistics.bootstrap_mean]
 
 [metrics.market_clicks]
 friendly_name = "Finance (market) clicks"
-description = "Clicks on a market result, per client. CTR numerator."
-select_expression = "SUM(urlbar_clicks)"
-data_source = "urlbar_clients_specific_product_result_type_market"
+description = "Per client: clicks on a market result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'market', urlbar_clicks, 0))"
+data_source = "urlbar_product_results"
 [metrics.market_clicks.statistics.bootstrap_mean]
 
 [metrics.sports_impressions]
 friendly_name = "Sports impressions"
-description = "Urlbar impressions of a sports result, per client. Match-rate numerator and CTR denominator."
-select_expression = "SUM(urlbar_impressions)"
-data_source = "urlbar_clients_specific_product_result_type_sports"
+description = "Per client: urlbar sessions that surfaced a sports result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'sports', urlbar_impressions, 0))"
+data_source = "urlbar_product_results"
 [metrics.sports_impressions.statistics.bootstrap_mean]
 
 [metrics.sports_clicks]
 friendly_name = "Sports clicks"
-description = "Clicks on a sports result, per client. CTR numerator."
-select_expression = "SUM(urlbar_clicks)"
-data_source = "urlbar_clients_specific_product_result_type_sports"
+description = "Per client: clicks on a sports result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'sports', urlbar_clicks, 0))"
+data_source = "urlbar_product_results"
 [metrics.sports_clicks.statistics.bootstrap_mean]
 
+# --- Denominator: TRUE urlbar sessions from the daily totals rollup ---
+[metrics.total_urlbar_sessions]
+friendly_name = "Total urlbar sessions"
+description = "Per client: total urlbar sessions (urlbar_events_daily.urlbar_sessions)."
+select_expression = "SUM(urlbar_sessions)"
+data_source = "urlbar_sessions_daily"
+[metrics.total_urlbar_sessions.statistics.bootstrap_mean]
 
-# SUCCESS metrics: match rate = provider impressions / total urlbar usage (99.9th-pct trim)
+# --- SUCCESS: match rate = provider impressions / total sessions ---
 [metrics.market_match_rate]
 friendly_name = "Finance (market) match rate"
-description = "sum(market impressions) / sum(total urlbar usage)."
+description = "sum(market impressions) / sum(total urlbar sessions)."
 depends_on = ["market_impressions", "total_urlbar_sessions"]
 [metrics.market_match_rate.statistics.population_ratio]
 numerator = "market_impressions"
@@ -91,14 +83,14 @@ drop_highest = 0.001
 
 [metrics.sports_match_rate]
 friendly_name = "Sports match rate"
-description = "sum(sports impressions) / sum(total urlbar usage)."
+description = "sum(sports impressions) / sum(total urlbar sessions)."
 depends_on = ["sports_impressions", "total_urlbar_sessions"]
 [metrics.sports_match_rate.statistics.population_ratio]
 numerator = "sports_impressions"
 denominator = "total_urlbar_sessions"
 drop_highest = 0.0
 
-# GUARDRAIL metrics: CTR = provider clicks / provider impressions
+# --- GUARDRAIL: CTR = provider clicks / provider impressions (unchanged) ---
 [metrics.market_ctr]
 friendly_name = "Finance (market) CTR"
 description = "sum(market clicks) / sum(market impressions)."
@@ -117,87 +109,38 @@ numerator = "sports_clicks"
 denominator = "sports_impressions"
 drop_highest = 0.0
 
+# --- Data sources: both are daily rollups (no raw urlbar_events) ---
 
-# Pre-aggregated per-provider sources (one row per client/day/provider).
-# Sourced from urlbar_events_daily_engagement_by_product_result_type to avoid the
-# raw urlbar_events table, which is too large and times out the analysis.
-
-# Combined market+sports source, used by the exposure_signal so exposure can span
-# both providers. One row per client/day/provider for market or sports.
-[data_sources.urlbar_clients_market_or_sports]
+# Per-product engagement, UNFILTERED by provider so every urlbar-active client
+# has rows -> non-seers pivot to 0 instead of being dropped.
+[data_sources.urlbar_product_results]
 from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    product_result_type,
-    SUM(urlbar_impressions) AS urlbar_impressions,
-    SUM(urlbar_clicks) AS urlbar_clicks
-
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE
-    product_result_type IN ('market', 'sports')
-  GROUP BY ALL
+  SELECT client_id, profile_group_id, submission_date,
+         product_result_type, urlbar_impressions, urlbar_clicks
+  FROM `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
 )"""
 experiments_column_type = "none"
-friendly_name = "urlbar clients for market or sports result types"
-description = "Table filtered for market or sports product result types, for exposure."
+friendly_name = "Urlbar daily engagement by product result type"
+description = "Per client/day/product-type impressions and clicks (all providers)."
 
-[data_sources.urlbar_clients_specific_product_result_type_market]
+# True per-client/day urlbar session count (match-rate denominator).
+# There is NO pre-aggregated per-client session count: the urlbar_events_daily
+# view drops urlbar_sessions (SELECT * EXCEPT (urlbar_sessions)), and the v2
+# derived table aggregates sessions by dimensions with no client_id. So we
+# compute it from raw urlbar_events — but only a grouped COUNT(DISTINCT event_id),
+# WITHOUT UNNEST(results), so it's far cheaper than the original all-raw approach.
+[data_sources.urlbar_sessions_daily]
 from_expression = """(
   SELECT
-    client_id,
+    legacy_telemetry_client_id AS client_id,
     profile_group_id,
     submission_date,
-    product_result_type,
-    SUM(urlbar_impressions) AS urlbar_impressions,
-    SUM(urlbar_clicks) AS urlbar_clicks
-
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE
-    product_result_type = 'market'
-  GROUP BY ALL
+    COUNT(DISTINCT event_id) AS urlbar_sessions
+  FROM `mozdata.firefox_desktop.urlbar_events`
+  WHERE is_terminal
+    AND normalized_channel = 'release'
+  GROUP BY 1, 2, 3
 )"""
 experiments_column_type = "none"
-friendly_name = "urlbar clients for specific product result type - market"
-description = "Table filtered only for specific product result types - market"
-
-[data_sources.urlbar_clients_specific_product_result_type_sports]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    product_result_type,
-    SUM(urlbar_impressions) AS urlbar_impressions,
-    SUM(urlbar_clicks) AS urlbar_clicks
-
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE
-    product_result_type = 'sports'
-  GROUP BY ALL
-)"""
-experiments_column_type = "none"
-friendly_name = "urlbar clients for specific product result type - sports"
-description = "Table filtered only for specific product result types - sports"
-
-[data_sources.urlbar_usage_clients]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    COUNT(1) as urlbar_usage,
-    LOGICAL_OR(COALESCE(firefox_suggest_enabled, FALSE)) AS suggest_enabled,
-    LOGICAL_OR(COALESCE(sponsored_suggestions_enabled, FALSE)) AS sponsored_suggest_enabled
-
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  GROUP BY ALL
-)"""
-experiments_column_type = "none"
-friendly_name = "urlbar usage clients"
-description = "Per-client/day urlbar usage and suggest-enabled flags across all product result types."
+friendly_name = "Urlbar daily session totals"
+description = "Per client/day terminal urlbar sessions (denominator for match rate)."
