@@ -1,0 +1,154 @@
+# Custom Jetstream config for: suggest-query-normalization-experiment (Firefox Desktop)
+# Per-provider urlbar match-rate (success) + CTR (guardrail) for 'market' (finance)
+# and 'sports'.
+#
+# Fixes vs the previous version:
+#  - Impression/click numerators read the per-product table UNFILTERED and pivot
+#    per provider, so clients who never saw the provider count as 0 (previously they
+#    were dropped, so the metric averaged over "seers" only and inflated the rate —
+#    badly for rare providers like sports).
+#  - Match-rate denominator is a TRUE per-client/day terminal-session count. There is
+#    no per-client session rollup (urlbar_events_daily drops urlbar_sessions; the v2
+#    derived table aggregates by dimensions with no client_id), so it's computed from
+#    raw urlbar_events as a grouped COUNT(*) with NO UNNEST(results), date-bounded to
+#    the experiment window so partitions prune (~750 GB instead of 44 TB).
+# CTR is unchanged (it was already correct: clicks/impressions from the same rows).
+
+[experiment]
+[experiment.exposure_signal]
+name = "exposed_to_market_or_sports"
+friendly_name = "Exposed to a market or sports result"
+description = "Clients with at least one market (finance) or sports urlbar impression."
+select_expression = "(product_result_type IN ('market','sports')) AND (urlbar_impressions > 0)"
+data_source = "urlbar_product_results"
+window_end = "analysis_window_end"
+
+[metrics]
+weekly = [
+  "total_urlbar_sessions",
+  "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
+  "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
+  "search_count", "active_hours",
+]
+overall = [
+  "total_urlbar_sessions",
+  "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
+  "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
+  "search_count", "active_hours",
+]
+
+# --- Numerators: pivot the UNFILTERED per-product table (zero-fills non-seers) ---
+[metrics.market_impressions]
+friendly_name = "Finance (market) impressions"
+description = "Per client: urlbar sessions that surfaced a market result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'market', urlbar_impressions, 0))"
+data_source = "urlbar_product_results"
+[metrics.market_impressions.statistics.bootstrap_mean]
+
+[metrics.market_clicks]
+friendly_name = "Finance (market) clicks"
+description = "Per client: clicks on a market result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'market', urlbar_clicks, 0))"
+data_source = "urlbar_product_results"
+[metrics.market_clicks.statistics.bootstrap_mean]
+
+[metrics.sports_impressions]
+friendly_name = "Sports impressions"
+description = "Per client: urlbar sessions that surfaced a sports result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'sports', urlbar_impressions, 0))"
+data_source = "urlbar_product_results"
+[metrics.sports_impressions.statistics.bootstrap_mean]
+
+[metrics.sports_clicks]
+friendly_name = "Sports clicks"
+description = "Per client: clicks on a sports result (0 if none)."
+select_expression = "SUM(IF(product_result_type = 'sports', urlbar_clicks, 0))"
+data_source = "urlbar_product_results"
+[metrics.sports_clicks.statistics.bootstrap_mean]
+
+# --- Denominator: TRUE per-client/day terminal urlbar sessions ---
+[metrics.total_urlbar_sessions]
+friendly_name = "Total urlbar sessions"
+description = "Per client: total terminal urlbar sessions (from raw urlbar_events)."
+select_expression = "SUM(urlbar_sessions)"
+data_source = "urlbar_sessions_daily"
+[metrics.total_urlbar_sessions.statistics.bootstrap_mean]
+
+# --- SUCCESS: match rate = provider impressions / total sessions ---
+[metrics.market_match_rate]
+friendly_name = "Finance (market) match rate"
+description = "sum(market impressions) / sum(total urlbar sessions)."
+depends_on = ["market_impressions", "total_urlbar_sessions"]
+[metrics.market_match_rate.statistics.population_ratio]
+numerator = "market_impressions"
+denominator = "total_urlbar_sessions"
+drop_highest = 0.001
+
+[metrics.sports_match_rate]
+friendly_name = "Sports match rate"
+description = "sum(sports impressions) / sum(total urlbar sessions)."
+depends_on = ["sports_impressions", "total_urlbar_sessions"]
+[metrics.sports_match_rate.statistics.population_ratio]
+numerator = "sports_impressions"
+denominator = "total_urlbar_sessions"
+drop_highest = 0.0
+
+# --- GUARDRAIL: CTR = provider clicks / provider impressions (unchanged) ---
+[metrics.market_ctr]
+friendly_name = "Finance (market) CTR"
+description = "sum(market clicks) / sum(market impressions)."
+depends_on = ["market_clicks", "market_impressions"]
+[metrics.market_ctr.statistics.population_ratio]
+numerator = "market_clicks"
+denominator = "market_impressions"
+drop_highest = 0.001
+
+[metrics.sports_ctr]
+friendly_name = "Sports CTR"
+description = "sum(sports clicks) / sum(sports impressions)."
+depends_on = ["sports_clicks", "sports_impressions"]
+[metrics.sports_ctr.statistics.population_ratio]
+numerator = "sports_clicks"
+denominator = "sports_impressions"
+drop_highest = 0.0
+
+# --- Data sources ---
+
+# Per-product engagement (daily rollup), UNFILTERED by provider so every
+# urlbar-active client has rows -> non-seers pivot to 0 instead of being dropped.
+[data_sources.urlbar_product_results]
+from_expression = """(
+  SELECT client_id, profile_group_id, submission_date,
+         product_result_type, urlbar_impressions, urlbar_clicks
+  FROM `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
+)"""
+experiments_column_type = "none"
+friendly_name = "Urlbar daily engagement by product result type"
+description = "Per client/day/product-type impressions and clicks (all providers)."
+
+# True per-client/day terminal urlbar sessions (match-rate denominator).
+# Computed from raw urlbar_events (no per-client session rollup exists). The
+# submission_date bound below is REQUIRED: this is an aggregating (GROUP BY)
+# subquery, so Jetstream's outer date filter can't prune partitions through it —
+# without the inner bound BigQuery scans all urlbar_events history (~44 TB). With
+# it, partitions prune to the experiment window (~750 GB). COUNT(*) avoids reading
+# the event_id column (one row per terminal event; results is an array, not exploded).
+# NB: this inner bound only needs to be a SUPERSET of Jetstream's window — Jetstream's
+# generated outer filter (BETWEEN '2026-04-27' AND '2026-05-28') does the exact trim,
+# so the upper bound is padded to 2026-05-29 to avoid any off-by-one undercount.
+[data_sources.urlbar_sessions_daily]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id AS client_id,
+    profile_group_id,
+    submission_date,
+    COUNT(*) AS urlbar_sessions
+  FROM `mozdata.firefox_desktop.urlbar_events`
+  WHERE is_terminal
+    AND normalized_channel = 'release'
+    AND submission_date BETWEEN '2026-04-27' AND '2026-05-29'
+  GROUP BY 1, 2, 3
+)"""
+experiments_column_type = "none"
+friendly_name = "Urlbar daily session totals"
+description = "Per client/day terminal urlbar sessions (denominator for match rate)."

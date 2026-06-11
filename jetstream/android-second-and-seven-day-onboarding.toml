@@ -1,0 +1,37 @@
+[metrics]
+  # Compute metrics for weekly and overall analysis windows
+  weekly = ["widget_searches", "non_widget_searches"]
+  overall = ["widget_searches", "non_widget_searches"]
+
+  # Widget Searches Metric
+  [metrics.widget_searches]
+  select_expression = """
+      SUM(CASE WHEN source LIKE '%widget%' THEN sap ELSE 0 END)
+  """
+  data_source = "mobile_search_clients_engines_sources_daily"
+  bigger_is_better = true
+  friendly_name = "Widget Searches"
+  description = "Total number of searches initiated from widgets (source containing 'widget')"
+
+  [metrics.widget_searches.statistics.bootstrap_mean]
+
+  [metrics.widget_searches.statistics.deciles]
+
+  # Non-Widget Searches Metric
+  [metrics.non_widget_searches]
+  select_expression = """
+      SUM(CASE WHEN source NOT LIKE '%widget%' THEN sap ELSE 0 END)
+  """
+  data_source = "mobile_search_clients_engines_sources_daily"
+  friendly_name = "Non-Widget Searches"
+  description = "Total number of searches not initiated from widgets"
+
+  [metrics.non_widget_searches.statistics.bootstrap_mean]
+
+  [metrics.non_widget_searches.statistics.deciles]
+
+
+
+
+  
+
