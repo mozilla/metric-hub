@@ -16,7 +16,7 @@
 name = "exposed_to_market_or_sports"
 friendly_name = "Exposed to a market or sports result"
 description = "Clients with at least one market (finance) or sports urlbar impression."
-select_expression = "LOGICAL_OR(product_result_type IN ('market','sports') AND urlbar_impressions > 0)"
+select_expression = "(product_result_type IN ('market','sports')) AND (urlbar_impressions > 0)"
 data_source = "urlbar_product_results"
 window_end = "analysis_window_end"
 
