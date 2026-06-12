@@ -28,7 +28,7 @@ description = "Total number of searches not initiated from widgets for Fenix"
 [data_sources.mobile_search_fenix_filtered]
 from_expression = """
   (SELECT * FROM mozdata.search.mobile_search_clients_engines_sources_daily
-   WHERE normalized_app_name = 'Fenix'
+   WHERE app_name = 'Fenix'
      AND submission_date >= '2025-01-01')
 """
 
