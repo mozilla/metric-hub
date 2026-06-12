@@ -3,9 +3,9 @@ weekly = ["widget_searches", "non_widget_searches"]
 overall = ["widget_searches", "non_widget_searches"]
 
 [metrics.widget_searches]
-select_expression = """
-    SUM(CASE WHEN source LIKE '%widget%' THEN sap ELSE 0 END)
-"""
+  select_expression = """
+      SUM(CASE WHEN source LIKE '%widget%' THEN COALESCE(sap, 0) ELSE 0 END)
+  """
 data_source = "mobile_search_fenix_filtered"
 bigger_is_better = true
 friendly_name = "Widget Searches (Fenix)"
@@ -14,10 +14,11 @@ description = "Total number of searches initiated from widgets for Fenix"
 [metrics.widget_searches.statistics.bootstrap_mean]
 [metrics.widget_searches.statistics.deciles]
 
-[metrics.non_widget_searches]
-select_expression = """
-    SUM(CASE WHEN source NOT LIKE '%widget%' THEN sap ELSE 0 END)
-"""
+ [metrics.non_widget_searches]
+  select_expression = """
+      SUM(CASE WHEN source NOT LIKE '%widget%' THEN COALESCE(sap, 0) ELSE 0 
+  END)
+  """
 data_source = "mobile_search_fenix_filtered"
 friendly_name = "Non-Widget Searches (Fenix)"
 description = "Total number of searches not initiated from widgets for Fenix"
@@ -28,7 +29,7 @@ description = "Total number of searches not initiated from widgets for Fenix"
 [data_sources.mobile_search_fenix_filtered]
 from_expression = """
   (SELECT * FROM mozdata.search.mobile_search_clients_engines_sources_daily
-   WHERE normalized_app_name = 'Fenix'
+   WHERE app_name = 'Fenix'
      AND submission_date >= '2025-01-01')
 """
 
