@@ -1,17 +1,17 @@
 [metrics]
-weekly = ["widget_searches", "non_widget_searches"]
-overall = ["widget_searches", "non_widget_searches"]
+weekly = [ "non_widget_searches"]
+overall = [ "non_widget_searches"]
 
-[metrics.widget_searches]
-  select_expression = """
-      SUM(CASE WHEN source LIKE '%widget%' THEN COALESCE(sap, 0) ELSE 0 END)
-  """
-data_source = "mobile_search_fenix_filtered"
-friendly_name = "Widget Searches (Fenix)"
-description = "Total number of searches initiated from widgets for Fenix"
+#[metrics.widget_searches]
+#  select_expression = """
+#      SUM(CASE WHEN source LIKE '%widget%' THEN COALESCE(sap, 0) ELSE 0 END)
+#  """
+#data_source = "mobile_search_fenix_filtered"
+#friendly_name = "Widget Searches (Fenix)"
+#description = "Total number of searches initiated from widgets for Fenix"
 
-[metrics.widget_searches.statistics.bootstrap_mean]
-[metrics.widget_searches.statistics.deciles]
+#[metrics.widget_searches.statistics.bootstrap_mean]
+#[metrics.widget_searches.statistics.deciles]
 
  [metrics.non_widget_searches]
   select_expression = """
