@@ -7,7 +7,6 @@ overall = ["widget_searches", "non_widget_searches"]
       SUM(CASE WHEN source LIKE '%widget%' THEN COALESCE(sap, 0) ELSE 0 END)
   """
 data_source = "mobile_search_fenix_filtered"
-bigger_is_better = true
 friendly_name = "Widget Searches (Fenix)"
 description = "Total number of searches initiated from widgets for Fenix"
 
