@@ -75,6 +75,8 @@ class Experiment:
         enrollment_end_date: experiment enrollment_end_date
         is_enrollment_paused: True if enrollment has ended;
             needed because enrollment_end_date may be computed/proposed
+        do_rerun: True if analysis should be fully rerun
+        do_rerun_timestamp: fully rerun analysis if exp tables are older than this
     """
 
     experimenter_slug: str | None
@@ -97,6 +99,8 @@ class Experiment:
     boolean_pref: str | None = None
     channel: Channel | None = None
     is_rollout: bool = False
+    do_rerun: bool = False
+    do_rerun_timestamp: dt.datetime | None = None
 
 
 @attr.s(auto_attribs=True)
@@ -252,6 +256,14 @@ class ExperimentConfiguration:
         if self.experiment_spec.enrollments_query_type:
             return EnrollmentsQueryType(self.experiment_spec.enrollments_query_type)
         return None
+
+    @property
+    def do_rerun_timestamp(self) -> dt.datetime | None:
+        return self.experiment.do_rerun_timestamp
+
+    @property
+    def do_rerun(self) -> bool:
+        return self.experiment.do_rerun or False
 
     def has_external_config_overrides(self) -> bool:
         """Check whether the external config overrides experiment configuration."""
