@@ -1,3 +1,11 @@
+# === TEST BRANCH `test-glean-vs-legacy-metrics` — METRICS/STATS/SEGMENTS DISABLED ===
+# For the Legacy<->Glean guardrail comparison, all metric resolution is driven by the
+# trimmed jetstream/defaults/firefox_desktop.toml ONLY. Config-level metrics, statistics,
+# metric-only data sources, and segments are commented out below (NOT deleted) so they
+# can be restored by stripping the leading '# '. Experiment scaffolding (analysis_unit,
+# enrollment_query, exposure_signal + the data source it needs) is left active.
+# Do NOT merge this branch.
+
 # Custom Jetstream config for: suggest-query-normalization-experiment (Firefox Desktop)
 # Replicates the Query Normalization analysis on-platform. Per-provider rates via
 # population_ratio. Providers: 'market' (finance), 'sports'.
@@ -26,96 +34,96 @@ data_source = "urlbar_clients_market_or_sports"
 window_end = "analysis_window_end"
 
 
-[metrics]
-weekly = [
-  "total_urlbar_sessions",
-  "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
-  "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
-  "search_count", "active_hours",
-]
-overall = [
-  "total_urlbar_sessions",
-  "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
-  "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
-  "search_count", "active_hours",
-]
+# [metrics]
+# weekly = [
+#   "total_urlbar_sessions",
+#   "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
+#   "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
+#   "search_count", "active_hours",
+# ]
+# overall = [
+#   "total_urlbar_sessions",
+#   "market_impressions", "market_clicks", "market_match_rate", "market_ctr",
+#   "sports_impressions", "sports_clicks", "sports_match_rate", "sports_ctr",
+#   "search_count", "active_hours",
+# ]
 
 
-# Counts per client (bootstrap_mean). These feed the ratios below; winsorization
-# is applied by the ratio statistics, not here.
-[metrics.total_urlbar_sessions]
-friendly_name = "Total urlbar usage"
-description = "Total urlbar engagement rows per client (urlbar_usage). Match-rate denominator. NOTE: this is urlbar engagement rows, not terminal urlbar sessions as in the original urlbar_events-based config."
-select_expression = "SUM(urlbar_usage)"
-data_source = "urlbar_usage_clients"
-[metrics.total_urlbar_sessions.statistics.bootstrap_mean]
+# # Counts per client (bootstrap_mean). These feed the ratios below; winsorization
+# # is applied by the ratio statistics, not here.
+# [metrics.total_urlbar_sessions]
+# friendly_name = "Total urlbar usage"
+# description = "Total urlbar engagement rows per client (urlbar_usage). Match-rate denominator. NOTE: this is urlbar engagement rows, not terminal urlbar sessions as in the original urlbar_events-based config."
+# select_expression = "SUM(urlbar_usage)"
+# data_source = "urlbar_usage_clients"
+# [metrics.total_urlbar_sessions.statistics.bootstrap_mean]
 
-[metrics.market_impressions]
-friendly_name = "Finance (market) impressions"
-description = "Urlbar impressions of a market result, per client. Match-rate numerator and CTR denominator."
-select_expression = "SUM(urlbar_impressions)"
-data_source = "urlbar_clients_specific_product_result_type_market"
-[metrics.market_impressions.statistics.bootstrap_mean]
+# [metrics.market_impressions]
+# friendly_name = "Finance (market) impressions"
+# description = "Urlbar impressions of a market result, per client. Match-rate numerator and CTR denominator."
+# select_expression = "SUM(urlbar_impressions)"
+# data_source = "urlbar_clients_specific_product_result_type_market"
+# [metrics.market_impressions.statistics.bootstrap_mean]
 
-[metrics.market_clicks]
-friendly_name = "Finance (market) clicks"
-description = "Clicks on a market result, per client. CTR numerator."
-select_expression = "SUM(urlbar_clicks)"
-data_source = "urlbar_clients_specific_product_result_type_market"
-[metrics.market_clicks.statistics.bootstrap_mean]
+# [metrics.market_clicks]
+# friendly_name = "Finance (market) clicks"
+# description = "Clicks on a market result, per client. CTR numerator."
+# select_expression = "SUM(urlbar_clicks)"
+# data_source = "urlbar_clients_specific_product_result_type_market"
+# [metrics.market_clicks.statistics.bootstrap_mean]
 
-[metrics.sports_impressions]
-friendly_name = "Sports impressions"
-description = "Urlbar impressions of a sports result, per client. Match-rate numerator and CTR denominator."
-select_expression = "SUM(urlbar_impressions)"
-data_source = "urlbar_clients_specific_product_result_type_sports"
-[metrics.sports_impressions.statistics.bootstrap_mean]
+# [metrics.sports_impressions]
+# friendly_name = "Sports impressions"
+# description = "Urlbar impressions of a sports result, per client. Match-rate numerator and CTR denominator."
+# select_expression = "SUM(urlbar_impressions)"
+# data_source = "urlbar_clients_specific_product_result_type_sports"
+# [metrics.sports_impressions.statistics.bootstrap_mean]
 
-[metrics.sports_clicks]
-friendly_name = "Sports clicks"
-description = "Clicks on a sports result, per client. CTR numerator."
-select_expression = "SUM(urlbar_clicks)"
-data_source = "urlbar_clients_specific_product_result_type_sports"
-[metrics.sports_clicks.statistics.bootstrap_mean]
+# [metrics.sports_clicks]
+# friendly_name = "Sports clicks"
+# description = "Clicks on a sports result, per client. CTR numerator."
+# select_expression = "SUM(urlbar_clicks)"
+# data_source = "urlbar_clients_specific_product_result_type_sports"
+# [metrics.sports_clicks.statistics.bootstrap_mean]
 
 
-# SUCCESS metrics: match rate = provider impressions / total urlbar usage (99.9th-pct trim)
-[metrics.market_match_rate]
-friendly_name = "Finance (market) match rate"
-description = "sum(market impressions) / sum(total urlbar usage)."
-depends_on = ["market_impressions", "total_urlbar_sessions"]
-[metrics.market_match_rate.statistics.population_ratio]
-numerator = "market_impressions"
-denominator = "total_urlbar_sessions"
-drop_highest = 0.001
+# # SUCCESS metrics: match rate = provider impressions / total urlbar usage (99.9th-pct trim)
+# [metrics.market_match_rate]
+# friendly_name = "Finance (market) match rate"
+# description = "sum(market impressions) / sum(total urlbar usage)."
+# depends_on = ["market_impressions", "total_urlbar_sessions"]
+# [metrics.market_match_rate.statistics.population_ratio]
+# numerator = "market_impressions"
+# denominator = "total_urlbar_sessions"
+# drop_highest = 0.001
 
-[metrics.sports_match_rate]
-friendly_name = "Sports match rate"
-description = "sum(sports impressions) / sum(total urlbar usage)."
-depends_on = ["sports_impressions", "total_urlbar_sessions"]
-[metrics.sports_match_rate.statistics.population_ratio]
-numerator = "sports_impressions"
-denominator = "total_urlbar_sessions"
-drop_highest = 0.0
+# [metrics.sports_match_rate]
+# friendly_name = "Sports match rate"
+# description = "sum(sports impressions) / sum(total urlbar usage)."
+# depends_on = ["sports_impressions", "total_urlbar_sessions"]
+# [metrics.sports_match_rate.statistics.population_ratio]
+# numerator = "sports_impressions"
+# denominator = "total_urlbar_sessions"
+# drop_highest = 0.0
 
-# GUARDRAIL metrics: CTR = provider clicks / provider impressions
-[metrics.market_ctr]
-friendly_name = "Finance (market) CTR"
-description = "sum(market clicks) / sum(market impressions)."
-depends_on = ["market_clicks", "market_impressions"]
-[metrics.market_ctr.statistics.population_ratio]
-numerator = "market_clicks"
-denominator = "market_impressions"
-drop_highest = 0.001
+# # GUARDRAIL metrics: CTR = provider clicks / provider impressions
+# [metrics.market_ctr]
+# friendly_name = "Finance (market) CTR"
+# description = "sum(market clicks) / sum(market impressions)."
+# depends_on = ["market_clicks", "market_impressions"]
+# [metrics.market_ctr.statistics.population_ratio]
+# numerator = "market_clicks"
+# denominator = "market_impressions"
+# drop_highest = 0.001
 
-[metrics.sports_ctr]
-friendly_name = "Sports CTR"
-description = "sum(sports clicks) / sum(sports impressions)."
-depends_on = ["sports_clicks", "sports_impressions"]
-[metrics.sports_ctr.statistics.population_ratio]
-numerator = "sports_clicks"
-denominator = "sports_impressions"
-drop_highest = 0.0
+# [metrics.sports_ctr]
+# friendly_name = "Sports CTR"
+# description = "sum(sports clicks) / sum(sports impressions)."
+# depends_on = ["sports_clicks", "sports_impressions"]
+# [metrics.sports_ctr.statistics.population_ratio]
+# numerator = "sports_clicks"
+# denominator = "sports_impressions"
+# drop_highest = 0.0
 
 
 # Pre-aggregated per-provider sources (one row per client/day/provider).
@@ -144,60 +152,60 @@ experiments_column_type = "none"
 friendly_name = "urlbar clients for market or sports result types"
 description = "Table filtered for market or sports product result types, for exposure."
 
-[data_sources.urlbar_clients_specific_product_result_type_market]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    product_result_type,
-    SUM(urlbar_impressions) AS urlbar_impressions,
-    SUM(urlbar_clicks) AS urlbar_clicks
+# [data_sources.urlbar_clients_specific_product_result_type_market]
+# from_expression = """(
+#   SELECT
+#     client_id,
+#     profile_group_id,
+#     submission_date,
+#     product_result_type,
+#     SUM(urlbar_impressions) AS urlbar_impressions,
+#     SUM(urlbar_clicks) AS urlbar_clicks
 
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE
-    product_result_type = 'market'
-  GROUP BY ALL
-)"""
-experiments_column_type = "none"
-friendly_name = "urlbar clients for specific product result type - market"
-description = "Table filtered only for specific product result types - market"
+#   FROM
+#     `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
+#   WHERE
+#     product_result_type = 'market'
+#   GROUP BY ALL
+# )"""
+# experiments_column_type = "none"
+# friendly_name = "urlbar clients for specific product result type - market"
+# description = "Table filtered only for specific product result types - market"
 
-[data_sources.urlbar_clients_specific_product_result_type_sports]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    product_result_type,
-    SUM(urlbar_impressions) AS urlbar_impressions,
-    SUM(urlbar_clicks) AS urlbar_clicks
+# [data_sources.urlbar_clients_specific_product_result_type_sports]
+# from_expression = """(
+#   SELECT
+#     client_id,
+#     profile_group_id,
+#     submission_date,
+#     product_result_type,
+#     SUM(urlbar_impressions) AS urlbar_impressions,
+#     SUM(urlbar_clicks) AS urlbar_clicks
 
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE
-    product_result_type = 'sports'
-  GROUP BY ALL
-)"""
-experiments_column_type = "none"
-friendly_name = "urlbar clients for specific product result type - sports"
-description = "Table filtered only for specific product result types - sports"
+#   FROM
+#     `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
+#   WHERE
+#     product_result_type = 'sports'
+#   GROUP BY ALL
+# )"""
+# experiments_column_type = "none"
+# friendly_name = "urlbar clients for specific product result type - sports"
+# description = "Table filtered only for specific product result types - sports"
 
-[data_sources.urlbar_usage_clients]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    COUNT(1) as urlbar_usage,
-    LOGICAL_OR(COALESCE(firefox_suggest_enabled, FALSE)) AS suggest_enabled,
-    LOGICAL_OR(COALESCE(sponsored_suggestions_enabled, FALSE)) AS sponsored_suggest_enabled
+# [data_sources.urlbar_usage_clients]
+# from_expression = """(
+#   SELECT
+#     client_id,
+#     profile_group_id,
+#     submission_date,
+#     COUNT(1) as urlbar_usage,
+#     LOGICAL_OR(COALESCE(firefox_suggest_enabled, FALSE)) AS suggest_enabled,
+#     LOGICAL_OR(COALESCE(sponsored_suggestions_enabled, FALSE)) AS sponsored_suggest_enabled
 
-  FROM
-    `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  GROUP BY ALL
-)"""
-experiments_column_type = "none"
-friendly_name = "urlbar usage clients"
-description = "Per-client/day urlbar usage and suggest-enabled flags across all product result types."
+#   FROM
+#     `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
+#   GROUP BY ALL
+# )"""
+# experiments_column_type = "none"
+# friendly_name = "urlbar usage clients"
+# description = "Per-client/day urlbar usage and suggest-enabled flags across all product result types."

@@ -1,86 +1,158 @@
-# This defines the default metrics and statistics calculated for each experiment
+# DEV BRANCH `test-glean-vs-legacy-metrics` — NOT FOR PRODUCTION MERGE.
+# =====================================================================
+# Trimmed/paired Desktop defaults for the Legacy<->Glean guardrail comparison
+# (analysis repo: investigations/legacy_glean_metric_comparison, PLAN Stage 2b).
+#
+# Every guardrail is kept ALONGSIDE its Glean twin, and each twin is given the
+# IDENTICAL statistic/period membership as its legacy counterpart, so the two
+# versions are computed apples-to-apples and their go/no-go conclusions can be
+# compared directly. Pairs (legacy <-> glean):
+#   active_hours <-> active_hours_glean
+#   ad_clicks <-> ad_click_glean                 (OpMon `ad_click` deliberately excluded)
+#   days_of_use <-> days_of_use_glean
+#   organic_search_count <-> organic_search_count_glean
+#   search_count <-> search_count_glean
+#   searches_with_ads <-> searches_with_ads_glean
+#   tagged_search_count <-> tagged_search_count_glean
+#   tagged_follow_on_search_count <-> tagged_follow_on_search_count_glean
+#   uri_count_v2 <-> uri_count_v2_glean          (paired on v2; prod default uses uri_count v1)
+#       ^^ SCOPE CHANGE TO REPORT: v2 INCLUDES Private Window URIs; the current prod
+#          default (v1) EXCLUDES them. Deliberate (defaults should count private-window
+#          browsing) but not current default behavior — flag in the final results.
+#   qualified_cumulative_days_of_use <-> qualified_cumulative_days_of_use_glean
+#   is_default_browser <-> is_default_browser_glean
+#   client_level_daily_active_users_v2 <-> client_level_daily_active_users_v2_glean
+#   active_in_last_3_days_legacy <-> active_in_last_3_days   (inverted naming: unlabelled = Glean)
+#   retained <-> retained_glean                  (NEW twin; `retained` deprecated upstream by #1455)
+#   retained_dau <-> retained_dau_glean          (NEW twin)
+#   unenroll <-> unenroll_glean                  (NEW twin)
+# The three NEW twins + the glean_nimbus_events_stream data source are defined in
+# definitions/firefox_desktop.toml on this branch.
 
 [metrics]
 daily = [
   "retained",
+  "retained_glean",
   "retained_dau",
+  "retained_dau_glean",
   "unenroll",
+  "unenroll_glean",
   "client_level_daily_active_users_v2",
+  "client_level_daily_active_users_v2_glean",
   "active_hours",
+  "active_hours_glean",
   "search_count",
+  "search_count_glean",
   "active_in_last_3_days_legacy",
+  "active_in_last_3_days",
 ]
 
 weekly = [
   "active_hours",
+  "active_hours_glean",
   "ad_clicks",
+  "ad_click_glean",
   "days_of_use",
+  "days_of_use_glean",
   "retained",
+  "retained_glean",
   "retained_dau",
-  "uri_count",
+  "retained_dau_glean",
+  "uri_count_v2",
+  "uri_count_v2_glean",
   "search_count",
+  "search_count_glean",
   "qualified_cumulative_days_of_use",
+  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
+  "is_default_browser_glean",
   "client_level_daily_active_users_v2",
+  "client_level_daily_active_users_v2_glean",
 ]
 
 overall = [
   "active_hours",
+  "active_hours_glean",
   "ad_clicks",
+  "ad_click_glean",
   "days_of_use",
+  "days_of_use_glean",
   "organic_search_count",
+  "organic_search_count_glean",
   "search_count",
+  "search_count_glean",
   "searches_with_ads",
+  "searches_with_ads_glean",
   "tagged_search_count",
+  "tagged_search_count_glean",
   "tagged_follow_on_search_count",
-  "uri_count",
+  "tagged_follow_on_search_count_glean",
+  "uri_count_v2",
+  "uri_count_v2_glean",
   "qualified_cumulative_days_of_use",
+  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
+  "is_default_browser_glean",
   "client_level_daily_active_users_v2",
+  "client_level_daily_active_users_v2_glean",
 ]
 
 preenrollment_weekly = [
   "active_hours",
+  "active_hours_glean",
   "ad_clicks",
+  "ad_click_glean",
   "days_of_use",
+  "days_of_use_glean",
   "organic_search_count",
+  "organic_search_count_glean",
   "search_count",
+  "search_count_glean",
   "searches_with_ads",
+  "searches_with_ads_glean",
   "tagged_search_count",
+  "tagged_search_count_glean",
   "tagged_follow_on_search_count",
-  "uri_count",
+  "tagged_follow_on_search_count_glean",
+  "uri_count_v2",
+  "uri_count_v2_glean",
   "qualified_cumulative_days_of_use",
+  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
+  "is_default_browser_glean",
   "client_level_daily_active_users_v2",
+  "client_level_daily_active_users_v2_glean",
 ]
 
-preenrollment_days28 = [
-  "active_hours",
-  "ad_clicks",
-  "days_of_use",
-  "organic_search_count",
-  "search_count",
-  "searches_with_ads",
-  "tagged_search_count",
-  "tagged_follow_on_search_count",
-  "uri_count",
-  "qualified_cumulative_days_of_use",
-  "is_default_browser",
-  "client_level_daily_active_users_v2",
-]
+# Note: preenrollment_days28 is intentionally omitted — not needed for this comparison
+# (CUPED covariate uses preenrollment_week) and the 28-day preenrollment period is
+# expected to be retired separately.
 
+# --- active_hours -----------------------------------------------------------
 [metrics.active_hours.statistics.linear_model_mean]
 [metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.active_hours.statistics.deciles]
 
+[metrics.active_hours_glean.statistics.linear_model_mean]
+[metrics.active_hours_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.active_hours_glean.statistics.deciles]
 
+
+# --- ad_clicks --------------------------------------------------------------
 [metrics.ad_clicks.statistics.linear_model_mean]
 [metrics.ad_clicks.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.ad_clicks.statistics.deciles]
 
+[metrics.ad_click_glean.statistics.linear_model_mean]
+[metrics.ad_click_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.ad_click_glean.statistics.deciles]
 
+
+# --- days_of_use ------------------------------------------------------------
 [metrics.days_of_use.statistics.linear_model_mean]
 drop_highest = 0.0
 [metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
@@ -88,66 +160,128 @@ period = "preenrollment_week"
 [metrics.days_of_use.statistics.deciles]
 [metrics.days_of_use.statistics.empirical_cdf]
 
+[metrics.days_of_use_glean.statistics.linear_model_mean]
+drop_highest = 0.0
+[metrics.days_of_use_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.days_of_use_glean.statistics.deciles]
+[metrics.days_of_use_glean.statistics.empirical_cdf]
 
+
+# --- organic_search_count ---------------------------------------------------
 [metrics.organic_search_count.statistics.linear_model_mean]
 [metrics.organic_search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.organic_search_count.statistics.deciles]
 
-
-[metrics.retained.statistics.binomial]
-
-[metrics.retained_dau.statistics.binomial]
-
-
-[metrics.active_in_last_3_days_legacy.statistics.binomial]
-
-
-[metrics.uri_count.statistics.linear_model_mean]
-[metrics.uri_count.statistics.linear_model_mean.covariate_adjustment]
+[metrics.organic_search_count_glean.statistics.linear_model_mean]
+[metrics.organic_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
-[metrics.uri_count.statistics.deciles]
+[metrics.organic_search_count_glean.statistics.deciles]
 
 
+# --- retained (deprecated "seen" retention) ---------------------------------
+[metrics.retained.statistics.binomial]
+[metrics.retained_glean.statistics.binomial]
+
+
+# --- retained_dau (active/is_dau retention) ---------------------------------
+[metrics.retained_dau.statistics.binomial]
+[metrics.retained_dau_glean.statistics.binomial]
+
+
+# --- active_in_last_3_days (legacy <-> glean; inverted naming) --------------
+[metrics.active_in_last_3_days_legacy.statistics.binomial]
+[metrics.active_in_last_3_days.statistics.binomial]
+
+
+# --- uri_count (paired on v2) -----------------------------------------------
+[metrics.uri_count_v2.statistics.linear_model_mean]
+[metrics.uri_count_v2.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.uri_count_v2.statistics.deciles]
+
+[metrics.uri_count_v2_glean.statistics.linear_model_mean]
+[metrics.uri_count_v2_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.uri_count_v2_glean.statistics.deciles]
+
+
+# --- search_count -----------------------------------------------------------
 [metrics.search_count.statistics.linear_model_mean]
 [metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.search_count.statistics.deciles]
 
+[metrics.search_count_glean.statistics.linear_model_mean]
+[metrics.search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.search_count_glean.statistics.deciles]
 
+
+# --- searches_with_ads ------------------------------------------------------
 [metrics.searches_with_ads.statistics.linear_model_mean]
 [metrics.searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.searches_with_ads.statistics.deciles]
 
+[metrics.searches_with_ads_glean.statistics.linear_model_mean]
+[metrics.searches_with_ads_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.searches_with_ads_glean.statistics.deciles]
 
+
+# --- tagged_search_count ----------------------------------------------------
 [metrics.tagged_search_count.statistics.linear_model_mean]
 [metrics.tagged_search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.tagged_search_count.statistics.deciles]
 
+[metrics.tagged_search_count_glean.statistics.linear_model_mean]
+[metrics.tagged_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.tagged_search_count_glean.statistics.deciles]
 
+
+# --- tagged_follow_on_search_count ------------------------------------------
 [metrics.tagged_follow_on_search_count.statistics.linear_model_mean]
 [metrics.tagged_follow_on_search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.tagged_follow_on_search_count.statistics.deciles]
 
+[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean]
+[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.tagged_follow_on_search_count_glean.statistics.deciles]
 
+
+# --- unenroll ---------------------------------------------------------------
 [metrics.unenroll.statistics.binomial]
+[metrics.unenroll_glean.statistics.binomial]
 
 
+# --- qualified_cumulative_days_of_use ---------------------------------------
 [metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean]
 drop_highest = 0.0
 [metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.qualified_cumulative_days_of_use.statistics.deciles]
 
+[metrics.qualified_cumulative_days_of_use_glean.statistics.linear_model_mean]
+drop_highest = 0.0
+[metrics.qualified_cumulative_days_of_use_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.qualified_cumulative_days_of_use_glean.statistics.deciles]
 
+
+# --- is_default_browser -----------------------------------------------------
 [metrics.is_default_browser.statistics.binomial]
+[metrics.is_default_browser_glean.statistics.binomial]
 
 
-[metrics.is_pinned.statistics.binomial]
-
-
+# --- client_level_daily_active_users_v2 -------------------------------------
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']
+
+[metrics.client_level_daily_active_users_v2_glean.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
