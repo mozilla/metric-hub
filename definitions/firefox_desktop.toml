@@ -252,6 +252,28 @@ description = """
 bigger_is_better = false
 
 
+[metrics.unenroll_glean]
+# Glean twin of `unenroll`. Legacy normandy uses event_method='unenroll' with the slug
+# in event_string_value; Glean Nimbus uses event_name='unenrollment' (category
+# 'nimbus_events') with the slug in JSON_VALUE(event_extra,'$.experiment'). These are
+# disjoint, parallel vocabularies — verified against real data (1% sample), 2026-06-16.
+# Added for the Legacy<->Glean guardrail comparison (not PR #927).
+data_source = "glean_nimbus_events_stream"
+select_expression = '''{{agg_any(
+    """
+        event_category = 'nimbus_events'
+        AND event_name = 'unenrollment'
+        AND JSON_VALUE(event_extra, '$.experiment') = '{experiment_slug}'
+    """
+)}}'''
+friendly_name = "Unenrollments (Glean)"
+description = """
+    Counts the number of clients with an experiment unenrollment event recorded via the
+    Glean Nimbus events stream. Glean twin of `unenroll`.
+"""
+bigger_is_better = false
+
+
 [data_sources.browser_launched_to_handle_events]
 from_expression = """(
     SELECT
@@ -1532,6 +1554,37 @@ description = """
     But when time permits, Data Science recommends using Week 4 Retention as more representative of long-term effects.
 """
 
+[metrics.retained_glean]
+# Glean twin of `retained` (the deprecated, ping-presence "seen" retention).
+# Legacy `retained` = "submitted any ping" via COALESCE(SUM(pings_aggregated_by_this_row),0)>0
+# on clients_daily. The Glean analog of "seen on a day" is days_since_seen = 0 on the
+# Glean baseline active-users source. NOT is_dau (that is retained_dau_glean).
+# Added 2026-06-16 for the Legacy<->Glean guardrail comparison (not PR #927).
+data_source = "firefox_desktop_baseline_active_users_view"
+select_expression = "COALESCE(LOGICAL_OR(days_since_seen = 0), FALSE)"
+friendly_name = "Retained (Glean)"
+description = """
+    Whether the client was seen (submitted any ping) on any day in the analysis window,
+    computed on the Glean baseline active-users table (days_since_seen = 0 on any day).
+    Glean twin of the deprecated `retained`; used to test whether the legacy "seen"-based
+    retention conclusion is preserved when measurement moves to Glean.
+"""
+
+[metrics.retained_dau_glean]
+# Glean twin of `retained_dau`. Same logic (any DAU-qualifying day in the window),
+# read from the Glean baseline active-users source instead of legacy telemetry.
+# The comment on `retained_dau` above names this exact source as the Glean target.
+# Added 2026-06-16 for the Legacy<->Glean guardrail comparison (not PR #927).
+data_source = "firefox_desktop_baseline_active_users_view"
+select_expression = "COALESCE(LOGICAL_OR(is_dau), FALSE)"
+friendly_name = "Retained (DAU) in Glean"
+description = """
+    Whether the client had at least one DAU-qualifying day in the analysis window
+    (is_dau = TRUE on any day), computed on the Glean baseline active-users table.
+    Glean twin of `retained_dau`; used to test whether retention conclusions are
+    preserved when DAU measurement moves from Legacy telemetry to Glean.
+"""
+
 [metrics.active_in_last_3_days]
 select_expression = "COALESCE(MIN(days_since_desktop_active), 30) < 3"
 data_source = "firefox_desktop_baseline_active_users_view"
@@ -2039,6 +2092,26 @@ from_expression = """(
 experiments_column_type = "native"
 friendly_name = "Normandy Events"
 description = "Normandy Events"
+
+[data_sources.glean_nimbus_events_stream]
+# Glean Nimbus enrollment/unenrollment events, the Glean counterpart of normandy_events.
+# Pre-filtered to event_category='nimbus_events' to bound the events_stream scan (mirrors
+# how normandy_events pre-filters to 'normandy'). Carries both ids so Jetstream can join
+# onto either a Glean- or legacy-enrolled cohort (same pattern as the baseline view).
+# Added 2026-06-16 for the Legacy<->Glean guardrail comparison.
+from_expression = """(
+    SELECT
+        *
+    FROM `mozdata.firefox_desktop.events_stream`
+    WHERE event_category = 'nimbus_events'
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+glean_client_id_column = "client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
+experiments_column_type = "none"
+friendly_name = "Glean Nimbus Events Stream"
+description = "Glean Nimbus enrollment/unenrollment events (firefox_desktop.events_stream, category nimbus_events)."
 
 [data_sources.cfr]
 from_expression = """(
