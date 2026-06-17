@@ -2101,7 +2101,8 @@ description = "Normandy Events"
 # Added 2026-06-16 for the Legacy<->Glean guardrail comparison.
 from_expression = """(
     SELECT
-        *
+        *,
+        DATE(submission_timestamp) AS submission_date
     FROM `mozdata.firefox_desktop.events_stream`
     WHERE event_category = 'nimbus_events'
 )"""
@@ -2282,7 +2283,12 @@ from_expression = """(
 client_id_column = "client_id"
 glean_client_id_column = "client_id"
 legacy_client_id_column = "legacy_telemetry_client_id"
-experiments_column_type = "glean"
+# Was "glean" (-> ds.ping_info.experiments), but baseline_clients_daily is a DERIVED
+# table with a flat top-level `experiments` map (slug -> struct{branch}), like
+# baseline_active_users. "glean" is for raw, unaggregated Glean ping tables.
+# "native" matches the real schema. See investigations/legacy_glean_metric_comparison
+# (Stage-3 dry-run finding, 2026-06-17) — also a candidate upstream fix.
+experiments_column_type = "native"
 default_dataset = "firefox_desktop"
 friendly_name = "Baseline Clients Daily"
 description = "Daily Aggregate of the Baseline Ping"
