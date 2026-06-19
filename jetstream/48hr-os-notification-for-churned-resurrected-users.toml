@@ -1,13 +1,19 @@
+# ⚠ TEST BRANCH (test-dau-metrics-comparison) — NOT FOR MERGE.
+# The [metrics] block and all segments below are commented out so this experiment adds
+# NOTHING on top of the trimmed defaults (Jetstream resolution is additive). Only the
+# [experiment] enrollment scaffolding (analysis_unit + enrollment_query) stays active.
+# Revert by stripping the leading '# ' from the commented regions.
+
 [experiment]
 analysis_unit = "client_id"
 
-segments = [
-  "firefox_default_at_enrollment",
-  "firefox_not_default_at_enrollment",
-  "profile_age_0_to_180_days",
-  "profile_age_181_to_365_days",
-  "profile_age_more_than_365_days",
-]
+# segments = [
+#   "firefox_default_at_enrollment",
+#   "firefox_not_default_at_enrollment",
+#   "profile_age_0_to_180_days",
+#   "profile_age_181_to_365_days",
+#   "profile_age_more_than_365_days",
+# ]
 
 enrollment_query = """
 SELECT * FROM
@@ -119,96 +125,96 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 """
 
 
-[metrics]
+# [metrics]
 
-weekly = [
-  "is_pinned",
-]
+# weekly = [
+#   "is_pinned",
+# ]
 
-overall = [
-  "is_pinned",
-]
+# overall = [
+#   "is_pinned",
+# ]
 
-# ============================================================================
-# SEGMENTS
-# ============================================================================
-# Two dimensions per the brief:
-#   1. Default browser status at enrollment (default / NOT default)
-#   2. Profile age at enrollment (<6mo / 6-12mo / 12+mo)
-#
-# All segments use a 365-day pre-enrollment lookback on clients_daily because
-# the target audience is lapsed-resurrected users (28+ days inactive at
-# enrollment), so a short lookback would miss most clients. Pattern mirrors
-# the locale fix on os-notification-split-view-release-lapsed-users (PR #1416).
+# # ============================================================================
+# # SEGMENTS
+# # ============================================================================
+# # Two dimensions per the brief:
+# #   1. Default browser status at enrollment (default / NOT default)
+# #   2. Profile age at enrollment (<6mo / 6-12mo / 12+mo)
+# #
+# # All segments use a 365-day pre-enrollment lookback on clients_daily because
+# # the target audience is lapsed-resurrected users (28+ days inactive at
+# # enrollment), so a short lookback would miss most clients. Pattern mirrors
+# # the locale fix on os-notification-split-view-release-lapsed-users (PR #1416).
 
-[segments.firefox_default_at_enrollment]
-friendly_name = "Firefox is default browser (pre-enrollment)"
-description = "Clients who reported Firefox as their default browser on at least one clients_daily ping in the 365 days before enrollment"
-select_expression = """COALESCE(LOGICAL_OR(is_default_browser), FALSE)"""
-data_source = "client_history"
-window_start = -365
-window_end = -1
+# [segments.firefox_default_at_enrollment]
+# friendly_name = "Firefox is default browser (pre-enrollment)"
+# description = "Clients who reported Firefox as their default browser on at least one clients_daily ping in the 365 days before enrollment"
+# select_expression = """COALESCE(LOGICAL_OR(is_default_browser), FALSE)"""
+# data_source = "client_history"
+# window_start = -365
+# window_end = -1
 
-[segments.firefox_not_default_at_enrollment]
-friendly_name = "Firefox is NOT default browser (pre-enrollment)"
-description = "Clients who never reported Firefox as their default browser on any clients_daily ping in the 365 days before enrollment (and had at least one ping with is_default_browser = FALSE)"
-select_expression = """COALESCE(LOGICAL_AND(NOT is_default_browser), FALSE)"""
-data_source = "client_history"
-window_start = -365
-window_end = -1
+# [segments.firefox_not_default_at_enrollment]
+# friendly_name = "Firefox is NOT default browser (pre-enrollment)"
+# description = "Clients who never reported Firefox as their default browser on any clients_daily ping in the 365 days before enrollment (and had at least one ping with is_default_browser = FALSE)"
+# select_expression = """COALESCE(LOGICAL_AND(NOT is_default_browser), FALSE)"""
+# data_source = "client_history"
+# window_start = -365
+# window_end = -1
 
-[segments.profile_age_0_to_180_days]
-friendly_name = "Profile age 0-180 days (<6 months)"
-description = "Clients whose profile age at enrollment is between 0 and 180 days"
-select_expression = """
-  COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) BETWEEN 0 AND 180,
-    FALSE
-  )
-"""
-data_source = "client_history"
-window_start = -365
-window_end = -1
+# [segments.profile_age_0_to_180_days]
+# friendly_name = "Profile age 0-180 days (<6 months)"
+# description = "Clients whose profile age at enrollment is between 0 and 180 days"
+# select_expression = """
+#   COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) BETWEEN 0 AND 180,
+#     FALSE
+#   )
+# """
+# data_source = "client_history"
+# window_start = -365
+# window_end = -1
 
-[segments.profile_age_181_to_365_days]
-friendly_name = "Profile age 181-365 days (6-12 months)"
-description = "Clients whose profile age at enrollment is between 181 and 365 days"
-select_expression = """
-  COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) BETWEEN 181 AND 365,
-    FALSE
-  )
-"""
-data_source = "client_history"
-window_start = -365
-window_end = -1
+# [segments.profile_age_181_to_365_days]
+# friendly_name = "Profile age 181-365 days (6-12 months)"
+# description = "Clients whose profile age at enrollment is between 181 and 365 days"
+# select_expression = """
+#   COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) BETWEEN 181 AND 365,
+#     FALSE
+#   )
+# """
+# data_source = "client_history"
+# window_start = -365
+# window_end = -1
 
-[segments.profile_age_more_than_365_days]
-friendly_name = "Profile age 365+ days (12+ months)"
-description = "Clients whose profile age at enrollment is more than 365 days"
-select_expression = """
-  COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) > 365,
-    FALSE
-  )
-"""
-data_source = "client_history"
-window_start = -365
-window_end = -1
+# [segments.profile_age_more_than_365_days]
+# friendly_name = "Profile age 365+ days (12+ months)"
+# description = "Clients whose profile age at enrollment is more than 365 days"
+# select_expression = """
+#   COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), MIN(first_seen_date), DAY) > 365,
+#     FALSE
+#   )
+# """
+# data_source = "client_history"
+# window_start = -365
+# window_end = -1
 
-[segments.data_sources.client_history]
-from_expression = """(
-  SELECT
-    client_id,
-    profile_group_id,
-    submission_date,
-    is_default_browser,
-    first_seen_date
-  FROM `mozdata.telemetry.clients_daily`
-  WHERE submission_date >= DATE_SUB('2026-04-20', INTERVAL 365 DAY)
-    AND submission_date < '2026-04-20'
-)"""
-description = "Pre-enrollment client history (default browser status + first seen date) from clients_daily, looking back 365 days before the experiment start (2026-04-20)."
-friendly_name = "Client history (pre-enrollment)"
-window_start = -365
-window_end = -1
+# [segments.data_sources.client_history]
+# from_expression = """(
+#   SELECT
+#     client_id,
+#     profile_group_id,
+#     submission_date,
+#     is_default_browser,
+#     first_seen_date
+#   FROM `mozdata.telemetry.clients_daily`
+#   WHERE submission_date >= DATE_SUB('2026-04-20', INTERVAL 365 DAY)
+#     AND submission_date < '2026-04-20'
+# )"""
+# description = "Pre-enrollment client history (default browser status + first seen date) from clients_daily, looking back 365 days before the experiment start (2026-04-20)."
+# friendly_name = "Client history (pre-enrollment)"
+# window_start = -365
+# window_end = -1
