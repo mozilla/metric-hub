@@ -163,5 +163,5 @@ pre_treatments = ['normalize_over_analysis_period']
 #  b. Expressly include all rows/values (such that clients who are active on *all* included days are counted as such)
 pre_treatments = ['normalize_over_analysis_period']
 drop_highest = 0.0
-[metrics.daily_active_users_per_1000_clients_legacy.linear_model_mean.covariate_adjustment]
+[metrics.daily_active_users_per_1000_clients_legacy.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
