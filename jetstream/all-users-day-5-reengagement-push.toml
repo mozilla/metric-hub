@@ -1,0 +1,270 @@
+# This is an Android Mobile Messaging experiment showing background
+# notifications to users lapsed 5+ days.
+#
+# This custom configuration is designed to do 2 things:
+#
+# 1. Include notification-specific early indicator metrics, namely
+# counting the `messaging.notification_{shown, clicked, dismissed}`
+# events.
+#
+# 2. Segment the population.  In this experiment, default
+# vs. non-default segments were identified as potentially interesting.
+# And due to the lapsed 5+ days targeting, days since last use was
+# identified as interesting.
+
+[experiment]
+end_date = "2026-06-17"
+skip_default_metrics = true
+
+enrollments_query_type = "glean-event"
+exposure_query_type = "glean-event"
+
+segments = [
+    "default_at_enrollment",
+    "not_default_at_enrollment",
+
+    "days_since_seen_0_to_6_days",
+    "days_since_seen_7_to_13_days",
+    "days_since_seen_14_27_days",
+    "days_since_seen_more_than_28_days",
+]
+
+[metrics]
+
+daily = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+]
+
+weekly = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+]
+
+overall = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+]
+
+[metrics.notification_shown]
+friendly_name = "Notification Shown"
+description = "Number of times a user was shown a notification."
+select_expression = """
+    {{agg_any("event_name = 'message_shown'")}}
+"""
+data_source = "events_filtered"
+
+# Number of enrolled clients.
+[metrics.notification_shown.statistics.count]
+# Number of notifications shown.
+[metrics.notification_shown.statistics.sum]
+# Shown rate.
+[metrics.notification_shown.statistics.binomial]
+
+[metrics.notification_clicked]
+friendly_name = "Notification Clicked"
+description = "Number of times a user clicked a notification."
+select_expression = """
+    {{agg_any("event_name = 'message_clicked'")}}
+"""
+data_source = "events_filtered"
+
+# Number of enrolled clients.
+[metrics.notification_clicked.statistics.count]
+# Number of clicks.
+[metrics.notification_clicked.statistics.sum]
+# Click through rate.
+[metrics.notification_clicked.statistics.binomial]
+
+[metrics.notification_dismissed]
+friendly_name = "Notification Dismissed"
+description = "Number of times a user dismissed a notification."
+select_expression = """
+    {{agg_any("event_name = 'message_dismissed'")}}
+"""
+data_source = "events_filtered"
+
+# Number of enrolled clients.
+[metrics.notification_dismissed.statistics.count]
+# Number of dismisses.
+[metrics.notification_dismissed.statistics.sum]
+# Dismiss rate.
+[metrics.notification_dismissed.statistics.binomial]
+
+[data_sources]
+[data_sources.events_filtered]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.fenix.events_stream`
+    WHERE event_category IN ('messaging')
+    AND event_name IN ('message_shown', 'message_dismissed', 'message_clicked')
+    -- In future experiments, like 'android-reengagement-push-world-cup:%'.  For this one, exactly 'privacy-value'.
+    AND extras.string.message_key = 'privacy-value'
+    -- AND STARTS_WITH(extras.string.message_key, '{{experiment.normandy_slug}}:')
+)"""
+description = "Glean events_stream dataset (events ping unnested to a single row per event) filtered"
+friendly_name = "Glean Events Stream Filtered"
+experiments_column_type = "none"
+client_id_column = "client_id"
+
+# ----------------------------------------------------------------------------
+# 2. Default browser at enrollment
+# ----------------------------------------------------------------------------
+
+[segments]
+[segments.default_at_enrollment]
+friendly_name = "Default browser at enrollment"
+description = "Clients who were the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen_default_status"
+window_start = -7
+window_end = -1
+
+[segments.not_default_at_enrollment]
+friendly_name = "Not default browser at enrollment"
+description = "Clients who were NOT the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(NOT is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen_default_status"
+window_start = -7
+window_end = -1
+
+[segments.data_sources.metrics_clients_last_seen_default_status]
+from_expression = """(
+  SELECT
+    client_id,
+    submission_date,
+    is_default_browser
+  FROM `moz-fx-data-shared-prod.fenix.metrics_clients_last_seen`
+  WHERE submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+)"""
+
+# ----------------------------------------------------------------------------
+# 3. Last activity
+# ----------------------------------------------------------------------------
+
+[segments.days_since_seen_0_to_6_days]
+friendly_name = "Days since seen 0-6 days at enrollment"
+description = "Clients whose days_since_seen is 0-6 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 0 AND 6,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_days_since_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_7_to_13_days]
+friendly_name = "Days since seen 7-13 days at enrollment"
+description = "Clients whose days_since_seen is 7-13 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 7 AND 13,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_days_since_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_14_27_days]
+friendly_name = "Days since seen 14-27 days at enrollment"
+description = "Clients whose days_since_seen is 14-27 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 14 AND 27,
+    FALSE
+)"""
+data_source = "clients_last_seen_with_days_since_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_more_than_28_days]
+friendly_name = "Days since seen 28+ days at enrollment"
+description = "Clients whose days_since_seen is 28+ days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) >= 28,
+    TRUE
+)"""
+data_source = "clients_last_seen_with_days_since_seen"
+window_start = 0
+window_end = 0
+
+[segments.data_sources.clients_last_seen_with_days_since_seen]
+from_expression = """(
+    SELECT
+        client_id,
+        submission_date,
+        days_since_seen
+    FROM `moz-fx-data-shared-prod.fenix.baseline_clients_last_seen`
+)"""
+client_id_column = "client_id"
+
+# ----------------------------------------------------------------------------
+# 4. Profile age
+# ----------------------------------------------------------------------------
+
+# [segments.profile_age_0_to_6_days]
+# friendly_name = "Profile age 0-6 days at enrollment"
+# description = "Clients whose first_seen_date is 0-6 days before enrollment"
+# select_expression = """COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 6,
+#     FALSE
+# )"""
+# data_source = "clients_last_seen_with_profile_age"
+# window_start = 0
+# window_end = 0
+
+# [segments.profile_age_7_to_27_days]
+# friendly_name = "Profile age 7-27 days at enrollment"
+# description = "Clients whose first_seen_date is 7-27 days before enrollment"
+# select_expression = """COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 7 AND 27,
+#     FALSE
+# )"""
+# data_source = "clients_last_seen_with_profile_age"
+# window_start = 0
+# window_end = 0
+
+# [segments.profile_age_28_to_89_days]
+# friendly_name = "Profile age 28-89 days at enrollment"
+# description = "Clients whose first_seen_date is 28-89 days before enrollment"
+# select_expression = """COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 28 AND 89,
+#     FALSE
+# )"""
+# data_source = "clients_last_seen_with_profile_age"
+# window_start = 0
+# window_end = 0
+
+# [segments.profile_age_90_to_179_days]
+# friendly_name = "Profile age 90-179 days at enrollment"
+# description = "Clients whose first_seen_date is 90-179 days before enrollment"
+# select_expression = """COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 90 AND 179,
+#     FALSE
+# )"""
+# data_source = "clients_last_seen_with_profile_age"
+# window_start = 0
+# window_end = 0
+
+# [segments.profile_age_more_than_180_days]
+# friendly_name = "Profile age 180+ days at enrollment"
+# description = "Clients whose first_seen_date is 180 or more days before enrollment"
+# select_expression = """COALESCE(
+#     DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) >= 180,
+#     FALSE
+# )"""
+# data_source = "clients_last_seen_with_profile_age"
+# window_start = 0
+# window_end = 0
+
+# [segments.data_sources.clients_last_seen_with_profile_age]
+# from_expression = """(
+#     SELECT
+#         client_id,
+#         submission_date,
+#         first_seen_date
+#     FROM `moz-fx-data-shared-prod.fenix.baseline_clients_last_seen`
+# )"""
