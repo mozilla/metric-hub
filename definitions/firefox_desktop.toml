@@ -477,7 +477,7 @@ description = """
     or expected rollout population as needed to estimate absolute DAU impact.
 
     Effects are averaged to a per-day basis over each analysis period. Since feature changes often show a strong "novelty effect", this 
-    metric is best interpretted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
+    metric is best interpreted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
 """
 owner = ["bochocki@mozilla.com", "bbaird@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
@@ -511,7 +511,7 @@ description = """
     or expected rollout population as needed to estimate absolute DAU impact.
 
     Effects are averaged to a per-day basis over each analysis period. Since feature changes often show a strong "novelty effect", this 
-    metric is best interpretted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
+    metric is best interpreted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
 """
 owner = ["bochocki@mozilla.com", "bbaird@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
