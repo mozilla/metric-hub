@@ -113,49 +113,22 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC
 
 
 # segment information: https://docs.telemetry.mozilla.org/concepts/segments.html
-segments = [
-  "inactive_7_to_9_days_at_enrollment",
-  "inactive_10_to_14_days_at_enrollment",
-
-  "default_at_enrollment",
-  "not_default_at_enrollment",
-
-  "profile_age_0_to_28_days",
-  "profile_age_29_to_180_days",
-  "profile_age_more_than_180_days",
-
-  "prior_cdou_low_1_to_3",
-  "prior_cdou_medium_4_to_10",
-  "prior_cdou_high_11_plus",
-]
+# [test-dau-metrics-comparison] segments emptied so the experiment resolves to the
+# six default metrics only, with NO segment cross-tabs. The [segments.*] definitions
+# below are left in place but unreferenced (inert). Restore this list to revert.
+segments = []
 
 [metrics]
 
-weekly = [
-  "is_default_browser",
-  "ubo_newly_enabled",
-  "searches_with_serp_ad_blocker",
-  "searches_with_non_serp_ad_blocker",
-  "searches_with_no_ad_blocker",
-  "is_pinned",
-  "imported_bookmarks",
-  "imported_history",
-  "imported_logins",
-  "fxa_signed_in",
-]
+# [test-dau-metrics-comparison] metric period-lists emptied so this config adds NOTHING on
+# top of the trimmed six-metric defaults. The metric / data-source / segment definitions below
+# are left in place but unreferenced (inert: never computed or scanned). Original lists (restore
+# to revert): weekly/overall = [is_default_browser, ubo_newly_enabled, searches_with_serp_ad_blocker,
+# searches_with_non_serp_ad_blocker, searches_with_no_ad_blocker, is_pinned, imported_bookmarks,
+# imported_history, imported_logins, fxa_signed_in]
+weekly = []
 
-overall = [
-  "is_default_browser",
-  "ubo_newly_enabled",
-  "searches_with_serp_ad_blocker",
-  "searches_with_non_serp_ad_blocker",
-  "searches_with_no_ad_blocker",
-  "is_pinned",
-  "imported_bookmarks",
-  "imported_history",
-  "imported_logins",
-  "fxa_signed_in",
-]
+overall = []
 
 [metrics.ubo_newly_enabled.statistics.binomial]
 [metrics.searches_with_serp_ad_blocker.statistics.linear_model_mean]
