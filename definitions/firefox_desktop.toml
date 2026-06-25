@@ -490,12 +490,7 @@ deprecated = false
 [metrics.daily_active_users_per_1000_clients_legacy_nocuped]
 friendly_name = "DAU per 1,000 clients (no CUPED)"
 data_source = "firefox_desktop_active_users_view"
-# select_expression is deliberately written DIFFERENTLY from its base metric (`+ 0` no-op):
-# metrics sharing an identical data_source + select_expression collapse to a single column
-# when the per-data-source metrics SQL is built, which silently drops the twin. `+ 0` keeps
-# the value identical (INT64) while making the SQL text distinct. (Confirmed empirically:
-# the same-SQL twin was absent from the rebuilt metrics table.)
-select_expression = """COUNTIF(is_dau) * 1000 + 0"""
+select_expression = """COUNTIF(is_dau) * 1000"""
 type = "scalar"
 description = "Twin of daily_active_users_per_1000_clients_legacy with covariate adjustment OMITTED (non-CUPED), for within-run CUPED-on-vs-off comparison of the new DAU metric."
 owner = ["bbaird@mozilla.com"]
@@ -504,8 +499,7 @@ deprecated = false
 [metrics.client_level_daily_active_users_v2_cuped]
 friendly_name = "Firefox Desktop Client-Level DAU (CUPED)"
 data_source = "firefox_desktop_active_users_view"
-# `+ 0` no-op so this twin's SQL text differs from its base (see note above); value identical.
-select_expression = """COUNTIF(is_dau) + 0"""
+select_expression = """COUNTIF(is_dau)"""
 type = "scalar"
 description = "Twin of client_level_daily_active_users_v2 WITH covariate adjustment ADDED (CUPED), for within-run CUPED-on-vs-off comparison of the established DAU metric."
 owner = ["bbaird@mozilla.com"]
