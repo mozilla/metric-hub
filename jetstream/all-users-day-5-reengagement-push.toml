@@ -14,7 +14,6 @@
 
 [experiment]
 end_date = "2026-06-17"
-skip_default_metrics = true
 
 enrollments_query_type = "glean-event"
 exposure_query_type = "glean-event"
