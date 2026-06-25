@@ -482,6 +482,30 @@ description = """
 owner = ["bochocki@mozilla.com", "bbaird@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
+# ── TEST BRANCH (test-dau-metrics-comparison) — NOT FOR MERGE ─────────────────────────────
+# CUPED-on-vs-off twins of the two DAU metrics, so a single run yields all four cells of the
+# {new, old} × {CUPED, non-CUPED} grid on the identical cohort. Each twin shares its base
+# metric's select_expression / data_source / normalization; the ONLY difference is whether a
+# covariate_adjustment (CUPED) block is configured (added in jetstream/defaults).
+[metrics.daily_active_users_per_1000_clients_legacy_nocuped]
+friendly_name = "DAU per 1,000 clients (no CUPED)"
+data_source = "firefox_desktop_active_users_view"
+select_expression = """COUNTIF(is_dau) * 1000"""
+type = "scalar"
+description = "Twin of daily_active_users_per_1000_clients_legacy with covariate adjustment OMITTED (non-CUPED), for within-run CUPED-on-vs-off comparison of the new DAU metric."
+owner = ["bbaird@mozilla.com"]
+deprecated = false
+
+[metrics.client_level_daily_active_users_v2_cuped]
+friendly_name = "Firefox Desktop Client-Level DAU (CUPED)"
+data_source = "firefox_desktop_active_users_view"
+select_expression = """COUNTIF(is_dau)"""
+type = "scalar"
+description = "Twin of client_level_daily_active_users_v2 WITH covariate adjustment ADDED (CUPED), for within-run CUPED-on-vs-off comparison of the established DAU metric."
+owner = ["bbaird@mozilla.com"]
+deprecated = false
+# ──────────────────────────────────────────────────────────────────────────────────────────
+
 [metrics.client_level_daily_active_users_v2_glean]
 friendly_name = "Firefox Desktop Client-Level DAU in Glean"
 data_source = "firefox_desktop_baseline_active_users_view"

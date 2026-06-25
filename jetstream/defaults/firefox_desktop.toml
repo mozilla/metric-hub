@@ -14,6 +14,8 @@ daily = [
   "retained_dau",
   "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
+  "daily_active_users_per_1000_clients_legacy_nocuped",
+  "client_level_daily_active_users_v2_cuped",
 ]
 
 weekly = [
@@ -23,6 +25,8 @@ weekly = [
   "qualified_cumulative_days_of_use",
   "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
+  "daily_active_users_per_1000_clients_legacy_nocuped",
+  "client_level_daily_active_users_v2_cuped",
 ]
 
 overall = [
@@ -30,6 +34,8 @@ overall = [
   "qualified_cumulative_days_of_use",
   "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
+  "daily_active_users_per_1000_clients_legacy_nocuped",
+  "client_level_daily_active_users_v2_cuped",
 ]
 
 # Preenrollment week is required so the CUPED-adjusted continuous metrics
@@ -39,6 +45,8 @@ preenrollment_weekly = [
   "qualified_cumulative_days_of_use",
   "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
+  "daily_active_users_per_1000_clients_legacy_nocuped",
+  "client_level_daily_active_users_v2_cuped",
 ]
 
 [metrics.days_of_use.statistics.linear_model_mean]
@@ -72,4 +80,18 @@ pre_treatments = ['normalize_over_analysis_period']
 pre_treatments = ['normalize_over_analysis_period']
 drop_highest = 0.0
 [metrics.daily_active_users_per_1000_clients_legacy.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
+# ── CUPED-on-vs-off twins (test-dau-metrics-comparison; NOT FOR MERGE) ──────────────────────
+# Lets one run produce all four cells of {new, old} × {CUPED, non-CUPED} on the same cohort.
+# new DAU metric, NON-CUPED: same linear_model_mean + normalization, no covariate_adjustment.
+[metrics.daily_active_users_per_1000_clients_legacy_nocuped.statistics.linear_model_mean]
+pre_treatments = ['normalize_over_analysis_period']
+drop_highest = 0.0
+
+# established DAU metric, CUPED: same per_client_dau_impact + normalization, WITH covariate_adjustment.
+[metrics.client_level_daily_active_users_v2_cuped.statistics.per_client_dau_impact]
+pre_treatments = ['normalize_over_analysis_period']
+[metrics.client_level_daily_active_users_v2_cuped.statistics.per_client_dau_impact.covariate_adjustment]
 period = "preenrollment_week"
