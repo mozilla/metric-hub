@@ -9,7 +9,6 @@
 # compared directly. Pairs (legacy <-> glean):
 #   active_hours <-> active_hours_glean
 #   ad_clicks <-> ad_click_glean                 (OpMon `ad_click` deliberately excluded)
-#   days_of_use <-> days_of_use_glean
 #   organic_search_count <-> organic_search_count_glean
 #   search_count <-> search_count_glean
 #   searches_with_ads <-> searches_with_ads_glean
@@ -19,7 +18,6 @@
 #       ^^ SCOPE CHANGE TO REPORT: v2 INCLUDES Private Window URIs; the current prod
 #          default (v1) EXCLUDES them. Deliberate (defaults should count private-window
 #          browsing) but not current default behavior — flag in the final results.
-#   qualified_cumulative_days_of_use <-> qualified_cumulative_days_of_use_glean
 #   is_default_browser <-> is_default_browser_glean
 #   client_level_daily_active_users_v2 <-> client_level_daily_active_users_v2_glean
 #   active_in_last_3_days_legacy <-> active_in_last_3_days   (inverted naming: unlabelled = Glean)
@@ -28,6 +26,11 @@
 #   unenroll <-> unenroll_glean                  (NEW twin)
 # The three NEW twins + the glean_nimbus_events_stream data source are defined in
 # definitions/firefox_desktop.toml on this branch.
+#
+# PRUNED 2026-06-26 (analysis-repo investigation legacy_glean_metric_comparison):
+# days_of_use and qualified_cumulative_days_of_use (both legacy + glean) were removed
+# to simplify the comparison set, informed by the sibling experimenter_dau_metrics
+# investigation. Comparison set is now 14 pairs (was 16).
 
 [metrics]
 daily = [
@@ -52,8 +55,6 @@ weekly = [
   "active_hours_glean",
   "ad_clicks",
   "ad_click_glean",
-  "days_of_use",
-  "days_of_use_glean",
   "retained",
   "retained_glean",
   "retained_dau",
@@ -62,8 +63,6 @@ weekly = [
   "uri_count_v2_glean",
   "search_count",
   "search_count_glean",
-  "qualified_cumulative_days_of_use",
-  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
   "is_default_browser_glean",
   "client_level_daily_active_users_v2",
@@ -75,8 +74,6 @@ overall = [
   "active_hours_glean",
   "ad_clicks",
   "ad_click_glean",
-  "days_of_use",
-  "days_of_use_glean",
   "organic_search_count",
   "organic_search_count_glean",
   "search_count",
@@ -89,8 +86,6 @@ overall = [
   "tagged_follow_on_search_count_glean",
   "uri_count_v2",
   "uri_count_v2_glean",
-  "qualified_cumulative_days_of_use",
-  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
   "is_default_browser_glean",
   "client_level_daily_active_users_v2",
@@ -102,8 +97,6 @@ preenrollment_weekly = [
   "active_hours_glean",
   "ad_clicks",
   "ad_click_glean",
-  "days_of_use",
-  "days_of_use_glean",
   "organic_search_count",
   "organic_search_count_glean",
   "search_count",
@@ -116,8 +109,6 @@ preenrollment_weekly = [
   "tagged_follow_on_search_count_glean",
   "uri_count_v2",
   "uri_count_v2_glean",
-  "qualified_cumulative_days_of_use",
-  "qualified_cumulative_days_of_use_glean",
   "is_default_browser",
   "is_default_browser_glean",
   "client_level_daily_active_users_v2",
@@ -150,22 +141,6 @@ period = "preenrollment_week"
 [metrics.ad_click_glean.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 [metrics.ad_click_glean.statistics.deciles]
-
-
-# --- days_of_use ------------------------------------------------------------
-[metrics.days_of_use.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.days_of_use.statistics.deciles]
-[metrics.days_of_use.statistics.empirical_cdf]
-
-[metrics.days_of_use_glean.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.days_of_use_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.days_of_use_glean.statistics.deciles]
-[metrics.days_of_use_glean.statistics.empirical_cdf]
 
 
 # --- organic_search_count ---------------------------------------------------
@@ -258,20 +233,6 @@ period = "preenrollment_week"
 # --- unenroll ---------------------------------------------------------------
 [metrics.unenroll.statistics.binomial]
 [metrics.unenroll_glean.statistics.binomial]
-
-
-# --- qualified_cumulative_days_of_use ---------------------------------------
-[metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.qualified_cumulative_days_of_use.statistics.deciles]
-
-[metrics.qualified_cumulative_days_of_use_glean.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.qualified_cumulative_days_of_use_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.qualified_cumulative_days_of_use_glean.statistics.deciles]
 
 
 # --- is_default_browser -----------------------------------------------------
