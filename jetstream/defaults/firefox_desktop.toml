@@ -31,6 +31,22 @@
 # days_of_use and qualified_cumulative_days_of_use (both legacy + glean) were removed
 # to simplify the comparison set, informed by the sibling experimenter_dau_metrics
 # investigation. Comparison set is now 14 pairs (was 16).
+#
+# DEFERRED 2026-06-26 (same investigation) — COMMENTED OUT, NOT DELETED (reversible):
+# the SEARCH-FAMILY pairs (search_count, organic_search_count, tagged_search_count,
+# tagged_follow_on_search_count, searches_with_ads, ad_clicks) AND the unenroll pair.
+# WHY: their Glean twins read RAW EVENT-GRAIN tables — firefox_desktop.events_stream
+# (search_count_glean, unenroll_glean) and firefox_desktop.serp_events (the SERP twins) —
+# one row per event/impression over the WHOLE population. That scan alone made a single
+# analysis window cost ~$19.7 (vs aggregate-table pennies), putting the full 2x2 grid at
+# ~$200-400 and too slow to finish in a reasonable horizon. The remaining 7 pairs read only
+# DAILY-AGGREGATE tables (clients_daily / baseline_clients_daily / {desktop,baseline}_active_users)
+# and are cheap. The deferred set is a KNOWN MAJOR LIMITATION — to be run in a later,
+# separately-budgeted pass — and is also where Legacy<->Glean is MOST likely to diverge
+# (raw-event vs daily-aggregate grain). Re-enable by stripping the leading "# ".
+# ACTIVE comparison set while deferred = 7 pairs (+ twins):
+#   client_level_daily_active_users_v2, active_hours, uri_count_v2, is_default_browser,
+#   retained, retained_dau, active_in_last_3_days
 
 [metrics]
 daily = [
@@ -38,14 +54,14 @@ daily = [
   "retained_glean",
   "retained_dau",
   "retained_dau_glean",
-  "unenroll",
-  "unenroll_glean",
+#  "unenroll",                       # DEFERRED 2026-06-26 — twin reads events_stream (raw)
+#  "unenroll_glean",                 # DEFERRED 2026-06-26 — events_stream (raw)
   "client_level_daily_active_users_v2",
   "client_level_daily_active_users_v2_glean",
   "active_hours",
   "active_hours_glean",
-  "search_count",
-  "search_count_glean",
+#  "search_count",                   # DEFERRED 2026-06-26 — twin reads events_stream (raw)
+#  "search_count_glean",             # DEFERRED 2026-06-26 — events_stream (raw)
   "active_in_last_3_days_legacy",
   "active_in_last_3_days",
 ]
@@ -53,16 +69,16 @@ daily = [
 weekly = [
   "active_hours",
   "active_hours_glean",
-  "ad_clicks",
-  "ad_click_glean",
+#  "ad_clicks",                      # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "ad_click_glean",                 # DEFERRED 2026-06-26 — serp_events (raw)
   "retained",
   "retained_glean",
   "retained_dau",
   "retained_dau_glean",
   "uri_count_v2",
   "uri_count_v2_glean",
-  "search_count",
-  "search_count_glean",
+#  "search_count",                   # DEFERRED 2026-06-26 — twin reads events_stream (raw)
+#  "search_count_glean",             # DEFERRED 2026-06-26 — events_stream (raw)
   "is_default_browser",
   "is_default_browser_glean",
   "client_level_daily_active_users_v2",
@@ -72,18 +88,18 @@ weekly = [
 overall = [
   "active_hours",
   "active_hours_glean",
-  "ad_clicks",
-  "ad_click_glean",
-  "organic_search_count",
-  "organic_search_count_glean",
-  "search_count",
-  "search_count_glean",
-  "searches_with_ads",
-  "searches_with_ads_glean",
-  "tagged_search_count",
-  "tagged_search_count_glean",
-  "tagged_follow_on_search_count",
-  "tagged_follow_on_search_count_glean",
+#  "ad_clicks",                          # DEFERRED 2026-06-26 — serp_events (raw)
+#  "ad_click_glean",                     # DEFERRED 2026-06-26 — serp_events (raw)
+#  "organic_search_count",               # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "organic_search_count_glean",         # DEFERRED 2026-06-26 — serp_events (raw)
+#  "search_count",                       # DEFERRED 2026-06-26 — twin reads events_stream (raw)
+#  "search_count_glean",                 # DEFERRED 2026-06-26 — events_stream (raw)
+#  "searches_with_ads",                  # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "searches_with_ads_glean",            # DEFERRED 2026-06-26 — serp_events (raw)
+#  "tagged_search_count",                # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "tagged_search_count_glean",          # DEFERRED 2026-06-26 — serp_events (raw)
+#  "tagged_follow_on_search_count",      # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "tagged_follow_on_search_count_glean",# DEFERRED 2026-06-26 — serp_events (raw)
   "uri_count_v2",
   "uri_count_v2_glean",
   "is_default_browser",
@@ -95,18 +111,18 @@ overall = [
 preenrollment_weekly = [
   "active_hours",
   "active_hours_glean",
-  "ad_clicks",
-  "ad_click_glean",
-  "organic_search_count",
-  "organic_search_count_glean",
-  "search_count",
-  "search_count_glean",
-  "searches_with_ads",
-  "searches_with_ads_glean",
-  "tagged_search_count",
-  "tagged_search_count_glean",
-  "tagged_follow_on_search_count",
-  "tagged_follow_on_search_count_glean",
+#  "ad_clicks",                          # DEFERRED 2026-06-26 — serp_events (raw)
+#  "ad_click_glean",                     # DEFERRED 2026-06-26 — serp_events (raw)
+#  "organic_search_count",               # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "organic_search_count_glean",         # DEFERRED 2026-06-26 — serp_events (raw)
+#  "search_count",                       # DEFERRED 2026-06-26 — twin reads events_stream (raw)
+#  "search_count_glean",                 # DEFERRED 2026-06-26 — events_stream (raw)
+#  "searches_with_ads",                  # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "searches_with_ads_glean",            # DEFERRED 2026-06-26 — serp_events (raw)
+#  "tagged_search_count",                # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "tagged_search_count_glean",          # DEFERRED 2026-06-26 — serp_events (raw)
+#  "tagged_follow_on_search_count",      # DEFERRED 2026-06-26 — twin reads serp_events (raw)
+#  "tagged_follow_on_search_count_glean",# DEFERRED 2026-06-26 — serp_events (raw)
   "uri_count_v2",
   "uri_count_v2_glean",
   "is_default_browser",
@@ -131,28 +147,28 @@ period = "preenrollment_week"
 [metrics.active_hours_glean.statistics.deciles]
 
 
-# --- ad_clicks --------------------------------------------------------------
-[metrics.ad_clicks.statistics.linear_model_mean]
-[metrics.ad_clicks.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.ad_clicks.statistics.deciles]
+# --- ad_clicks --- DEFERRED 2026-06-26 (serp_events) ------------------------
+#[metrics.ad_clicks.statistics.linear_model_mean]
+#[metrics.ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.ad_clicks.statistics.deciles]
+#
+#[metrics.ad_click_glean.statistics.linear_model_mean]
+#[metrics.ad_click_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.ad_click_glean.statistics.deciles]
 
-[metrics.ad_click_glean.statistics.linear_model_mean]
-[metrics.ad_click_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.ad_click_glean.statistics.deciles]
 
-
-# --- organic_search_count ---------------------------------------------------
-[metrics.organic_search_count.statistics.linear_model_mean]
-[metrics.organic_search_count.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.organic_search_count.statistics.deciles]
-
-[metrics.organic_search_count_glean.statistics.linear_model_mean]
-[metrics.organic_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.organic_search_count_glean.statistics.deciles]
+# --- organic_search_count --- DEFERRED 2026-06-26 (serp_events) -------------
+#[metrics.organic_search_count.statistics.linear_model_mean]
+#[metrics.organic_search_count.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.organic_search_count.statistics.deciles]
+#
+#[metrics.organic_search_count_glean.statistics.linear_model_mean]
+#[metrics.organic_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.organic_search_count_glean.statistics.deciles]
 
 
 # --- retained (deprecated "seen" retention) ---------------------------------
@@ -182,57 +198,57 @@ period = "preenrollment_week"
 [metrics.uri_count_v2_glean.statistics.deciles]
 
 
-# --- search_count -----------------------------------------------------------
-[metrics.search_count.statistics.linear_model_mean]
-[metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.search_count.statistics.deciles]
-
-[metrics.search_count_glean.statistics.linear_model_mean]
-[metrics.search_count_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.search_count_glean.statistics.deciles]
-
-
-# --- searches_with_ads ------------------------------------------------------
-[metrics.searches_with_ads.statistics.linear_model_mean]
-[metrics.searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.searches_with_ads.statistics.deciles]
-
-[metrics.searches_with_ads_glean.statistics.linear_model_mean]
-[metrics.searches_with_ads_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.searches_with_ads_glean.statistics.deciles]
+# --- search_count --- DEFERRED 2026-06-26 (events_stream) -------------------
+#[metrics.search_count.statistics.linear_model_mean]
+#[metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.search_count.statistics.deciles]
+#
+#[metrics.search_count_glean.statistics.linear_model_mean]
+#[metrics.search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.search_count_glean.statistics.deciles]
 
 
-# --- tagged_search_count ----------------------------------------------------
-[metrics.tagged_search_count.statistics.linear_model_mean]
-[metrics.tagged_search_count.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.tagged_search_count.statistics.deciles]
-
-[metrics.tagged_search_count_glean.statistics.linear_model_mean]
-[metrics.tagged_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.tagged_search_count_glean.statistics.deciles]
-
-
-# --- tagged_follow_on_search_count ------------------------------------------
-[metrics.tagged_follow_on_search_count.statistics.linear_model_mean]
-[metrics.tagged_follow_on_search_count.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.tagged_follow_on_search_count.statistics.deciles]
-
-[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean]
-[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.tagged_follow_on_search_count_glean.statistics.deciles]
+# --- searches_with_ads --- DEFERRED 2026-06-26 (serp_events) ----------------
+#[metrics.searches_with_ads.statistics.linear_model_mean]
+#[metrics.searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.searches_with_ads.statistics.deciles]
+#
+#[metrics.searches_with_ads_glean.statistics.linear_model_mean]
+#[metrics.searches_with_ads_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.searches_with_ads_glean.statistics.deciles]
 
 
-# --- unenroll ---------------------------------------------------------------
-[metrics.unenroll.statistics.binomial]
-[metrics.unenroll_glean.statistics.binomial]
+# --- tagged_search_count --- DEFERRED 2026-06-26 (serp_events) --------------
+#[metrics.tagged_search_count.statistics.linear_model_mean]
+#[metrics.tagged_search_count.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.tagged_search_count.statistics.deciles]
+#
+#[metrics.tagged_search_count_glean.statistics.linear_model_mean]
+#[metrics.tagged_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.tagged_search_count_glean.statistics.deciles]
+
+
+# --- tagged_follow_on_search_count --- DEFERRED 2026-06-26 (serp_events) ----
+#[metrics.tagged_follow_on_search_count.statistics.linear_model_mean]
+#[metrics.tagged_follow_on_search_count.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.tagged_follow_on_search_count.statistics.deciles]
+#
+#[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean]
+#[metrics.tagged_follow_on_search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+#period = "preenrollment_week"
+#[metrics.tagged_follow_on_search_count_glean.statistics.deciles]
+
+
+# --- unenroll --- DEFERRED 2026-06-26 (events_stream) -----------------------
+#[metrics.unenroll.statistics.binomial]
+#[metrics.unenroll_glean.statistics.binomial]
 
 
 # --- is_default_browser -----------------------------------------------------
