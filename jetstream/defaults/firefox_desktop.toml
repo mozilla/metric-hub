@@ -9,6 +9,7 @@ daily = [
   "active_hours",
   "search_count",
   "active_in_last_3_days_legacy",
+  "daily_active_users_per_1000_clients_legacy",
 ]
 
 weekly = [
@@ -22,6 +23,7 @@ weekly = [
   "qualified_cumulative_days_of_use",
   "is_default_browser",
   "client_level_daily_active_users_v2",
+  "daily_active_users_per_1000_clients_legacy",
 ]
 
 overall = [
@@ -37,6 +39,7 @@ overall = [
   "qualified_cumulative_days_of_use",
   "is_default_browser",
   "client_level_daily_active_users_v2",
+  "daily_active_users_per_1000_clients_legacy",
 ]
 
 preenrollment_weekly = [
@@ -52,6 +55,7 @@ preenrollment_weekly = [
   "qualified_cumulative_days_of_use",
   "is_default_browser",
   "client_level_daily_active_users_v2",
+  "daily_active_users_per_1000_clients_legacy",
 ]
 
 preenrollment_days28 = [
@@ -151,3 +155,13 @@ period = "preenrollment_week"
 
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
 pre_treatments = ['normalize_over_analysis_period']
+
+
+[metrics.daily_active_users_per_1000_clients_legacy.statistics.linear_model_mean]
+# The intended units for 'DAU per 1,000 clients' require that it:
+#  a. Be calculated as an average over the time period (such that it matches the *daily* interpretation of DAU)
+#  b. Expressly include all rows/values (such that clients who are active on *all* included days are counted as such)
+pre_treatments = ['normalize_over_analysis_period']
+drop_highest = 0.0
+[metrics.daily_active_users_per_1000_clients_legacy.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
