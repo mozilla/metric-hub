@@ -101,6 +101,13 @@ def validate_config_settings(config_file: Path) -> None:
         "alerts",
         "dimensions",
         "functions",
+        # per-period metric lists declarable at an outcome's root (see OutcomeSpec)
+        "daily",
+        "weekly",
+        "28_day",
+        "overall",
+        "preenrollment_weekly",
+        "preenrollment_days28",
     )
 
     core_config_keys_specified = config.keys()
