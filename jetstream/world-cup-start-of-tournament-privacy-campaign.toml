@@ -1,0 +1,171 @@
+[experiment]
+
+segments = [
+  "firefox_default_at_enrollment",
+  "firefox_not_default_at_enrollment",
+
+  "profile_age_0_to_180_days",
+  "profile_age_181_to_365_days",
+  "profile_age_more_than_365_days",
+
+  "last_dau_28_to_59_days_ago",
+  "last_dau_60_to_179_days_ago",
+  "last_dau_180plus_days_ago",
+]
+
+[metrics]
+
+weekly = [
+  "is_pinned",
+  "fxa_signed_in",
+  "w1_2plus_return_days",
+]
+
+overall = [
+  "is_pinned",
+  "fxa_signed_in",
+]
+
+# is_pinned (pin-to-taskbar/dock rate) and fxa_signed_in (sync sign-in rate) are
+# built-in but have no pre-declared statistic in definitions/firefox_desktop.toml,
+# so declare binomial explicitly. 4-week retention (retained / retained_dau),
+# DAU (client_level_daily_active_users_v2), set-to-default (is_default_browser),
+# and the engagement/search supplements all auto-apply via defaults and are
+# deliberately NOT re-listed here.
+[metrics.is_pinned.statistics.binomial]
+[metrics.fxa_signed_in.statistics.binomial]
+
+# ============================================================================
+# CUSTOM METRIC - W1 cadence shift (co-primary)
+# ============================================================================
+# Share of users with 2+ return (active) days in the analysis window. Listed in
+# `weekly` only; read at window_index = 1 for the W1 (days 1-7) cadence co-primary.
+# NOTE FOR DS: confirm the day-0/day-1 window boundary matches the intended
+# "return days in W1 post-resurrection" definition before relying on the readout.
+[metrics.w1_2plus_return_days]
+friendly_name = "W1 cadence: 2+ return days"
+description = "Client was active on 2 or more distinct days within the analysis window (read window_index=1 for W1 cadence)"
+select_expression = "COALESCE(COUNT(DISTINCT submission_date) >= 2, FALSE)"
+data_source = "clients_daily"
+[metrics.w1_2plus_return_days.statistics.binomial]
+
+# ============================================================================
+# SEGMENTS - Default browser status AT ENROLLMENT (pre-enrollment measurement)
+# ============================================================================
+# Measured over a 365-day pre-enrollment window, NOT the analysis window: the
+# set-to-default CTA changes default status during the experiment, so measuring
+# it in-window would be post-treatment conditioning. 365-day lookback because the
+# audience is resurrected (28+ days lapsed) users. Pattern mirrors the pre-
+# enrollment segment data-source approach (clients_daily + window + LOGICAL_OR).
+
+[segments.firefox_default_at_enrollment]
+friendly_name = "Firefox is default browser (pre-enrollment)"
+description = "Clients who reported Firefox as their default browser on at least one clients_daily ping in the 365 days before enrollment"
+select_expression = """COALESCE(LOGICAL_OR(is_default_browser), FALSE)"""
+data_source = "client_history"
+window_start = -365
+window_end = -1
+
+[segments.firefox_not_default_at_enrollment]
+friendly_name = "Firefox is NOT default browser (pre-enrollment)"
+description = "Clients who never reported Firefox as their default browser on any clients_daily ping in the 365 days before enrollment"
+select_expression = """COALESCE(LOGICAL_AND(NOT is_default_browser), FALSE)"""
+data_source = "client_history"
+window_start = -365
+window_end = -1
+
+# ============================================================================
+# SEGMENTS - Profile age (clients_last_seen days_since_first_seen)
+# ============================================================================
+# Buckets per the spec (0-180 / 181-365 / 365+). Profile age is not affected by
+# treatment, so analysis-window measurement on the built-in clients_last_seen
+# segment data source is unbiased (same proven pattern as merged foreground configs).
+
+[segments.profile_age_0_to_180_days]
+friendly_name = "Profile Age 0 to 180 days"
+description = "Time since first-seen 0-180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 180), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_181_to_365_days]
+friendly_name = "Profile Age 181 to 365 days"
+description = "Time since first-seen 181-365 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 181 AND 365), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_more_than_365_days]
+friendly_name = "Profile Age more than 365 days"
+description = "Time since first-seen more than 365 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 365), FALSE)"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENTS - Lapse depth at resurrection (days since last DAU before enrollment)
+# ============================================================================
+# Buckets per the spec (28-59 / 60-179 / 180+). Uses the merged split-view lapsed
+# pattern: DATE_DIFF between enrollment date and the client's last pre-enrollment
+# DAU, over a 183-day pre-enrollment lookback on desktop_active_users.
+
+[segments.last_dau_28_to_59_days_ago]
+friendly_name = "Last DAU 28 to 59 days ago"
+description = "Clients who last counted towards DAU 28-59 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_dau_60_to_179_days_ago]
+friendly_name = "Last DAU 60 to 179 days ago"
+description = "Clients who last counted towards DAU 60-179 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 179, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_dau_180plus_days_ago]
+friendly_name = "New or last DAU 180+ days ago"
+description = "Clients whose last DAU before enrollment is 180+ days ago, or with no DAU observed in the lookback window"
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
+  )
+"""
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+# ============================================================================
+# SEGMENT DATA SOURCES (pre-enrollment lookbacks, dated to start 2026-06-12)
+# ============================================================================
+
+[segments.data_sources.client_history]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date,
+    is_default_browser
+  FROM `mozdata.telemetry.clients_daily`
+  WHERE submission_date >= DATE_SUB('2026-06-12', INTERVAL 365 DAY)
+    AND submission_date < '2026-06-12'
+)"""
+description = "Pre-enrollment client history (default browser status) from clients_daily, 365 days before experiment start (2026-06-12)."
+friendly_name = "Client history (pre-enrollment)"
+window_start = -365
+window_end = -1
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2026-06-12', INTERVAL 183 DAY)
+)"""
+description = "Pre-enrollment DAU history from desktop_active_users, 183 days before experiment start (2026-06-12), for lapse-depth segmentation."
+friendly_name = "Active users last seen (pre-enrollment)"
+window_start = -183
