@@ -8,6 +8,10 @@ segments = [
   "profile_age_181_to_365_days",
   "profile_age_more_than_365_days",
 
+  "os_windows",
+  "os_mac",
+  "os_linux",
+
   "last_dau_28_to_59_days_ago",
   "last_dau_60_to_179_days_ago",
   "last_dau_180plus_days_ago",
@@ -97,6 +101,34 @@ data_source = "clients_last_seen"
 friendly_name = "Profile Age more than 365 days"
 description = "Time since first-seen more than 365 days"
 select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 365), FALSE)"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENTS - Operating system (clients_last_seen os field)
+# ============================================================================
+# Windows / macOS / Linux split. OS is not affected by treatment, so analysis-
+# window measurement on the built-in clients_last_seen segment data source is
+# unbiased (same pattern as the profile-age segments above). Enrollment is
+# foreground (fxms-message-4 on nthTabClosed), so every enrolled client is active
+# in-window and has an os value populated. LOWER() guards against casing variants
+# (e.g. Windows_NT / Darwin / Linux).
+
+[segments.os_windows]
+friendly_name = "OS: Windows"
+description = "Clients whose reported OS is Windows"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) LIKE '%windows%'), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.os_mac]
+friendly_name = "OS: macOS"
+description = "Clients whose reported OS is macOS (Darwin)"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'darwin'), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.os_linux]
+friendly_name = "OS: Linux"
+description = "Clients whose reported OS is Linux"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'linux'), FALSE)"
 data_source = "clients_last_seen"
 
 # ============================================================================
