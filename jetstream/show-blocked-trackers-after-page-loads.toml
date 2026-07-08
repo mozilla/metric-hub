@@ -1,0 +1,36 @@
+[metrics]
+
+weekly = ["privacy_panel_clicks"]
+overall = ["privacy_panel_clicks"]
+
+# Metric for total number of privacy panel clicks
+[metrics.privacy_panel_clicks]
+select_expression = """
+COALESCE(SUM(CASE 
+  WHEN event_category = 'security.ui.protectionspopup' 
+  AND event_name = 'open_protections_popup' 
+  THEN 1 
+  ELSE 0 
+END), 0)
+"""
+data_source = "events_unnested"
+friendly_name = "Privacy Panel Clicks"
+description = "Total number of times users opened the protections popup"
+bigger_is_better = true
+
+[metrics.privacy_panel_clicks.statistics.bootstrap_mean]
+
+[metrics.privacy_panel_clicks.statistics.deciles]
+
+[data_sources.events_unnested]
+from_expression = """
+(SELECT 
+  client_id,
+  submission_date,
+  event_category,
+  event_name,
+  normalized_channel,
+  experiments
+FROM `mozdata.firefox_desktop.events_unnested`
+WHERE normalized_channel = 'release')
+"""
