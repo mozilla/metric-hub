@@ -24,13 +24,13 @@ bigger_is_better = true
 
 [data_sources.events_unnested]
 from_expression = """
-(SELECT 
-  client_id,
-  submission_date,
-  event_category,
-  event_name,
-  normalized_channel,
-  experiments
-FROM `mozdata.firefox_desktop.events_unnested`
-WHERE normalized_channel = 'release')
+( SELECT
+        legacy_telemetry_client_id AS client_id,
+        profile_group_id,
+        DATE(submission_timestamp) AS submission_date,
+        experiments,
+        event_name,
+        event_extra,
+    FROM `mozdata.firefox_desktop.events_stream`
+WHERE event_category = 'security.ui.protectionspopup' )
 """
