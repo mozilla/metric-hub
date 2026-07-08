@@ -13,7 +13,7 @@ COALESCE(SUM(CASE
   ELSE 0 
 END), 0)
 """
-data_source = "events_unnested"
+data_source = "events_stream"
 friendly_name = "Privacy Panel Clicks"
 description = "Total number of times users opened the protections popup"
 bigger_is_better = true
@@ -22,7 +22,7 @@ bigger_is_better = true
 
 [metrics.privacy_panel_clicks.statistics.deciles]
 
-[data_sources.events_unnested]
+[data_sources.events_stream]
 from_expression = """
 ( SELECT
         legacy_telemetry_client_id AS client_id,
