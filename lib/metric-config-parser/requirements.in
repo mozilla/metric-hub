@@ -48,7 +48,7 @@ librt==0.12.0
     # via mypy
 markupsafe==3.0.3
     # via jinja2
-mozilla-nimbus-schemas==3003.1.0
+mozilla-nimbus-schemas==3004.0.0
     # via mozilla-metric-config-parser
 mypy==2.1.0
     # via mozilla-metric-config-parser
