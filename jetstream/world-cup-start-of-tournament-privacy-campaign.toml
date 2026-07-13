@@ -12,6 +12,8 @@ segments = [
   "os_mac",
   "os_linux",
 
+  "not_default_and_windows",
+
   "last_dau_28_to_59_days_ago",
   "last_dau_60_to_179_days_ago",
   "last_dau_180plus_days_ago",
@@ -132,6 +134,27 @@ select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'linux'), FALSE)"
 data_source = "clients_last_seen"
 
 # ============================================================================
+# SEGMENTS - Combined: NOT default at enrollment AND Windows
+# ============================================================================
+# Intersection segment for clients who (a) never reported Firefox as default in
+# the 365-day pre-enrollment window AND (b) were on Windows during that window.
+# A segment's select_expression evaluates over ONE data source, so both conditions
+# must share a source. Default status MUST be measured pre-enrollment (the set-to-
+# default CTA mutates it in-window), so this uses client_history (clients_daily,
+# pre-enrollment) rather than clients_last_seen. `os` was added to that data
+# source's SELECT to support this. OS is not treatment-affected, so pre-enrollment
+# measurement is unbiased. NOTE: this evaluates the Windows condition over the
+# pre-enrollment window; the standalone `os_windows` segment uses the analysis
+# window. The two populations agree for all but OS-switching clients.
+[segments.not_default_and_windows]
+friendly_name = "Not default at enrollment AND Windows"
+description = "Clients who never reported Firefox as default in the 365-day pre-enrollment window and were on Windows in that window"
+select_expression = """COALESCE(LOGICAL_AND(NOT is_default_browser) AND LOGICAL_OR(LOWER(os) LIKE '%windows%'), FALSE)"""
+data_source = "client_history"
+window_start = -365
+window_end = -1
+
+# ============================================================================
 # SEGMENTS - Lapse depth at resurrection (days since last DAU before enrollment)
 # ============================================================================
 # Buckets per the spec (28-59 / 60-179 / 180+). Uses the merged split-view lapsed
@@ -177,12 +200,13 @@ from_expression = """(
     client_id,
     profile_group_id,
     submission_date,
-    is_default_browser
+    is_default_browser,
+    os
   FROM `mozdata.telemetry.clients_daily`
   WHERE submission_date >= DATE_SUB('2026-06-12', INTERVAL 365 DAY)
     AND submission_date < '2026-06-12'
 )"""
-description = "Pre-enrollment client history (default browser status) from clients_daily, 365 days before experiment start (2026-06-12)."
+description = "Pre-enrollment client history (default browser status and OS) from clients_daily, 365 days before experiment start (2026-06-12)."
 friendly_name = "Client history (pre-enrollment)"
 window_start = -365
 window_end = -1
