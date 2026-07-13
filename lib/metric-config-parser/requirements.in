@@ -18,7 +18,7 @@ cattrs==26.1.0
     # via mozilla-metric-config-parser
 certifi==2026.6.17
     # via requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via requests
 click==8.4.2
     # via mozilla-metric-config-parser
