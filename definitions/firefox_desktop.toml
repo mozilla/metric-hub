@@ -2293,7 +2293,7 @@ from_expression = """(
     WHERE
         event_category = 'webcompatreporting'
 )"""
-experiments_column_type = "events_stream"
+experiments_column_type = "json"
 friendly_name = "Webcompat reporting tool events"
 description = "Webcompat 'Report Broken Site' pings"
 
@@ -2310,7 +2310,7 @@ from_expression = """(
     WHERE
         event_category = 'security.ui.protectionspopup'
 )"""
-experiments_column_type = "events_stream"
+experiments_column_type = "json"
 friendly_name = "Protections popup events"
 description = "Sheild icon 'Protections Popup' pings"
 
