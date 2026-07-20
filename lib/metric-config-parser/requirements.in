@@ -26,7 +26,7 @@ coverage[toml]==7.14.3
     # via
     #   mozilla-metric-config-parser
     #   pytest-cov
-faker==40.27.0
+faker==40.31.0
     # via polyfactory
 gitdb==4.0.12
     # via gitpython
