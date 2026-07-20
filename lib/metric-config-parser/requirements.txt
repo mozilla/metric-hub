@@ -950,9 +950,9 @@ types-requests==2.33.0.20260518 \
     --hash=sha256:626d697d1adaaff76e2044dc8c5c051d8f21abc157bdfe204a75558076fe0bf0 \
     --hash=sha256:df7bd3bfe0ca8402dfb841e7d9be714bb5578203283d66d7dc4ef69343449a5e
     # via -r requirements.in
-types-setuptools==82.0.0.20260518 \
-    --hash=sha256:31c04a62b57a653a5021caf191be0f10f70df890f813b51f02bab3969d300f20 \
-    --hash=sha256:3b743cfe63d0981ea4c15b90710fc1ed41e3464a537d51e705be514e891c1d07
+types-setuptools==83.0.0.20260716 \
+    --hash=sha256:77315e9a921ced0c7cbef803d7cf06db8e60e9df5661955ee4ce3d1a1675e0dc \
+    --hash=sha256:a36ad71a57919b80db314e6104478ee75376a34abea88ba0f3d28db4d10006d7
     # via -r requirements.in
 types-six==1.17.0.20260518 \
     --hash=sha256:2ed782cafcef9614e51292ae39bae93e42ff7b20c1c0a00c6be35e1c0e493a70 \
