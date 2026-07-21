@@ -41,7 +41,7 @@ drop_highest = 0.005
 [metrics.autofill_ctr]
 friendly_name = "Autofill CTR"
 description = "sum(autofill clicks) / sum(autofill impressions)."
-depends_on = ["market_clicks", "market_impressions"]
+depends_on = ["autofill_clicks", "autofill_impressions"]
 [metrics.autofill_ctr.statistics.population_ratio]
 numerator = "autofill_clicks"
 denominator = "autofill_impressions"
