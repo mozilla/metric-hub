@@ -12,13 +12,13 @@ overall = ["annoyances", "bounces", "autofill_impressions", "autofill_clicks", "
 
 [metrics.annoyances]
 select_expression = "COALESCE(SUM(urlbar_annoyances) > 0, FALSE)"
-data_source = "urlbar_events_daily_engagement_by_product_result_type"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 
 [metrics.annoyances.statistics.binomial]
 
 [metrics.bounces]
 select_expression = "COALESCE(SUM(urlbar_bounces) > 0, FALSE)"
-data_source = "urlbar_events_daily_engagement_by_product_result_type"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
 
 [metrics.bounces.statistics.binomial]
 
