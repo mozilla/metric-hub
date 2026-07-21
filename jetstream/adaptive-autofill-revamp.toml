@@ -75,7 +75,7 @@ from_expression = """(
          SUM(urlbar_clicks) AS urlbar_clicks
          
   FROM `mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type`
-  WHERE product_result_type IN ('about'autofill', 'adaptive_autofill')
+  WHERE product_result_type IN ('about_autofill', 'adaptive_autofill')
   GROUP BY ALL
 )"""
 experiments_column_type = "none"
