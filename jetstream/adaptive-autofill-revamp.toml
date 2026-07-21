@@ -12,13 +12,13 @@ overall = ["annoyances", "bounces", "autofill_impressions", "autofill_clicks", "
 
 [metrics.annoyances]
 select_expression = "COALESCE(SUM(urlbar_annoyances) > 0, FALSE)"
-data_source = "mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type"
+data_source = "urlbar_events_daily_engagement_by_product_result_type"
 
 [metrics.annoyances.statistics.binomial]
 
 [metrics.bounces]
 select_expression = "COALESCE(SUM(urlbar_bounces) > 0, FALSE)"
-data_source = "mozdata.firefox_desktop.urlbar_events_daily_engagement_by_product_result_type"
+data_source = "urlbar_events_daily_engagement_by_product_result_type"
 
 [metrics.bounces.statistics.binomial]
 
@@ -27,14 +27,16 @@ friendly_name = "Autofill impressions"
 description = "Per client: urlbar impressions that surfaced an autofill result (0 if none)."
 select_expression = "COALESCE(SUM(urlbar_impressions), 0)"
 data_source = "urlbar_product_autofill"
-[metrics.autofill_impressions.statistics.bootstrap_mean]
+[metrics.autofill_impressions.statistics.linear_model_mean]
+drop_highest = 0.005
 
 [metrics.autofill_clicks]
 friendly_name = "Autofill clicks"
 description = "Per client: clicks on an autofill result (0 if none)."
 select_expression = "COALESCE(SUM(urlbar_clicks), 0)"
 data_source = "urlbar_product_autofill"
-[metrics.autofill_clicks.statistics.bootstrap_mean]
+[metrics.autofill_clicks.statistics.linear_model_mean]
+drop_highest = 0.005
 
 [metrics.autofill_ctr]
 friendly_name = "Autofill CTR"
@@ -43,7 +45,7 @@ depends_on = ["market_clicks", "market_impressions"]
 [metrics.autofill_ctr.statistics.population_ratio]
 numerator = "autofill_clicks"
 denominator = "autofill_impressions"
-drop_highest = 0.001
+drop_highest = 0.005
 
 
 [data_sources.urlbar_usage_clients]
