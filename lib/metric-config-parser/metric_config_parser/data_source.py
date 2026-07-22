@@ -72,6 +72,12 @@ class DataSource:
               string.
             * 'events_stream': There is an ``experiment`` within a JSON
               column ``event_extra``. ``branch`` is in the same column.
+            * 'json': There is a top-level ``experiments`` column of
+              BigQuery ``JSON`` type, which is an (experiment_slug:str ->
+              struct) map with a ``branch`` field. This is the client-level
+              experiments map carried on every row of ``*.events_stream``
+              tables; unlike 'events_stream' it attributes metric events on
+              the enrollment day.
             * None: There is no ``experiments`` column, so skip the
               sanity checks that rely on it. We'll also be unable to
               filter out pre-enrollment data from day 0 in the
@@ -124,7 +130,14 @@ class DataSource:
     glean_client_id_column = attr.ib(default=None, type=str)
     legacy_client_id_column = attr.ib(default=None, type=str)
 
-    EXPERIMENT_COLUMN_TYPES = (None, "simple", "native", "glean", "events_stream")
+    EXPERIMENT_COLUMN_TYPES = (
+        None,
+        "simple",
+        "native",
+        "glean",
+        "events_stream",
+        "json",
+    )
 
     @experiments_column_type.validator
     def _check_experiments_column_type(self, attribute, value):

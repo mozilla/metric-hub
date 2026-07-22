@@ -922,3 +922,22 @@ class TestAnalysisSpec:
             ValueError, match=r"data_source eggs \(app: firefox_desktop\) does not support"
         ):
             spec.resolve(experiments[0], config_collection)
+
+
+def test_datasource_accepts_json_experiments_column_type():
+    # "json" is valid: a top-level JSON experiments map (e.g. events_stream tables)
+    ds = DataSource(
+        name="foo",
+        from_expression="(SELECT 1)",
+        experiments_column_type="json",
+    )
+    assert ds.experiments_column_type == "json"
+
+
+def test_datasource_rejects_unknown_experiments_column_type():
+    with pytest.raises(ValueError, match="must be one of"):
+        DataSource(
+            name="foo",
+            from_expression="(SELECT 1)",
+            experiments_column_type="not_a_real_type",
+        )
