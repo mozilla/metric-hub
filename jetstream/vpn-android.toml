@@ -1,0 +1,22 @@
+# Firefox Android VPN Phase 0 holdback study (vpn-android)
+# Branches: control vs treatment-a (1:1).
+#
+# Adds FxA adoption (fxa_sign_in) as a two-branch comparison, broken out for the
+# new_users segment. Retention (including new-user retention), DAU, and search/ad
+# guardrails come from the default firefox_android metrics.
+
+[experiment]
+reference_branch = "control"
+segments = [
+  "new_users",
+]
+
+[metrics]
+weekly = ["fxa_sign_in"]
+overall = ["fxa_sign_in"]
+
+# fxa_sign_in (definitions/fenix.toml): MAX(IF(metrics.boolean.preferences_signed_in_sync, 1, 0))
+# over the metrics ping — signed in to sync at any point in the window. Binomial gives
+# the per-branch rate and the treatment-a vs. control lift; on `overall` = ever signed
+# in, on `weekly` = per week. Android analog of desktop fxa_configured.
+[metrics.fxa_sign_in.statistics.binomial]
