@@ -1,0 +1,259 @@
+# Jetstream config for top-sites-welcome-back-spotlight (FXE-1622)
+# Web-app + launch metrics are copied VERBATIM from world-cup-taskbar-tabs-spotlight
+# (which in turn copied them from FXE-1640) so results read across the sibling
+# Spotlight experiment and the callout comparable. Segments follow this brief's
+# resurrection audience: lapse depth, default-browser status, Windows version.
+
+[experiment]
+
+segments = [
+  # Lapse depth (time since last active before enrollment)
+  "last_active_28_to_59_days_ago",
+  "last_active_60_to_119_days_ago",
+  "last_active_120_to_180_days_ago",
+  "last_active_more_than_180_days_ago",
+
+  # Default browser status
+  "firefox_default",
+  "firefox_not_default",
+
+  # Windows version
+  "windows_10",
+  "windows_11",
+]
+
+[metrics]
+
+weekly = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "number_of_non_taskbartab_launches",
+  "number_of_other_launches",
+]
+
+overall = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "number_of_non_taskbartab_launches",
+  "number_of_other_launches",
+]
+
+[metrics.installed_web_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.pinned_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.any_web_app_installed.statistics.binomial]
+[metrics.any_web_app_pinned.statistics.binomial]
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_non_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_other_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# CUSTOM METRICS - Web App (Taskbar Tabs) activity
+# ============================================================================
+# Copied verbatim from world-cup-taskbar-tabs-spotlight (originally FXE-1640,
+# taskbar-tabs-discovery-expanded-impressions-pin-cta) for direct read-across.
+# pinned_apps is this experiment's PRIMARY metric (pinned web apps per user).
+# any_web_app_pinned is the pin-acceptance rate.
+
+[metrics.installed_web_apps]
+friendly_name = "Installed Web Apps"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.pinned_apps]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web App Launches per user (approx from activate and install events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero web app usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.any_web_app_installed]
+friendly_name = "Any Web App Installed"
+description = "Client had at least one web app install event during the analysis window"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'install'), FALSE)"
+data_source = "web_app_events"
+
+[metrics.any_web_app_pinned]
+friendly_name = "Any Web App Pinned"
+description = "Client had at least one web app pin event during the analysis window (pin acceptance rate)"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'pin'), FALSE)"
+data_source = "web_app_events"
+
+# ============================================================================
+# DATA SOURCE - Web App events with cumulative counts (verbatim from world-cup)
+# ============================================================================
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts"
+
+# ============================================================================
+# SEGMENTS - Lapse depth (time since last DAU before enrollment)
+# ============================================================================
+# Pattern copied from os-notification-split-view-release-lapsed-users; bucket
+# boundaries set to this brief's 28-59 / 60-119 / 120-180 / 180+ ranges.
+
+[segments.last_active_28_to_59_days_ago]
+friendly_name = "Last active 28 to 59 days ago"
+description = "Clients who last counted towards DAU 28-59 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_active_60_to_119_days_ago]
+friendly_name = "Last active 60 to 119 days ago"
+description = "Clients who last counted towards DAU 60-119 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_active_120_to_180_days_ago]
+friendly_name = "Last active 120 to 180 days ago"
+description = "Clients who last counted towards DAU 120-180 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 180, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_active_more_than_180_days_ago]
+friendly_name = "Last active more than 180 days ago"
+description = "Clients whose last DAU before enrollment is >180 days ago, or no DAU observed in the 183-day lookback"
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) > 180
+  )
+"""
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+# ============================================================================
+# SEGMENTS - Default browser status (clients_last_seen, built-in)
+# ============================================================================
+
+[segments.firefox_default]
+friendly_name = "Firefox is default browser"
+description = "Firefox was the default browser on at least one ping during the analysis window"
+select_expression = "LOGICAL_OR(COALESCE(is_default_browser, FALSE))"
+data_source = "clients_last_seen"
+
+[segments.firefox_not_default]
+friendly_name = "Firefox is not default browser"
+description = "Firefox was never the default browser during the analysis window"
+select_expression = "LOGICAL_AND(COALESCE(NOT is_default_browser, TRUE))"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENTS - Windows version (clients_last_seen.windows_build_number; Win11 >= 22000)
+# ============================================================================
+
+[segments.windows_10]
+friendly_name = "Windows 10"
+description = "Windows build number in the Windows 10 range (>0 and <22000)"
+select_expression = "LOGICAL_OR(COALESCE(windows_build_number > 0 AND windows_build_number < 22000, FALSE))"
+data_source = "clients_last_seen"
+
+[segments.windows_11]
+friendly_name = "Windows 11"
+description = "Windows build number in the Windows 11 range (>=22000)"
+select_expression = "LOGICAL_OR(COALESCE(windows_build_number >= 22000, FALSE))"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENT DATA SOURCE - last DAU (desktop_active_users)
+# ============================================================================
+# Copied from split-view config; performance floor re-anchored to this
+# experiment's 2026-07-01 start. clients_last_seen (default + Windows segments)
+# is a built-in segment data source and needs no block.
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2026-07-01', INTERVAL 183 DAY)
+)"""
+window_start = -183
