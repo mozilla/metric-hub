@@ -37,6 +37,20 @@ overall = [
     "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
 ]
 
+## New Tab guardrails are defined in definitions/firefox_desktop.toml but carry NO default
+## statistics (they aren't auto-applied), so each needs an explicit statistics block when
+## listed. Per-client counts/engagement -> linear_model_mean (CUPED variance reduction).
+
+[metrics.newtab_visits.statistics.linear_model_mean]
+[metrics.newtab_engaged_visits.statistics.linear_model_mean]
+[metrics.newtab_engagement.statistics.linear_model_mean]
+[metrics.newtab_searches.statistics.linear_model_mean]
+[metrics.newtab_searches_with_ads.statistics.linear_model_mean]
+[metrics.newtab_ad_clicks.statistics.linear_model_mean]
+[metrics.sponsored_tile_clicks.statistics.linear_model_mean]
+[metrics.sponsored_content_clicks.statistics.linear_model_mean]
+[metrics.organic_content_clicks.statistics.linear_model_mean]
+
 [metrics.vpn_any_engagement]
 data_source = "glean_events_stream"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name IN ('get_started', 'started', 'toggled', 'location_changed', 'location_selector_button_clicked', 'click_upgrade_button', 'enrollment')) > 0, FALSE)"
