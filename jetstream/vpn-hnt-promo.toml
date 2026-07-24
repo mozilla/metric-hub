@@ -1,0 +1,141 @@
+[experiment]
+
+segments = [
+    "activity_infrequent",
+    "activity_casual",
+    "activity_regular",
+    "activity_core",
+    "profile_age_7_to_28_days",
+    "profile_age_more_than_28_days",
+    "default_browser",
+    "not_default_browser",
+    "geo_previously_supported",
+    "geo_newly_supported",
+]
+
+## Metrics — VPN (IP Protection) engagement, the mechanism the hypothesis promised
+## but that was never configured on this experiment. Recomputed from Glean
+## ipprotection.* events. Reused verbatim from messaging-for-built-in-vpn-151 (PR #1527).
+## Both analysis bases: enrollments is the ITT causal read; exposures (saw the HNT
+## message) is the trigger-gated exposed-vs-control read the brief leans on. Activation
+## is INCREMENTAL over a non-VPN-free holdout (ipProtection product + evergreen callouts
+## are both 100% rollouts), so lift reads smaller than a from-zero effect.
+##
+## New Tab guardrail metrics are built-in (definitions/firefox_desktop.toml) — listed by
+## name only. The HNT promo sits on the most monetizable in-product real estate, so New
+## Tab engagement + tile/content clicks are the primary guardrails. Search metrics
+## (search_count, tagged_*, searches_with_ads, ad_clicks) and days_of_use are auto-applied
+## and deliberately omitted.
+
+[metrics]
+weekly = [
+    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment",
+    "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
+]
+overall = [
+    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment",
+    "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
+]
+
+[metrics.vpn_any_engagement]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name IN ('get_started', 'started', 'toggled', 'location_changed', 'location_selector_button_clicked', 'click_upgrade_button', 'enrollment')) > 0, FALSE)"
+friendly_name = "VPN Any Engagement"
+description = "Client fired at least one IP Protection (VPN) interaction event in the analysis window. Primary mechanism metric the experiment originally lacked."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_any_engagement.statistics.binomial]
+
+[metrics.vpn_get_started]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'get_started') > 0, FALSE)"
+friendly_name = "VPN Get Started"
+description = "Client clicked the VPN panel/settings 'get started' button at least once in the analysis window. Maps to the HNT promo CTA that funnels into the iprotection_enroll auth flow."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_get_started.statistics.binomial]
+
+[metrics.vpn_started]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started') > 0, FALSE)"
+friendly_name = "VPN Started (any)"
+description = "Client started IP Protection at least once in the analysis window (activation)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_started.statistics.binomial]
+
+[metrics.vpn_started_count]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started'), 0)"
+friendly_name = "VPN Start Count"
+description = "Count of IP Protection start events per client in the analysis window (engagement intensity)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_started_count.statistics.linear_model_mean]
+
+[metrics.vpn_toggled_count]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'toggled'), 0)"
+friendly_name = "VPN Toggle Count"
+description = "Count of IP Protection toggle events per client in the analysis window."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_toggled_count.statistics.linear_model_mean]
+
+[metrics.vpn_enrollment]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'enrollment') > 0, FALSE)"
+friendly_name = "VPN Enrollment (sign-up complete)"
+description = "Client completed the VPN account sign-up flow at least once in the analysis window (deepest activation signal)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_enrollment.statistics.binomial]
+
+## Segments — Engagement level (brief: User engagement level).
+## Built-in activity_* segments (definitions/firefox_desktop.toml) — listed by name only.
+
+## Segments — Profile age at enrollment. Targeting excludes profiles <14d, so:
+##   profile_age_7_to_28_days   -> reads as 14-28d (no 7-13d enrollees exist)
+##   profile_age_more_than_28_days -> 28d+
+## Both are built-in (definitions/firefox_desktop.toml, PR #1427) — listed by name only.
+
+## Segments — Default-browser status at enrollment (brief: lightweight diagnostic).
+
+[segments.default_browser]
+friendly_name = "Is default browser"
+description = "Clients for whom Firefox is the default browser at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.not_default_browser]
+friendly_name = "Is not default browser"
+description = "Clients for whom Firefox is NOT the default browser at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(NOT is_default_browser), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+## Segments — Geo support tier (brief core cut = newly- vs previously-supported geos).
+## Originally-supported VPN markets (canonical, per VPN team): US, UK (GB), DE, FR, CA.
+## US and DE are held out of this experiment for New Tab revenue, so previously_supported
+## reads as CA/GB/FR in practice; newly_supported is the other ~20 reachable geos.
+## NOTE: rollout is ~82% JP+CA today, so newly_supported is JP-dominated and
+## previously_supported is CA-dominated until Europe ramps — footnote the tier read.
+
+[segments.geo_previously_supported]
+friendly_name = "Geo: previously-supported VPN market"
+description = "Clients in the originally-supported VPN geos (US, UK, DE, FR, CA). US/DE excluded by targeting, so effectively CA/GB/FR here."
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) IN ('US', 'GB', 'DE', 'FR', 'CA')), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.geo_newly_supported]
+friendly_name = "Geo: newly-supported VPN market (June 2026 expansion)"
+description = "Clients in geos added in the June 2026 VPN expansion (all targeted geos except the originally-supported US/UK/DE/FR/CA set)."
+select_expression = "COALESCE(LOGICAL_OR(UPPER(country) NOT IN ('US', 'GB', 'DE', 'FR', 'CA')), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
