@@ -938,9 +938,9 @@ types-protobuf==7.34.1.20260518 \
     --hash=sha256:28cfaded25889cb83ebfb63cfb0a43628f0b6f3785767bec17287dc6468795f2 \
     --hash=sha256:a0a5337413347166439c0e07cbc26c6164d091401c6f01b1dfd8cdb966c4dd8f
     # via -r requirements.in
-types-pytz==2026.2.0.20260518 \
-    --hash=sha256:3a12eaa38f476bd650902a9c9bb442f03f3c7dee2be5c5848bce61bd708d205a \
-    --hash=sha256:e5d254329e9c4e91f0781b22c43a4bb2d10bb044d97b24c4b05d45567b0eae16
+types-pytz==2026.3.1.20260727 \
+    --hash=sha256:42ac44e83645bfceb46597342c8fb8ec028a1407e2feae9c5c539986eab6b57a \
+    --hash=sha256:4364075b6867dd15b210bb8c1d29727d609917129b45600defe1d4b3eda5ecb9
     # via -r requirements.in
 types-pyyaml==6.0.12.20260518 \
     --hash=sha256:d2150f75a231c9fe9c7463bd29487d93e60bac90400287351384bc2284eba7cd \
