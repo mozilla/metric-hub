@@ -1,0 +1,14 @@
+# Trivy ignore file for the metric-hub MCP server image.
+#
+# Each entry must be a specific CVE with a justification and, ideally, a review
+# date. Only suppress vulnerabilities that are genuinely not applicable — never
+# to silence a real runtime exposure.
+
+# jaraco.context / wheel path-traversal + malicious-archive CVEs. Both live only
+# in setuptools' vendored build tooling (setuptools/_vendor/*) and are exploitable
+# only when *building/installing* from an attacker-controlled archive. This server
+# never processes untrusted tar/wheel archives at runtime, so they are not
+# reachable in the deployed workload. Durable fix: a build-tool-free runtime image.
+CVE-2026-23949
+CVE-2026-24049
+

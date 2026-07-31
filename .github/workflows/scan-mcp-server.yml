@@ -37,7 +37,7 @@ jobs:
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Scan image -> SARIF (surface in Security tab)
-        run: trivy image --format sarif --output trivy.sarif --severity CRITICAL,HIGH metric-hub-mcp:scan
+        run: trivy image --ignorefile lib/mcp-server/.trivyignore --format sarif --output trivy.sarif --severity CRITICAL,HIGH metric-hub-mcp:scan
 
       - name: Upload SARIF
         if: always()
@@ -47,7 +47,7 @@ jobs:
           category: trivy-mcp-image
 
       - name: Gate on fixable CRITICAL/HIGH image CVEs
-        run: trivy image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --format table metric-hub-mcp:scan
+        run: trivy image --ignorefile lib/mcp-server/.trivyignore --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --format table metric-hub-mcp:scan
 
       - name: Gate on Dockerfile misconfigurations (e.g. running as root)
         run: trivy config --severity CRITICAL,HIGH --exit-code 1 --format table lib/mcp-server
