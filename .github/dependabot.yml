@@ -5,3 +5,24 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 99
+
+# MCP server Python dependencies (catches vulnerable / drifting deps).
+- package-ecosystem: pip
+  directory: "lib/mcp-server"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99
+
+# MCP server container base image (catches OS-level CVE patches for python:3.x-slim).
+- package-ecosystem: docker
+  directory: "lib/mcp-server"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99
+
+# GitHub Actions used across workflows (catches vulnerable action versions).
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99

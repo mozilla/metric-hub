@@ -38,3 +38,12 @@ jobs:
           service: metric-hub-mcp
           region: us-west1
           source: lib/mcp-server
+          # - service-account: pin the Cloud Run *runtime* identity to a dedicated,
+          #   least-privilege SA with no data-access roles, instead of defaulting to
+          #   the project's compute SA (which carries broad Editor/BigQuery access).
+          #   The app only calls public HTTPS endpoints, so it needs no GCP roles.
+          # - max-instances: cap autoscaling so the public endpoint can't be driven
+          #   into runaway scale-out (abuse / cost) — this is a low-traffic dev tool.
+          flags: >-
+            --service-account=metric-hub-mcp-run@moz-fx-data-experiments.iam.gserviceaccount.com
+            --max-instances=4
