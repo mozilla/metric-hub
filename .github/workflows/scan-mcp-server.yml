@@ -1,0 +1,53 @@
+name: "Scan MCP Server"
+
+# Detects the vulnerability classes that triggered the Wiz finding:
+#  - critical/high CVEs in the container image (OS packages + Python deps)
+#  - container misconfigurations (e.g. running as root)
+# Runs on changes, and weekly so newly-disclosed CVEs in the already-deployed
+# image are caught even when the code hasn't changed.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/mcp-server/**'
+  pull_request:
+    paths:
+      - 'lib/mcp-server/**'
+  schedule:
+    - cron: '17 6 * * 1'  # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write  # upload SARIF to the Security tab
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build image
+        run: docker build -t metric-hub-mcp:scan lib/mcp-server
+
+      - name: Install Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan image -> SARIF (surface in Security tab)
+        run: trivy image --format sarif --output trivy.sarif --severity CRITICAL,HIGH metric-hub-mcp:scan
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-mcp-image
+
+      - name: Gate on fixable CRITICAL/HIGH image CVEs
+        run: trivy image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --format table metric-hub-mcp:scan
+
+      - name: Gate on Dockerfile misconfigurations (e.g. running as root)
+        run: trivy config --severity CRITICAL,HIGH --exit-code 1 --format table lib/mcp-server

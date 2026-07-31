@@ -12,7 +12,10 @@ authors = [
     {name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org"}
 ]
 dependencies = [
-    "mcp>=1.0.0",
+    # Pinned: mcp>=1.19 changed the low-level Server API (removed the
+    # list_tools/call_tool decorators used here) and breaks the build. Bump
+    # deliberately (dependabot PR + CI) rather than letting it float.
+    "mcp==1.18.0",
     "mozilla-metric-config-parser>=2024.11.1",
     "attrs>=23.0.0",
     "cattrs>=23.0.0",
