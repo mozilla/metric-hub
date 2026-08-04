@@ -102,6 +102,28 @@ class TestMonitoringSpec:
         assert test2.metric.data_source.name == "silly_knight"
         assert "france" in test2.metric.data_source.from_expression
 
+    def test_data_source_experiment_template_not_supported(self, config_collection):
+        config_str = dedent(
+            """
+            [project]
+            metrics = ["test"]
+
+            [metrics]
+            [metrics.test]
+            select_expression = "SELECT 1"
+            data_source = "eggs"
+
+            [metrics.test.statistics]
+            sum = {}
+
+            [data_sources.eggs]
+            from_expression = "(SELECT '{{experiment.normandy_slug}}')"
+            """
+        )
+        spec = MonitoringSpec.from_dict(toml.loads(config_str))
+        with pytest.raises(ValueError, match="no experiment is available"):
+            spec.resolve(experiment=None, configs=config_collection)
+
     def test_merge(self, config_collection):
         """Test merging configs"""
         config_str = dedent(
