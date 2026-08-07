@@ -1,2 +1,4 @@
 [experiment]
-enrollment_period = 26
+start_date = "2026-05-19"
+end_date = "2026-06-02"
+enrollment_period = 14
