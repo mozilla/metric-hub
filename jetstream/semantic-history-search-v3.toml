@@ -38,17 +38,28 @@ window_start = "enrollment_start"
 window_end = "analysis_window_end"
 
 [metrics]
+# population_ratio is computed at the statistics stage, reading the numerator and
+# denominator as columns of the already-materialized metrics table. A metric only
+# becomes a column if it is listed here; depends_on declares the relationship but
+# does not materialize anything. So every component of a ratio has to appear in the
+# same period list as the ratio itself, which is why the capped_* metrics are listed
+# below alongside the rates they feed. The global rates need no extra entries: their
+# components (urlbar_history_clicks_*, urlbar_typed_sessions_*) are already listed.
 weekly = [
   "urlbar_typed_sessions_8",
   "urlbar_history_clicks_8",
   "history_success_rate_global_8",
   "history_success_rate_per_user_8",
   "history_success_rate_capped_8_weekly",
+  "capped_numerator_8_weekly",
+  "capped_denominator_8_weekly",
   "urlbar_typed_sessions_5",
   "urlbar_history_clicks_5",
   "history_success_rate_global_5",
   "history_success_rate_per_user_5",
   "history_success_rate_capped_5_weekly",
+  "capped_numerator_5_weekly",
+  "capped_denominator_5_weekly",
 ]
 overall = [
   "urlbar_typed_sessions_8",
@@ -56,11 +67,15 @@ overall = [
   "history_success_rate_global_8",
   "history_success_rate_per_user_8",
   "history_success_rate_capped_8_overall",
+  "capped_numerator_8_overall",
+  "capped_denominator_8_overall",
   "urlbar_typed_sessions_5",
   "urlbar_history_clicks_5",
   "history_success_rate_global_5",
   "history_success_rate_per_user_5",
   "history_success_rate_capped_5_overall",
+  "capped_numerator_5_overall",
+  "capped_denominator_5_overall",
 ]
 
 
