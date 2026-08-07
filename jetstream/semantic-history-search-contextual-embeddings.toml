@@ -1,0 +1,372 @@
+# Semantic History Search Contextual Embeddings
+#
+# Same "history success rate" measurement as semantic-history-search-v3, requested
+# for this experiment by the owner:
+# https://docs.google.com/document/d/1kLwVmOGud7_lDkgDv_cJ7qjzd1ldfePmGH4JImEmQMc/
+#
+# The metric: of all urlbar sessions where the user typed at least N characters,
+# what share end with a click on a browsing-history result (as opposed to a search
+# result, an ad, or abandonment)? Tab results are deliberately excluded (semantic
+# matching applies there too, but volume is too low to be informative).
+#
+# Three aggregations are reported for each cut, per the doc:
+#   global    session-weighted; every session counts equally. Heavy users dominate,
+#             and the owner reports this fails to replicate across random halves.
+#   per_user  every user weighted equally. Reproducible, but answers "the typical
+#             user's rate" rather than "the rate across traffic".
+#   capped    session-weighted with each user's weight capped at the 95th percentile
+#             of per-user session counts. The owner's preferred estimator.
+#
+# ---------------------------------------------------------------------------
+# THREE THINGS DIFFER FROM THE v3 CONFIG. Do not copy numbers between the two.
+#
+# 1. Channel. This experiment targets beta
+#    (browserSettings.update.channel in ["beta"]), where v3 was release. The data
+#    source filters normalized_channel = 'beta' accordingly.
+#
+# 2. Which character floor is primary. In v3 the two treatments set
+#    suggestSemanticHistoryMinLength to 5 and 8, so an 8-character floor was the
+#    only apples-to-apples cut: below 8 the fuzzier branch was inert and would be
+#    diluted toward control. Here BOTH treatments set it to 5, so no branch goes
+#    inert above 5 and the 5-character cut is the primary one. The 8-character cut
+#    is retained as a robustness check, since short prefixes are dominated by the
+#    adaptive cache, which is high-volume, high-success, and unaffected by the
+#    experiment.
+#
+# 3. The caps. These are population-level quantiles and had to be re-derived on
+#    this experiment's own enrolled population and dates. See the capped section.
+#
+# One caveat worth carrying into the readout: the targeting here is much narrower
+# than v3 (beta, en-US, US, 64-bit, 8GB+, 153+, browser.ai.control.default
+# available). Over 2026-07-13..2026-08-05 that is about 1,500 users per branch with
+# a qualifying session, against roughly 754,000 per branch in v3. These metrics
+# will be correspondingly noisy, and the capped estimator in particular is being
+# asked to stabilise a tail that has few users in it.
+# ---------------------------------------------------------------------------
+
+[experiment]
+# Randomization unit is group_id (bucketConfig.randomizationUnit), so profile_group_id
+# is the primary analysis unit; client_id is carried along for comparison.
+enrollment_period = 7
+
+[experiment.exposure_signal]
+name = "typed_urlbar_session"
+friendly_name = "Typed a qualifying urlbar session"
+description = "Had at least one terminal, typed urlbar session with 5+ characters, i.e. was in a position for semantic history matching to matter"
+select_expression = "num_chars_typed >= 5"
+data_source = "urlbar_terminal_typed_sessions"
+window_start = "enrollment_start"
+window_end = "analysis_window_end"
+
+[metrics]
+# population_ratio is computed at the statistics stage, reading the numerator and
+# denominator as columns of the already-materialized metrics table. A metric only
+# becomes a column if it is listed here; depends_on declares the relationship but
+# does not materialize anything. So every component of a ratio has to appear in the
+# same period list as the ratio itself, which is why the capped_* metrics are listed
+# below alongside the rates they feed. The global rates need no extra entries: their
+# components (urlbar_history_clicks_*, urlbar_typed_sessions_*) are already listed.
+weekly = [
+  "urlbar_typed_sessions_5",
+  "urlbar_history_clicks_5",
+  "history_success_rate_global_5",
+  "history_success_rate_per_user_5",
+  "history_success_rate_capped_5_weekly",
+  "capped_numerator_5_weekly",
+  "capped_denominator_5_weekly",
+  "urlbar_typed_sessions_8",
+  "urlbar_history_clicks_8",
+  "history_success_rate_global_8",
+  "history_success_rate_per_user_8",
+  "history_success_rate_capped_8_weekly",
+  "capped_numerator_8_weekly",
+  "capped_denominator_8_weekly",
+]
+overall = [
+  "urlbar_typed_sessions_5",
+  "urlbar_history_clicks_5",
+  "history_success_rate_global_5",
+  "history_success_rate_per_user_5",
+  "history_success_rate_capped_5_overall",
+  "capped_numerator_5_overall",
+  "capped_denominator_5_overall",
+  "urlbar_typed_sessions_8",
+  "urlbar_history_clicks_8",
+  "history_success_rate_global_8",
+  "history_success_rate_per_user_8",
+  "history_success_rate_capped_8_overall",
+  "capped_numerator_8_overall",
+  "capped_denominator_8_overall",
+]
+
+
+########################################################################
+## Primary cut: 5+ characters typed
+##
+## Both treatment branches set suggestSemanticHistoryMinLength = 5, so every
+## session counted here is one where the treatment was actually switched on.
+########################################################################
+
+## --- Base counts -----------------------------------------------------
+
+[metrics.urlbar_typed_sessions_5]
+friendly_name = "Qualifying urlbar sessions (5+ chars)"
+description = "Terminal typed urlbar sessions with 5 or more characters typed, i.e. the denominator of the history success rate"
+select_expression = "COUNT(DISTINCT event_id)"
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.urlbar_typed_sessions_5.statistics.bootstrap_mean]
+
+[metrics.urlbar_history_clicks_5]
+friendly_name = "History-click sessions (5+ chars)"
+description = "Qualifying sessions that ended with a click on any browsing-history result, i.e. the numerator of the history success rate"
+select_expression = "COUNT(DISTINCT IF(is_history_click, event_id, NULL))"
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.urlbar_history_clicks_5.statistics.bootstrap_mean]
+
+## --- Aggregation 1: global (session-weighted) -------------------------
+
+[metrics.history_success_rate_global_5]
+friendly_name = "History success rate, global (5+ chars)"
+description = "Share of qualifying urlbar sessions ending on a history result, pooled across all sessions. Session-weighted: heavy users dominate. This is a population-ratio metric, not a client-level metric."
+depends_on = ["urlbar_history_clicks_5", "urlbar_typed_sessions_5"]
+
+[metrics.history_success_rate_global_5.statistics.population_ratio]
+numerator = "urlbar_history_clicks_5"
+denominator = "urlbar_typed_sessions_5"
+
+## --- Aggregation 2: per-user mean -------------------------------------
+
+[metrics.history_success_rate_per_user_5]
+friendly_name = "History success rate, per user (5+ chars)"
+description = "Each user's own history success rate, averaged with every user weighted equally. NULL for users with no qualifying sessions, so this is best read on the exposures basis."
+select_expression = "SAFE_DIVIDE(COUNT(DISTINCT IF(is_history_click, event_id, NULL)), COUNT(DISTINCT event_id))"
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.history_success_rate_per_user_5.statistics.bootstrap_mean]
+
+## --- Aggregation 3: capped (winsorized) -------------------------------
+#
+# Reconstructs the owner's estimator:
+#     sum over users of  rate * min(sessions, c95)
+#     ---------------------------------------------
+#     sum over users of         min(sessions, c95)
+#
+# population_ratio computes mean(numerator) / mean(denominator), which over a fixed
+# set of users equals sum(numerator) / sum(denominator), so the two metrics below
+# reproduce it exactly.
+#
+# c95 cannot be computed inside a metric definition (it is a population-level
+# quantile, and select_expressions are per-client aggregates), so it is hard-coded.
+#
+# These caps are NOT the v3 caps. They were re-derived on this experiment's own
+# enrolled profile_group_ids over 2026-07-13..2026-08-05, on beta, with the same
+# filters as below:
+#     5+ chars:  p95 = 307 over the full period, 95 within a calendar week
+#     8+ chars:  p95 = 257 over the full period, 81 within a calendar week
+# For scale, the median user has 23 qualifying 5+ char sessions over the full period
+# and the heaviest has 2,512, which is the skew the capping is there to contain.
+# Weekly and overall therefore need separate constants; a single one would be wrong
+# for one of the two windows.
+
+[metrics.capped_numerator_5_weekly]
+friendly_name = "Capped history-click weight (5+ chars, weekly)"
+description = "Per-user history success rate multiplied by that user's session count capped at 95, the weekly 95th percentile of per-user qualifying session counts"
+select_expression = """SAFE_DIVIDE(
+  COUNT(DISTINCT IF(is_history_click, event_id, NULL)),
+  COUNT(DISTINCT event_id)
+) * LEAST(COUNT(DISTINCT event_id), 95)"""
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.capped_denominator_5_weekly]
+friendly_name = "Capped session weight (5+ chars, weekly)"
+description = "Per-user qualifying session count capped at 95, the weekly 95th percentile"
+select_expression = "LEAST(COUNT(DISTINCT event_id), 95)"
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.history_success_rate_capped_5_weekly]
+friendly_name = "History success rate, capped (5+ chars)"
+description = "Share of qualifying urlbar sessions ending on a history result, session-weighted but with each user's weight capped at the 95th percentile of per-user session counts. The owner's preferred estimator. This is a population-ratio metric, not a client-level metric."
+depends_on = ["capped_numerator_5_weekly", "capped_denominator_5_weekly"]
+
+[metrics.history_success_rate_capped_5_weekly.statistics.population_ratio]
+numerator = "capped_numerator_5_weekly"
+denominator = "capped_denominator_5_weekly"
+# Capping already handles the heavy tail; do not also trim the top 0.5%.
+drop_highest = 0.0
+
+[metrics.capped_numerator_5_overall]
+friendly_name = "Capped history-click weight (5+ chars, overall)"
+description = "Per-user history success rate multiplied by that user's session count capped at 307, the full-period 95th percentile of per-user qualifying session counts"
+select_expression = """SAFE_DIVIDE(
+  COUNT(DISTINCT IF(is_history_click, event_id, NULL)),
+  COUNT(DISTINCT event_id)
+) * LEAST(COUNT(DISTINCT event_id), 307)"""
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.capped_denominator_5_overall]
+friendly_name = "Capped session weight (5+ chars, overall)"
+description = "Per-user qualifying session count capped at 307, the full-period 95th percentile"
+select_expression = "LEAST(COUNT(DISTINCT event_id), 307)"
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.history_success_rate_capped_5_overall]
+friendly_name = "History success rate, capped (5+ chars)"
+description = "Share of qualifying urlbar sessions ending on a history result, session-weighted but with each user's weight capped at the 95th percentile of per-user session counts. The owner's preferred estimator. This is a population-ratio metric, not a client-level metric."
+depends_on = ["capped_numerator_5_overall", "capped_denominator_5_overall"]
+
+[metrics.history_success_rate_capped_5_overall.statistics.population_ratio]
+numerator = "capped_numerator_5_overall"
+denominator = "capped_denominator_5_overall"
+drop_highest = 0.0
+
+
+########################################################################
+## Robustness cut: 8+ characters typed
+##
+## Not required for branch comparability here (unlike v3), but retained because
+## short prefixes are dominated by the adaptive cache, which is high-volume,
+## high-success, and unaffected by the experiment. If the two cuts disagree,
+## the 8-char one is the cleaner read on semantic matching specifically.
+########################################################################
+
+[metrics.urlbar_typed_sessions_8]
+friendly_name = "Qualifying urlbar sessions (8+ chars)"
+description = "Terminal typed urlbar sessions with 8 or more characters typed"
+select_expression = "COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL))"
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.urlbar_typed_sessions_8.statistics.bootstrap_mean]
+
+[metrics.urlbar_history_clicks_8]
+friendly_name = "History-click sessions (8+ chars)"
+description = "Sessions with 8+ characters typed that ended with a click on any browsing-history result"
+select_expression = "COUNT(DISTINCT IF(num_chars_typed >= 8 AND is_history_click, event_id, NULL))"
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.urlbar_history_clicks_8.statistics.bootstrap_mean]
+
+[metrics.history_success_rate_global_8]
+friendly_name = "History success rate, global (8+ chars)"
+description = "Share of 8+ character urlbar sessions ending on a history result, pooled across all sessions. This is a population-ratio metric, not a client-level metric."
+depends_on = ["urlbar_history_clicks_8", "urlbar_typed_sessions_8"]
+
+[metrics.history_success_rate_global_8.statistics.population_ratio]
+numerator = "urlbar_history_clicks_8"
+denominator = "urlbar_typed_sessions_8"
+
+[metrics.history_success_rate_per_user_8]
+friendly_name = "History success rate, per user (8+ chars)"
+description = "Each user's own history success rate at the 8-character floor, averaged with every user weighted equally"
+select_expression = """SAFE_DIVIDE(
+  COUNT(DISTINCT IF(num_chars_typed >= 8 AND is_history_click, event_id, NULL)),
+  COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL))
+)"""
+data_source = "urlbar_terminal_typed_sessions"
+exposure_basis = ["exposures", "enrollments"]
+[metrics.history_success_rate_per_user_8.statistics.bootstrap_mean]
+
+# Caps for the 8-char cut: 81 weekly, 257 over the full period. Same derivation as
+# the 5-char caps above.
+[metrics.capped_numerator_8_weekly]
+friendly_name = "Capped history-click weight (8+ chars, weekly)"
+description = "Per-user history success rate multiplied by that user's session count capped at the weekly 95th percentile"
+select_expression = """SAFE_DIVIDE(
+  COUNT(DISTINCT IF(num_chars_typed >= 8 AND is_history_click, event_id, NULL)),
+  COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL))
+) * LEAST(COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL)), 81)"""
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.capped_denominator_8_weekly]
+friendly_name = "Capped session weight (8+ chars, weekly)"
+description = "Per-user qualifying session count capped at the weekly 95th percentile"
+select_expression = "LEAST(COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL)), 81)"
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.history_success_rate_capped_8_weekly]
+friendly_name = "History success rate, capped (8+ chars)"
+description = "Share of 8+ character urlbar sessions ending on a history result, session-weighted with each user's weight capped at the 95th percentile. This is a population-ratio metric, not a client-level metric."
+depends_on = ["capped_numerator_8_weekly", "capped_denominator_8_weekly"]
+
+[metrics.history_success_rate_capped_8_weekly.statistics.population_ratio]
+numerator = "capped_numerator_8_weekly"
+denominator = "capped_denominator_8_weekly"
+drop_highest = 0.0
+
+[metrics.capped_numerator_8_overall]
+friendly_name = "Capped history-click weight (8+ chars, overall)"
+description = "Per-user history success rate multiplied by that user's session count capped at the full-period 95th percentile"
+select_expression = """SAFE_DIVIDE(
+  COUNT(DISTINCT IF(num_chars_typed >= 8 AND is_history_click, event_id, NULL)),
+  COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL))
+) * LEAST(COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL)), 257)"""
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.capped_denominator_8_overall]
+friendly_name = "Capped session weight (8+ chars, overall)"
+description = "Per-user qualifying session count capped at the full-period 95th percentile"
+select_expression = "LEAST(COUNT(DISTINCT IF(num_chars_typed >= 8, event_id, NULL)), 257)"
+data_source = "urlbar_terminal_typed_sessions"
+statistics = { sum = {} }
+
+[metrics.history_success_rate_capped_8_overall]
+friendly_name = "History success rate, capped (8+ chars)"
+description = "Share of 8+ character urlbar sessions ending on a history result, session-weighted with each user's weight capped at the 95th percentile. This is a population-ratio metric, not a client-level metric."
+depends_on = ["capped_numerator_8_overall", "capped_denominator_8_overall"]
+
+[metrics.history_success_rate_capped_8_overall.statistics.population_ratio]
+numerator = "capped_numerator_8_overall"
+denominator = "capped_denominator_8_overall"
+drop_highest = 0.0
+
+
+########################################################################
+## Data source
+########################################################################
+#
+# The Firefox Suggest outcome reads urlbar_events_daily_engagement_by_product_result_type,
+# which is pre-aggregated per client per day per product_result_type and therefore has
+# no num_chars_typed. The character floor is the whole point of this metric, so we go
+# to the session-grain table instead.
+#
+# Filters mirror the owner's query: one row per terminal typed urlbar session. The
+# channel filter is beta here, matching this experiment's targeting, where the v3
+# config filtered release.
+
+[data_sources.urlbar_terminal_typed_sessions]
+from_expression = """(
+    SELECT
+        *,
+        (
+            event_action = 'engaged'
+            AND selected_result IN (
+                'history',
+                'history_adaptive',
+                'history_adaptive_serp',
+                'history_serp',
+                'history_semantic',
+                'history_semantic_serp'
+            )
+        ) AS is_history_click
+    FROM `moz-fx-data-shared-prod.firefox_desktop_derived.urlbar_events_v2`
+    WHERE is_terminal
+      AND event_name IN ('engagement', 'abandonment')
+      AND interaction = 'typed'
+      AND normalized_channel = 'beta'
+      AND num_chars_typed >= 5
+)"""
+friendly_name = "Terminal typed urlbar sessions"
+description = "One row per terminal typed urlbar session (engagement or abandonment) on beta with 5 or more characters typed, flagged for whether it ended on a browsing-history result"
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+group_id_column = "profile_group_id"
+analysis_units = ["profile_group_id", "client_id"]
+experiments_column_type = "native"
