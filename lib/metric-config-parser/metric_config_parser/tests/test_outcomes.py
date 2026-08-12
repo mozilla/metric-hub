@@ -316,6 +316,97 @@ class TestOutcomes:
         with pytest.raises(ClassValidationError):
             AnalysisSpec.from_dict(toml.loads(config_str))
 
+    def test_outcome_period_lists_parsed(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            daily = ["spam"]
+            weekly = ["spam", "eggs"]
+            28_day = ["eggs"]
+            overall = ["spam", "eggs"]
+            preenrollment_weekly = ["spam"]
+            preenrollment_days28 = ["eggs"]
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        assert [m.name for m in outcome_spec.daily] == ["spam"]
+        assert [m.name for m in outcome_spec.weekly] == ["spam", "eggs"]
+        # "28_day" TOML alias maps to the days28 field
+        assert [m.name for m in outcome_spec.days28] == ["eggs"]
+        assert [m.name for m in outcome_spec.overall] == ["spam", "eggs"]
+        assert [m.name for m in outcome_spec.preenrollment_weekly] == ["spam"]
+        assert [m.name for m in outcome_spec.preenrollment_days28] == ["eggs"]
+
+    def test_outcome_period_list_must_be_list(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            overall = "spam"
+
+            [metrics.spam.statistics.bootstrap_mean]
+            """
+        )
+
+        with pytest.raises(ValueError, match="overall should be a list of metrics"):
+            OutcomeSpec.from_dict(toml.loads(config_str))
+
+    def test_merge_outcome_honors_declared_periods(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            overall = ["terminal_rate"]
+            daily = ["engagement"]
+
+            [metrics.terminal_rate.statistics.bootstrap_mean]
+
+            [metrics.engagement.statistics.bootstrap_mean]
+            """
+        )
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        spec = AnalysisSpec.from_dict(toml.loads(""))
+        spec.merge_outcome(outcome_spec)
+
+        assert [m.name for m in spec.metrics.daily] == ["engagement"]
+        assert [m.name for m in spec.metrics.overall] == ["terminal_rate"]
+        # declared lists win: metrics are not force-added to weekly
+        assert [m.name for m in spec.metrics.weekly] == []
+        assert [m.name for m in spec.metrics.days28] == []
+
+    def test_merge_outcome_defaults_to_weekly_overall(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        spec = AnalysisSpec.from_dict(toml.loads(""))
+        spec.merge_outcome(outcome_spec)
+
+        # back-compat: with no period lists declared every metric is weekly + overall
+        assert sorted(m.name for m in spec.metrics.weekly) == ["eggs", "spam"]
+        assert sorted(m.name for m in spec.metrics.overall) == ["eggs", "spam"]
+        assert [m.name for m in spec.metrics.daily] == []
+        assert [m.name for m in spec.metrics.days28] == []
+
     def test_unsupported_platform_outcomes(self, config_collection):
         spec = AnalysisSpec.from_dict(toml.loads(""))
         experiment = Experiment(

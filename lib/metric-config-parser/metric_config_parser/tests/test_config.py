@@ -1015,6 +1015,36 @@ class TestFeatmonConfig:
         assert "my_feature" in entity.spec.features
         assert entity.spec.features["my_feature"].nimbus_slug() == "my-feature"
 
+    def test_entity_from_path_accepts_outcome_period_lists(self, tmp_path):
+        # outcomes live at <repo>/outcomes/<platform>/<slug>.toml; entity_from_path
+        # runs validate_config_settings, which must accept root-level period lists.
+        outcome_dir = tmp_path / "outcomes" / "firefox_desktop"
+        outcome_dir.mkdir(parents=True)
+        config = dedent(
+            """\
+            friendly_name = "Fred"
+            description = "Just your average paleolithic dad."
+
+            overall = ["rocks_mined"]
+            28_day = ["rocks_mined"]
+
+            [metrics.rocks_mined]
+            select_expression = "COALESCE(SUM(pings_aggregated_by_this_row), 0)"
+            data_source = "clients_daily"
+            statistics = { bootstrap_mean = {} }
+
+            [data_sources.clients_daily]
+            from_expression = "1"
+            """
+        )
+        (outcome_dir / "good_outcome.toml").write_text(config)
+
+        entity = entity_from_path(outcome_dir / "good_outcome.toml")
+
+        assert isinstance(entity, Outcome)
+        assert [m.name for m in entity.spec.overall] == ["rocks_mined"]
+        assert [m.name for m in entity.spec.days28] == ["rocks_mined"]
+
     def test_config_collection_loads_featmon_from_local_repo(self, tmp_path):
         r = Repo.init(tmp_path)
         r.config_writer().set_value("user", "name", "test").release()

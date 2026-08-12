@@ -122,17 +122,37 @@ class AnalysisSpec:
 
     def merge_outcome(self, other: "OutcomeSpec"):
         """Merges an outcome snippet into the analysis spec."""
-        metrics = [MetricReference(metric_name) for metric_name, _ in other.metrics.items()]
-
-        # metrics defined in outcome snippets are only computed for
-        # weekly and overall analysis windows
-        outcome_spec = MetricsSpec(
-            daily=[],
-            weekly=metrics,
-            days28=[],
-            overall=metrics,
-            definitions=other.metrics,
+        declared = (
+            other.daily
+            or other.weekly
+            or other.days28
+            or other.overall
+            or other.preenrollment_weekly
+            or other.preenrollment_days28
         )
+        if declared:
+            # The outcome controls which analysis windows its metrics compute in,
+            # using the same per-period metric-name lists as defaults/experiments.
+            outcome_spec = MetricsSpec(
+                daily=other.daily,
+                weekly=other.weekly,
+                days28=other.days28,
+                overall=other.overall,
+                preenrollment_weekly=other.preenrollment_weekly,
+                preenrollment_days28=other.preenrollment_days28,
+                definitions=other.metrics,
+            )
+        else:
+            # Back-compat: with no period lists declared, every metric defined in
+            # the outcome snippet is computed for weekly and overall windows only.
+            metrics = [MetricReference(metric_name) for metric_name, _ in other.metrics.items()]
+            outcome_spec = MetricsSpec(
+                daily=[],
+                weekly=metrics,
+                days28=[],
+                overall=metrics,
+                definitions=other.metrics,
+            )
         outcome_spec.merge(self.metrics)
         other.data_sources.merge(self.data_sources)
         self.data_sources = other.data_sources
