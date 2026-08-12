@@ -13,6 +13,9 @@ segments = [
   "last_active_120_to_180_days_ago",
   "last_active_more_than_180_days_ago",
 
+  # Aggregate lapse (union of the four buckets above)
+  "last_active_more_than_28_days_ago",
+
   # Default browser status
   "firefox_default",
   "firefox_not_default",
@@ -200,6 +203,26 @@ select_expression = """
   (
     MAX(submission_date) IS NULL
     OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) > 180
+  )
+"""
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+# Aggregate lapse segment: the exact union of the four buckets above. The
+# buckets are contiguous (28-59 / 60-119 / 120-180 / >180), so the union is
+# ">= 28 days, or no DAU in the 183-day lookback". Note the threshold is
+# INCLUSIVE of day 28 (>=, not >) so this segment's population equals the sum
+# of the four buckets; the name follows the existing more_than_180 convention.
+# Gives an aggregate lapsed-user read without collapsing the depth buckets.
+
+[segments.last_active_more_than_28_days_ago]
+friendly_name = "Last active 28+ days ago (all lapse buckets)"
+description = "Aggregate lapsed population: clients whose last DAU before enrollment is 28 or more days prior, or who had no DAU in the 183-day lookback. Exact union of the 28-59 / 60-119 / 120-180 / 180+ buckets."
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 28
   )
 """
 data_source = "active_users_last_seen"
