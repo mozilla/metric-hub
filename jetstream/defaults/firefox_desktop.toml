@@ -58,21 +58,6 @@ preenrollment_weekly = [
   "daily_active_users_per_1000_clients_legacy",
 ]
 
-preenrollment_days28 = [
-  "active_hours",
-  "ad_clicks",
-  "days_of_use",
-  "organic_search_count",
-  "search_count",
-  "searches_with_ads",
-  "tagged_search_count",
-  "tagged_follow_on_search_count",
-  "uri_count",
-  "qualified_cumulative_days_of_use",
-  "is_default_browser",
-  "client_level_daily_active_users_v2",
-]
-
 [metrics.active_hours.statistics.linear_model_mean]
 [metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
