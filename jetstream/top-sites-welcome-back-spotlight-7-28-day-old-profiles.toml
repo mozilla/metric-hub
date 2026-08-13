@@ -1,0 +1,309 @@
+# Jetstream config for top-sites-welcome-back-spotlight-7-28-day-old-profiles
+# Same surface as top-sites-welcome-back-spotlight (FXE-1622) pointed at a new
+# audience: existing Windows profiles aged 7-28 days at enrollment.
+#
+# Web-app + launch metrics and [data_sources.web_app_events] are copied VERBATIM
+# from top-sites-welcome-back-spotlight (which copied them from
+# world-cup-taskbar-tabs-spotlight, orig. FXE-1640) so the four audience arms of
+# this Spotlight read across cleanly. Segments differ: this brief asks for
+# profile-age bands, activity level, default status, and Windows version — there
+# are no lapse-depth buckets here.
+#
+# NOTE ON SEGMENT WINDOWS: window_start/window_end are attributes of the segment
+# DATA SOURCE, not of the segment. metric-config-parser's SegmentDefinition has
+# only (name, data_source, select_expression, friendly_name, description), and
+# unknown keys are silently dropped by cattrs — so window_start/window_end
+# written on a [segments.X] block do nothing. Every window in this file is
+# therefore declared on the [segments.data_sources.X] block where it is honored.
+# The built-in clients_last_seen segment data source declares window_start = 0
+# and window_end = 0, i.e. it is already anchored to the enrollment date.
+
+[experiment]
+
+segments = [
+  # Profile age at enrollment (NEW for this audience)
+  "profile_age_7_to_14_days",
+  "profile_age_15_to_28_days",
+
+  # Activity level (built-in)
+  "activity_infrequent",
+  "activity_casual",
+  "activity_regular",
+  "activity_core",
+
+  # Default browser status, measured pre-enrollment
+  "firefox_default",
+  "firefox_not_default",
+
+  # Windows version
+  "windows_10",
+  "windows_11",
+]
+
+[metrics]
+
+weekly = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "number_of_non_taskbartab_launches",
+  "number_of_other_launches",
+]
+
+overall = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+  "number_of_non_taskbartab_launches",
+  "number_of_other_launches",
+  "new_profile_retained_week4",
+]
+
+[metrics.installed_web_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.pinned_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.any_web_app_installed.statistics.binomial]
+[metrics.any_web_app_pinned.statistics.binomial]
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_non_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_other_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# new_profile_retained_week4 is built-in but has NO pre-declared statistic in
+# definitions/firefox_desktop.toml, so binomial is set explicitly here.
+#
+# INTERPRETATION CAVEAT: this metric is anchored to the PROFILE's own lifecycle
+# (DAU at least once between days 22-28 of profile life), not to enrollment.
+# Because this audience enrolls at profile age 7-28 days, the metric's window
+# overlaps enrollment differently across the cohort: for a profile enrolled at
+# day 7-14 it lands well after enrollment (treatment-sensitive), but for one
+# enrolled at day 22-28 it is already determined before treatment. Read it
+# inside the profile_age_7_to_14_days segment, where it is interpretable.
+# Enrollment-anchored W1/W2/W4 retention comes from the auto-applied `retained`.
+[metrics.new_profile_retained_week4.statistics.binomial]
+
+# ============================================================================
+# CUSTOM METRICS - Web App (Taskbar Tabs) activity
+# ============================================================================
+# Copied VERBATIM from top-sites-welcome-back-spotlight for direct read-across.
+# pinned_apps is this experiment's PRIMARY metric (pinned web apps per user).
+# any_web_app_pinned is the per-exposed pin-acceptance rate.
+
+[metrics.installed_web_apps]
+friendly_name = "Installed Web Apps"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.pinned_apps]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web App Launches per user (approx from activate and install events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero web app usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.any_web_app_installed]
+friendly_name = "Any Web App Installed"
+description = "Client had at least one web app install event during the analysis window"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'install'), FALSE)"
+data_source = "web_app_events"
+
+[metrics.any_web_app_pinned]
+friendly_name = "Any Web App Pinned"
+description = "Client had at least one web app pin event during the analysis window (pin acceptance rate)"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'pin'), FALSE)"
+data_source = "web_app_events"
+
+# ============================================================================
+# DATA SOURCE - Web App events with cumulative counts
+# ============================================================================
+# Copied VERBATIM from top-sites-welcome-back-spotlight. The '2025-07-31' floor
+# is intentionally NOT re-anchored to this experiment's start: the window
+# function computes per-client CUMULATIVE install/pin counts, so it must span
+# the client's full web_app history (2025-07-31 is when this telemetry began).
+# Re-anchoring it to 2026-07-27 would silently reset every client's cumulative
+# baseline to zero and break read-across with the sibling arms.
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts"
+
+# ============================================================================
+# SEGMENTS - Profile age at enrollment (NEW for this audience)
+# ============================================================================
+# Follows the enrollment-anchored pattern used by the built-in
+# profile_age_0_to_7_days / profile_age_7_to_28_days / profile_age_more_than_28_days
+# segments in definitions/firefox_desktop.toml: DATE_DIFF from the enrollment
+# date to first_seen_date, on the built-in clients_last_seen source.
+#
+# This is preferred over the LOGICAL_OR(days_since_first_seen BETWEEN a AND b)
+# form used in world-cup-taskbar-tabs-spotlight because it does not depend on
+# which submission_date rows fall inside the source window — first_seen_date and
+# e.enrollment_date are both fixed per client, so the bands are exact and the
+# two segments are strictly disjoint. That matters here: the brief's bands
+# (7-14, 15-28) are narrower than the observation period, so a window-dependent
+# expression would be fragile if the source window were ever widened.
+# No custom data source and no window override are needed.
+
+[segments.profile_age_7_to_14_days]
+data_source = "clients_last_seen"
+friendly_name = "Profile age 7 to 14 days at enrollment"
+description = "Clients whose first_seen_date is 7-14 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 7 AND 14,
+    FALSE
+)"""
+
+[segments.profile_age_15_to_28_days]
+data_source = "clients_last_seen"
+friendly_name = "Profile age 15 to 28 days at enrollment"
+description = "Clients whose first_seen_date is 15-28 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 15 AND 28,
+    FALSE
+)"""
+
+# ============================================================================
+# SEGMENTS - Default browser status, measured PRE-ENROLLMENT
+# ============================================================================
+# Deliberately NOT the built-in clients_last_seen source used by the sibling
+# config. Two reasons the pre-enrollment basis is the right one here:
+#   1. Reach diagnosis is a first-class read in this brief. The Spotlight's
+#      !willShowDefaultPrompt eligibility gate evaluated default status at the
+#      startup trigger, so the segment must reflect status going INTO enrollment.
+#   2. is_default_browser is itself an auto-applied metric this treatment may
+#      move. Segmenting on a trait the treatment can change is post-treatment
+#      conditioning; a -7..-1 window makes segment assignment immune to it.
+# The built-in source is anchored at window 0..0 (the enrollment date), which
+# still admits same-day, post-message default changes.
+# Outer COALESCE guards the no-rows-in-window case, which a negative window
+# makes possible (LOGICAL_OR/LOGICAL_AND over zero rows returns NULL).
+
+[segments.firefox_default]
+data_source = "client_default_history"
+friendly_name = "Firefox is default browser (pre-enrollment)"
+description = "Firefox was the default browser on at least one ping in the 7 days before enrollment"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(is_default_browser, FALSE)), FALSE)"
+
+[segments.firefox_not_default]
+data_source = "client_default_history"
+friendly_name = "Firefox is not default browser (pre-enrollment)"
+description = "Firefox was never the default browser in the 7 days before enrollment"
+select_expression = "COALESCE(LOGICAL_AND(COALESCE(NOT is_default_browser, TRUE)), FALSE)"
+
+# ============================================================================
+# SEGMENTS - Windows version (clients_last_seen.windows_build_number; Win11 >= 22000)
+# ============================================================================
+# Built-in clients_last_seen source, i.e. measured on the enrollment date.
+# Correct basis here: OS version is not treatment-affected, so there is no
+# reason to reach for a pre-enrollment window (same rule applied in
+# world-cup-start-of-tournament-privacy-campaign's OS segments).
+# windows_build_number lives on clients_last_seen, NOT on desktop_active_users.
+
+[segments.windows_10]
+data_source = "clients_last_seen"
+friendly_name = "Windows 10"
+description = "Windows build number in the Windows 10 range (>0 and <22000)"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(windows_build_number > 0 AND windows_build_number < 22000, FALSE)), FALSE)"
+
+[segments.windows_11]
+data_source = "clients_last_seen"
+friendly_name = "Windows 11"
+description = "Windows build number in the Windows 11 range (>=22000)"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(windows_build_number >= 22000, FALSE)), FALSE)"
+
+# ============================================================================
+# SEGMENT DATA SOURCE - pre-enrollment default-browser history
+# ============================================================================
+# window_start/window_end are declared HERE because this is the only place
+# metric-config-parser honors them. -7..-1 is strictly pre-enrollment: it
+# excludes the enrollment date itself, so a same-day set-to-default following
+# the Spotlight cannot leak into segment assignment. A 7-day lookback is
+# right-sized for this audience — every enrolled profile is at least 7 days old,
+# so it has clients_last_seen coverage across the whole window.
+# The submission_date floor is a performance guard only.
+
+[segments.data_sources.client_default_history]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date,
+    is_default_browser
+  FROM `mozdata.telemetry.clients_last_seen`
+  WHERE submission_date >= DATE_SUB('2026-07-27', INTERVAL 7 DAY)
+)"""
+window_start = -7
+window_end = -1
