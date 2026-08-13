@@ -70,7 +70,6 @@ overall = [
   "number_of_taskbartab_launches",
   "number_of_non_taskbartab_launches",
   "number_of_other_launches",
-  "new_profile_retained_week4",
 ]
 
 [metrics.installed_web_apps.statistics.linear_model_mean]
@@ -95,18 +94,17 @@ drop_highest = 0.005
 [metrics.number_of_other_launches.statistics.linear_model_mean]
 drop_highest = 0.005
 
-# new_profile_retained_week4 is built-in but has NO pre-declared statistic in
-# definitions/firefox_desktop.toml, so binomial is set explicitly here.
-#
-# INTERPRETATION CAVEAT: this metric is anchored to the PROFILE's own lifecycle
-# (DAU at least once between days 22-28 of profile life), not to enrollment.
-# Because this audience enrolls at profile age 7-28 days, the metric's window
-# overlaps enrollment differently across the cohort: for a profile enrolled at
-# day 7-14 it lands well after enrollment (treatment-sensitive), but for one
-# enrolled at day 22-28 it is already determined before treatment. Read it
-# inside the profile_age_7_to_14_days segment, where it is interpretable.
-# Enrollment-anchored W1/W2/W4 retention comes from the auto-applied `retained`.
-[metrics.new_profile_retained_week4.statistics.binomial]
+# NOT LISTED: new_profile_retained_week4. It cannot be used for this audience.
+# Its data source, clients_first_seen_28_days_later, is keyed on first_seen_date,
+# and Jetstream joins it with
+#   ds.first_seen_date BETWEEN DATE_ADD(e.enrollment_date, analysis_window_start)
+#                         AND DATE_ADD(e.enrollment_date, analysis_window_end)
+# so it only matches profiles first seen DURING the analysis window. This
+# audience is 7-28 days old at enrollment, i.e. first seen before it, so the
+# join can never match. The table also has no `experiments` column, which makes
+# the generated SQL fail outright ("Name experiments not found inside ds").
+# Enrollment-anchored W1/W2/W4 retention comes from the auto-applied `retained`,
+# which is the correct basis for a cohort that pre-exists enrollment.
 
 # ============================================================================
 # CUSTOM METRICS - Web App (Taskbar Tabs) activity
