@@ -1,8 +1,26 @@
-# Jetstream config for top-sites-welcome-back-spotlight (FXE-1622)
-# Web-app + launch metrics are copied VERBATIM from world-cup-taskbar-tabs-spotlight
-# (which in turn copied them from FXE-1640) so results read across the sibling
-# Spotlight experiment and the callout comparable. Segments follow this brief's
-# resurrection audience: lapse depth, default-browser status, Windows version.
+# Jetstream config for set-up-your-email-web-app-welcome-back-spotlight-v2
+# Focused "set up your email" variant of the Taskbar Tabs welcome-back Spotlight.
+# Same surface and same audience as top-sites-welcome-back-spotlight (FXE-1622) —
+# self-resurrected Windows users, 28+ days inactive — but the picker offers only
+# email web apps instead of a mixed list.
+#
+# Metrics and segments are copied VERBATIM from top-sites-welcome-back-spotlight
+# (which copied the web-app metrics from world-cup-taskbar-tabs-spotlight, orig.
+# FXE-1640) so the focused-email arm reads across against the mixed picker. The
+# brief explicitly asks for this: "Reuse the same Jetstream config structure and
+# metric definitions ... This gives a clean read-across to the callout surface."
+#
+# PRIMARY METRIC CAVEAT: the brief's primary is "any EMAIL web app pinned
+# (rate)". That cannot be expressed in Jetstream — the entire web_app telemetry
+# surface is site-agnostic. All nine web_app.* metrics were checked in the Glean
+# Dictionary: web_app.pin carries one extra key (`result`, a pinning error code),
+# web_app.install / .activate carry no extras at all, and installed_web_app_count
+# / usage_time are bare aggregates. Nothing identifies WHICH site was pinned.
+# `any_web_app_pinned` below is therefore the primary as-built. Because the
+# treatment picker offers only email apps, the treatment-vs-control LIFT is
+# attributable to email pins, but the absolute level is an any-app rate, not an
+# email-only rate. Per-provider select rates must come from Skylight (messaging
+# telemetry), which is where the brief already routes that funnel read.
 
 [experiment]
 
@@ -28,12 +46,12 @@ segments = [
 [metrics]
 
 weekly = [
-  "installed_web_apps",
+  "any_web_app_pinned",
   "pinned_apps",
+  "installed_web_apps",
   "web_app_launches",
   "web_app_active_users",
   "any_web_app_installed",
-  "any_web_app_pinned",
   "number_of_desktop_launches",
   "number_of_taskbar_launches",
   "number_of_startmenu_launches",
@@ -43,12 +61,12 @@ weekly = [
 ]
 
 overall = [
-  "installed_web_apps",
+  "any_web_app_pinned",
   "pinned_apps",
+  "installed_web_apps",
   "web_app_launches",
   "web_app_active_users",
   "any_web_app_installed",
-  "any_web_app_pinned",
   "number_of_desktop_launches",
   "number_of_taskbar_launches",
   "number_of_startmenu_launches",
@@ -57,15 +75,19 @@ overall = [
   "number_of_other_launches",
 ]
 
-[metrics.installed_web_apps.statistics.linear_model_mean]
-drop_highest = 0.005
+# any_web_app_pinned is the PRIMARY for this experiment (a rate, per the brief's
+# "email is single-pin by nature, so breadth is the success axis"). pinned_apps
+# is kept as a count for read-across to FXE-1622 / FXE-1640, not as the target —
+# ~1 pin per accepting user is expected here by design.
+[metrics.any_web_app_pinned.statistics.binomial]
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.any_web_app_installed.statistics.binomial]
 [metrics.pinned_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.installed_web_apps.statistics.linear_model_mean]
 drop_highest = 0.005
 [metrics.web_app_launches.statistics.linear_model_mean]
 drop_highest = 0.005
-[metrics.web_app_active_users.statistics.binomial]
-[metrics.any_web_app_installed.statistics.binomial]
-[metrics.any_web_app_pinned.statistics.binomial]
 [metrics.number_of_desktop_launches.statistics.linear_model_mean]
 drop_highest = 0.005
 [metrics.number_of_taskbar_launches.statistics.linear_model_mean]
@@ -79,13 +101,16 @@ drop_highest = 0.005
 [metrics.number_of_other_launches.statistics.linear_model_mean]
 drop_highest = 0.005
 
+# Auto-applied and deliberately NOT re-listed: retained (the brief's W2/W4
+# retention guardrail — weekly windows give both), client_level_daily_active_users_v2
+# (the brief's "DAU per-client impact", which auto-applies with the
+# per_client_dau_impact statistic), search_count, tagged_search_count, ad_clicks,
+# is_default_browser, uri_count, active_hours, days_of_use.
+
 # ============================================================================
 # CUSTOM METRICS - Web App (Taskbar Tabs) activity
 # ============================================================================
-# Copied verbatim from world-cup-taskbar-tabs-spotlight (originally FXE-1640,
-# taskbar-tabs-discovery-expanded-impressions-pin-cta) for direct read-across.
-# pinned_apps is this experiment's PRIMARY metric (pinned web apps per user).
-# any_web_app_pinned is the pin-acceptance rate.
+# Copied VERBATIM from top-sites-welcome-back-spotlight for direct read-across.
 
 [metrics.installed_web_apps]
 friendly_name = "Installed Web Apps"
@@ -130,13 +155,19 @@ data_source = "web_app_events"
 
 [metrics.any_web_app_pinned]
 friendly_name = "Any Web App Pinned"
-description = "Client had at least one web app pin event during the analysis window (pin acceptance rate)"
+description = "Client had at least one web app pin event during the analysis window (pin acceptance rate). PRIMARY for this experiment. Site-agnostic: web_app telemetry does not identify which app was pinned, so the treatment-vs-control lift is attributable to the email picker but the level is an any-app rate."
 select_expression = "COALESCE(LOGICAL_OR(event_name = 'pin'), FALSE)"
 data_source = "web_app_events"
 
 # ============================================================================
-# DATA SOURCE - Web App events with cumulative counts (verbatim from world-cup)
+# DATA SOURCE - Web App events with cumulative counts
 # ============================================================================
+# Copied VERBATIM from top-sites-welcome-back-spotlight. The '2025-07-31' floor
+# is intentionally NOT re-anchored to this experiment's start: the window
+# function computes per-client CUMULATIVE install/pin counts, so it must span
+# the client's full web_app history (2025-07-31 is when this telemetry began).
+# Re-anchoring it would reset every client's cumulative baseline to zero and
+# break read-across with the sibling arms.
 
 [data_sources.web_app_events]
 from_expression = """(
@@ -169,32 +200,30 @@ description = "Events for Web App (Taskbar Tabs) with per-client cumulative coun
 # ============================================================================
 # SEGMENTS - Lapse depth (time since last DAU before enrollment)
 # ============================================================================
-# Pattern copied from os-notification-split-view-release-lapsed-users; bucket
-# boundaries set to this brief's 28-59 / 60-119 / 120-180 / 180+ ranges.
+# Same four buckets as top-sites-welcome-back-spotlight (same audience).
+# NOTE: the window is declared on [segments.data_sources.active_users_last_seen]
+# below, NOT here. metric-config-parser's SegmentDefinition has only
+# (name, data_source, select_expression, friendly_name, description) and drops
+# unknown keys, so a window_start/window_end on a segment block is a silent
+# no-op. The sibling config carries such no-op lines; they are omitted here.
 
 [segments.last_active_28_to_59_days_ago]
 friendly_name = "Last active 28 to 59 days ago"
 description = "Clients who last counted towards DAU 28-59 days before enrollment"
 select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
 data_source = "active_users_last_seen"
-window_start = -183
-window_end = -1
 
 [segments.last_active_60_to_119_days_ago]
 friendly_name = "Last active 60 to 119 days ago"
 description = "Clients who last counted towards DAU 60-119 days before enrollment"
 select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119, FALSE)"
 data_source = "active_users_last_seen"
-window_start = -183
-window_end = -1
 
 [segments.last_active_120_to_180_days_ago]
 friendly_name = "Last active 120 to 180 days ago"
 description = "Clients who last counted towards DAU 120-180 days before enrollment"
 select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 180, FALSE)"
 data_source = "active_users_last_seen"
-window_start = -183
-window_end = -1
 
 [segments.last_active_more_than_180_days_ago]
 friendly_name = "Last active more than 180 days ago"
@@ -206,15 +235,17 @@ select_expression = """
   )
 """
 data_source = "active_users_last_seen"
-window_start = -183
-window_end = -1
 
-# Aggregate lapse segment: the exact union of the four buckets above. The
-# buckets are contiguous (28-59 / 60-119 / 120-180 / >180), so the union is
-# ">= 28 days, or no DAU in the 183-day lookback". Note the threshold is
-# INCLUSIVE of day 28 (>=, not >) so this segment's population equals the sum
-# of the four buckets; the name follows the existing more_than_180 convention.
-# Gives an aggregate lapsed-user read without collapsing the depth buckets.
+# Aggregate roll-up: the exact union of the four buckets above, copied from
+# top-sites-welcome-back-spotlight (PR #1607) with the same name for
+# cross-experiment consistency. The buckets are contiguous, so the union is
+# ">= 28 days, or no DAU in the 183-day lookback"; the threshold is INCLUSIVE of
+# day 28 so this segment equals the sum of the four parts. It intentionally
+# OVERLAPS its parents — do not sum across all five.
+# Note for this experiment specifically: Nimbus targeting is already
+# "resurrected user (no activity in 28+ days)", so this segment should
+# approximate the full enrolled population and read close to the "all" row. It
+# is included for parity with the sibling arm.
 
 [segments.last_active_more_than_28_days_ago]
 friendly_name = "Last active 28+ days ago (all lapse buckets)"
@@ -226,47 +257,55 @@ select_expression = """
   )
 """
 data_source = "active_users_last_seen"
-window_start = -183
-window_end = -1
 
 # ============================================================================
 # SEGMENTS - Default browser status (clients_last_seen, built-in)
 # ============================================================================
+# Built-in clients_last_seen is anchored at window 0..0 (the enrollment date),
+# so these are default-status-at-enrollment, matching the brief's use of the
+# segment to decide whether the pinning ask should be gated on default status.
 
 [segments.firefox_default]
 friendly_name = "Firefox is default browser"
-description = "Firefox was the default browser on at least one ping during the analysis window"
-select_expression = "LOGICAL_OR(COALESCE(is_default_browser, FALSE))"
+description = "Firefox was the default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(is_default_browser, FALSE)), FALSE)"
 data_source = "clients_last_seen"
 
 [segments.firefox_not_default]
 friendly_name = "Firefox is not default browser"
-description = "Firefox was never the default browser during the analysis window"
-select_expression = "LOGICAL_AND(COALESCE(NOT is_default_browser, TRUE))"
+description = "Firefox was not the default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_AND(COALESCE(NOT is_default_browser, TRUE)), FALSE)"
 data_source = "clients_last_seen"
 
 # ============================================================================
 # SEGMENTS - Windows version (clients_last_seen.windows_build_number; Win11 >= 22000)
 # ============================================================================
+# windows_build_number lives on clients_last_seen, NOT on desktop_active_users.
 
 [segments.windows_10]
 friendly_name = "Windows 10"
 description = "Windows build number in the Windows 10 range (>0 and <22000)"
-select_expression = "LOGICAL_OR(COALESCE(windows_build_number > 0 AND windows_build_number < 22000, FALSE))"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(windows_build_number > 0 AND windows_build_number < 22000, FALSE)), FALSE)"
 data_source = "clients_last_seen"
 
 [segments.windows_11]
 friendly_name = "Windows 11"
 description = "Windows build number in the Windows 11 range (>=22000)"
-select_expression = "LOGICAL_OR(COALESCE(windows_build_number >= 22000, FALSE))"
+select_expression = "COALESCE(LOGICAL_OR(COALESCE(windows_build_number >= 22000, FALSE)), FALSE)"
 data_source = "clients_last_seen"
 
 # ============================================================================
 # SEGMENT DATA SOURCE - last DAU (desktop_active_users)
 # ============================================================================
-# Copied from split-view config; performance floor re-anchored to this
-# experiment's 2026-07-01 start. clients_last_seen (default + Windows segments)
-# is a built-in segment data source and needs no block.
+# Performance floor anchored to this experiment's 2026-07-21 start.
+# window_end = -1 is set explicitly so the window is STRICTLY pre-enrollment.
+# It cannot be left to default: SegmentDataSourceDefinition defaults window_end
+# to 0, which would include the enrollment date itself — and a client who counts
+# towards DAU on their own enrollment day would then have
+# DATE_DIFF(enrollment_date, MAX(submission_date)) = 0 and fall out of all four
+# buckets. The sibling config leaves it defaulted (its -1 sits on the segment
+# blocks, where it is ignored); setting it here is the small, deliberate
+# difference from that config.
 
 [segments.data_sources.active_users_last_seen]
 from_expression = """(
@@ -277,6 +316,7 @@ from_expression = """(
   FROM `mozdata.telemetry.desktop_active_users`
   WHERE is_desktop
     AND is_dau
-    AND submission_date >= DATE_SUB('2026-07-01', INTERVAL 183 DAY)
+    AND submission_date >= DATE_SUB('2026-07-21', INTERVAL 183 DAY)
 )"""
 window_start = -183
+window_end = -1
