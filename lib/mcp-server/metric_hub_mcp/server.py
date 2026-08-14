@@ -567,6 +567,8 @@ async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     from mcp.server.sse import SseServerTransport
     from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
     from starlette.applications import Starlette
+    from starlette.middleware import Middleware
+    from starlette.middleware.cors import CORSMiddleware
     from starlette.routing import Mount, Route
     import uvicorn
 
@@ -592,16 +594,43 @@ async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
         async with session_manager.run():
             yield
 
+    # Browser-based MCP clients send a CORS preflight before connecting, and without these
+    # headers the OPTIONS request is rejected and the connection never opens. Claude Cowork
+    # fails this way, reporting it as a sign-in error. Origins are unrestricted because the
+    # server is unauthenticated and read-only, so there are no credentials to protect, which
+    # also means allow_credentials must stay off.
+    middleware = [
+        Middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["Mcp-Session-Id"],
+        )
+    ]
+
     starlette_app = Starlette(
         routes=[
             Mount("/mcp", app=handle_streamable_http),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
+        middleware=middleware,
         lifespan=lifespan,
     )
 
-    config = uvicorn.Config(starlette_app, host=host, port=port, log_level="info")
+    # Mount redirects /mcp to /mcp/, and builds that redirect from the request scheme. Behind
+    # Cloud Run's proxy that scheme is http, so without trusting the forwarded headers the
+    # redirect downgrades clients to plaintext.
+    config = uvicorn.Config(
+        starlette_app,
+        host=host,
+        port=port,
+        log_level="info",
+        proxy_headers=True,
+        forwarded_allow_ips="*",
+    )
     await uvicorn.Server(config).serve()
 
 
