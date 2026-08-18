@@ -1,6 +1,6 @@
 [metrics]
-weekly = ["smart_window_call_out_click_rate", "smart_window_adoption"] #, "land_in_smart_window"]
-overall = ["smart_window_call_out_click_rate", "smart_window_adoption"] #, "land_in_smart_window"]
+weekly = ["smart_window_adoption", "land_in_smart_window"] #"smart_window_call_out_click_rate", 
+overall = ["smart_window_adoption", "land_in_smart_window"] #"smart_window_call_out_click_rate", 
 
 # [metrics.smart_window_call_out_click_rate]
 # friendly_name = "Smart Window Feature Callout Click Rate"
@@ -20,7 +20,7 @@ description = "Users who completed Smart Window Onboarding."
 data_source = "smart_window_onboarding"
 select_expression = "LOGICAL_OR(COALESCE(event_name = 'onboarding_complete', FALSE))"
 
-[metrics.smart_window_call_out_clicks.statistics.binomial]
+# [metrics.smart_window_call_out_clicks.statistics.binomial]
 [metrics.land_in_smart_window.statistics.binomial]
 [metrics.smart_window_adoption.statistics.binomial]
 
