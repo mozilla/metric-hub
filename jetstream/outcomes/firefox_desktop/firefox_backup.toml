@@ -6,3 +6,9 @@ data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(browser_backup_scheduler_enabled), FALSE) AS INT)'
 
 [metrics.backup_scheduler_enabled.statistics.binomial]
+
+[metrics.backup_scheduler_enabled_glean]
+data_source = 'metrics'
+select_expression = 'CAST(COALESCE(LOGICAL_OR(metrics.boolean.browser_backup_scheduler_enabled), FALSE) AS INT)'
+
+[metrics.backup_scheduler_enabled_glean.statistics.binomial]
