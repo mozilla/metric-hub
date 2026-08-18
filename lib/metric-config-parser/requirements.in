@@ -50,7 +50,7 @@ markupsafe==3.0.3
     # via jinja2
 mozilla-nimbus-schemas==3004.0.0
     # via mozilla-metric-config-parser
-mypy==2.3.0
+mypy==2.3.1
     # via mozilla-metric-config-parser
 mypy-extensions==1.1.0
     # via mypy
