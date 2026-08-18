@@ -1,0 +1,229 @@
+# This is an Android Mobile Messaging experiment showing background
+# notifications to users lapsed exactly 5 days.
+#
+# This custom configuration is designed to do 3 things:
+#
+# 1. Include notification-specific early indicator metrics, namely
+# counting the `messaging.notification_{shown, clicked, dismissed}`
+# events.  In addition, whether notification permissions were toggled.
+#
+# 2. Specific to this experiment, whether the user interacted with the
+# GenAI controls, namely counting the
+# `genai.ai_controls.{feature_link_click,feature_pref_change,global_pref_toggle}`
+# events.
+#
+# 3. Segment the population.  In this experiment, default
+# vs. non-default segments were identified as potentially interesting,
+# as well as the profile age.
+
+[experiment]
+end_date = "2026-07-16" # One day longer than listed on Experimenter: this gets the 3rd week.
+
+enrollments_query_type = "glean-event"
+exposure_query_type = "glean-event"
+
+segments = [
+    "default_at_enrollment",
+    "not_default_at_enrollment",
+
+    "profile_age_0_to_6_days",
+    "profile_age_7_to_27_days",
+    "profile_age_28_to_89_days",
+    "profile_age_90_to_179_days",
+    "profile_age_more_than_180_days",
+
+    # Just for `genai_event_count`: do we see feature engagement from
+    # users who do click the notification?
+    "segment_notification_clicked",
+    "segment_notification_dismissed",
+    "segment_notification_not_clicked_and_not_dismissed",
+
+    "segment_notifications_allowed_and_marketing_notifications_allowed_at_enrollment",
+    "segment_notifications_allowed_and_not_marketing_notifications_allowed_at_enrollment",
+    "segment_not_notifications_allowed_at_enrollment",
+    "segment_notifications_allowed_and_marketing_notifications_allowed_not_both_known_at_enrollment",
+]
+
+[metrics]
+
+daily = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+
+    "genai_event_count",
+]
+
+weekly = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+
+    "genai_event_count",
+]
+
+overall = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+
+    "genai_event_count",
+]
+
+# Number of enrolled clients.
+[metrics.notification_shown.statistics.count]
+# Number of notifications shown.
+[metrics.notification_shown.statistics.sum]
+# Shown rate.
+[metrics.notification_shown.statistics.binomial]
+
+# Number of enrolled clients.
+[metrics.notification_clicked.statistics.count]
+# Number of clicks.
+[metrics.notification_clicked.statistics.sum]
+# Click through rate.
+[metrics.notification_clicked.statistics.binomial]
+
+# Number of enrolled clients.
+[metrics.notification_dismissed.statistics.count]
+# Number of dismisses.
+[metrics.notification_dismissed.statistics.sum]
+# Dismiss rate.
+[metrics.notification_dismissed.statistics.binomial]
+
+# Metrics pings are not reliably sent for users who don't run Firefox
+# for Android to browse, so we need to be defensive.  We care about
+# users who we witnessed disabling notifications in response to the
+# experiment.  We can't really look at whether notifications are
+# "still allowed" since we don't have any carry-forward of this
+# setting; see https://mozilla-hub.atlassian.net/browse/DENG-11344.
+# Remember that the notification worker is only scheduled for users
+# who (at one time, see
+# https://bugzilla.mozilla.org/show_bug.cgi?id=2048113) had the
+# notification permission allowed.
+
+# Number of clients.
+[metrics.ever_not_notifications_allowed.statistics.count]
+# Number of clients with notifications ever not allowed.
+[metrics.ever_not_notifications_allowed.statistics.sum]
+# Notifications ever not allowed rate.
+[metrics.ever_not_notifications_allowed.statistics.binomial]
+
+# Number of clients.
+[metrics.ever_not_marketing_notifications_allowed.statistics.count]
+# Number of clients with marketing notifications ever not allowed.
+[metrics.ever_not_marketing_notifications_allowed.statistics.sum]
+# Marketing notifications ever not allowed rate.
+[metrics.ever_not_marketing_notifications_allowed.statistics.binomial]
+
+[metrics.genai_event_count]
+friendly_name = "AI Controls Interactions"
+description = "Number of times a user interacted with AI Controls."
+select_expression = """
+    SUM(CAST(event_name IS NOT NULL AS INT64))
+"""
+data_source = "genai_events_filtered"
+
+[metrics.genai_event_count.statistics.bootstrap_mean]
+[metrics.genai_event_count.statistics.deciles]
+
+[data_sources.genai_events_filtered]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.fenix.events_stream`
+    WHERE event_category IN ('genai.ai_controls')
+    AND event_name IN ('feature_link_click', 'feature_pref_change', 'global_pref_toggle')
+)"""
+description = "Glean events_stream dataset (events ping unnested to a single row per event) filtered to GenAI events"
+friendly_name = "Glean Events Stream Filtered to GenAI events"
+experiments_column_type = "none"
+client_id_column = "client_id"
+
+# ----------------------------------------------------------------------------
+# 2. Default browser at enrollment
+# ----------------------------------------------------------------------------
+
+[segments]
+[segments.default_at_enrollment]
+friendly_name = "Default browser at enrollment"
+description = "Clients who were the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.not_default_at_enrollment]
+friendly_name = "Not default browser at enrollment"
+description = "Clients who were NOT the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(NOT is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen"
+window_start = 0
+window_end = 0
+
+# ----------------------------------------------------------------------------
+# 4. Profile age
+# ----------------------------------------------------------------------------
+
+[segments.profile_age_0_to_6_days]
+friendly_name = "Profile age 0-6 days at enrollment"
+description = "Clients whose first_seen_date is 0-6 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 6,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_7_to_27_days]
+friendly_name = "Profile age 7-27 days at enrollment"
+description = "Clients whose first_seen_date is 7-27 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 7 AND 27,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_28_to_89_days]
+friendly_name = "Profile age 28-89 days at enrollment"
+description = "Clients whose first_seen_date is 28-89 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 28 AND 89,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_90_to_179_days]
+friendly_name = "Profile age 90-179 days at enrollment"
+description = "Clients whose first_seen_date is 90-179 days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 90 AND 179,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_more_than_180_days]
+friendly_name = "Profile age 180+ days at enrollment"
+description = "Clients whose first_seen_date is 180 or more days before enrollment"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) >= 180,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
