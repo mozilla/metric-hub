@@ -32,6 +32,7 @@ from_expression = """(
       AND event_name = 'backup_start'
 )"""
 experiments_column_type = "none"
+analysis_units = ["client_id", "profile_group_id"]
 friendly_name = "Backup Start Events"
 description = "Glean events_stream filtered to browser.backup.backup_start events"
 
@@ -52,7 +53,8 @@ from_expression = """(
     WITH legacy_ids AS (
       SELECT
         client_info.client_id AS glean_client_id,
-        ANY_VALUE(metrics.uuid.legacy_telemetry_client_id) AS legacy_telemetry_client_id
+        ANY_VALUE(metrics.uuid.legacy_telemetry_client_id) AS legacy_telemetry_client_id,
+        ANY_VALUE(metrics.uuid.legacy_telemetry_profile_group_id) AS profile_group_id
       FROM
         `mozdata.firefox_desktop.metrics`
       WHERE
@@ -63,6 +65,7 @@ from_expression = """(
     )
     SELECT
       l.legacy_telemetry_client_id AS client_id,
+      l.profile_group_id,
       DATE(p.submission_timestamp) AS submission_date,
       event.category AS event_category,
       event.name AS event_name
@@ -76,11 +79,12 @@ from_expression = """(
       event.category = 'browser.backup'
 )"""
 experiments_column_type = "none"
+analysis_units = ["client_id", "profile_group_id"]
 friendly_name = "Profile Restore Events"
 description = """
     Glean profile-restore ping filtered to browser.backup.* events.
     profile-restore only exposes the native Glean client_id for the profile
-    performing the restore (not legacy_telemetry_client_id), so this resolves
-    it via a same-profile join against the metrics ping, keyed on the shared
-    Glean client_id.
+    performing the restore (not legacy_telemetry_client_id or
+    profile_group_id), so this resolves both identifiers via a same-profile
+    join against the metrics ping, keyed on the shared Glean client_id.
 """
