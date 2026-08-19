@@ -94,7 +94,12 @@ class AnalysisSpec:
             raise Exception("Can't resolve an AnalysisSpec twice")
         self._resolved = True
 
-        for slug in experiment.outcomes:
+        outcome_slugs = list(experiment.outcomes)
+        for slug in self.experiment.outcomes:
+            if slug not in outcome_slugs:
+                outcome_slugs.append(slug)
+
+        for slug in outcome_slugs:
             outcome = configs.spec_for_outcome(slug, experiment.app_name)
 
             if outcome is not None:
