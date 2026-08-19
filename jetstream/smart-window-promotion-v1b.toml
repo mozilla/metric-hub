@@ -1,3 +1,6 @@
+[experiment]
+analysis_unit = "client_id"
+
 [metrics]
 
 weekly = ["smart_window_call_out_click", "smart_window_adoption", "land_in_smart_window", "smart_window_activation"]
