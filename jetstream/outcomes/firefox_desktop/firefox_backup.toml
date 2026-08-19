@@ -5,7 +5,7 @@ description = "Metrics for Firefox Backup"
 data_source = 'clients_daily'
 select_expression = 'CAST(COALESCE(LOGICAL_OR(browser_backup_scheduler_enabled), FALSE) AS INT)'
 
-[metrics.backup_scheduler_enabled_v1.statistics.binomial]
+[metrics.backup_scheduler_enabled.statistics.binomial]
 
 [metrics.backup_scheduler_enabled_glean_v1]
 data_source = 'metrics'
