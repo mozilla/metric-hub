@@ -125,7 +125,7 @@ typing-extensions==4.16.0
     #   pydantic-core
     #   referencing
     #   typing-inspection
-typing-inspection==0.4.2
+typing-inspection==0.4.4
     # via pydantic
 urllib3==2.7.0
     # via
