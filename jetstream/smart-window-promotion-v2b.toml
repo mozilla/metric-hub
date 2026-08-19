@@ -1,12 +1,13 @@
 [metrics]
-weekly = ["smart_window_adoption", "land_in_smart_window", "smart_window_activation"] #"smart_window_call_out_click_rate", 
-overall = ["smart_window_adoption", "land_in_smart_window", "smart_window_activation"] #"smart_window_call_out_click_rate", 
 
-# [metrics.smart_window_call_out_click_rate]
-# friendly_name = "Smart Window Feature Callout Click Rate"
-# description = "Rate of Users who clicked on the Smart Window Feature Callout."
-# data_source = "smart_window_feature_callout"
-# select_expression = "LOGICAL_OR(COALESCE(week_2_retained, FALSE))"
+weekly = ["smart_window_call_out_click_rate", "smart_window_adoption", "land_in_smart_window", "smart_window_activation"]
+overall = ["smart_window_call_out_click_rate", "smart_window_adoption", "land_in_smart_window", "smart_window_activation"]
+
+[metrics.smart_window_call_out_click_rate]
+friendly_name = "Smart Window Feature Callout Click Rate"
+description = "Rate of Users who clicked on the Smart Window Feature Callout."
+data_source = "smart_window_feature_callout"
+select_expression = "LOGICAL_OR(COALESCE(event = 'CLICK_BUTTON' AND event_source = 'primary_button', FALSE))"
 
 [metrics.land_in_smart_window]
 friendly_name = "Land In Smart Window User rate"
@@ -26,12 +27,13 @@ description = "Users who did a meaningful action in Smart Window."
 data_source = "smart_window_onboarding"
 select_expression = "LOGICAL_OR(COALESCE(event_name IN ('uri_load', 'chat_submit'), FALSE))"
 
-# [metrics.smart_window_call_out_clicks.statistics.binomial]
+[metrics.smart_window_call_out_clicks.statistics.binomial]
 [metrics.land_in_smart_window.statistics.binomial]
 [metrics.smart_window_adoption.statistics.binomial]
 [metrics.smart_window_activation.statistics.binomial]
 
 [data_sources]
+
 [data_sources.smart_window_onboarding]
 from_expression = """(
   SELECT
@@ -45,5 +47,21 @@ from_expression = """(
 )"""
 description = "Glean events_stream (one row per event) filtered to smart Window Onboarding"
 friendly_name = "Glean Events Stream Filtered (Smart Window Onboarding)"
+experiments_column_type = "none"
+client_id_column = "client_id"
+
+[data_sources.smart_window_feature_callout]
+from_expression = """(
+  SELECT
+    DATE(submission_timestamp) AS submission_date,
+    *
+  FROM `moz-fx-data-shared-prod.firefox_desktop.onboarding`
+  WHERE 
+    event = 'CLICK_BUTTON'
+    AND event_source = 'primary_button'
+    AND message_id LIKE '%SMARTWINDOW_SHOPPING_DOMAIN%'
+)"""
+description = "Messaging System Feature callout for Smart Window Shopping domain callout"
+friendly_name = "Messaging system filtered (Smart window shopping domain)"
 experiments_column_type = "none"
 client_id_column = "client_id"
