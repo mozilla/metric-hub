@@ -14,27 +14,28 @@ select_expression = 'CAST(COALESCE(LOGICAL_OR(metrics.boolean.browser_backup_sch
 [metrics.backup_scheduler_enabled_glean_v1.statistics.binomial]
 
 [metrics.backup_started_v1]
-data_source = 'backup_start_events_v1'
-select_expression = 'CAST(COALESCE(COUNT(1) > 0, FALSE) AS INT)'
+data_source = 'backup_events_v1'
+select_expression = "CAST(COALESCE(COUNTIF(event_name = 'backup_start') > 0, FALSE) AS INT)"
 
 [metrics.backup_started_v1.statistics.binomial]
 
-[data_sources.backup_start_events_v1]
+[data_sources.backup_events_v1]
 from_expression = """(
     SELECT
       legacy_telemetry_client_id AS client_id,
       profile_group_id,
-      DATE(submission_timestamp) AS submission_date
+      DATE(submission_timestamp) AS submission_date,
+      event_category,
+      event_name
     FROM
       `mozdata.firefox_desktop.events_stream`
     WHERE
       event_category = 'browser.backup'
-      AND event_name = 'backup_start'
 )"""
 experiments_column_type = "none"
 analysis_units = ["client_id", "profile_group_id"]
-friendly_name = "Backup Start Events"
-description = "Glean events_stream filtered to browser.backup.backup_start events"
+friendly_name = "Backup Events"
+description = "Glean events_stream filtered to browser.backup.* events"
 
 [metrics.restore_started_v1]
 data_source = 'profile_restore_events_v1'
