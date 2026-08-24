@@ -1,6 +1,6 @@
 [experiment]
 
-end_date = "2026-08-24"
+end_date = "2026-08-23"
 
 [metrics]
 overall = ['urlbar_topsite_clicks']
