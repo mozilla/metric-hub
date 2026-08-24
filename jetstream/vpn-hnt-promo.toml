@@ -29,17 +29,17 @@ segments = [
 
 [metrics]
 weekly = [
-    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment",
+    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_enrollment",
     "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
 ]
 overall = [
-    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment",
+    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_enrollment",
     "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
 ]
 
-## New Tab guardrails are defined in definitions/firefox_desktop.toml but carry NO default
-## statistics (they aren't auto-applied), so each needs an explicit statistics block when
-## listed. Per-client counts/engagement -> linear_model_mean (CUPED variance reduction).
+## New Tab guardrails are defined in definitions/firefox_desktop.toml — listed by name
+## only. Most carry no default statistic, so each needs an explicit statistics block.
+## Per-client counts/engagement -> linear_model_mean (CUPED variance reduction).
 
 [metrics.newtab_visits.statistics.linear_model_mean]
 [metrics.newtab_engaged_visits.statistics.linear_model_mean]
@@ -50,6 +50,17 @@ overall = [
 [metrics.sponsored_tile_clicks.statistics.linear_model_mean]
 [metrics.sponsored_content_clicks.statistics.linear_model_mean]
 [metrics.organic_content_clicks.statistics.linear_model_mean]
+
+## sponsored_content_clicks is sparse enough that linear_model_mean's 0.995 outlier trim
+## drives the pooled threshold to 0 and every value trims to zero, so the statistic is
+## skipped with a StatisticComputationException ("became all zeroes after outlier
+## trimming") — leaving no sponsored-story read at all in several segments. bootstrap_mean
+## is this metric's default statistic in jetstream/definitions/firefox_desktop.toml and
+## handles the zero-heavy distribution. Added ALONGSIDE linear_model_mean rather than
+## replacing it, so the CUPED estimate still lands where it can compute and this serves as
+## the fallback where it can't. Purely additive — no existing output changes.
+
+[metrics.sponsored_content_clicks.statistics.bootstrap_mean]
 
 [metrics.vpn_any_engagement]
 data_source = "glean_events_stream"
@@ -87,14 +98,19 @@ analysis_bases = ["enrollments", "exposures"]
 
 [metrics.vpn_started_count.statistics.linear_model_mean]
 
-[metrics.vpn_toggled_count]
-data_source = "glean_events_stream"
-select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'toggled'), 0)"
-friendly_name = "VPN Toggle Count"
-description = "Count of IP Protection toggle events per client in the analysis window."
-analysis_bases = ["enrollments", "exposures"]
-
-[metrics.vpn_toggled_count.statistics.linear_model_mean]
+## vpn_toggled_count REMOVED (2026-08-24). `ipprotection.toggled` is defined in Glean but
+## is effectively not wired up in shipping code: across ALL Firefox Desktop clients from
+## 2026-08-01 to 08-23 it fired 191 times for 60 clients, versus 7,760,331 events / 1,175,926
+## clients for `ipprotection.started` and 7,521,333 / 1,147,412 for `ipprotection.stopped`.
+## The metric returned all-zeroes in every segment, basis and analysis period for the whole
+## experiment, producing a guaranteed StatisticComputationException on every Jetstream run
+## and never a result. started/stopped are the live pair; usage intensity is already covered
+## by vpn_started_count. Do not re-add `toggled` to a VPN config without re-checking that it
+## actually fires.
+##
+## NOTE: `toggled` is deliberately LEFT IN the vpn_any_engagement select expression below.
+## It contributes ~nothing, and editing that expression would change an already-published
+## metric definition and shift reported results on any Jetstream rerun.
 
 [metrics.vpn_enrollment]
 data_source = "glean_events_stream"
