@@ -1,6 +1,7 @@
 import datetime as dt
 import re
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -315,6 +316,47 @@ class TestOutcomes:
 
         with pytest.raises(ClassValidationError):
             AnalysisSpec.from_dict(toml.loads(config_str))
+
+    def test_resolving_outcomes_from_external_config(self, experiments, config_collection):
+        """Outcomes listed under `[experiment]` in an external config should be
+        resolved in addition to any outcomes attached to the experiment itself."""
+        config_str = dedent(
+            """
+            [experiment]
+            outcomes = ["performance"]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+        overall_metrics = [s.metric.name for s in cfg.metrics[AnalysisPeriod.OVERALL]]
+
+        assert "speed" in overall_metrics
+
+    def test_resolving_outcomes_from_external_config_deduplicated(
+        self, experiments, config_collection
+    ):
+        """Outcomes already attached to the experiment shouldn't be resolved twice
+        when also listed in the external config."""
+        config_str = dedent(
+            """
+            [experiment]
+            outcomes = ["performance", "tastiness"]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+
+        # experiments[5] already has outcomes=["performance", "tastiness"] attached,
+        # so each slug should only be resolved once even though it's listed in both
+        # the experiment and the external config.
+        with patch.object(
+            config_collection, "spec_for_outcome", wraps=config_collection.spec_for_outcome
+        ) as spec_for_outcome:
+            spec.resolve(experiments[5], config_collection)
+
+        resolved_slugs = [call.args[0] for call in spec_for_outcome.call_args_list]
+        assert resolved_slugs == ["performance", "tastiness"]
 
     def test_unsupported_platform_outcomes(self, config_collection):
         spec = AnalysisSpec.from_dict(toml.loads(""))

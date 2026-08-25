@@ -318,6 +318,7 @@ class ExperimentSpec:
     start_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
     end_date: str | None = attr.ib(default=None, validator=_validate_yyyy_mm_dd)
     segments: list[SegmentReference] = attr.Factory(list)
+    outcomes: list[str] = attr.Factory(list)
     skip: bool = False
     exposure_signal: ExposureSignalDefinition | None = None
     is_private: bool = False
