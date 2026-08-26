@@ -15,13 +15,13 @@ select_expression = "LOGICAL_OR(COALESCE(event = 'CLICK_BUTTON' AND event_source
 [metrics.land_in_smart_window]
 friendly_name = "Land In Smart Window User rate"
 description = "Rate of Users who land in Smart Window."
-data_source = "smart_window_reactivation"
+data_source = "smart_window_activity"
 select_expression = "LOGICAL_OR(COALESCE(event_name = 'open_window', FALSE))"
 
 [metrics.smart_window_activation]
 friendly_name = "Smart Window Activation"
 description = "Users who did a meaningful action in Smart Window."
-data_source = "smart_window_reactivation"
+data_source = "smart_window_activity"
 select_expression = "LOGICAL_OR(COALESCE(event_name IN ('uri_load', 'chat_submit'), FALSE))"
 
 [metrics.smart_window_call_out_click.statistics.binomial]
@@ -31,7 +31,7 @@ select_expression = "LOGICAL_OR(COALESCE(event_name IN ('uri_load', 'chat_submit
 
 [data_sources]
 
-[data_sources.smart_window_reactivation]
+[data_sources.smart_window_activity]
 from_expression = """(
   SELECT
     *,
