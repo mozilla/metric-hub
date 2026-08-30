@@ -1,0 +1,204 @@
+[experiment]
+
+# Foreground Nimbus experiment (fxms-message, defaultBrowserCheck startup
+# trigger) — NOT a background-updater experiment, so no custom enrollment_query
+# and no analysis_unit override. Nimbus randomizes on group_id, so all custom
+# data sources below expose profile_group_id alongside client_id.
+#
+# enrollment_period and end_date are deliberately omitted so Nimbus defaults
+# apply (per metric-hub review feedback on PR #1401).
+
+segments = [
+  # --- Activity level (built-in) -----------------------------------------
+  "activity_infrequent",
+  "activity_casual",
+  "activity_regular",
+  "activity_core",
+
+  # --- Profile age within the 7-28d targeting band ------------------------
+  "profile_age_7_to_14_days",
+  "profile_age_15_to_28_days",
+
+  # --- Windows version ---------------------------------------------------
+  "windows_10",
+  "windows_11",
+
+  # --- Prior exposure to the new-user auto-pin rollout (FXE-1620) ---------
+  # The brief's headline read is the not-previously-exposed sub-segment.
+  "no_prior_pin_prompt_rollout",
+  "prior_pin_prompt_rollout",
+]
+
+[metrics]
+
+# Deliberately NOT listed — these auto-apply via jetstream/defaults/firefox_desktop.toml
+# and re-listing them would override the covariate-adjusted default statistics:
+#   retained (W1/W2/W4 retention), active_in_last_3_days_legacy (D3 retention),
+#   client_level_daily_active_users_v2 (DAU, per_client_dau_impact, daily
+#   aggregates for the Day-20+ steady-state read), is_default_browser (default
+#   rate spillover), search_count / organic_search_count / searches_with_ads /
+#   ad_clicks (search guardrails), active_hours, uri_count, days_of_use,
+#   qualified_cumulative_days_of_use, unenroll.
+
+weekly = [
+  "is_pinned",
+  "taskbar_launch_rate",
+  "number_of_taskbar_launches",
+  "number_of_desktop_launches",
+  "number_of_startmenu_launches",
+  "number_of_othershortcut_launches",
+]
+
+overall = [
+  "is_pinned",
+  "taskbar_launch_rate",
+  "number_of_taskbar_launches",
+  "number_of_desktop_launches",
+  "number_of_startmenu_launches",
+  "number_of_othershortcut_launches",
+]
+
+# is_pinned is built-in with a pre-declared binomial statistic, so listing it
+# above is enough — no statistics block needed. At `overall` its
+# LOGICAL_OR(scalar_parent_os_environment_is_taskbar_pinned) gives exactly the
+# cumulative-ever read the brief specifies, with non-reporters counted as
+# not-pinned rather than dropped.
+
+[metrics.taskbar_launch_rate.statistics.binomial]
+
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_othershortcut_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# CUSTOM METRIC — taskbar launch rate
+# ============================================================================
+# Copied verbatim from jetstream/1-click-pin-experiment.toml. This is the
+# mediator the brief's causal story rests on ("a pinned icon is the top Firefox
+# launch entry point and a persistent daily return cue") — a pin that never
+# converts into a taskbar launch has not changed behaviour.
+
+[metrics.taskbar_launch_rate]
+friendly_name = "Taskbar Launch Rate"
+description = """
+Fraction of clients that launched Firefox via the taskbar at least once during
+the interval.
+"""
+select_expression = "COALESCE(LOGICAL_OR(scalar_parent_os_environment_launched_via_taskbar), FALSE)"
+data_source = "clients_daily"
+
+# ============================================================================
+# SEGMENTS — profile age at enrollment
+# ============================================================================
+# window_start = window_end = 0 pins profile age to the ENROLLMENT DAY. This is
+# load-bearing: the observation window is 28 days and the targeting band is only
+# 7-28 days wide, so without pinning, every client would pass through both
+# buckets during analysis and LOGICAL_OR would tag them into both. Measuring at
+# enrollment keeps the two buckets disjoint and pre-treatment.
+
+[segments.profile_age_7_to_14_days]
+friendly_name = "Profile Age 7 to 14 days at enrollment"
+description = "Profile was 7-14 days old on the enrollment date."
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 7 AND 14), FALSE)"
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_15_to_28_days]
+friendly_name = "Profile Age 15 to 28 days at enrollment"
+description = "Profile was 15-28 days old on the enrollment date."
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 15 AND 28), FALSE)"
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+# ============================================================================
+# SEGMENTS — Windows version at enrollment
+# ============================================================================
+# Targeting is os.windowsBuildNumber >= 19045, which admits Windows 10 22H2 as
+# well as Windows 11, so this cut is not cosmetic — roughly a quarter of the
+# eligible population is Windows 10.
+
+[segments.windows_11]
+friendly_name = "Windows 11"
+description = "Client was on Windows 11 at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.windows_version_info(os, os_version, windows_build_number) = 'Windows 11'), FALSE)"
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.windows_10]
+friendly_name = "Windows 10"
+description = "Client was on Windows 10 at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.windows_version_info(os, os_version, windows_build_number) = 'Windows 10'), FALSE)"
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+# ============================================================================
+# SEGMENTS — prior exposure to the new-user auto-pin rollout (FXE-1620)
+# ============================================================================
+# The brief names the not-previously-exposed sub-segment as the HEADLINE read,
+# with the full cohort reported alongside. Most of this cohort was created while
+# the day-0 auto-pin rollout was live, so many enrollees have already seen (and
+# usually declined) this exact toast — a re-ask reads very differently from a
+# first ask.
+#
+# window_start = -35 covers the full life of a 7-28 day old profile; window_end
+# = -1 keeps the classification strictly pre-enrollment.
+
+[segments.no_prior_pin_prompt_rollout]
+friendly_name = "No prior auto-pin prompt rollout"
+description = """
+Client was NOT enrolled in any auto-trigger-pin-to-taskbar-notification rollout
+before enrolling here — i.e. this is their first exposure to the auto-fired
+native pin toast. Headline segment per the brief.
+"""
+select_expression = "COALESCE(NOT LOGICAL_OR(in_pin_prompt_rollout), TRUE)"
+data_source = "pin_prompt_history"
+window_start = -35
+window_end = -1
+
+[segments.prior_pin_prompt_rollout]
+friendly_name = "Prior auto-pin prompt rollout"
+description = """
+Client was already enrolled in an auto-trigger-pin-to-taskbar-notification
+rollout before enrolling here, so the startup ask is a re-ask.
+"""
+select_expression = "COALESCE(LOGICAL_OR(in_pin_prompt_rollout), FALSE)"
+data_source = "pin_prompt_history"
+window_start = -35
+window_end = -1
+
+# ============================================================================
+# SEGMENT DATA SOURCE — prior auto-pin rollout enrollment history
+# ============================================================================
+# Segments use a separate data-source registry from metrics, so this lives under
+# [segments.data_sources.*]. The LIKE prefix catches every rollout in the family
+# (verified present for this cohort: ...-rollout-v2 and ...-rollout-max-fx-152).
+
+[segments.data_sources.pin_prompt_history]
+from_expression = """(
+    SELECT
+        submission_date,
+        client_id,
+        profile_group_id,
+        EXISTS(
+            SELECT 1
+            FROM UNNEST(experiments) AS e
+            WHERE e.key LIKE 'auto-trigger-pin-to-taskbar-notification%'
+        ) AS in_pin_prompt_rollout
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE submission_date >= '2026-07-01'
+)"""
+friendly_name = "Prior Auto-Pin Rollout History"
+description = """
+Per-client-day flag for whether the client was enrolled in any
+auto-trigger-pin-to-taskbar-notification rollout, for pre-enrollment
+segmentation.
+"""
