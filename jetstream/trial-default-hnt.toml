@@ -1,0 +1,160 @@
+[experiment]
+
+## FXE-1569 / FIDEFE-9111 — Day 1-2 New Tab set-to-default re-ask.
+## Brief: https://docs.google.com/document/d/1cieHaE2eslTbfhIBstFm6Q3WgjSKkv7bTWeTbbvwLlM
+##
+## WHY METRICS ARE LISTED ON BOTH BASES: only ~23% of enrolled clients are ever
+## exposed (message-eligibility filters inside a 48h window), so the ITT read is
+## diluted ~5x. Exposure was verified branch-symmetric — 22.9% / 22.9% / 23.0% on
+## enrollment-matched cohorts — so the exposures basis is the primary read here and
+## ITT is reported alongside. jetstream/defaults/firefox_desktop.toml sets no
+## analysis_bases, so the auto-applied metrics would otherwise produce no exposures
+## result. is_default_browser and retained are re-listed ONLY to request the
+## exposures basis; their auto statistic is already binomial, so restating binomial
+## loses no covariate adjustment.
+
+segments = [
+    "os_windows",
+    "os_mac",
+    "os_linux",
+    "profile_age_1_day",
+    "profile_age_2_days",
+]
+
+weekly = [
+    "is_default_browser",
+    "retained",
+    "active_in_last_3_days",
+    "days_as_default_browser",
+    "is_pinned",
+]
+
+overall = [
+    "is_default_browser",
+    "retained",
+    "active_in_last_3_days",
+    "days_as_default_browser",
+    "is_pinned",
+    "new_profile_retained_week4",
+]
+
+daily = [
+    "active_in_last_3_days",
+]
+
+## ---------------------------------------------------------------------------
+## Metrics
+## ---------------------------------------------------------------------------
+
+## Primary. Built-in and auto-applied; listed only to add the exposures basis.
+## NOTE: definition is COALESCE(LOGICAL_OR(is_default_browser), FALSE) — "default at
+## ANY point in the window" — so this metric cannot by itself detect reversion.
+## Pair it with days_as_default_browser below and with the weekly curve.
+[metrics.is_default_browser]
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.is_default_browser.statistics.binomial]
+
+## Reversion signal (custom). Counts days in the analysis window on which the client
+## was default. Two branches with equal is_default_browser but different
+## days_as_default_browser differ in how long the default survived — which is the
+## comparison the trial-framing hypothesis rests on.
+[metrics.days_as_default_browser]
+data_source = "clients_daily"
+select_expression = "COALESCE(COUNTIF(is_default_browser), 0)"
+friendly_name = "Days as Default Browser"
+description = "Number of days within the analysis window on which Firefox was the client's default browser. Reversion proxy: compare against is_default_browser (ever-default) to see whether the default persisted."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.days_as_default_browser.statistics.linear_model_mean]
+
+## Early-return signal. NOT D3 activation — do not label it as such.
+## Per Bryan B (DS, 2026-08-31): canonical Activation/D3 is "DAU on EXACTLY the third
+## day after client_first_seen (first-seen day = Day 0)". This built-in, despite its
+## friendly_name "3 Days Retention", is the different and less-noisy "active on the
+## first, second, OR third day" variant (MIN(days_since_desktop_active) < 3). Useful
+## as an early-return indicator; it is not the KR metric.
+## GAP: no per-client day-3-exact metric exists in metric-hub today —
+## cohort_daily_statistics and desktop_cohort_daily_retention are cohort-aggregate
+## (client_id_column = "NULL"), and the days_visited_1_uri_bits bit-N route was
+## tested and does not behave as a day offset. Pending a per-client expression from
+## Bryan; add in a follow-up PR (Jetstream backfills, so nothing is lost by waiting).
+[metrics.active_in_last_3_days]
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.active_in_last_3_days.statistics.binomial]
+
+## W4 retention for new profiles — "DAU at least once between days 22 and 28".
+## The right retention metric for a Day 1-2 audience. Overall window only.
+[metrics.new_profile_retained_week4]
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.new_profile_retained_week4.statistics.binomial]
+
+## Auto-applied; re-listed only for the exposures basis.
+[metrics.retained]
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.retained.statistics.binomial]
+
+## Built-in with pre-declared binomial, but only runs if listed. Secondary — the
+## message asks for default, not pin, so treat any movement as incidental.
+[metrics.is_pinned]
+analysis_bases = ["enrollments", "exposures"]
+
+## ---------------------------------------------------------------------------
+## Segments — OS
+## Pattern copied from jetstream/messaging-for-built-in-vpn-151.toml.
+## Enrollment targeting already excludes Windows 10 (windowsBuildNumber >= 22000),
+## so os_windows reads as Windows 11 for this experiment.
+## ---------------------------------------------------------------------------
+
+[segments.os_windows]
+friendly_name = "OS Windows"
+description = "Users on Windows. Windows 10 is excluded by enrollment targeting, so this is effectively Windows 11."
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) LIKE '%windows%'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.os_mac]
+friendly_name = "OS macOS"
+description = "Users on macOS"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'darwin'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.os_linux]
+friendly_name = "OS Linux"
+description = "Users on Linux"
+select_expression = "COALESCE(LOGICAL_OR(LOWER(os) = 'linux'), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+## ---------------------------------------------------------------------------
+## Segments — Day 1 vs Day 2 at enrollment
+## Mirrors the custom profile_age_0_to_1_days pattern from
+## jetstream/messaging-for-built-in-vpn-151.toml.
+## The Nimbus gate is fractional hours (24h < age < 72h); DATE_DIFF on first_seen_date
+## is whole days, so these are close but not exact analogues of the JEXL window.
+## ---------------------------------------------------------------------------
+
+[segments.profile_age_1_day]
+friendly_name = "Profile age 1 day at enrollment"
+description = "Clients whose first_seen_date is 1 day before enrollment — the earlier half of the Day 1-2 window"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) = 1,
+    FALSE
+)"""
+data_source = "clients_last_seen"
+
+[segments.profile_age_2_days]
+friendly_name = "Profile age 2 days at enrollment"
+description = "Clients whose first_seen_date is 2 days before enrollment — the later half of the Day 1-2 window"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) = 2,
+    FALSE
+)"""
+data_source = "clients_last_seen"
