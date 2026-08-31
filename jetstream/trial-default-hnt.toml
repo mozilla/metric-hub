@@ -35,7 +35,6 @@ overall = [
     "active_in_last_3_days",
     "days_as_default_browser",
     "is_pinned",
-    "new_profile_retained_week4",
 ]
 
 daily = [
@@ -84,12 +83,18 @@ analysis_bases = ["enrollments", "exposures"]
 
 [metrics.active_in_last_3_days.statistics.binomial]
 
-## W4 retention for new profiles — "DAU at least once between days 22 and 28".
-## The right retention metric for a Day 1-2 audience. Overall window only.
-[metrics.new_profile_retained_week4]
-analysis_bases = ["enrollments", "exposures"]
-
-[metrics.new_profile_retained_week4.statistics.binomial]
+## NOT LISTED: new_profile_retained_week4. It cannot be used for this audience.
+## Its data source, clients_first_seen_28_days_later, is keyed on first_seen_date and
+## Jetstream joins it with
+##   ds.first_seen_date BETWEEN DATE_ADD(e.enrollment_date, analysis_window_start)
+##                         AND DATE_ADD(e.enrollment_date, analysis_window_end)
+## so it only matches profiles first seen DURING the analysis window. This audience is
+## 1-2 days old at enrollment, i.e. first seen BEFORE the window opens, so the join can
+## never match. The table also has no `experiments` column, which makes the generated
+## SQL fail outright ("Name experiments not found inside ds") on the exposures basis.
+## Enrollment-anchored W1/W2/W4 retention comes from `retained` below, which is the
+## correct construct for a cohort that pre-exists enrollment.
+## (Same conclusion reached in jetstream/top-sites-welcome-back-spotlight-7-28-day-old-profiles.toml.)
 
 ## Auto-applied; re-listed only for the exposures basis.
 [metrics.retained]
