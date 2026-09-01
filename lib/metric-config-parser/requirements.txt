@@ -900,9 +900,9 @@ types-futures==3.3.8 \
     --hash=sha256:6fe8ccc2c2af7ef2fdd9bf73eab6d617074f09f30ad7d373510b4043d39c42de \
     --hash=sha256:d6e97ec51d56b96debfbf1dea32ebec22c1687f16d2547ea0a34b48db45df205
     # via -r requirements.in
-types-protobuf==7.34.1.20260518 \
-    --hash=sha256:28cfaded25889cb83ebfb63cfb0a43628f0b6f3785767bec17287dc6468795f2 \
-    --hash=sha256:a0a5337413347166439c0e07cbc26c6164d091401c6f01b1dfd8cdb966c4dd8f
+types-protobuf==7.35.1.20260827 \
+    --hash=sha256:5a98c18177cfd968d6a0de55ecfc4221aa829ef88bcd86104298e028516b04af \
+    --hash=sha256:7cc452a012678a6a889287d4cb702ea54b9f90a6ab0f3aa4c019d21f3ae7529b
     # via -r requirements.in
 types-pytz==2026.3.1.20260727 \
     --hash=sha256:42ac44e83645bfceb46597342c8fb8ec028a1407e2feae9c5c539986eab6b57a \
