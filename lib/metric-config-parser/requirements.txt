@@ -495,9 +495,9 @@ markupsafe==3.0.3 \
     # via
     #   -r requirements.in
     #   jinja2
-mozilla-nimbus-schemas==3004.0.0 \
-    --hash=sha256:54f121bf756459caccffb16fa99e7f885680c2151d33cf86d666986f7f6c046e \
-    --hash=sha256:5abc1dac2536ae45ecc7b97c8b21bf7aec882fa97f80acf9d6a695a04e69d59d
+mozilla-nimbus-schemas==3005.0.0 \
+    --hash=sha256:28bf41e3d71088a22ca823258ec65be7447ba16d52ee2160d85a9f124b1b5db3 \
+    --hash=sha256:66cc19dee23adaec20ea62e5bd511dd56056dbc7db1ab2c0feb965ce7efbe5c2
     # via -r requirements.in
 mypy==2.3.0 \
     --hash=sha256:04e617030eca5221909c8b7d8d7fd1c637948199aa2100b2ad9813feb07e1491 \
