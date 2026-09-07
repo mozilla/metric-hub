@@ -30,7 +30,7 @@ jobs:
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.head_ref }}
     - name: Set safe directory

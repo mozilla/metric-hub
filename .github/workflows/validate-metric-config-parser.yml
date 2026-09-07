@@ -30,7 +30,7 @@ jobs:
     - name: Changed Files tests
       run: echo ${{ needs.changed.outputs.any_changed }} && echo ${{ needs.changed.outputs.all_changed_files }}
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: ~/project
     - name: Setup python
@@ -76,7 +76,7 @@ jobs:
     if: needs.changed.outputs.any_changed == 'true'
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: ~/project
     - name: Setup python
