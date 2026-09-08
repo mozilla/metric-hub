@@ -1,59 +1,59 @@
 [metrics]
 daily = [
-    "retained",
-    "client_level_daily_active_users_v2",
     "active_hours",
-    "total_uri_count",
-    "search_count",
     "active_in_last_3_days",
+    "client_level_daily_active_users_v2",
+    "retained",
+    "search_count",
+    "total_uri_count",
 ]
 weekly = [
-    "retained",
     "active_hours",
+    "client_level_daily_active_users_v2",
+    "days_of_use",
+    "retained",
     "search_count",
     "serp_ad_clicks",
     "tagged_search_count",
     "total_uri_count",
-    "days_of_use",
-    "client_level_daily_active_users_v2",
 ]
 overall = [
     "active_hours",
-    "serp_ad_clicks",
-    "tagged_search_count",
+    "client_level_daily_active_users_v2",
+    "days_of_use",
     "organic_searches",
     "search_count",
     "searches_with_ads",
+    "serp_ad_clicks",
     "tagged_follow_on_searches",
+    "tagged_search_count",
     "total_uri_count",
-    "days_of_use",
-    "client_level_daily_active_users_v2",
 ]
 
 preenrollment_weekly = [
     "active_hours",
-    "serp_ad_clicks",
+    "client_level_daily_active_users_v2",
+    "days_of_use",
     "organic_searches",
     "search_count",
     "searches_with_ads",
+    "serp_ad_clicks",
     "tagged_follow_on_searches",
-    "total_uri_count",
-    "days_of_use",
-    "client_level_daily_active_users_v2",
     "tagged_search_count",
+    "total_uri_count",
 ]
 
 preenrollment_days28 = [
     "active_hours",
-    "serp_ad_clicks",
+    "client_level_daily_active_users_v2",
+    "days_of_use",
     "organic_searches",
     "search_count",
     "searches_with_ads",
+    "serp_ad_clicks",
     "tagged_follow_on_searches",
-    "total_uri_count",
-    "days_of_use",
-    "client_level_daily_active_users_v2",
     "tagged_search_count",
+    "total_uri_count",
 ]
 
 [metrics.retained]
@@ -84,6 +84,10 @@ deciles = {}
 [metrics.active_hours.statistics.linear_model_mean]
 [metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
+# no_clip version of mean_lm is the same as mean_lm but with `drop_highest = 0.0` as the default
+[metrics.active_hours.statistics.linear_model_mean_no_clip]
+[metrics.active_hours.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -95,6 +99,9 @@ data_source = "mobile_search_clients_engines_sources_daily"
 deciles = {}
 [metrics.serp_ad_clicks.statistics.linear_model_mean]
 [metrics.serp_ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.serp_ad_clicks.statistics.linear_model_mean_no_clip]
+[metrics.serp_ad_clicks.statistics.linear_model_mean_no_clip.covariate_adjustment]
 period = "preenrollment_week"
 
 ##
@@ -108,6 +115,9 @@ deciles = {}
 [metrics.organic_searches.statistics.linear_model_mean]
 [metrics.organic_searches.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
+[metrics.organic_searches.statistics.linear_model_mean_no_clip]
+[metrics.organic_searches.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
 
 
 ##
@@ -116,6 +126,9 @@ period = "preenrollment_week"
 deciles = {}
 [metrics.search_count.statistics.linear_model_mean]
 [metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.search_count.statistics.linear_model_mean_no_clip]
+[metrics.search_count.statistics.linear_model_mean_no_clip.covariate_adjustment]
 period = "preenrollment_week"
 
 ##
@@ -129,6 +142,10 @@ deciles = {}
 [metrics.searches_with_ads.statistics.linear_model_mean]
 [metrics.searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
+# no_clip version of mean_lm is the same as mean_lm but with `drop_highest = 0.0` as the default
+[metrics.searches_with_ads.statistics.linear_model_mean_no_clip]
+[metrics.searches_with_ads.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
 
 
 ##
@@ -137,6 +154,10 @@ period = "preenrollment_week"
 deciles = {}
 [metrics.tagged_search_count.statistics.linear_model_mean]
 [metrics.tagged_search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+# no_clip version of mean_lm is the same as mean_lm but with `drop_highest = 0.0` as the default
+[metrics.tagged_search_count.statistics.linear_model_mean_no_clip]
+[metrics.tagged_search_count.statistics.linear_model_mean_no_clip.covariate_adjustment]
 period = "preenrollment_week"
 
 ##
@@ -150,6 +171,10 @@ deciles = {}
 [metrics.tagged_follow_on_searches.statistics.linear_model_mean]
 [metrics.tagged_follow_on_searches.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
+# no_clip version of mean_lm is the same as mean_lm but with `drop_highest = 0.0` as the default
+[metrics.tagged_follow_on_searches.statistics.linear_model_mean_no_clip]
+[metrics.tagged_follow_on_searches.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
 
 ##
 
@@ -161,6 +186,10 @@ data_source = "metrics"
 deciles = {}
 [metrics.total_uri_count.statistics.linear_model_mean]
 [metrics.total_uri_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+# no_clip version of mean_lm is the same as mean_lm but with `drop_highest = 0.0` as the default
+[metrics.total_uri_count.statistics.linear_model_mean_no_clip]
+[metrics.total_uri_count.statistics.linear_model_mean_no_clip.covariate_adjustment]
 period = "preenrollment_week"
 
 [metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
