@@ -1044,6 +1044,12 @@ class TestFeatmonConfig:
         assert isinstance(entity, Outcome)
         assert [m.name for m in entity.spec.overall] == ["rocks_mined"]
         assert [m.name for m in entity.spec.days28] == ["rocks_mined"]
+        # undeclared periods stay empty; in particular weekly is not implied
+        # (the historical default was weekly + overall)
+        assert entity.spec.weekly == []
+        assert entity.spec.daily == []
+        assert entity.spec.preenrollment_weekly == []
+        assert entity.spec.preenrollment_days28 == []
 
     def test_config_collection_loads_featmon_from_local_repo(self, tmp_path):
         r = Repo.init(tmp_path)
