@@ -1,16 +1,16 @@
 [experiment]
 
 segments = [
-    "activity_infrequent",
     "activity_casual",
-    "activity_regular",
     "activity_core",
+    "activity_infrequent",
+    "activity_regular",
+    "default_browser",
+    "geo_newly_supported",
+    "geo_previously_supported",
+    "not_default_browser",
     "profile_age_7_to_28_days",
     "profile_age_more_than_28_days",
-    "default_browser",
-    "not_default_browser",
-    "geo_previously_supported",
-    "geo_newly_supported",
 ]
 
 ## Metrics — VPN (IP Protection) engagement, the mechanism the hypothesis promised
@@ -29,12 +29,36 @@ segments = [
 
 [metrics]
 weekly = [
-    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_enrollment",
-    "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
+    "newtab_ad_clicks",
+    "newtab_engaged_visits",
+    "newtab_engagement",
+    "newtab_searches",
+    "newtab_searches_with_ads",
+    "newtab_visits",
+    "organic_content_clicks",
+    "sponsored_content_clicks",
+    "sponsored_tile_clicks",
+    "vpn_any_engagement",
+    "vpn_enrollment",
+    "vpn_get_started",
+    "vpn_started",
+    "vpn_started_count",
 ]
 overall = [
-    "vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_enrollment",
-    "newtab_visits", "newtab_engaged_visits", "newtab_engagement", "newtab_searches", "newtab_searches_with_ads", "newtab_ad_clicks", "sponsored_tile_clicks", "sponsored_content_clicks", "organic_content_clicks",
+    "newtab_ad_clicks",
+    "newtab_engaged_visits",
+    "newtab_engagement",
+    "newtab_searches",
+    "newtab_searches_with_ads",
+    "newtab_visits",
+    "organic_content_clicks",
+    "sponsored_content_clicks",
+    "sponsored_tile_clicks",
+    "vpn_any_engagement",
+    "vpn_enrollment",
+    "vpn_get_started",
+    "vpn_started",
+    "vpn_started_count",
 ]
 
 ## New Tab guardrails are defined in definitions/firefox_desktop.toml — listed by name
@@ -63,7 +87,7 @@ overall = [
 [metrics.sponsored_content_clicks.statistics.bootstrap_mean]
 
 [metrics.vpn_any_engagement]
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_ipprotection"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name IN ('get_started', 'started', 'toggled', 'location_changed', 'location_selector_button_clicked', 'click_upgrade_button', 'enrollment')) > 0, FALSE)"
 friendly_name = "VPN Any Engagement"
 description = "Client fired at least one IP Protection (VPN) interaction event in the analysis window. Primary mechanism metric the experiment originally lacked."
@@ -72,7 +96,7 @@ analysis_bases = ["enrollments", "exposures"]
 [metrics.vpn_any_engagement.statistics.binomial]
 
 [metrics.vpn_get_started]
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_ipprotection"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'get_started') > 0, FALSE)"
 friendly_name = "VPN Get Started"
 description = "Client clicked the VPN panel/settings 'get started' button at least once in the analysis window. Maps to the HNT promo CTA that funnels into the iprotection_enroll auth flow."
@@ -81,7 +105,7 @@ analysis_bases = ["enrollments", "exposures"]
 [metrics.vpn_get_started.statistics.binomial]
 
 [metrics.vpn_started]
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_ipprotection"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started') > 0, FALSE)"
 friendly_name = "VPN Started (any)"
 description = "Client started IP Protection at least once in the analysis window (activation)."
@@ -90,7 +114,7 @@ analysis_bases = ["enrollments", "exposures"]
 [metrics.vpn_started.statistics.binomial]
 
 [metrics.vpn_started_count]
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_ipprotection"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started'), 0)"
 friendly_name = "VPN Start Count"
 description = "Count of IP Protection start events per client in the analysis window (engagement intensity)."
@@ -113,13 +137,25 @@ analysis_bases = ["enrollments", "exposures"]
 ## metric definition and shift reported results on any Jetstream rerun.
 
 [metrics.vpn_enrollment]
-data_source = "glean_events_stream"
+data_source = "glean_events_stream_ipprotection"
 select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'enrollment') > 0, FALSE)"
 friendly_name = "VPN Enrollment (sign-up complete)"
 description = "Client completed the VPN account sign-up flow at least once in the analysis window (deepest activation signal)."
 analysis_bases = ["enrollments", "exposures"]
 
 [metrics.vpn_enrollment.statistics.binomial]
+
+[data_sources.glean_events_stream_ipprotection]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    WHERE event_category = 'ipprotection'
+)"""
+analysis_units = ["client_id", "profile_group_id"]
+description = "Glean events_stream dataset (events ping unnested to a single row per event), filtered to `ipprotection`"
+friendly_name = "Glean Events Stream IP Protection"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
 
 ## Segments — Engagement level (brief: User engagement level).
 ## Built-in activity_* segments (definitions/firefox_desktop.toml) — listed by name only.
