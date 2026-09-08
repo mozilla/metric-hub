@@ -3,7 +3,6 @@
 [metrics]
 daily = [
   "active_hours",
-  "active_in_last_3_days_legacy",
   "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
   "retained",
@@ -114,9 +113,6 @@ period = "preenrollment_week"
 [metrics.retained.statistics.binomial]
 
 [metrics.retained_dau.statistics.binomial]
-
-
-[metrics.active_in_last_3_days_legacy.statistics.binomial]
 
 
 [metrics.uri_count.statistics.linear_model_mean]
