@@ -1,7 +1,9 @@
 """Handlers for experiments: Experimenter API and jetstream/opmon/looker config files."""
 
 import logging
+import re
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from mcp.types import TextContent
@@ -10,6 +12,36 @@ from .config import get_repo_path
 from .experimenter import fetch_experiments
 
 logger = logging.getLogger(__name__)
+
+ALLOWED_CONFIG_TYPES = ("jetstream", "opmon", "looker")
+
+# Config slugs map to filenames. Restrict to a safe character set (no path
+# separators) so caller-supplied values cannot traverse outside the config dir.
+_SLUG_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def _resolve_config_file(config_type: str, slug: str) -> Path:
+    """Validate ``config_type`` and ``slug`` and return the resolved .toml path.
+
+    Both values are caller-controlled, so we validate the type against a fixed
+    allow-list and the slug against a strict pattern, then confirm the resolved
+    path stays within the intended config directory. Raises ``ValueError`` on any
+    unsafe input (path traversal, unknown type).
+    """
+    if config_type not in ALLOWED_CONFIG_TYPES:
+        allowed = ", ".join(ALLOWED_CONFIG_TYPES)
+        raise ValueError(f"Invalid config_type '{config_type}'. Must be one of: {allowed}")
+    if not slug or not _SLUG_RE.match(slug):
+        raise ValueError(
+            f"Invalid config slug '{slug}': only letters, numbers, '.', '_' and '-' are allowed"
+        )
+
+    repo_path = get_repo_path().resolve()
+    config_dir = (repo_path / config_type).resolve()
+    target = (config_dir / f"{slug}.toml").resolve()
+    if not target.is_relative_to(config_dir):
+        raise ValueError("Resolved path escapes the config directory")
+    return target
 
 
 # --- Experimenter API ---
@@ -135,9 +167,14 @@ async def handle_get_experiment(arguments: dict[str, Any]) -> list[TextContent]:
         result += f"### {branch.get('slug', 'unknown')}\n"
         result += f"- **Ratio:** {branch.get('ratio', 1)}\n\n"
 
-    repo_path = get_repo_path()
-    jetstream_exists = (repo_path / "jetstream" / f"{slug}.toml").exists()
-    opmon_exists = (repo_path / "opmon" / f"{slug}.toml").exists()
+    # Only probe the repo for a matching config when the slug is a safe filename;
+    # this avoids using caller input as a path-traversal existence oracle.
+    if _SLUG_RE.match(slug or ""):
+        repo_path = get_repo_path()
+        jetstream_exists = (repo_path / "jetstream" / f"{slug}.toml").exists()
+        opmon_exists = (repo_path / "opmon" / f"{slug}.toml").exists()
+    else:
+        jetstream_exists = opmon_exists = False
 
     if jetstream_exists or opmon_exists:
         result += "## Configurations in Repo\n\n"
@@ -158,6 +195,14 @@ async def handle_get_experiment(arguments: dict[str, Any]) -> list[TextContent]:
 async def handle_list_experiment_configs(arguments: dict[str, Any]) -> list[TextContent]:
     """List all configuration files of a given type."""
     config_type = arguments["config_type"]
+    if config_type not in ALLOWED_CONFIG_TYPES:
+        allowed = ", ".join(ALLOWED_CONFIG_TYPES)
+        return [
+            TextContent(
+                type="text",
+                text=f"Invalid config_type '{config_type}'. Must be one of: {allowed}",
+            )
+        ]
     config_dir = get_repo_path() / config_type
 
     if not config_dir.exists():
@@ -182,7 +227,10 @@ async def handle_get_experiment_config(arguments: dict[str, Any]) -> list[TextCo
     config_type = arguments["config_type"]
     config_slug = arguments.get("config_slug") or arguments.get("experiment_slug")
 
-    config_file = get_repo_path() / config_type / f"{config_slug}.toml"
+    try:
+        config_file = _resolve_config_file(config_type, config_slug)
+    except ValueError as e:
+        return [TextContent(type="text", text=f"Error: {e}")]
 
     if not config_file.exists():
         return [TextContent(type="text", text=f"Configuration file '{config_slug}.toml' not found in {config_type}/")]
@@ -202,14 +250,19 @@ async def handle_create_experiment_config(arguments: dict[str, Any]) -> list[Tex
     base_config_slug = arguments.get("base_config_slug")
     config_content = arguments.get("config_content")
 
-    repo_path = get_repo_path()
-    new_config_file = repo_path / config_type / f"{new_config_slug}.toml"
+    try:
+        new_config_file = _resolve_config_file(config_type, new_config_slug)
+    except ValueError as e:
+        return [TextContent(type="text", text=f"Error: {e}")]
 
     if new_config_file.exists():
         return [TextContent(type="text", text=f"Error: Configuration file '{new_config_slug}.toml' already exists in {config_type}/")]
 
     if base_config_slug:
-        base_config_file = repo_path / config_type / f"{base_config_slug}.toml"
+        try:
+            base_config_file = _resolve_config_file(config_type, base_config_slug)
+        except ValueError as e:
+            return [TextContent(type="text", text=f"Error: {e}")]
         if not base_config_file.exists():
             return [TextContent(type="text", text=f"Error: Base configuration '{base_config_slug}.toml' not found in {config_type}/")]
         content = base_config_file.read_text()

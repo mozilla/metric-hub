@@ -1,9 +1,13 @@
 import fnmatch
+import logging
 import re
 from enum import Enum
+from string import Formatter
 from typing import TYPE_CHECKING, Any, Union
 
 import attr
+import jinja2
+from jinja2 import StrictUndefined, meta
 
 from metric_config_parser.errors import DefinitionNotFound
 
@@ -17,6 +21,69 @@ if TYPE_CHECKING:
 
 from . import AnalysisUnit
 from .util import converter, is_valid_slug
+
+logger = logging.getLogger(__name__)
+
+EXPERIMENT_TEMPLATE_VAR = "experiment"
+
+
+def render_from_expression(name: str, from_expression: str, experiment: Any | None) -> str:
+    """Render Jinja templating in a data source ``from_expression``.
+
+    ``from_expression`` carries two independent templating layers:
+
+    * ``{dataset}`` (single braces), substituted later by
+      :meth:`DataSource.from_expr_for` using Python ``str.format``.
+    * ``{{experiment.<attr>}}`` (Jinja), substituted here against the experiment
+      the configuration is being resolved for.
+
+    Because ``str.format`` also treats ``{{`` as the escape for a literal ``{``,
+    Jinja rendering is deliberately narrow: the expression is rendered *only* if it
+    references the ``experiment`` variable. Expressions that merely contain ``{{`` --
+    e.g. a literal add-on GUID written as
+    ``'{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}'`` -- keep their existing
+    ``str.format`` brace-escaping behaviour. (``SegmentDataSourceDefinition.resolve``
+    renders unconditionally; segment ``from_expression`` has been Jinja since day one,
+    so no brace-escaped content exists there. Do not "unify" the two.)
+
+    Never mutates its inputs: definitions are shared across every experiment resolved
+    from a ConfigCollection.
+    """
+    if not from_expression or "{{" not in from_expression:
+        return from_expression
+
+    env = jinja2.Environment(autoescape=False, undefined=StrictUndefined)
+    try:
+        ast = env.parse(from_expression)
+    except jinja2.TemplateSyntaxError:
+        # Not a Jinja template; `{{` is being used to escape a literal brace
+        # for `str.format`. Leave it untouched.
+        return from_expression
+
+    referenced = meta.find_undeclared_variables(ast)
+    if EXPERIMENT_TEMPLATE_VAR not in referenced:
+        if referenced:
+            logger.warning(
+                "%s: from_expression contains placeholder(s) %s that will not be "
+                "substituted and will be emitted as literal braces. To reference the "
+                "experiment, use {{experiment.normandy_slug}}.",
+                name,
+                sorted(referenced),
+            )
+        return from_expression
+
+    if experiment is None:
+        raise ValueError(
+            f"{name}: from_expression references `experiment`, but no experiment is "
+            "available in this context. Experiment templating is only supported when "
+            "resolving a data source for an experiment (Jetstream); it is not available "
+            "for OpMon projects or for standalone SQL/docs generation."
+        )
+
+    try:
+        return env.from_string(ast).render(**{EXPERIMENT_TEMPLATE_VAR: experiment})
+    except jinja2.TemplateError as e:
+        raise ValueError(f"{name}: could not render from_expression template: {e}") from e
 
 
 class DataSourceJoinRelationship(Enum):
@@ -54,10 +121,20 @@ class DataSource:
         name (str): Name for the Data Source. Used in sanity metric
             column names.
         from_expression (str): FROM expression - often just a fully-qualified
-            table name. Sometimes a subquery. May contain the string
-            ``{dataset}`` which will be replaced with an app-specific
-            dataset for Glean apps. If the expression is templated
-            on dataset, default_dataset is mandatory.
+            table name. Sometimes a subquery. Supports two independent
+            templating layers:
+            * ``{dataset}`` (single braces, Python ``str.format``), replaced
+              with an app-specific dataset for Glean apps. If the expression
+              is templated on dataset, default_dataset is mandatory.
+            * ``{{experiment.<attr>}}`` (double braces, Jinja), replaced with
+              an attribute of the experiment the data source is being
+              resolved for, e.g. ``{{experiment.normandy_slug}}``,
+              ``{{experiment.start_date_str}}``, ``{{experiment.end_date_str}}``,
+              ``{{experiment.last_enrollment_date_str}}``. Only rendered when
+              the expression actually references ``experiment``; a literal
+              brace can still be written by doubling it, e.g.
+              ``'{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}'``. Not available
+              when resolving a data source outside of an experiment context.
         experiments_column_type (str or None): Info about the schema
             of the table or view:
             * 'simple': There is an ``experiments`` column, which is an
@@ -110,6 +187,13 @@ class DataSource:
 
     name = attr.ib(validator=attr.validators.instance_of(str))
     from_expression = attr.ib(validator=attr.validators.instance_of(str))
+
+    @from_expression.validator
+    def _check_no_unrendered_experiment_template(self, attribute, value):
+        # Guards against an unrendered template reaching mozanalysis via a code path
+        # that skipped DataSourceDefinition.resolve().
+        render_from_expression(self.name, value, None)
+
     experiments_column_type = attr.ib(default="simple", type=str)
     client_id_column = attr.ib(default=AnalysisUnit.CLIENT.value, type=str)
     submission_date_column = attr.ib(default="submission_date", type=str)
@@ -140,20 +224,44 @@ class DataSource:
 
     def from_expr_for(self, dataset: str | None) -> str:
         """Expands the ``from_expression`` template for the given dataset.
+
+        Only ``{dataset}`` is substituted here. ``{{experiment.*}}`` Jinja
+        templating is resolved earlier, in ``DataSourceDefinition.resolve()``.
         If ``from_expression`` is not a template, returns ``from_expression``.
         Args:
             dataset (str or None): Dataset name to substitute
                 into the from expression.
         """
         effective_dataset = dataset or self.default_dataset
-        if effective_dataset is None:
-            try:
+        try:
+            if effective_dataset is None:
                 return self.from_expression.format()
-            except Exception as e:
-                raise ValueError(
-                    f"{self.name}: from_expression contains a dataset template but no value was provided."  # noqa:E501
-                ) from e
-        return self.from_expression.format(dataset=effective_dataset)
+            return self.from_expression.format(dataset=effective_dataset)
+        except Exception as e:
+            raise ValueError(self._from_expr_error()) from e
+
+    def _from_expr_error(self) -> str:
+        try:
+            unsupported = sorted(
+                {
+                    field
+                    for _, field, _, _ in Formatter().parse(self.from_expression)
+                    if field is not None and field != "dataset"
+                }
+            )
+        except Exception:
+            unsupported = []
+        if unsupported:
+            return (
+                f"{self.name}: from_expression contains unsupported placeholder(s) "
+                f"{unsupported}. Only `{{dataset}}` is substituted here. To reference "
+                "the experiment use Jinja syntax, e.g. `{{experiment.normandy_slug}}`; "
+                "to emit a literal brace, double it."
+            )
+        return (
+            f"{self.name}: from_expression contains a `{{dataset}}` template but no "
+            "value was provided and `default_dataset` is not set."
+        )
 
 
 @attr.s(auto_attribs=True)
@@ -232,9 +340,17 @@ class DataSourceDefinition:
         if app_name == "firefox_desktop":
             default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
 
+        # Jinja templating in `from_expression` is resolved per-experiment. Note we must
+        # not write back to `self.from_expression`: definitions are shared across all
+        # experiments resolved from a ConfigCollection.
+        experiment_context = conf if getattr(conf, "experiment", None) is not None else None
+        from_expression = self.from_expression
+        if from_expression is not None:
+            from_expression = render_from_expression(self.name, from_expression, experiment_context)
+
         params: dict[str, Any] = {
             "name": self.name,
-            "from_expression": self.from_expression,
+            "from_expression": from_expression,
         }
         # Allow mozanalysis to infer defaults for these values:
         for k in (

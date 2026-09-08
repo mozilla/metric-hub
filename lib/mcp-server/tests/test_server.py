@@ -4,8 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from metric_hub_mcp.experiments import (
+    handle_create_experiment_config,
+    handle_get_experiment_config,
+)
 from metric_hub_mcp.featmon import handle_get_monitored_feature, handle_list_monitored_features
 from metric_hub_mcp.metrics import handle_generate_metric_template, handle_list_platforms
+from metric_hub_mcp.server import _write_enabled, list_tools
 
 
 @pytest.mark.asyncio
@@ -146,3 +151,44 @@ async def test_get_monitored_feature_not_found():
         result = await handle_get_monitored_feature({"feature_slug": "nonexistent-feature"})
 
     assert "not found" in result[0].text.lower()
+
+
+# --- Read-only / write-gating ---
+
+@pytest.mark.asyncio
+async def test_write_tool_hidden_when_writes_disabled(monkeypatch):
+    monkeypatch.delenv("METRIC_HUB_MCP_ALLOW_WRITE", raising=False)
+    assert _write_enabled() is False
+    tools = await list_tools()
+    names = {t.name for t in tools}
+    assert "create_experiment_config" not in names
+    assert "get_metric" in names  # read tools still present
+
+
+@pytest.mark.asyncio
+async def test_write_tool_shown_when_writes_enabled(monkeypatch):
+    monkeypatch.setenv("METRIC_HUB_MCP_ALLOW_WRITE", "true")
+    assert _write_enabled() is True
+    tools = await list_tools()
+    assert "create_experiment_config" in {t.name for t in tools}
+
+
+@pytest.mark.asyncio
+async def test_create_config_rejects_path_traversal(monkeypatch):
+    monkeypatch.setenv("METRIC_HUB_MCP_ALLOW_WRITE", "true")
+    result = await handle_create_experiment_config(
+        {
+            "new_config_slug": "../../../../tmp/evil",
+            "config_type": "jetstream",
+            "config_content": "pwned = true",
+        }
+    )
+    assert "Invalid config slug" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_get_config_rejects_bad_config_type():
+    result = await handle_get_experiment_config(
+        {"config_type": "../../etc", "config_slug": "passwd"}
+    )
+    assert "Invalid config_type" in result[0].text

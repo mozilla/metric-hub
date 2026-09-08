@@ -12,7 +12,12 @@ authors = [
     {name = "Mozilla Corporation", email = "fx-data-dev@mozilla.org"}
 ]
 dependencies = [
-    "mcp>=1.0.0",
+    # Pinned for reproducible builds and to patch known CVEs (1.18.0 was
+    # affected by CVE-2025-66416 / CVE-2026-52869 / CVE-2026-59950). Some
+    # intermediate 1.19-1.2x releases changed the low-level Server API and
+    # broke the build; 1.28.1 restores the list_tools/call_tool decorators
+    # this server uses. Bump deliberately via dependabot PR + CI.
+    "mcp==1.28.1",
     "mozilla-metric-config-parser>=2024.11.1",
     "attrs>=23.0.0",
     "cattrs>=23.0.0",

@@ -1,4 +1,5 @@
 [experiment]
+outcomes = ["firefox_backup", "firefox_sync"]
 
 [metrics]
   # overwrite broken outcome metrics with no-ops

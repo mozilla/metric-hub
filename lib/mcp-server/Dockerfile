@@ -9,6 +9,10 @@ COPY metric_hub_mcp/ metric_hub_mcp/
 
 RUN pip install --no-cache-dir .
 
+# Run as an unprivileged user rather than root.
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8080
 
 CMD ["metric-hub-mcp-http"]
