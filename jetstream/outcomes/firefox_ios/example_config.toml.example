@@ -6,27 +6,27 @@ description = 'Example Firefox for iOS config used for testing'
 # Which metrics to include in each analysis window.
 # NOTE: If no period lists are declared, all metrics are calculated for weekly and overall only
 daily = [
-  'uri_count'
+  'total_uri_count'
 ]
 
 weekly = [
-  'uri_count'
+  'total_uri_count'
 ]
 
 # Pre-enrollment must be specified for any metrics/statistics using CUPED adjustment
 preenrollment_weekly = [
-  'uri_count'
+  'total_uri_count'
 ]
 
 overall = [
-  'uri_count'
+  'total_uri_count'
 ]
 
 # Metric and statistic definitions
 
 # Use these settings for CUPED adjustment
-[metrics.uri_count.statistics.linear_model_mean]
-[metrics.uri_count.statistics.linear_model_mean.covariate_adjustment]
+[metrics.total_uri_count.statistics.linear_model_mean]
+[metrics.total_uri_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
-[metrics.uri_count.statistics.deciles]
+[metrics.total_uri_count.statistics.deciles]
