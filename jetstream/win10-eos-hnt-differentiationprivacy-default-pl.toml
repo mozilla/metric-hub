@@ -1,2 +1,4 @@
 [experiment]
+enrollment_period = 7
+end_date = "2026-06-16"
 outcomes = ["firefox_backup", "firefox_sync"]
