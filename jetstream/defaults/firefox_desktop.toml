@@ -4,9 +4,7 @@
 daily = [
   "active_hours",
   "active_in_last_3_days_legacy",
-  "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
-  "retained",
   "retained_dau",
   "search_count",
   "unenroll",
@@ -15,12 +13,8 @@ daily = [
 weekly = [
   "active_hours",
   "ad_clicks",
-  "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
-  "days_of_use",
   "is_default_browser",
-  "qualified_cumulative_days_of_use",
-  "retained",
   "retained_dau",
   "search_count",
   "uri_count",
@@ -29,12 +23,9 @@ weekly = [
 overall = [
   "active_hours",
   "ad_clicks",
-  "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
-  "days_of_use",
   "is_default_browser",
   "organic_search_count",
-  "qualified_cumulative_days_of_use",
   "search_count",
   "searches_with_ads",
   "tagged_follow_on_search_count",
@@ -45,12 +36,9 @@ overall = [
 preenrollment_weekly = [
   "active_hours",
   "ad_clicks",
-  "client_level_daily_active_users_v2",
   "daily_active_users_per_1000_clients_legacy",
-  "days_of_use",
   "is_default_browser",
   "organic_search_count",
-  "qualified_cumulative_days_of_use",
   "search_count",
   "searches_with_ads",
   "tagged_follow_on_search_count",
@@ -61,11 +49,8 @@ preenrollment_weekly = [
 preenrollment_days28 = [
   "active_hours",
   "ad_clicks",
-  "client_level_daily_active_users_v2",
-  "days_of_use",
   "is_default_browser",
   "organic_search_count",
-  "qualified_cumulative_days_of_use",
   "search_count",
   "searches_with_ads",
   "tagged_follow_on_search_count",
@@ -93,14 +78,6 @@ period = "preenrollment_week"
 period = "preenrollment_week"
 
 
-[metrics.days_of_use.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.days_of_use.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.days_of_use.statistics.deciles]
-[metrics.days_of_use.statistics.empirical_cdf]
-
-
 [metrics.organic_search_count.statistics.linear_model_mean]
 [metrics.organic_search_count.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
@@ -110,8 +87,6 @@ period = "preenrollment_week"
 [metrics.organic_search_count.statistics.linear_model_mean_no_clip.covariate_adjustment]
 period = "preenrollment_week"
 
-
-[metrics.retained.statistics.binomial]
 
 [metrics.retained_dau.statistics.binomial]
 
@@ -172,21 +147,10 @@ period = "preenrollment_week"
 [metrics.unenroll.statistics.binomial]
 
 
-[metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean]
-drop_highest = 0.0
-[metrics.qualified_cumulative_days_of_use.statistics.linear_model_mean.covariate_adjustment]
-period = "preenrollment_week"
-[metrics.qualified_cumulative_days_of_use.statistics.deciles]
-
-
 [metrics.is_default_browser.statistics.binomial]
 
 
 [metrics.is_pinned.statistics.binomial]
-
-
-[metrics.client_level_daily_active_users_v2.statistics.per_client_dau_impact]
-pre_treatments = ['normalize_over_analysis_period']
 
 
 [metrics.daily_active_users_per_1000_clients_legacy.statistics.linear_model_mean]
