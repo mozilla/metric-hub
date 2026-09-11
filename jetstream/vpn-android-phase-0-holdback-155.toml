@@ -1,0 +1,29 @@
+# Firefox Android VPN Phase 0 holdback study, Firefox 155 relaunch
+# (vpn-android-phase-0-holdback-155). Re-run of the July study (vpn-android.toml)
+# after the 155 progressive rollout; same design, 155+ release, 29 regions.
+# Branches: control (VPN held back) vs treatment-a (VPN enabled), 1:1.
+#
+# Adds FxA adoption (fxa_sign_in) as a two-branch comparison, broken out for the
+# new_users segment. Retention, DAU, and search/ad guardrails come from the default
+# firefox_android metrics.
+
+[experiment]
+reference_branch = "control"
+# enrollment_period is intentionally not set: Jetstream derives it from Experimenter's
+# enrollmentEndDate once enrollment is ended there. Note Jetstream will not analyze
+# until that date is set (the July vpn-android study was ended without ever ending
+# enrollment, so it produced no results). Ending enrollment in Experimenter, not just
+# ending the experiment, is required.
+segments = [
+  "new_users",
+]
+
+[metrics]
+weekly = ["fxa_sign_in"]
+overall = ["fxa_sign_in"]
+
+# fxa_sign_in (definitions/fenix.toml): MAX(IF(metrics.boolean.preferences_signed_in_sync, 1, 0))
+# over the metrics ping, i.e. signed in to sync at any point in the window. Binomial gives
+# the per-branch rate and the treatment-a vs. control lift; on `overall` = ever signed
+# in, on `weekly` = per week. Android analog of desktop fxa_configured.
+[metrics.fxa_sign_in.statistics.binomial]
