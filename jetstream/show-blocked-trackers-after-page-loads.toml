@@ -5,14 +5,15 @@ overall = ["privacy_panel_clicks"]
 
 # Metric for total number of privacy panel clicks
 [metrics.privacy_panel_clicks]
-select_expression = """
-COALESCE(SUM(CASE 
-  WHEN event_category = 'security.ui.protectionspopup' 
-  AND event_name = 'open_protections_popup' 
-  THEN 1 
-  ELSE 0 
-END), 0)
-"""
+ select_expression = """                                                                                                               
+ COALESCE(SUM(CASE                                                                                                                 
+  WHEN event_category = 'security.ui.protectionspopup'                                                                               
+  AND event_method = 'open'                                                                                                          
+  AND event_object = 'protections_popup'                                                                                              
+  THEN 1                                                                                                                             
+   ELSE 0                                                                                                                              
+ END), 0)                                                                                                                              
+"""  
 data_source = "events_stream"
 friendly_name = "Privacy Panel Clicks"
 description = "Total number of times users opened the protections popup"
@@ -30,6 +31,6 @@ from_expression = """
         experiments,
         event_name,
         event_extra,
-    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events`
 WHERE event_category = 'security.ui.protectionspopup' )
 """
