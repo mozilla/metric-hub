@@ -1,43 +1,41 @@
-[metrics]
+ [metrics]
+  weekly = ["privacy_panel_clicks"]
+  overall = ["privacy_panel_clicks"]
 
-weekly = ["privacy_panel_clicks"]
-overall = ["privacy_panel_clicks"]
-
-# Metric for total number of privacy panel clicks
-[metrics.privacy_panel_clicks]
- select_expression = """
+  # Metric for total number of privacy panel clicks
+  [metrics.privacy_panel_clicks]
+  select_expression = """
   COALESCE(SUM(CASE
     WHEN event_category = 'security.ui.protectionspopup'
-    AND event_method = 'open'
-    AND event_object = 'protections_popup'
+    AND event_name = 'open_protections_popup'
     THEN 1
     ELSE 0
   END), 0)
   """
+  data_source = "security_events_stream"
+  friendly_name = "Privacy Panel Clicks"
+  description = "Total number of times users opened the protections popup"
+  
 
-data_source = "security_events"
-friendly_name = "Privacy Panel Clicks"
-description = "Total number of times users opened the protections popup"
+  [metrics.privacy_panel_clicks.statistics.bootstrap_mean]
 
-[metrics.privacy_panel_clicks.statistics.bootstrap_mean]
+  [metrics.privacy_panel_clicks.statistics.deciles]
 
-[metrics.privacy_panel_clicks.statistics.deciles]
-
-[data_sources.security_events]
+  # Custom data source filtered for security.ui.protectionspopup events
+  [data_sources.security_events_stream]
   from_expression = """
   (
     SELECT
-      client_id,
+      legacy_telemetry_client_id,
       profile_group_id,
-      submission_date,
-      experiments,
+      DATE(submission_timestamp) AS submission_date,
       event_category,
-      event_method,
-      event_object
-    FROM `moz-fx-data-shared-prod.telemetry.events`
+      event_name
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
     WHERE event_category = 'security.ui.protectionspopup'
   )
   """
-  experiments_column_type = "native"
-  friendly_name = "Security UI Events"
-  description = "Events from the security.ui.protectionspopup category"
+  experiments_column_type = "none"
+  client_id_column = "legacy_telemetry_client_id"
+  friendly_name = "Security UI Events Stream"
+  description = "Glean events_stream filtered for security.ui.protectionspopup category"
