@@ -27,7 +27,12 @@ description = "Total number of times users opened the protections popup"
   from_expression = """
   (
     SELECT
-      *
+      client_id,
+      submission_date,
+      experiments,
+      event_category,
+      event_method,
+      event_object
     FROM `moz-fx-data-shared-prod.telemetry.events`
     WHERE event_category = 'security.ui.protectionspopup'
   )
