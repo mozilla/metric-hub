@@ -28,6 +28,7 @@ description = "Total number of times users opened the protections popup"
   (
     SELECT
       client_id,
+      profile_group_id,
       submission_date,
       experiments,
       event_category,
