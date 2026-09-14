@@ -31,6 +31,6 @@ from_expression = """
         experiments,
         event_name,
         event_extra,
-    FROM `mozdata.firefox_desktop.events_stream`
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
 WHERE event_category = 'security.ui.protectionspopup' )
 """
