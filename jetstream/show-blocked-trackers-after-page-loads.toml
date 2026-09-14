@@ -28,7 +28,6 @@ from_expression = """
         legacy_telemetry_client_id AS client_id,
         profile_group_id,
         DATE(submission_timestamp) AS submission_date,
-        experiments,
         event_name,
         event_extra,
     FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
