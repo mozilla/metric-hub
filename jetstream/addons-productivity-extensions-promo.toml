@@ -1,0 +1,82 @@
+[experiment]
+
+# Add-on resonance discovery — Productivity & Tabs (FXE-972). Feature: fxms-message-23.
+# Branches: control, treatment-a (OneTab), treatment-b (Dark Reader), treatment-c (ATBC).
+#
+# WHAT THIS CONFIG CAPTURES: per-arm add-on ADOPTION/KEEP proxy = "was the promoted
+# extension enabled on >=1 day in the analysis window," from clients_daily.active_addons,
+# on BOTH enrollments + exposures bases. Because these are one-click callouts, exposure
+# ~= install time, so exposures-basis weekly windows approximate post-install keep
+# (week 2 ~= still enabled ~7-14d after install). Read each metric on its matching
+# treatment arm; the exposures basis gives the clean treatment-vs-treatment resonance
+# ranking (control emits no native exposure event, so treatment-vs-control lives on the
+# enrollments basis).
+#
+# NOT HERE — handled in Redash, not Jetstream:
+#   - Keep-rate CONDITIONAL ON INSTALL (installer denominator + install-anchored window)
+#   - Message funnel: impression rate, CTR, install-rate-per-impression (control has no
+#     message; within-treatment funnel on fxms messaging telemetry)
+#   - Prior add-on ownership by category, and frecency-depth (frecency is local-only)
+# Guardrails DAU / search / ad_clicks / retention / uri_count are AUTO-APPLIED -> omitted.
+
+segments = [
+    "activity_infrequent",
+    "activity_casual",
+    "activity_regular",
+    "activity_core",
+    "profile_age_7_to_28_days",
+    "profile_age_more_than_28_days",
+    "default_browser",
+    "not_default_browser",
+]
+
+[metrics]
+weekly = ["onetab_enabled", "dark_reader_enabled", "atbc_enabled"]
+overall = ["onetab_enabled", "dark_reader_enabled", "atbc_enabled"]
+
+[metrics.onetab_enabled]
+data_source = "clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(EXISTS(SELECT 1 FROM UNNEST(active_addons) AS a WHERE a.addon_id = 'extension@one-tab.com')), FALSE)"
+friendly_name = "OneTab enabled (Treatment A)"
+description = "Client had OneTab (extension@one-tab.com) enabled on at least one day in the analysis window. Adoption/keep proxy; read on treatment-a."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.onetab_enabled.statistics.binomial]
+
+[metrics.dark_reader_enabled]
+data_source = "clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(EXISTS(SELECT 1 FROM UNNEST(active_addons) AS a WHERE a.addon_id = 'addon@darkreader.org')), FALSE)"
+friendly_name = "Dark Reader enabled (Treatment B)"
+description = "Client had Dark Reader (addon@darkreader.org) enabled on at least one day in the analysis window. Adoption/keep proxy; read on treatment-b."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.dark_reader_enabled.statistics.binomial]
+
+[metrics.atbc_enabled]
+data_source = "clients_daily"
+select_expression = "COALESCE(LOGICAL_OR(EXISTS(SELECT 1 FROM UNNEST(active_addons) AS a WHERE a.addon_id = 'ATBC@EasonWong')), FALSE)"
+friendly_name = "Adaptive Tab Bar Color enabled (Treatment C)"
+description = "Client had Adaptive Tab Bar Color (ATBC@EasonWong) enabled on at least one day in the analysis window. Adoption/keep proxy; read on treatment-c."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.atbc_enabled.statistics.binomial]
+
+# Segments — engagement level (built-in activity_*) and profile age at enrollment
+# (built-in; the >=14d targeting gate means profile_age_7_to_28_days reads as 14-28d).
+# Default-browser status is a custom cut (copied verbatim from vpn-hnt-promo).
+
+[segments.default_browser]
+friendly_name = "Is default browser"
+description = "Clients for whom Firefox is the default browser at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"
+
+[segments.not_default_browser]
+friendly_name = "Is not default browser"
+description = "Clients for whom Firefox is NOT the default browser at enrollment."
+select_expression = "COALESCE(LOGICAL_OR(NOT is_default_browser), FALSE)"
+data_source = "clients_last_seen"
+window_start = -3
+window_end = "analysis_window_end"

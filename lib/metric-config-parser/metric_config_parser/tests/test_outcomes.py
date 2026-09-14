@@ -1,6 +1,7 @@
 import datetime as dt
 import re
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -315,6 +316,138 @@ class TestOutcomes:
 
         with pytest.raises(ClassValidationError):
             AnalysisSpec.from_dict(toml.loads(config_str))
+
+    def test_outcome_period_lists_parsed(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            daily = ["spam"]
+            weekly = ["spam", "eggs"]
+            28_day = ["eggs"]
+            overall = ["spam", "eggs"]
+            preenrollment_weekly = ["spam"]
+            preenrollment_days28 = ["eggs"]
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        assert [m.name for m in outcome_spec.daily] == ["spam"]
+        assert [m.name for m in outcome_spec.weekly] == ["spam", "eggs"]
+        # "28_day" TOML alias maps to the days28 field
+        assert [m.name for m in outcome_spec.days28] == ["eggs"]
+        assert [m.name for m in outcome_spec.overall] == ["spam", "eggs"]
+        assert [m.name for m in outcome_spec.preenrollment_weekly] == ["spam"]
+        assert [m.name for m in outcome_spec.preenrollment_days28] == ["eggs"]
+
+    def test_outcome_period_list_must_be_list(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            overall = "spam"
+
+            [metrics.spam.statistics.bootstrap_mean]
+            """
+        )
+
+        with pytest.raises(ValueError, match="overall should be a list of metrics"):
+            OutcomeSpec.from_dict(toml.loads(config_str))
+
+    def test_merge_outcome_honors_declared_periods(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            overall = ["terminal_rate"]
+            daily = ["engagement"]
+
+            [metrics.terminal_rate.statistics.bootstrap_mean]
+
+            [metrics.engagement.statistics.bootstrap_mean]
+            """
+        )
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        spec = AnalysisSpec.from_dict(toml.loads(""))
+        spec.merge_outcome(outcome_spec)
+
+        assert [m.name for m in spec.metrics.daily] == ["engagement"]
+        assert [m.name for m in spec.metrics.overall] == ["terminal_rate"]
+        # declared lists win: metrics are not force-added to weekly
+        assert [m.name for m in spec.metrics.weekly] == []
+        assert [m.name for m in spec.metrics.days28] == []
+
+    def test_merge_outcome_defaults_to_weekly_overall(self):
+        config_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(config_str))
+
+        spec = AnalysisSpec.from_dict(toml.loads(""))
+        spec.merge_outcome(outcome_spec)
+
+        # back-compat: with no period lists declared every metric is weekly + overall
+        assert sorted(m.name for m in spec.metrics.weekly) == ["eggs", "spam"]
+        assert sorted(m.name for m in spec.metrics.overall) == ["eggs", "spam"]
+        assert [m.name for m in spec.metrics.daily] == []
+        assert [m.name for m in spec.metrics.days28] == []
+
+    def test_resolving_outcomes_from_external_config(self, experiments, config_collection):
+        """Outcomes listed under `[experiment]` in an external config should be
+        resolved in addition to any outcomes attached to the experiment itself."""
+        config_str = dedent(
+            """
+            [experiment]
+            outcomes = ["performance"]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[9], config_collection)
+        overall_metrics = [s.metric.name for s in cfg.metrics[AnalysisPeriod.OVERALL]]
+
+        assert "speed" in overall_metrics
+
+    def test_resolving_outcomes_from_external_config_deduplicated(
+        self, experiments, config_collection
+    ):
+        """Outcomes already attached to the experiment shouldn't be resolved twice
+        when also listed in the external config."""
+        config_str = dedent(
+            """
+            [experiment]
+            outcomes = ["performance", "tastiness"]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+
+        # experiments[5] already has outcomes=["performance", "tastiness"] attached,
+        # so each slug should only be resolved once even though it's listed in both
+        # the experiment and the external config.
+        with patch.object(
+            config_collection, "spec_for_outcome", wraps=config_collection.spec_for_outcome
+        ) as spec_for_outcome:
+            spec.resolve(experiments[5], config_collection)
+
+        resolved_slugs = [call.args[0] for call in spec_for_outcome.call_args_list]
+        assert resolved_slugs == ["performance", "tastiness"]
 
     def test_unsupported_platform_outcomes(self, config_collection):
         spec = AnalysisSpec.from_dict(toml.loads(""))
