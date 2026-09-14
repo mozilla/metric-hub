@@ -1,0 +1,55 @@
+# Jetstream custom config for pip-world-cup-feature-callout
+#
+# Custom Picture-in-Picture engagement metrics, analyzed on BOTH the enrollments
+# and exposures bases. Nimbus exposure events fire in BOTH branches (verified in
+# telemetry 2026-06-22: control records an exposure when the trigger condition is
+# met even though no message shows), so the exposures basis yields a clean
+# exposed-treatment-vs-exposed-control read. This is the interpretable signal for
+# a trigger-gated message experiment — the ITT (enrollments) read washes out
+# because most enrolled users never visit a World Cup broadcaster site.
+#
+# Auto-applied firefox_desktop defaults (search, DAU, retention, ad_clicks,
+# active_hours, uri_count, etc.) are intentionally NOT re-listed — they surface
+# in the Experimenter Results UI on their own and serve as the standard guardrails.
+
+[experiment]
+
+[metrics]
+weekly = ["pip_first_time_use", "pip_sessions", "pip_urlbar_opened", "pip_disabled"]
+overall = ["pip_first_time_use", "pip_sessions", "pip_urlbar_opened", "pip_disabled"]
+
+[metrics.pip_first_time_use]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'pictureinpicture' AND event_name LIKE 'opened_method%' AND event_name != 'opened_method_auto_pip') > 0, FALSE)"
+friendly_name = "PiP First-Time Use"
+description = "Client opened Picture-in-Picture at least once via a user-initiated method (excludes opened_method_auto_pip) in the analysis window. Targeting gates to PiP-disabled-pref users, so this approximates first-time use."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.pip_first_time_use.statistics.binomial]
+
+[metrics.pip_sessions]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'pictureinpicture' AND event_name LIKE 'opened_method%' AND event_name != 'opened_method_auto_pip'), 0)"
+friendly_name = "PiP Sessions (manual opens)"
+description = "Count of user-initiated Picture-in-Picture opens per client (excludes opened_method_auto_pip) in the analysis window."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.pip_sessions.statistics.linear_model_mean]
+
+[metrics.pip_urlbar_opened]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'pictureinpicture' AND event_name = 'opened_method_url_bar') > 0, FALSE)"
+friendly_name = "PiP Opened via URL-bar Icon"
+description = "Client opened Picture-in-Picture via the URL-bar page-action icon at least once — the exact method the callout points users to. Cleanest attribution signal for the message."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.pip_urlbar_opened.statistics.binomial]
+
+[metrics.pip_disabled]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'pictureinpicture' AND event_name LIKE '%disable%') > 0, FALSE)"
+friendly_name = "PiP Disabled (guardrail)"
+description = "Client emitted a Picture-in-Picture disable event (e.g. disrespect_disable_url_bar) at least once. Guardrail: a statistically significant treatment lift here is a halt signal — the callout was perceived as intrusive enough to provoke a feature opt-out."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.pip_disabled.statistics.binomial]

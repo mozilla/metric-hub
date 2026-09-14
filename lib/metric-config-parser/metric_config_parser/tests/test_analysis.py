@@ -1,6 +1,7 @@
 from pathlib import Path
 from textwrap import dedent
 
+import attr
 import pytest
 import toml
 from cattrs.errors import ClassValidationError
@@ -132,6 +133,248 @@ class TestAnalysisSpec:
         assert "client_info" in spam.data_source.client_id_column
         assert spam.data_source.experiments_column_type == "simple"
         assert taunts.data_source.experiments_column_type is None
+
+    def test_data_source_from_expression_experiment_templating(
+        self, experiments, config_collection
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = \"\"\"(
+                SELECT *
+                FROM mozdata.telemetry.messaging
+                WHERE STARTS_WITH(message_key, '{{experiment.normandy_slug}}:')
+            )\"\"\"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        from_expression = spam.data_source.from_expression
+        assert "{{" not in from_expression
+        assert "{experiment" not in from_expression
+        assert "normandy-test-slug:" in from_expression
+
+    def test_data_source_from_expression_experiment_date_helpers(
+        self, experiments, config_collection
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT 1 WHERE submission_date BETWEEN {{experiment.start_date_str}} AND {{experiment.last_enrollment_date_str}})"
+            experiments_column_type = "none"
+            """  # noqa:E501
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        from_expression = spam.data_source.from_expression
+        assert "{{" not in from_expression
+        assert "2019-12-01" in from_expression
+
+    def test_data_source_from_expression_dataset_and_experiment(
+        self, experiments, config_collection
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = "mozdata.{dataset}.events WHERE e = '{{experiment.normandy_slug}}'"
+            default_dataset = "telemetry"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        data_source = spam.data_source
+        assert "{dataset}" in data_source.from_expression
+        assert "normandy-test-slug" in data_source.from_expression
+        assert (
+            data_source.from_expr_for(None)
+            == "mozdata.telemetry.events WHERE e = 'normandy-test-slug'"
+        )
+
+    def test_data_source_from_expression_literal_braces_preserved(
+        self, experiments, config_collection
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "search_and_addons"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.search_and_addons]
+            from_expression = "(SELECT '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}')"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        data_source = spam.data_source
+        assert data_source.from_expression == "(SELECT '{{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}}')"
+        rendered = data_source.from_expr_for(None)
+        assert rendered == "(SELECT '{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}')"
+
+    def test_data_source_from_expression_unknown_variable_raises(
+        self, experiments, config_collection
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT '{{experiment.normandy_slug}}' WHERE x = '{{nope}}')"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        with pytest.raises(ValueError, match="nope"):
+            spec.resolve(experiments[0], config_collection)
+
+    def test_data_source_from_expression_unknown_variable_only_warns(
+        self, experiments, config_collection, caplog
+    ):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT '{{slug}}')"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        assert spam.data_source.from_expression == "(SELECT '{{slug}}')"
+        assert any("slug" in record.message for record in caplog.records)
+
+    def test_data_source_from_expression_in_join(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "baseline"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.baseline]
+            from_expression = "mozdata.telemetry.baseline"
+            experiments_column_type = "none"
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT '{{experiment.normandy_slug}}')"
+            experiments_column_type = "none"
+
+            [data_sources.baseline.joins.messaging_events]
+            on_expression = "messaging_events.client_id = baseline.client_id"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        spam = next(m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam").metric
+
+        joined = spam.data_source.joins[0].data_source
+        assert joined.name == "messaging_events"
+        assert "normandy-test-slug" in joined.from_expression
+
+    def test_data_source_definition_not_mutated_by_resolve(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["spam"]
+            [metrics.spam]
+            data_source = "messaging_events"
+            select_expression = "1"
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT '{{experiment.normandy_slug}}')"
+            experiments_column_type = "none"
+            """
+        )
+        other_experiment = attr.evolve(experiments[0], normandy_slug="other-slug")
+
+        spec_a = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg_a = spec_a.resolve(experiments[0], config_collection)
+        spam_a = next(
+            m for m in cfg_a.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).metric
+        assert "normandy-test-slug" in spam_a.data_source.from_expression
+
+        spec_b = AnalysisSpec.from_dict(toml.loads(config_str))
+        # The unresolved definition still carries the raw Jinja template.
+        assert "{{" in spec_b.data_sources.definitions["messaging_events"].from_expression
+        cfg_b = spec_b.resolve(other_experiment, config_collection)
+        spam_b = next(
+            m for m in cfg_b.metrics[AnalysisPeriod.WEEK] if m.metric.name == "spam"
+        ).metric
+        assert "other-slug" in spam_b.data_source.from_expression
+        assert "normandy-test-slug" not in spam_b.data_source.from_expression
+
+    def test_exposure_signal_data_source_from_expression(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment.exposure_signal]
+            name = "spotlight_exposure"
+            data_source = "messaging_events"
+            select_expression = "1"
+            friendly_name = "Spotlight Exposure"
+            description = "Spotlight exposure"
+            window_start = 0
+            window_end = 7
+
+            [data_sources.messaging_events]
+            from_expression = "(SELECT '{{experiment.normandy_slug}}')"
+            experiments_column_type = "none"
+            """
+        )
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+
+        assert "normandy-test-slug" in cfg.experiment.exposure_signal.data_source.from_expression
 
     def test_definitions_override_other_metrics(self, experiments, config_collection):
         """Test that config definitions override mozanalysis definitions.

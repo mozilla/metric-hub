@@ -1,0 +1,202 @@
+[experiment]
+
+segments = [
+  "activity_infrequent",
+  "activity_casual",
+  "activity_regular",
+  "activity_core",
+
+  "profile_age_0_to_28_days",
+  "profile_age_29_to_180_days",
+  "profile_age_181_to_365_days",
+  "profile_age_more_than_365_days",
+
+  "region_americas",
+  "region_europe_row",
+]
+
+[metrics]
+
+weekly = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+]
+
+overall = [
+  "installed_web_apps",
+  "pinned_apps",
+  "web_app_launches",
+  "web_app_active_users",
+  "any_web_app_installed",
+  "any_web_app_pinned",
+  "number_of_desktop_launches",
+  "number_of_taskbar_launches",
+  "number_of_startmenu_launches",
+  "number_of_taskbartab_launches",
+]
+
+[metrics.installed_web_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.pinned_apps.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.web_app_active_users.statistics.binomial]
+[metrics.any_web_app_installed.statistics.binomial]
+[metrics.any_web_app_pinned.statistics.binomial]
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_taskbartab_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# CUSTOM METRICS - Web App (Taskbar Tabs) activity
+# ============================================================================
+# installed_web_apps / pinned_apps / web_app_launches / web_app_active_users
+# are copied verbatim from taskbar-tabs-discovery-expanded-impressions-pin-cta
+# (FXE-1640), the directly comparable prior experiment this brief reads across.
+# any_web_app_installed / any_web_app_pinned are binary versions: did the client
+# install/pin at least one web app during the analysis window? any_web_app_pinned
+# is the primary "pin acceptance rate" metric for this experiment.
+
+[metrics.installed_web_apps]
+friendly_name = "Installed Web Apps"
+description = "Average Installed Web Apps per user (approx from install and uninstall events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'uninstall' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.pinned_apps]
+friendly_name = "Pinned Web Apps"
+description = "Average Pinned Web Apps per user (approx from pin and unpin events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'pin' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'unpin' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_launches]
+friendly_name = "Web App Launches"
+description = "Average Web App Launches per user (approx from activate and install events)"
+select_expression = """
+  COALESCE(SUM(CASE WHEN event_name = 'activate' THEN cumulative_count END),0) -
+  COALESCE(SUM(CASE WHEN event_name = 'install' THEN cumulative_count END),0)
+"""
+data_source = "web_app_events"
+
+[metrics.web_app_active_users]
+friendly_name = "Web App Active Users"
+description = "Percentage of clients who had non-zero web app usage time"
+select_expression = """
+  COALESCE(SUM(metrics.timing_distribution.web_app_usage_time.sum),0) > 0
+"""
+data_source = "metrics"
+
+[metrics.any_web_app_installed]
+friendly_name = "Any Web App Installed"
+description = "Client had at least one web app install event during the analysis window"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'install'), FALSE)"
+data_source = "web_app_events"
+
+[metrics.any_web_app_pinned]
+friendly_name = "Any Web App Pinned"
+description = "Client had at least one web app pin event during the analysis window (pin acceptance rate, co-primary)"
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'pin'), FALSE)"
+data_source = "web_app_events"
+
+# ============================================================================
+# DATA SOURCE - Web App events with cumulative counts
+# ============================================================================
+# Copied verbatim from taskbar-tabs-discovery-expanded-impressions-pin-cta.
+# Floor 2025-07-31 covers the full history of the `web_app` event category.
+
+[data_sources.web_app_events]
+from_expression = """(
+WITH events AS (
+SELECT
+    CAST(submission_timestamp as DATE) as submission_date,
+    legacy_telemetry_client_id as client_id,
+    profile_group_id,
+    event_name,
+    COUNT(1) as event_count
+FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+WHERE
+    event_category = 'web_app'
+    AND event_name IN ('install', 'uninstall', 'pin', 'unpin', 'activate')
+    AND DATE(submission_timestamp) >= '2025-07-31'
+GROUP BY ALL
+)
+  SELECT
+    submission_date,
+    client_id,
+    profile_group_id,
+    event_name,
+    SUM(event_count) OVER (PARTITION BY client_id, event_name ORDER BY submission_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as cumulative_count
+  FROM events
+)"""
+experiments_column_type = "none"
+friendly_name = "Web App Events"
+description = "Events for Web App (Taskbar Tabs) with per-client cumulative counts"
+
+# ============================================================================
+# SEGMENTS - Profile age (clients_last_seen days_since_first_seen)
+# ============================================================================
+# 4 buckets per the spec (0-28 / 29-180 / 181-365 / 365+). Same clients_last_seen
+# pattern as the merged FXE-1640 config, split at 365 to give the extra bucket.
+
+[segments.profile_age_0_to_28_days]
+friendly_name = "Profile Age 0 to 28 days"
+description = "Time since first-seen 0-28 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen <= 28), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_29_to_180_days]
+friendly_name = "Profile Age 29 to 180 days"
+description = "Time since first-seen 29-180 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 29 AND 180), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_181_to_365_days]
+friendly_name = "Profile Age 181 to 365 days"
+description = "Time since first-seen 181-365 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen BETWEEN 181 AND 365), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.profile_age_more_than_365_days]
+friendly_name = "Profile Age more than 365 days"
+description = "Time since first-seen more than 365 days"
+select_expression = "COALESCE(LOGICAL_OR(days_since_first_seen > 365), FALSE)"
+data_source = "clients_last_seen"
+
+# ============================================================================
+# SEGMENTS - Region / country group (Americas app list vs. rest-of-world list)
+# ============================================================================
+# Two curated app lists ship by country; segmenting by which list a user saw is
+# the only way to evaluate list-level effectiveness. country is a stable
+# pre-treatment trait, so analysis-window membership on clients_daily is unbiased.
+
+[segments.region_americas]
+friendly_name = "Americas app-list countries"
+description = "Clients in the Americas app-list countries (US, CA, MX, and LATAM)"
+select_expression = """LOGICAL_OR(COALESCE(country IN ('US','CA','MX','BR','AR','CO','CL','PE','UY','EC','BO','PY','VE','GT','CR','PA','DO','HN','SV','NI'), FALSE))"""
+data_source = "clients_daily"
+
+[segments.region_europe_row]
+friendly_name = "Europe & rest-of-world app-list countries"
+description = "Clients NOT in the Americas app-list countries (Europe and rest of world)"
+select_expression = """LOGICAL_AND(COALESCE(country NOT IN ('US','CA','MX','BR','AR','CO','CL','PE','UY','EC','BO','PY','VE','GT','CR','PA','DO','HN','SV','NI'), TRUE))"""
+data_source = "clients_daily"

@@ -11,7 +11,73 @@ segments = [
     "country_fr",
     "country_pl",
     "country_it",
+    "profile_age_0_to_7_days",
+    "profile_age_0_to_1_days",
 ]
+
+## Metrics — VPN (IP Protection) engagement, added retroactively (FXE-1648)
+## The hypothesis promised "higher VPN feature engagement" but no VPN metric was
+## configured. These recompute the mechanism from Glean ipprotection.* events.
+## Read them on the new-user profile-age segments (profile_age_0_to_1_days / _0_to_7_days) —
+## the all-ages population is diluted by the shared existing-user promo.
+
+[metrics]
+weekly = ["vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment"]
+overall = ["vpn_any_engagement", "vpn_get_started", "vpn_started", "vpn_started_count", "vpn_toggled_count", "vpn_enrollment"]
+
+[metrics.vpn_any_engagement]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name IN ('get_started', 'started', 'toggled', 'location_changed', 'location_selector_button_clicked', 'click_upgrade_button', 'enrollment')) > 0, FALSE)"
+friendly_name = "VPN Any Engagement"
+description = "Client fired at least one IP Protection (VPN) interaction event in the analysis window. Primary mechanism metric the experiment originally lacked."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_any_engagement.statistics.binomial]
+
+[metrics.vpn_get_started]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'get_started') > 0, FALSE)"
+friendly_name = "VPN Get Started"
+description = "Client clicked the VPN panel/settings 'get started' button at least once in the analysis window."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_get_started.statistics.binomial]
+
+[metrics.vpn_started]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started') > 0, FALSE)"
+friendly_name = "VPN Started (any)"
+description = "Client started IP Protection at least once in the analysis window (activation)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_started.statistics.binomial]
+
+[metrics.vpn_started_count]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'started'), 0)"
+friendly_name = "VPN Start Count"
+description = "Count of IP Protection start events per client in the analysis window (engagement intensity)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_started_count.statistics.linear_model_mean]
+
+[metrics.vpn_toggled_count]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'toggled'), 0)"
+friendly_name = "VPN Toggle Count"
+description = "Count of IP Protection toggle events per client in the analysis window."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_toggled_count.statistics.linear_model_mean]
+
+[metrics.vpn_enrollment]
+data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(event_category = 'ipprotection' AND event_name = 'enrollment') > 0, FALSE)"
+friendly_name = "VPN Enrollment (sign-up complete)"
+description = "Client completed the VPN account sign-up flow at least once in the analysis window (deepest activation signal)."
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.vpn_enrollment.statistics.binomial]
 
 ## Segments — Onboarding Intent (Privacy vs Productivity, per brief Section 6)
 
@@ -98,6 +164,19 @@ select_expression = "COALESCE(LOGICAL_OR(UPPER(country) = 'IT'), FALSE)"
 data_source = "clients_last_seen"
 window_start = -3
 window_end = "analysis_window_end"
+
+## Segments — Profile age at enrollment (new-user cohort; the interpretable stratum).
+## profile_age_0_to_7_days is built-in (definitions/firefox_desktop.toml); the <48h
+## bucket is custom, mirroring the built-in pattern with BETWEEN 0 AND 1.
+
+[segments.profile_age_0_to_1_days]
+friendly_name = "Profile age 0-1 days at enrollment (<48h)"
+description = "Clients whose first_seen_date is 0-1 days (<48h) before enrollment — the FIRST_NTH_TAB callout cohort"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), ANY_VALUE(first_seen_date), DAY) BETWEEN 0 AND 1,
+    FALSE
+)"""
+data_source = "clients_last_seen"
 
 ## Custom data source for onboarding intent (copied verbatim from the merged kitified config)
 

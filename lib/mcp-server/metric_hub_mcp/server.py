@@ -1,6 +1,7 @@
 """MCP server for Mozilla Metric Hub."""
 
 import logging
+import os
 from typing import Any
 
 from mcp.server import Server
@@ -48,10 +49,29 @@ logger = logging.getLogger(__name__)
 
 app = Server("metric-hub")
 
+# Tools that mutate the filesystem. These are only exposed when writes are
+# explicitly enabled (local stdio use). The public HTTP deployment leaves writes
+# off so anonymous callers cannot create/modify files on the workload.
+_WRITE_TOOLS = {"create_experiment_config"}
+
+
+def _write_enabled() -> bool:
+    """Whether write tools are exposed.
+
+    Disabled by default. The local stdio CLI (``cli``) turns it on; the HTTP
+    entry point (``cli_http``) leaves it off, keeping the deployed server
+    read-only.
+    """
+    return os.environ.get("METRIC_HUB_MCP_ALLOW_WRITE", "false").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
-    return [
+    tools = [
         Tool(
             name="list_platforms",
             description="List all available platforms/products that have metric definitions",
@@ -457,6 +477,11 @@ async def list_tools() -> list[Tool]:
         ),
     ]
 
+    if not _write_enabled():
+        tools = [t for t in tools if t.name not in _WRITE_TOOLS]
+
+    return tools
+
 
 @app.call_tool()
 async def call_tool(
@@ -485,6 +510,13 @@ async def call_tool(
             case "get_experiment_config":
                 return await handle_get_experiment_config(arguments)
             case "create_experiment_config":
+                if not _write_enabled():
+                    return [
+                        TextContent(
+                            type="text",
+                            text="Error: write operations are disabled (read-only server).",
+                        )
+                    ]
                 return await handle_create_experiment_config(arguments)
             case "generate_config_template":
                 return await handle_generate_config_template(arguments)
@@ -535,6 +567,8 @@ async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
     from mcp.server.sse import SseServerTransport
     from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
     from starlette.applications import Starlette
+    from starlette.middleware import Middleware
+    from starlette.middleware.cors import CORSMiddleware
     from starlette.routing import Mount, Route
     import uvicorn
 
@@ -560,22 +594,53 @@ async def run_http_server(host: str = "0.0.0.0", port: int = 8080) -> None:
         async with session_manager.run():
             yield
 
+    # Browser-based MCP clients send a CORS preflight before connecting, and without these
+    # headers the OPTIONS request is rejected and the connection never opens. Claude Cowork
+    # fails this way, reporting it as a sign-in error. Origins are unrestricted because the
+    # server is unauthenticated and read-only, so there are no credentials to protect, which
+    # also means allow_credentials must stay off.
+    middleware = [
+        Middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["Mcp-Session-Id"],
+        )
+    ]
+
     starlette_app = Starlette(
         routes=[
             Mount("/mcp", app=handle_streamable_http),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
+        middleware=middleware,
         lifespan=lifespan,
     )
 
-    config = uvicorn.Config(starlette_app, host=host, port=port, log_level="info")
+    # Mount redirects /mcp to /mcp/, and builds that redirect from the request scheme. Behind
+    # Cloud Run's proxy that scheme is http, so without trusting the forwarded headers the
+    # redirect downgrades clients to plaintext.
+    config = uvicorn.Config(
+        starlette_app,
+        host=host,
+        port=port,
+        log_level="info",
+        proxy_headers=True,
+        forwarded_allow_ips="*",
+    )
     await uvicorn.Server(config).serve()
 
 
 def cli() -> None:
     """CLI entry point for local stdio mode."""
     import asyncio
+
+    # Local stdio use runs against the developer's own checkout, so writing
+    # config files is safe and useful here. The HTTP deployment leaves this off.
+    os.environ.setdefault("METRIC_HUB_MCP_ALLOW_WRITE", "true")
 
     asyncio.run(main())
 

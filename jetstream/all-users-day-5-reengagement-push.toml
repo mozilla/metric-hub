@@ -1,0 +1,172 @@
+# This is an Android Mobile Messaging experiment showing background
+# notifications to users lapsed 5+ days.
+#
+# This custom configuration is designed to do 2 things:
+#
+# 1. Include notification-specific early indicator metrics, namely
+# counting the `messaging.notification_{shown, clicked, dismissed}`
+# events.
+#
+# 2. Segment the population.  In this experiment, default
+# vs. non-default segments were identified as potentially interesting.
+# And due to the lapsed 5+ days targeting, days since last use was
+# identified as interesting.
+
+[experiment]
+end_date = "2026-06-17"
+
+enrollments_query_type = "glean-event"
+exposure_query_type = "glean-event"
+
+segments = [
+    "default_at_enrollment",
+    "not_default_at_enrollment",
+
+    "days_since_seen_0_to_6_days",
+    "days_since_seen_7_to_13_days",
+    "days_since_seen_14_27_days",
+    "days_since_seen_more_than_28_days",
+
+    "segment_notification_clicked",
+    "segment_notification_dismissed",
+    "segment_notification_not_clicked_and_not_dismissed",
+
+    "segment_notifications_allowed_and_marketing_notifications_allowed_at_enrollment",
+    "segment_notifications_allowed_and_not_marketing_notifications_allowed_at_enrollment",
+    "segment_not_notifications_allowed_at_enrollment",
+    "segment_notifications_allowed_and_marketing_notifications_allowed_not_both_known_at_enrollment",
+]
+
+[metrics]
+
+daily = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+]
+
+weekly = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+]
+
+overall = [
+    "notification_shown",
+    "notification_clicked",
+    "notification_dismissed",
+
+    "ever_not_notifications_allowed",
+    "ever_not_marketing_notifications_allowed",
+]
+
+# Number of enrolled clients.
+[metrics.notification_shown.statistics.count]
+# Number of notifications shown.
+[metrics.notification_shown.statistics.sum]
+# Shown rate.
+[metrics.notification_shown.statistics.binomial]
+
+# Number of enrolled clients.
+[metrics.notification_clicked.statistics.count]
+# Number of clicks.
+[metrics.notification_clicked.statistics.sum]
+# Click through rate.
+[metrics.notification_clicked.statistics.binomial]
+
+# Number of enrolled clients.
+[metrics.notification_dismissed.statistics.count]
+# Number of dismisses.
+[metrics.notification_dismissed.statistics.sum]
+# Dismiss rate.
+[metrics.notification_dismissed.statistics.binomial]
+
+
+# Number of clients.
+[metrics.ever_not_notifications_allowed.statistics.count]
+# Number of clients with notifications ever not allowed.
+[metrics.ever_not_notifications_allowed.statistics.sum]
+# Notifications ever not allowed rate.
+[metrics.ever_not_notifications_allowed.statistics.binomial]
+
+# Number of clients.
+[metrics.ever_not_marketing_notifications_allowed.statistics.count]
+# Number of clients with marketing notifications ever not allowed.
+[metrics.ever_not_marketing_notifications_allowed.statistics.sum]
+# Marketing notifications ever not allowed rate.
+[metrics.ever_not_marketing_notifications_allowed.statistics.binomial]
+
+# ----------------------------------------------------------------------------
+# 2. Default browser at enrollment
+# ----------------------------------------------------------------------------
+
+[segments]
+[segments.default_at_enrollment]
+friendly_name = "Default browser at enrollment"
+description = "Clients who were the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.not_default_at_enrollment]
+friendly_name = "Not default browser at enrollment"
+description = "Clients who were NOT the OS default browser at enrollment"
+select_expression = "COALESCE(LOGICAL_OR(NOT is_default_browser), FALSE)"
+data_source = "metrics_clients_last_seen"
+window_start = 0
+window_end = 0
+
+# ----------------------------------------------------------------------------
+# 3. Last activity
+# ----------------------------------------------------------------------------
+
+[segments.days_since_seen_0_to_6_days]
+friendly_name = "Days since seen 0-6 days at enrollment"
+description = "Clients whose days_since_seen is 0-6 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 0 AND 6,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_7_to_13_days]
+friendly_name = "Days since seen 7-13 days at enrollment"
+description = "Clients whose days_since_seen is 7-13 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 7 AND 13,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_14_27_days]
+friendly_name = "Days since seen 14-27 days at enrollment"
+description = "Clients whose days_since_seen is 14-27 days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) BETWEEN 14 AND 27,
+    FALSE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.days_since_seen_more_than_28_days]
+friendly_name = "Days since seen 28+ days at enrollment"
+description = "Clients whose days_since_seen is 28+ days before enrollment"
+select_expression = """COALESCE(
+    MIN(days_since_seen) >= 28,
+    TRUE
+)"""
+data_source = "baseline_clients_last_seen"
+window_start = 0
+window_end = 0

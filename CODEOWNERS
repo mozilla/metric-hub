@@ -2,3 +2,4 @@ jetstream/defaults/   @danielkberry @scholtzan @mikewilli
 jetstream/definitions/    @danielkberry @scholtzan @mikewilli
 opmon/defaults/    @scholtzan 
 opmon/definitions  @scholtzan
+lib/  @mikewilli @scholtzan

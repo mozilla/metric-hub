@@ -602,6 +602,62 @@ class TestExperimentConf:
         with pytest.raises(ValueError, match=re.escape(error_msg)):
             _a = cfg.experiment.analysis_unit
 
+    def test_experiment_config_rerun_defaults(self, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="v6",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+        )
+        assert not exp.do_rerun
+        assert exp.do_rerun_timestamp is None
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+
+        assert not cfg.experiment.do_rerun
+        assert cfg.experiment.do_rerun_timestamp is None
+
+    def test_experiment_config_rerun(self, config_collection):
+        conf = dedent(
+            """
+            [experiment]
+            """
+        )
+        exp = Experiment(
+            experimenter_slug="test_slug",
+            type="v6",
+            status="Complete",
+            start_date=dt.datetime(2019, 12, 1, tzinfo=pytz.utc),
+            end_date=dt.datetime(2020, 3, 1, tzinfo=pytz.utc),
+            proposed_enrollment=7,
+            branches=[Branch(slug="a", ratio=1), Branch(slug="b", ratio=1)],
+            normandy_slug="normandy-test-slug",
+            reference_branch="b",
+            is_high_population=False,
+            app_name="firefox_desktop",
+            do_rerun=True,
+            do_rerun_timestamp=dt.datetime(2020, 4, 1, tzinfo=pytz.utc),
+        )
+        assert exp.do_rerun
+        assert exp.do_rerun_timestamp == dt.datetime(2020, 4, 1, tzinfo=pytz.utc)
+        spec = AnalysisSpec.from_dict(toml.loads(conf))
+        cfg = spec.resolve(exp, config_collection)
+
+        assert cfg.experiment.do_rerun
+        assert cfg.experiment.do_rerun_timestamp == dt.datetime(2020, 4, 1, tzinfo=pytz.utc)
+
 
 class TestDefaultConfiguration:
     def test_descriptions_defined(self, experiments, config_collection):

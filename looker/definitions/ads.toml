@@ -195,3 +195,47 @@ from_expression = "mozdata.ads.newtab_visit_duration"
 submission_date_column = "week"
 client_id_column = "NULL"
 columns_as_dimensions = true
+
+### data_sources.ad_metrics_native_reporting (DENG-11013 Phase 1)
+[data_sources.ad_metrics_native_reporting]
+from_expression = """
+(
+  SELECT
+    *,
+    COALESCE(sponsor, advertiser_name) AS advertiser,
+    REGEXP_EXTRACT(COALESCE(creative_url, content_url), r'utm_campaign=([^&]+)') AS campaign_name_custom,
+    REGEXP_EXTRACT(COALESCE(creative_url, content_url), r'ref=([^&]+)') AS campaign_name_custom_2
+  FROM `mozdata.ads.ad_metrics_daily`
+  WHERE provider IN ('kevel', 'equativ') AND ad_id IS NOT NULL
+)
+"""
+friendly_name = "Ad Metrics — Native Reporting"
+description = "ad_metrics_daily filtered to native (kevel/equativ) ads, enriched with advertiser + custom campaign fields, for AdOps native reporting (replaces native_desktop_ad_metrics)."
+columns_as_dimensions = true
+submission_date_column = "submission_date"
+client_id_column = "NULL"
+
+[metrics.native_spend_v2]
+select_expression = "SUM(revenue)"
+data_source = "ad_metrics_native_reporting"
+friendly_name = "Native Spend"
+description = "Native ad revenue (kevel + equativ)"
+
+[metrics.native_impressions_v2]
+select_expression = "SUM(impressions)"
+data_source = "ad_metrics_native_reporting"
+friendly_name = "Native Impressions"
+description = "Native ad impressions"
+
+[metrics.native_clicks_v2]
+select_expression = "SUM(clicks)"
+data_source = "ad_metrics_native_reporting"
+friendly_name = "Native Clicks"
+description = "Native ad clicks"
+
+[metrics.native_spend_v2.statistics.sum]
+[metrics.native_impressions_v2.statistics.sum]
+[metrics.native_clicks_v2.statistics.sum]
+[metrics.native_clicks_v2.statistics.ratio]
+numerator = "native_clicks_v2.sum"
+denominator = "native_impressions_v2.sum"

@@ -463,6 +463,25 @@ description = """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
+[metrics.daily_active_users_per_1000_clients_legacy]
+friendly_name = "DAU per 1,000 clients"
+data_source = "firefox_desktop_active_users_view"
+select_expression = """COUNTIF(is_dau) * 1000"""
+type = "scalar"
+description = """
+    This metric uses our [canonical, supported definition of Daily Active Users 
+    (DAU)](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric), expressed in a format
+    suited for use in experiments. In an experimental comparison, it describes the *additional (incremental) DAU* seen on each day from a treatment.
+    
+    The units are expressed in terms of thousands of clients enrolled or exposed, so the effect can be scaled to either the observed
+    or expected rollout population as needed to estimate absolute DAU impact.
+
+    Effects are averaged to a per-day basis over each analysis period. Since feature changes often show a strong "novelty effect", this 
+    metric is best interpreted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
+"""
+owner = ["bochocki@mozilla.com", "bbaird@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
 [metrics.client_level_daily_active_users_v2_glean]
 friendly_name = "Firefox Desktop Client-Level DAU in Glean"
 data_source = "firefox_desktop_baseline_active_users_view"
@@ -476,6 +495,25 @@ description = """
     similar to a "days of use" metric, and not DAU.
 """
 owner = ["bochocki@mozilla.com", "firefox-kpi@mozilla.com"]
+deprecated = false
+
+[metrics.daily_active_users_per_1000_clients]
+friendly_name = "DAU per 1,000 clients (Glean)"
+data_source = "firefox_desktop_baseline_active_users_view"
+select_expression = """COUNTIF(is_dau) * 1000"""
+type = "scalar"
+description = """
+    This metric uses our [canonical, supported definition of Daily Active Users 
+    (DAU)](https://mozilla-hub.atlassian.net/wiki/spaces/DATA/pages/314704478/Daily+Active+Users+DAU+Metric), expressed in a format
+    suited for use in experiments. In an experimental comparison, it describes the *additional (incremental) DAU* seen on each day from a treatment.
+    
+    The units are expressed in terms of thousands of clients enrolled or exposed, so the effect can be scaled to either the observed
+    or expected rollout population as needed to estimate absolute DAU impact.
+
+    Effects are averaged to a per-day basis over each analysis period. Since feature changes often show a strong "novelty effect", this 
+    metric is best interpreted over Week 4 or later, in order to better estimate what the lasting steady-state effects are.
+"""
+owner = ["bochocki@mozilla.com", "bbaird@mozilla.com", "firefox-kpi@mozilla.com"]
 deprecated = false
 
 [metrics.desktop_dau_kpi]
@@ -1503,6 +1541,13 @@ name = "fxa_signed_in"
 friendly_name = "FxA Sign-in Rate"
 description = "Is the client signed in at any point during the experiment"
 
+[metrics.fxa_signed_in_glean]
+data_source = "metrics"
+select_expression = "CAST(COALESCE(SUM(CASE WHEN metrics.boolean.fxa_account_enabled IS TRUE THEN 1 ELSE 0 END),0) > 0 AS INT)"
+name = "fxa_signed_in_glean"
+friendly_name = "FxA Sign-in Rate (Glean)"
+description = "Is the client signed in at any point during the experiment, based on the Glean `fxa.account_enabled` metric"
+
 [metrics.retained]
 select_expression = "COALESCE(SUM(pings_aggregated_by_this_row), 0) > 0"
 data_source = "clients_daily"
@@ -2511,6 +2556,42 @@ data_source = "clients_daily"
 friendly_name = "Mexico"
 description = "Clients in Mexico"
 select_expression = "COALESCE(LOGICAL_OR(country = 'MX'), FALSE)"
+
+[segments.windows_v1]
+data_source = "clients_daily"
+friendly_name = "All Windows Clients"
+description = "Clients on any version of Windows"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.os(os) = 'Windows'), FALSE)"
+
+[segments.windows_10_v1]
+data_source = "clients_daily"
+friendly_name = "Windows 10 Clients"
+description = "Clients on Windows 10, identified by mozfun.norm.windows_version_info"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.windows_version_info(os, os_version, windows_build_number) = 'Windows 10'), FALSE)"
+
+[segments.windows_11_v1]
+data_source = "clients_daily"
+friendly_name = "Windows 11 Clients"
+description = "Clients on Windows 11, identified by mozfun.norm.windows_version_info"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.windows_version_info(os, os_version, windows_build_number) = 'Windows 11'), FALSE)"
+
+[segments.windows_other_v1]
+data_source = "clients_daily"
+friendly_name = "Older Windows Clients"
+description = "Clients on Windows versions older than Windows 10 (e.g., Windows 7, 8, 8.1, Vista, XP)"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.os(os) = 'Windows' AND SAFE_CAST(SPLIT(os_version, '.')[SAFE_OFFSET(0)] AS INT64) < 10), FALSE)"
+
+[segments.macos_v1]
+data_source = "clients_daily"
+friendly_name = "macOS Clients"
+description = "Clients on macOS (any version)"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.os(os) = 'Mac'), FALSE)"
+
+[segments.linux_v1]
+data_source = "clients_daily"
+friendly_name = "Linux Clients"
+description = "Clients on Linux (any distribution)"
+select_expression = "COALESCE(LOGICAL_OR(mozfun.norm.os(os) = 'Linux'), FALSE)"
 
 [segments.profile_age_0_to_7_days]
 data_source = "clients_last_seen"
