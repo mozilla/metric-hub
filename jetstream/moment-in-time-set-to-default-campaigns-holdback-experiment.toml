@@ -1,0 +1,3 @@
+[experiment]
+# this experiment was accidentally left running, skip analysis
+skip = true
