@@ -21,6 +21,12 @@ segments = [
     "profile_age_2_days",
 ]
 
+
+## ---------------------------------------------------------------------------
+## Metrics
+## ---------------------------------------------------------------------------
+
+[metrics]
 weekly = [
     "is_default_browser",
     "retained",
@@ -41,9 +47,6 @@ daily = [
     "active_in_last_3_days",
 ]
 
-## ---------------------------------------------------------------------------
-## Metrics
-## ---------------------------------------------------------------------------
 
 ## Primary. Built-in and auto-applied; listed only to add the exposures basis.
 ## NOTE: definition is COALESCE(LOGICAL_OR(is_default_browser), FALSE) — "default at
