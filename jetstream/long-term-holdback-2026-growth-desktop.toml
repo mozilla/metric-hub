@@ -1,4 +1,10 @@
 [experiment]
+# Left commented out on purpose: the is_holdback flag in Experimenter now drives
+# the enrollment window, extending it by 7 days on each weekly rerun. Setting
+# either of these here would override what the Experimenter API sends and pin
+# the analysis back to a fixed window.
+# enrollment_period = 111
+# end_date = "2026-05-26"
 
 # sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
 enrollment_query = """
