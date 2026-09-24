@@ -47,6 +47,7 @@ weekly = [
   "number_of_desktop_launches",
   "number_of_startmenu_launches",
   "number_of_othershortcut_launches",
+  "number_of_launches_all_methods",
 ]
 
 overall = [
@@ -56,6 +57,7 @@ overall = [
   "number_of_desktop_launches",
   "number_of_startmenu_launches",
   "number_of_othershortcut_launches",
+  "number_of_launches_all_methods",
 ]
 
 # is_pinned is built-in with a pre-declared binomial statistic, so listing it
@@ -74,6 +76,8 @@ drop_highest = 0.005
 drop_highest = 0.005
 [metrics.number_of_othershortcut_launches.statistics.linear_model_mean]
 drop_highest = 0.005
+[metrics.number_of_launches_all_methods.statistics.linear_model_mean]
+drop_highest = 0.005
 
 # ============================================================================
 # CUSTOM METRIC — taskbar launch rate
@@ -91,6 +95,30 @@ the interval.
 """
 select_expression = "COALESCE(LOGICAL_OR(scalar_parent_os_environment_launched_via_taskbar), FALSE)"
 data_source = "clients_daily"
+
+# ============================================================================
+# CUSTOM METRIC — total launches, all methods
+# ============================================================================
+# Denominator for the launch-method counts above: same data source and the same
+# field as the built-in number_of_*_launches metrics, with no filter on the
+# value, so the per-method counts (including Autostart, TaskbarTab, Other and
+# the Private variants not listed above) sum to this total. Answers whether
+# pinning adds launches overall or only moves them from the desktop / Start menu
+# to the taskbar.
+#
+# Caveat: os_environment.launch_method is a string metric with ping lifetime on
+# the Glean metrics ping (~1 per client per day), so a client that launches
+# several times between metrics pings records only the last launch. In
+# practice this counts launch-days more than launches.
+
+[metrics.number_of_launches_all_methods]
+friendly_name = "Number of Launches (All Methods)"
+description = """
+Number of Glean metrics pings that recorded any value for
+os_environment.launch_method. Sum of all number_of_*_launches metrics.
+"""
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method IS NOT NULL), 0)"
+data_source = "metrics"
 
 # ============================================================================
 # SEGMENTS — profile age at enrollment
