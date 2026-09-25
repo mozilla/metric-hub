@@ -616,7 +616,7 @@ from_expression = """(
     WHERE p.event_category in ('customize_home', 'top_sites')
 )"""
 client_id_column = "client_id"
-experiments_column_type = "events_stream"
+experiments_column_type = "json"
 default_dataset = "fenix"
 friendly_name = "Sponsored Tiles Events Stream"
 description = "Sponsored tiles Events pings from events stream"
@@ -632,7 +632,7 @@ from_expression = """(
         `moz-fx-data-shared-prod.{dataset}.events_stream` p
     WHERE event_category IN ('urlbar', 'awesomebar')
 )"""
-experiments_column_type = "events_stream"
+experiments_column_type = "json"
 default_dataset = "org_mozilla_firefox"
 friendly_name = "Awesomebar Events"
 description = "Glean Awesomebar Events Stream"
