@@ -25,6 +25,7 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
+from .metric_v2 import METRIC_V2_DIR, MetricV2Spec
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory
@@ -235,13 +236,42 @@ class FeatmonConfig:
         pass
 
 
+@attr.s(auto_attribs=True)
+class MetricV2Config:
+    slug: str
+    spec: MetricV2Spec
+
+    def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
+        app_name = self.spec.dataset
+        for name, metric in self.spec.metrics.items():
+            if configs.get_data_source_definition(metric.data_source, app_name) is None:
+                raise ValueError(
+                    f"V2 metric '{name}' references data source '{metric.data_source}', "
+                    f"which is not defined in {DEFINITIONS_DIR}/{app_name}.toml"
+                )
+            if configs.get_metric_definition(name, app_name) is not None:
+                raise ValueError(
+                    f"Metric '{name}' is defined in both {DEFINITIONS_DIR}/{app_name}.toml "
+                    f"and {METRIC_V2_DIR}/{app_name}.toml"
+                )
+
+
 def entity_from_path(
     path: Path, is_private: bool = False
-) -> Config | Outcome | DefaultConfig | DefinitionConfig | FunctionsSpec | FeatmonConfig:
+) -> (
+    Config
+    | Outcome
+    | DefaultConfig
+    | DefinitionConfig
+    | FunctionsSpec
+    | FeatmonConfig
+    | MetricV2Config
+):
     is_outcome = path.parent.parent.name == OUTCOMES_DIR
     is_default_config = path.parent.name == DEFAULTS_DIR
     is_definition_config = path.parent.name == DEFINITIONS_DIR
     is_featmon = path.parent.name == FEATMON_DIR
+    is_metric_v2 = path.parent.name == METRIC_V2_DIR
     slug = path.stem
 
     config_dict = toml.loads(path.read_text())
@@ -252,6 +282,12 @@ def entity_from_path(
         return FeatmonConfig(
             slug=slug,
             spec=FeatmonSpec.from_dict(config_dict, dataset=slug),
+        )
+
+    if is_metric_v2:
+        return MetricV2Config(
+            slug=slug,
+            spec=MetricV2Spec.from_dict(config_dict, dataset=slug),
         )
 
     validate_config_settings(path)
@@ -346,6 +382,7 @@ class ConfigCollection:
     repos: list[Repository] = attr.Factory(list)  # repos configs were loaded from
     is_private: bool = False
     featmon_configs: list[FeatmonConfig] = attr.Factory(list)
+    metric_v2_configs: list[MetricV2Config] = attr.Factory(list)
 
     repo_url = "https://github.com/mozilla/metric-hub"
 
@@ -522,7 +559,18 @@ class ConfigCollection:
                     )
                 )
 
-        return cls(
+        metric_v2_configs = []
+        metric_v2_dir = files_path / METRIC_V2_DIR
+        if metric_v2_dir.is_dir():
+            for metric_v2_file in sorted(metric_v2_dir.glob("*.toml")):
+                metric_v2_configs.append(
+                    MetricV2Config(
+                        slug=metric_v2_file.stem,
+                        spec=MetricV2Spec.from_file(metric_v2_file),
+                    )
+                )
+
+        collection = cls(
             external_configs,
             outcomes,
             default_configs,
@@ -538,7 +586,10 @@ class ConfigCollection:
             ],
             is_private=is_private,
             featmon_configs=featmons,
+            metric_v2_configs=metric_v2_configs,
         )
+        collection.validate_metric_v2_configs()
+        return collection
 
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
         """Get configs as they were at the provided timestamp."""
@@ -728,6 +779,10 @@ class ConfigCollection:
 
         return segments
 
+    def validate_metric_v2_configs(self) -> None:
+        for metric_v2_config in self.metric_v2_configs:
+            metric_v2_config.validate(self)
+
     def get_metrics_sql(
         self,
         metrics: list[str],
@@ -853,6 +908,12 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
+        metric_v2_configs = {mc.slug: mc for mc in deepcopy(other.metric_v2_configs)}
+        for mc in self.metric_v2_configs:
+            if mc.slug not in metric_v2_configs:
+                metric_v2_configs[mc.slug] = mc
+        self.metric_v2_configs = list(metric_v2_configs.values())
+
         self.repos += other.repos
 
 
@@ -961,7 +1022,18 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        return cls(
+        metric_v2_configs = []
+        metric_v2_dir = files_path / METRIC_V2_DIR
+        if metric_v2_dir.is_dir():
+            for metric_v2_file in sorted(metric_v2_dir.glob("*.toml")):
+                metric_v2_configs.append(
+                    MetricV2Config(
+                        slug=metric_v2_file.stem,
+                        spec=MetricV2Spec.from_file(metric_v2_file),
+                    )
+                )
+
+        collection = cls(
             external_configs,
             outcomes,
             default_configs,
@@ -970,7 +1042,10 @@ class LocalConfigCollection(ConfigCollection):
             repos=[],
             is_private=is_private,
             featmon_configs=featmons,
+            metric_v2_configs=metric_v2_configs,
         )
+        collection.validate_metric_v2_configs()
+        return collection
 
     @classmethod
     def from_github_repo(

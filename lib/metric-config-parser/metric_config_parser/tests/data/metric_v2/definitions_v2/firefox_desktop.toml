@@ -1,0 +1,68 @@
+[metrics.days_of_use]
+friendly_name = "Days of use"
+data_source = "clients_daily"
+aggregation = "count"
+column = "submission_date"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.qualified_cumulative_days_of_use]
+friendly_name = "Qualified cumulative days of use"
+data_source = "clients_daily"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.qualified_cumulative_days_of_use.where]]
+column = "active_hours_sum"
+op = ">"
+value = 0
+
+[[metrics.qualified_cumulative_days_of_use.where]]
+column = "scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum"
+op = ">"
+value = 0
+
+[metrics.active_hours]
+friendly_name = "Active hours"
+description = "Time during which Firefox received user input."
+data_source = "clients_daily"
+aggregation = "sum"
+column = "active_hours_sum"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.active_hours.statistics.bootstrap_mean]
+
+[metrics.is_default_browser]
+data_source = "clients_daily"
+aggregation = "any"
+column = "is_default_browser"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.retained]
+friendly_name = "Retained"
+data_source = "clients_daily"
+aggregation = "sum"
+column = "pings_aggregated_by_this_row"
+threshold = { op = ">", value = 0 }
+incremental_window = 7
+repeat_windows = true
+
+[metrics.active_in_last_3_days_legacy]
+data_source = "firefox_desktop_active_users_view"
+aggregation = "recency_within"
+column = "days_active_bits"
+within_days = 3
+incremental_window = 7
+repeat_windows = true
+
+[metrics.daily_active_users_per_1000_clients_legacy]
+data_source = "clients_daily"
+aggregation = "count_where"
+column = "is_dau"
+scale = 1000
+bigger_is_better = true
+cumulative_window = 7
+repeat_windows = true
