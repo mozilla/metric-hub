@@ -1,0 +1,155 @@
+# Example V2 metric definitions. Copy this file, rename it to <application>.toml
+# (e.g. firefox_desktop.toml), and replace the metrics below.
+#
+# The application is inferred from the filename stem. Do not add it inside the file.
+# The only top-level table is [metrics]. Data sources stay in definitions/.
+# Any key not shown in this file is rejected.
+
+# ---------------------------------------------------------------------------
+# sum: the sum of a column
+# ---------------------------------------------------------------------------
+
+# The table key is the metric name. It must not also be defined in definitions/.
+[metrics.active_hours]
+# Optional: display name on the results page.
+friendly_name = "Active hours"
+# Optional: display description on the results page.
+description = "Time during which Firefox received user input."
+# Required: a data source defined in definitions/<application>.toml.
+data_source = "clients_daily"
+# Required: one of sum, count, count_where, any, recency_within.
+aggregation = "sum"
+# Required for sum: a plain column name, never an expression.
+column = "active_hours_sum"
+# Optional: cumulative windows of 7 days, counted from enrollment.
+cumulative_window = 7
+# Optional: repeat the windows for the length of the experiment. Default: false.
+repeat_windows = true
+
+# Optional: statistics, one table per statistic holding its parameters.
+# Nothing reads this field yet.
+[metrics.active_hours.statistics.bootstrap_mean]
+
+# ---------------------------------------------------------------------------
+# sum with a threshold: 0/1
+# ---------------------------------------------------------------------------
+
+[metrics.retained]
+friendly_name = "Retained"
+data_source = "clients_daily"
+aggregation = "sum"
+column = "pings_aggregated_by_this_row"
+# Optional: compares the aggregated value; the result is 1 if it holds, else 0.
+threshold = { op = ">", value = 0 }
+# Optional: back-to-back 7-day windows, each covering only its own days.
+incremental_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# count: rows where the column is not null
+# ---------------------------------------------------------------------------
+
+[metrics.days_of_use]
+friendly_name = "Days of use"
+data_source = "clients_daily"
+aggregation = "count"
+# Required for count: rows where this column is not null are counted.
+column = "submission_date"
+cumulative_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# count_where with conditions
+# ---------------------------------------------------------------------------
+
+[metrics.qualified_cumulative_days_of_use]
+friendly_name = "Qualified cumulative days of use"
+data_source = "clients_daily"
+# count_where takes either column or where, not both.
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+# Each [[...where]] table is one condition. A row matches when all of them hold.
+[[metrics.qualified_cumulative_days_of_use.where]]
+# Required: a plain column name.
+column = "active_hours_sum"
+# Operators: >, >=, <, <=, =, !=, IS NULL, IS NOT NULL.
+op = ">"
+# Required for comparison operators. A null column never matches a comparison.
+value = 0
+
+[[metrics.qualified_cumulative_days_of_use.where]]
+column = "scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum"
+op = ">"
+value = 0
+
+# ---------------------------------------------------------------------------
+# count_where with string, null and boolean conditions
+# ---------------------------------------------------------------------------
+
+[metrics.release_default_browser_days_with_search_engine]
+data_source = "clients_daily"
+aggregation = "count_where"
+# One 3-day cumulative window, not repeated.
+cumulative_window = 3
+
+[[metrics.release_default_browser_days_with_search_engine.where]]
+column = "normalized_channel"
+op = "="
+# Values may be numbers, strings or booleans.
+value = "release"
+
+[[metrics.release_default_browser_days_with_search_engine.where]]
+column = "default_search_engine"
+# IS NULL and IS NOT NULL take no value.
+op = "IS NOT NULL"
+
+[[metrics.release_default_browser_days_with_search_engine.where]]
+# No op: tests a boolean column for true.
+column = "is_default_browser"
+
+# ---------------------------------------------------------------------------
+# any with the column shorthand: 0/1
+# ---------------------------------------------------------------------------
+
+[metrics.is_default_browser]
+friendly_name = "Is default browser"
+data_source = "clients_daily"
+aggregation = "any"
+# Shorthand for a single condition testing this boolean column for true.
+column = "is_default_browser"
+cumulative_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# count_where with scale
+# ---------------------------------------------------------------------------
+
+[metrics.default_browser_days_per_1000]
+data_source = "clients_daily"
+aggregation = "count_where"
+column = "is_default_browser"
+# Optional: multiplies the final value, after any threshold.
+scale = 1000
+# Optional: direction of improvement on the results page. Default: true.
+bigger_is_better = true
+cumulative_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# recency_within: 0/1
+# ---------------------------------------------------------------------------
+
+[metrics.active_in_last_3_days_legacy]
+friendly_name = "Active in the last 3 days"
+data_source = "firefox_desktop_active_users_view"
+aggregation = "recency_within"
+# Required for recency_within: a 28-day activity bit pattern column.
+column = "days_active_bits"
+# Required for recency_within, and only allowed there: a positive number of days.
+within_days = 3
+incremental_window = 7
+repeat_windows = true
+# Set to false when a lower value is an improvement.
+bigger_is_better = true
