@@ -12,6 +12,7 @@ from metric_config_parser.config import (
     MetricV2Config,
     entity_from_path,
 )
+from metric_config_parser.metric import MetricLevel
 from metric_config_parser.metric_v2 import (
     METRIC_KEYS,
     METRIC_V2_DIR,
@@ -172,6 +173,32 @@ class TestMetricV2Spec:
         assert metric.cumulative_window is None
         assert metric.incremental_window is None
         assert metric.repeat_windows is False
+
+    def test_metadata_defaults(self):
+        metric = parse_metric(aggregation="sum", column="a")
+
+        assert metric.category is None
+        assert metric.owner is None
+        assert metric.deprecated is False
+        assert metric.level is None
+
+    @pytest.mark.parametrize(
+        "owner", ["example@mozilla.com", ["example@mozilla.com", "team@mozilla.com"]]
+    )
+    def test_metadata(self, owner):
+        metric = parse_metric(
+            aggregation="sum",
+            column="a",
+            category="performance",
+            owner=owner,
+            deprecated=True,
+            level="gold",
+        )
+
+        assert metric.category == "performance"
+        assert metric.owner == owner
+        assert metric.deprecated is True
+        assert metric.level == MetricLevel.GOLD
 
     def test_null_operators_take_no_value(self):
         metric = parse_metric(
@@ -361,6 +388,33 @@ class TestMetricV2Rejections:
                 {"aggregation": "sum", "column": "a", "select_expression": "SUM(a)"},
                 "unexpected keys",
             ),
+            (
+                {"aggregation": "sum", "column": "a", "analysis_bases": ["exposures"]},
+                "unexpected keys",
+            ),
+            ({"aggregation": "sum", "column": "a", "type": "scalar"}, "unexpected keys"),
+            ({"aggregation": "sum", "column": "a", "level": "platinum"}, "is not one of"),
+            ({"aggregation": "sum", "column": "a", "level": 1}, "is not one of"),
+            (
+                {"aggregation": "sum", "column": "a", "deprecated": "true"},
+                "deprecated must be a boolean",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "deprecated": 1},
+                "deprecated must be a boolean",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "owner": 1},
+                "owner must be a string or a list of strings",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "owner": ["example@mozilla.com", 1]},
+                "owner must be a string or a list of strings",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "category": 1},
+                "category must be a string",
+            ),
         ],
     )
     def test_rejects(self, fields, match):
@@ -378,6 +432,16 @@ class TestMetricV2Rejections:
     def test_direct_construction_validates(self):
         with pytest.raises(ValueError, match="requires a column"):
             MetricV2Definition(name="m", data_source="clients_daily", aggregation=Aggregation.SUM)
+
+    def test_direct_construction_validates_level(self):
+        with pytest.raises(ValueError, match="unknown level 'gold'"):
+            MetricV2Definition(
+                name="m",
+                data_source="clients_daily",
+                aggregation=Aggregation.SUM,
+                column="a",
+                level="gold",
+            )
 
     def test_invalid_file_fails_to_load(self, tmp_path):
         make_repo(tmp_path)

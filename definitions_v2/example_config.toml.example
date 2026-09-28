@@ -15,6 +15,14 @@
 friendly_name = "Active hours"
 # Optional: display description on the results page.
 description = "Time during which Firefox received user input."
+# Optional: category used to group metrics in the documentation.
+category = "performance"
+# Optional: owner email address, or a list of them.
+owner = ["example@mozilla.com", "team@mozilla.com"]
+# Optional: one of gold, silver, bronze.
+level = "gold"
+# Optional: marks the metric as deprecated. Default: false.
+deprecated = false
 # Required: a data source defined in definitions/<application>.toml.
 data_source = "clients_daily"
 # Required: one of sum, count, count_where, any, recency_within.

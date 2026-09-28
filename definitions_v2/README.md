@@ -57,6 +57,10 @@ lowercase snake_case, as in `definitions/`.
 | `friendly_name` | string | no | | Display name on the results page. |
 | `description` | string | no | | Display description on the results page. |
 | `bigger_is_better` | boolean | no | `true` | Direction of improvement on the results page. |
+| `category` | string | no | | Category used to group metrics, as in `definitions/`. |
+| `owner` | string or list of strings | no | | Owner email address or addresses, as in `definitions/`. |
+| `deprecated` | boolean | no | `false` | Marks the metric as deprecated, as in `definitions/`. |
+| `level` | string | no | | One of `gold`, `silver`, `bronze`, as in `definitions/`. |
 
 Which of `column`, `where` and `within_days` are required depends on the aggregation:
 
@@ -334,6 +338,9 @@ Fields:
 - `cumulative_window` or `incremental_window` is set and is not a positive integer.
 - `repeat_windows` is not a boolean, or is `true` with neither window length set.
 - `statistics` is not a table of tables.
+- `category` is not a string, or `owner` is not a string or a list of strings.
+- `deprecated` is not a boolean.
+- `level` is not one of `gold`, `silver`, `bronze`.
 
 Booleans are not accepted where a number or integer is required.
 
@@ -362,8 +369,8 @@ the conditions joined with AND (the `column` shorthand is the condition `c`).
 
 metric-config-parser builds a V1 metric definition from the V2 fields, so Jetstream reads it like
 any other metric. The definition carries the name, the data source, a generated
-`select_expression`, and `friendly_name`, `description` and `bigger_is_better`. The window fields
-and `statistics` are not passed through.
+`select_expression`, and `friendly_name`, `description`, `bigger_is_better`, `category`, `owner`,
+`deprecated` and `level`. The window fields and `statistics` are not passed through.
 
 | aggregation | `select_expression` |
 | --- | --- |

@@ -1,11 +1,13 @@
 import re
 from collections.abc import Mapping
-from enum import StrEnum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Any
 
 import attr
 import toml
+
+from .metric import MetricLevel
 
 METRIC_V2_DIR = "definitions_v2"
 
@@ -58,6 +60,10 @@ METRIC_KEYS = {
     "friendly_name",
     "description",
     "bigger_is_better",
+    "category",
+    "owner",
+    "deprecated",
+    "level",
 }
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
@@ -76,7 +82,7 @@ def _validate_identifier(column: str, context: str) -> None:
         raise ValueError(f"{context}: column '{column}' must be a plain column name")
 
 
-def _to_enum(enum_cls: type[StrEnum], value: Any, context: str) -> Any:
+def _to_enum(enum_cls: type[Enum], value: Any, context: str) -> Any:
     try:
         return enum_cls(value)
     except ValueError:
@@ -154,6 +160,10 @@ class MetricV2Definition:
     friendly_name: str | None = None
     description: str | None = None
     bigger_is_better: bool = True
+    category: str | None = None
+    owner: str | list[str] | None = None
+    deprecated: bool = False
+    level: MetricLevel | None = None
 
     def __attrs_post_init__(self) -> None:
         context = f"metric '{self.name}'"
@@ -202,6 +212,18 @@ class MetricV2Definition:
         ):
             raise ValueError(f"{context}: statistics must be a table of tables")
 
+        if self.category is not None and not isinstance(self.category, str):
+            raise ValueError(f"{context}: category must be a string")
+        if self.owner is not None and not (
+            isinstance(self.owner, str)
+            or (isinstance(self.owner, list) and all(isinstance(o, str) for o in self.owner))
+        ):
+            raise ValueError(f"{context}: owner must be a string or a list of strings")
+        if not isinstance(self.deprecated, bool):
+            raise ValueError(f"{context}: deprecated must be a boolean")
+        if self.level is not None and not isinstance(self.level, MetricLevel):
+            raise ValueError(f"{context}: unknown level '{self.level}'")
+
     @property
     def conditions(self) -> list[Clause]:
         if self.aggregation in CONDITION_AGGREGATIONS and self.column is not None:
@@ -216,6 +238,7 @@ class MetricV2Definition:
             if required not in d:
                 raise ValueError(f"{context}: {required} is required")
         threshold = d.get("threshold")
+        level = d.get("level")
         return cls(
             name=name,
             data_source=d["data_source"],
@@ -232,6 +255,10 @@ class MetricV2Definition:
             friendly_name=d.get("friendly_name"),
             description=d.get("description"),
             bigger_is_better=d.get("bigger_is_better", True),
+            category=d.get("category"),
+            owner=d.get("owner"),
+            deprecated=d.get("deprecated", False),
+            level=None if level is None else _to_enum(MetricLevel, level, context),
         )
 
 
