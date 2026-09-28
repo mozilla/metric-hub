@@ -1,4 +1,5 @@
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -30,6 +31,10 @@ EXAMPLE_FILE = TEST_DIR.parents[3] / METRIC_V2_DIR / "example_config.toml.exampl
 
 def make_repo(tmp_path, source=FIXTURE_DIR):
     shutil.copytree(source, tmp_path, dirs_exist_ok=True)
+    return init_repo(tmp_path)
+
+
+def init_repo(tmp_path):
     r = Repo.init(tmp_path)
     r.config_writer().set_value("user", "name", "test").release()
     r.config_writer().set_value("user", "email", "test@example.com").release()
@@ -37,6 +42,13 @@ def make_repo(tmp_path, source=FIXTURE_DIR):
     r.git.add(".")
     r.git.commit("-m", "commit")
     return tmp_path
+
+
+def make_definitions_repo(root, definitions_toml):
+    definitions_dir = root / "definitions"
+    definitions_dir.mkdir(parents=True)
+    (definitions_dir / "firefox_desktop.toml").write_text(definitions_toml)
+    return init_repo(root)
 
 
 def write_v2(root, metrics_toml):
@@ -472,6 +484,52 @@ class TestMetricV2Collection:
 
         with pytest.raises(ValueError, match="'uri_count' is defined in both"):
             ConfigCollection.from_github_repo(tmp_path)
+
+    def test_rejects_metric_defined_in_v1_in_another_repo(self, tmp_path):
+        v2_repo = make_repo(tmp_path / "metric-hub")
+        v1_repo = make_definitions_repo(
+            tmp_path / "jetstream",
+            '[metrics.active_hours]\nselect_expression = "SUM(active_hours_sum)"\n'
+            'data_source = "clients_daily"\n',
+        )
+
+        with pytest.raises(ValueError, match="'active_hours' is defined in both"):
+            ConfigCollection.from_github_repos([str(v2_repo), str(v1_repo)])
+
+    def test_resolves_data_source_from_another_repo(self, tmp_path):
+        v2_repo = make_repo(tmp_path / "metric-hub")
+        write_v2(
+            v2_repo,
+            '[metrics.search_count]\ndata_source = "search_clients"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        Repo(v2_repo).git.commit("-am", "use search_clients")
+        data_source_repo = make_definitions_repo(
+            tmp_path / "jetstream",
+            '[data_sources.search_clients]\nfrom_expression = "mozdata.search.search_clients"\n',
+        )
+
+        with pytest.raises(ValueError, match="search_clients"):
+            ConfigCollection.from_github_repo(v2_repo)
+
+        collection = ConfigCollection.from_github_repos([str(v2_repo), str(data_source_repo)])
+        assert set(collection.metric_v2_configs[0].spec.metrics) == {"search_count"}
+
+        collection = collection.as_of(datetime.now(UTC))
+        assert set(collection.metric_v2_configs[0].spec.metrics) == {"search_count"}
+
+    def test_skips_validation_when_disabled(self, tmp_path):
+        make_repo(tmp_path)
+        write_v2(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "search_clients"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use search_clients")
+
+        collection = ConfigCollection.from_github_repo(tmp_path, validate_metric_v2=False)
+
+        assert set(collection.metric_v2_configs[0].spec.metrics) == {"search_count"}
 
 
 class TestMetricV2Example:

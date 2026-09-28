@@ -337,11 +337,13 @@ Fields:
 
 Booleans are not accepted where a number or integer is required.
 
-Across files:
+Across files. When several repositories or directories are loaded together, such as metric-hub,
+`jetstream/` and `opmon/`, these checks run once on the merged set, so every `definitions/`
+directory loaded counts:
 
-- `data_source` does not name a data source in `definitions/<application>.toml` for the same
-  application.
-- The metric name is also defined in `definitions/<application>.toml`.
+- `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
+  same application.
+- The metric name is also defined in any loaded `definitions/<application>.toml`.
 
 Not checked:
 

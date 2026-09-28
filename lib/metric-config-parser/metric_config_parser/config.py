@@ -393,6 +393,7 @@ class ConfigCollection:
         is_private: bool = False,
         path: str | None = None,
         depth: int | None = None,
+        validate_metric_v2: bool = True,
     ) -> "ConfigCollection":
         """Pull in external config files."""
         # download files to a persisted tmp directory
@@ -441,6 +442,7 @@ class ConfigCollection:
             is_private=is_private,
             main_branch=repo.active_branch.name,
             is_tmp_repo=is_tmp_repo,
+            validate_metric_v2=validate_metric_v2,
         )
 
     @classmethod
@@ -455,15 +457,22 @@ class ConfigCollection:
 
         for repo in repo_urls:
             if configs is None:
-                configs = ConfigCollection.from_github_repo(repo, is_private=is_private)
+                configs = ConfigCollection.from_github_repo(
+                    repo, is_private=is_private, validate_metric_v2=False
+                )
             else:
-                collection = ConfigCollection.from_github_repo(repo, is_private=is_private)
+                collection = ConfigCollection.from_github_repo(
+                    repo, is_private=is_private, validate_metric_v2=False
+                )
                 configs.merge(collection)
-        return configs or ConfigCollection.from_github_repo()
+        if configs is None:
+            return ConfigCollection.from_github_repo()
+        configs.validate_metric_v2_configs()
+        return configs
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False
+        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_metric_v2=True
     ) -> "ConfigCollection":
         """Load configs from a local repository."""
 
@@ -588,7 +597,8 @@ class ConfigCollection:
             featmon_configs=featmons,
             metric_v2_configs=metric_v2_configs,
         )
-        collection.validate_metric_v2_configs()
+        if validate_metric_v2:
+            collection.validate_metric_v2_configs()
         return collection
 
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
@@ -647,6 +657,7 @@ class ConfigCollection:
                         self.is_private,
                         repo.main_branch,
                         is_tmp_repo=True,
+                        validate_metric_v2=False,
                     )
                 except Exception as e:
                     could_load_configs = False
@@ -662,6 +673,7 @@ class ConfigCollection:
                                 self.is_private,
                                 repo.main_branch,
                                 is_tmp_repo=True,
+                                validate_metric_v2=False,
                             )
                             could_load_configs = True
                             rev = newer_commit.hexsha
@@ -685,6 +697,7 @@ class ConfigCollection:
         if config_collection is None:
             return self
 
+        config_collection.validate_metric_v2_configs()
         return config_collection
 
     def spec_for_outcome(self, slug: str, platform: str) -> OutcomeSpec | None:
@@ -1054,6 +1067,7 @@ class LocalConfigCollection(ConfigCollection):
         is_private: bool = False,
         path: str | None = None,
         depth: int | None = None,
+        validate_metric_v2: bool = True,
     ):
         raise NotImplementedError(
             "`from_github_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -1071,7 +1085,7 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False
+        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_metric_v2=True
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_local_repo` is not valid for non-repo-based LocalConfigCollection. "
