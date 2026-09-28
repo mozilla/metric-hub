@@ -17,6 +17,8 @@ jobs:
       path_filter: |
         definitions/*.toml
         definitions/*.toml.example
+        definitions_v2/*.toml
+        definitions_v2/*.toml.example
 
   validate-metrics:
     runs-on: ubuntu-latest

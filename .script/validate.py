@@ -35,6 +35,7 @@ from metric_config_parser.config import (
 )
 from metric_config_parser.featmon import FEATMON_DIR
 from metric_config_parser.function import FunctionsSpec
+from metric_config_parser.metric_v2 import METRIC_V2_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,15 @@ def validate(path, config_repos):
             continue
         if ".example" in config_file.suffixes:
             print(f"Skipping example config {config_file}")
+            continue
+
+        if config_file.parent.name == METRIC_V2_DIR:
+            entity = entity_from_path(config_file)
+            try:
+                entity.validate(config_collection)
+            except Exception as e:
+                dirty = True
+                print(e)
             continue
 
         if config_file.parent.name == FEATMON_DIR:
