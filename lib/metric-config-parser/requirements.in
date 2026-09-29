@@ -103,7 +103,7 @@ types-futures==3.3.8
     # via mozilla-metric-config-parser
 types-protobuf==7.35.1.20260906
     # via mozilla-metric-config-parser
-types-pytz==2026.3.1.20260727
+types-pytz==2026.4.0.20260926
     # via mozilla-metric-config-parser
 types-pyyaml==6.0.12.20260906
     # via mozilla-metric-config-parser
