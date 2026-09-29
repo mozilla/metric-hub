@@ -63,6 +63,10 @@ segments = [
   # Locale group (NEW for this run)
   "locale_english",
   "locale_de_fr_it",
+
+  # Co-enrollment in the FINISH_SETUP_BUTTON pin rollout (added 2026-09-29)
+  "in_pin_rollout_v2",
+  "not_in_pin_rollout_v2",
 ]
 
 [metrics]
@@ -348,3 +352,58 @@ from_expression = """(
 )"""
 window_start = -7
 window_end = -1
+
+# ============================================================================
+# SEGMENTS - Co-enrollment in auto-trigger-pin-to-taskbar-notification-rollout-v2
+# (added 2026-09-29)
+# ============================================================================
+# The rollout's FINISH_SETUP_BUTTON message sits on the same defaultBrowserCheck
+# trigger at priority 1 with no frequency cap, so it wins every startup for its
+# enrollees and our Spotlight (no priority) never shows. Treatment enrollees in
+# the rollout saw the Spotlight at 0.1% within 7 days of enrollment, vs 45.4% for
+# everyone else. They are ~38% of enrollees. The rollout blocks the control stub
+# too, so the split is balanced by branch: read results on not_in_pin_rollout_v2
+# (the deliverable population), and use in_pin_rollout_v2 as a no-exposure check.
+# Diagnosis: Google Doc 1D9_OtiOYbiTtbcmxe7GShLCPFys3X0iAoyYG4G1JxSA.
+#
+# Membership comes from the rollout's own Nimbus enrollment events. The rollout
+# only enrolls at first run, so membership is fixed before our enrollment and is
+# not treatment-affected. mozanalysis LEFT JOINs segment data sources, so an
+# enrollee with no rollout event gets zero rows: in_pin_rollout_v2 is FALSE and
+# not_in_pin_rollout_v2 is TRUE. Checked 2026-09-29 against the ping-annotation
+# flag for enrollees of 2026-09-17..20: the two agree for 98% of profile groups,
+# and the segment puts 38.5% in the rollout.
+
+[segments.in_pin_rollout_v2]
+data_source = "pin_rollout_v2_enrollment"
+friendly_name = "In pin rollout-v2 (FINISH_SETUP_BUTTON)"
+description = "Enrolled in auto-trigger-pin-to-taskbar-notification-rollout-v2, whose priority-1 FINISH_SETUP_BUTTON takes the startup slot"
+select_expression = "COALESCE(LOGICAL_OR(enrolled_in_pin_rollout_v2), FALSE)"
+
+[segments.not_in_pin_rollout_v2]
+data_source = "pin_rollout_v2_enrollment"
+friendly_name = "Not in pin rollout-v2"
+description = "Not enrolled in auto-trigger-pin-to-taskbar-notification-rollout-v2 (the population the Spotlight can reach)"
+select_expression = "NOT COALESCE(LOGICAL_OR(enrolled_in_pin_rollout_v2), FALSE)"
+
+# Window -35..7 around enrollment: every enrollee is 7-28 days old, so its
+# first-run rollout enrollment falls 7-28 days before ours, and the +7 tail
+# catches events pings uploaded after the enrollment date (safe, because the
+# rollout cannot enroll a profile after first run). The date floor is a
+# performance guard: 2026-09-17 minus 35 days.
+
+[segments.data_sources.pin_rollout_v2_enrollment]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id AS client_id,
+    profile_group_id,
+    DATE(submission_timestamp) AS submission_date,
+    TRUE AS enrolled_in_pin_rollout_v2
+  FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+  WHERE DATE(submission_timestamp) >= '2026-08-13'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    AND JSON_VALUE(event_extra, '$.experiment') = 'auto-trigger-pin-to-taskbar-notification-rollout-v2'
+)"""
+window_start = -35
+window_end = 7
