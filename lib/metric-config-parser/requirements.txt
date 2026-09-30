@@ -1088,9 +1088,9 @@ types-protobuf==7.35.1.20260906 \
     --hash=sha256:5155e48569e0dabff303fdf578db96cd31ea9a4a63b18018a4ceac6b0ae17462 \
     --hash=sha256:efd1a3862d4c967dad5512ef8d56b1530ac84f182c41735b94004756518c4998
     # via -r requirements.in
-types-pytz==2026.3.1.20260727 \
-    --hash=sha256:42ac44e83645bfceb46597342c8fb8ec028a1407e2feae9c5c539986eab6b57a \
-    --hash=sha256:4364075b6867dd15b210bb8c1d29727d609917129b45600defe1d4b3eda5ecb9
+types-pytz==2026.4.0.20260926 \
+    --hash=sha256:0d0357ffa7680a4416811fb0e56e7a5c0d6efec3f299390d146ea2675b66c774 \
+    --hash=sha256:2ad5cde113cd6a58dd59c34f3c93f1bce2d126c769bfac15207ca7d7efd65390
     # via -r requirements.in
 types-pyyaml==6.0.12.20260906 \
     --hash=sha256:bca893ff0d51df5c9053137d5d0e6ccd36e939a196356f1d5c16372422f5137b \
