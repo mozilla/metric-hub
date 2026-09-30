@@ -4,16 +4,10 @@
 # Branches: control (VPN held back) vs treatment-a (VPN enabled), 1:1.
 #
 # Adds FxA adoption (fxa_sign_in) as a two-branch comparison, broken out for the
-# new_users segment. Retention, DAU, and search/ad guardrails come from the default
-# firefox_android metrics.
+# new_users segment.
 
 [experiment]
 reference_branch = "control"
-# enrollment_period is intentionally not set: Jetstream derives it from Experimenter's
-# enrollmentEndDate once enrollment is ended there. Note Jetstream will not analyze
-# until that date is set (the July vpn-android study was ended without ever ending
-# enrollment, so it produced no results). Ending enrollment in Experimenter, not just
-# ending the experiment, is required.
 segments = [
   "new_users",
 ]
