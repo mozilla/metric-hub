@@ -1,15 +1,15 @@
-# Example V2 metric definitions. Copy this file, rename it to <application>.toml
-# (e.g. firefox_desktop.toml), and replace the metrics below.
+# Example nimbus/definitions metric definitions. Copy this file, rename it to
+# <application>.toml (e.g. firefox_desktop.toml), and replace the metrics below.
 #
 # The application is inferred from the filename stem. Do not add it inside the file.
 # The only top-level table is [metrics]. Data sources stay in definitions/.
-# Any key not shown in this file is rejected.
+# Any key not shown in this file is rejected, including select_expression.
 
 # ---------------------------------------------------------------------------
 # sum: the sum of a column
 # ---------------------------------------------------------------------------
 
-# The table key is the metric name. It must not also be defined in definitions/.
+# The table key is the metric name. It may also be defined in definitions/.
 [metrics.active_hours]
 # Optional: display name on the results page.
 friendly_name = "Active hours"

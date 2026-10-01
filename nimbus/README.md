@@ -1,68 +1,82 @@
-# definitions_v2: V2 metric definitions
+# nimbus: aggregation-form metric definitions
 
-This directory holds V2 metric definitions. A V2 metric is declarative. It names a data source, one
-aggregation from a closed list, and the columns and conditions that aggregation reads. It contains
-no SQL. Each consumer generates the SQL it needs from the same fields, so one definition serves both
-Jetstream and Highwind.
+A metric definition can describe its computation with aggregation fields instead of SQL. Such a
+metric names a data source, one aggregation from a closed list, and the columns and conditions that
+aggregation reads. Each consumer generates the SQL it needs from the same fields.
 
-V2 sits next to the V1 definitions in `definitions/`. Data sources, segments and V1 metrics stay in
-`definitions/`. A V2 metric refers to a data source defined there.
+The aggregation fields are part of every metric definition that metric-config-parser reads. A
+metric declares at most one of `select_expression` or the aggregation fields. A metric that
+declares neither stays valid, for example one that only overrides `statistics`, or one that derives
+from other metrics with `depends_on`.
 
-See [example_config.toml.example](example_config.toml.example) for an annotated example that uses
-every field.
+`nimbus/definitions/` holds metrics in aggregation form, under stricter rules than `definitions/`.
+Highwind prefers a metric's copy in `nimbus/definitions/`. Jetstream reads `definitions/` only.
+
+Keep aggregation-form metrics in `nimbus/definitions/` only for now. Jetstream does not generate
+SQL from the aggregation fields, and consumers on older metric-config-parser releases ignore keys
+they do not know, so in `definitions/` an aggregation-form metric would be read as a metric with no
+SQL.
+
+See [definitions/example_config.toml.example](definitions/example_config.toml.example) for an
+annotated example that uses every field.
 
 ## Files and layout
 
 ```
 metric-hub/
-  definitions/              V1 metrics and every data source
+  definitions/              metrics with select_expression, and every data source
     firefox_desktop.toml
-  definitions_v2/           V2 metrics
-    firefox_desktop.toml
+  nimbus/
+    definitions/            metrics in aggregation form
+      firefox_desktop.toml
 ```
 
 - One TOML file per application, named `<application>.toml`.
 - The application comes from the file stem, as in `definitions/`. Do not put it inside the file.
 - The only top-level table is `[metrics]`. Any other top-level key is rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
-- A metric lives in exactly one of `definitions/<application>.toml` or
-  `definitions_v2/<application>.toml`. Defining the same name in both is an error.
-- Porting a metric means deleting it from `definitions/` and adding it here, so the directory
-  listing shows which metrics have moved.
-- Data sources are not ported. They stay in `definitions/`, and both consumers read them as they do
-  for V1 metrics.
+- A metric may be defined under the same name in both `definitions/<application>.toml` and
+  `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
+  Jetstream uses the `definitions/` copy.
+- Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
+  defined there.
 - Files ending in `.example` are not loaded.
 
-metric-config-parser loads these files with their own schema and validation. They are not read by
-the V1 parser.
+metric-config-parser loads these files when it loads a repository. `ConfigCollection` returns a
+metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metric_definition` reads
+`definitions/` only.
+
+## Rules for `nimbus/definitions/`
+
+- `aggregation` and `data_source` are required.
+- `select_expression` is not allowed.
+- Only the keys in the field reference below are allowed. Other metric keys accepted in
+  `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
+  rejected.
+- Keys are case sensitive. `definitions/` lowercases keys, `nimbus/definitions/` does not.
+- `data_source` must name a data source defined in `definitions/<application>.toml`.
 
 ## Field reference
 
 The table key is the metric name. The parser does not restrict it beyond TOML key syntax. Use
 lowercase snake_case, as in `definitions/`.
 
-| field | type | required | default | meaning |
-| --- | --- | --- | --- | --- |
-| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml`. |
-| `aggregation` | string | yes | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
-| `column` | string | see below | | A plain column name on the data source. |
-| `where` | list of conditions | see below | empty | Row conditions for `count_where` and `any`. |
-| `within_days` | integer | `recency_within` only | | Number of days for `recency_within`. |
-| `threshold` | `{ op, value }` | no | | Compares the aggregated value and turns it into 0/1. |
-| `scale` | number | no | | Multiplies the final value. |
-| `cumulative_window` | integer (days) | no | | Length of the cumulative windows Highwind computes. |
-| `incremental_window` | integer (days) | no | | Length of the incremental windows Highwind computes. |
-| `repeat_windows` | boolean | no | `false` | Whether the windows repeat for the length of the experiment. |
-| `statistics` | table of tables | no | | Statistics for the metric. |
-| `friendly_name` | string | no | | Display name on the results page. |
-| `description` | string | no | | Display description on the results page. |
-| `bigger_is_better` | boolean | no | `true` | Direction of improvement on the results page. |
-| `category` | string | no | | Category used to group metrics, as in `definitions/`. |
-| `owner` | string or list of strings | no | | Owner email address or addresses, as in `definitions/`. |
-| `deprecated` | boolean | no | `false` | Marks the metric as deprecated, as in `definitions/`. |
-| `level` | string | no | | One of `gold`, `silver`, `bronze`, as in `definitions/`. |
+Aggregation fields:
 
-Which of `column`, `where` and `within_days` are required depends on the aggregation:
+| field | type | default | meaning |
+| --- | --- | --- | --- |
+| `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
+| `column` | string | | A plain column name on the data source. |
+| `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
+| `within_days` | integer | | Number of days for `recency_within`. |
+| `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
+| `scale` | number | | Multiplies the final value. |
+| `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
+| `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
+| `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
+
+Every field other than `aggregation` requires `aggregation`. Which of `column`, `where` and
+`within_days` are required depends on the aggregation:
 
 | aggregation | `column` | `where` | `within_days` |
 | --- | --- | --- | --- |
@@ -73,9 +87,22 @@ Which of `column`, `where` and `within_days` are required depends on the aggrega
 | `any` | exactly one of `column` or `where` | exactly one of `column` or `where` | not allowed |
 
 A column name must match `^[A-Za-z_][A-Za-z0-9_]*$`. It is a name, never an expression, so
-`COALESCE(x, 0)`, `a.b` and `x > 0` are all rejected.
+`COALESCE(x, 0)`, `a.b` and `x > 0` are all rejected. No aggregation field takes SQL.
 
-No field takes SQL. There is no `select_expression`. Any key not listed above is rejected.
+Other fields allowed in `nimbus/definitions/`. These are existing metric fields and are parsed as
+they are in `definitions/`:
+
+| field | type | required | default | meaning |
+| --- | --- | --- | --- | --- |
+| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml`. |
+| `statistics` | table of tables | no | | Statistics for the metric. |
+| `friendly_name` | string | no | | Display name on the results page. |
+| `description` | string | no | | Display description on the results page. |
+| `bigger_is_better` | boolean | no | `true` | Direction of improvement on the results page. |
+| `category` | string | no | | Category used to group metrics. |
+| `owner` | string or list of strings | no | | Owner email address or addresses. |
+| `deprecated` | boolean | no | `false` | Marks the metric as deprecated. |
+| `level` | string | no | | One of `gold`, `silver`, `bronze`. |
 
 ## Aggregations
 
@@ -308,69 +335,70 @@ statistic's parameters. An empty table means no parameters.
 [metrics.active_hours.statistics.deciles]
 ```
 
-Nothing reads this field yet. Jetstream takes statistics from `jetstream/defaults/`. The parser
-checks only the shape, not the statistic names.
+Nothing reads this field in `nimbus/definitions/` yet. Jetstream takes statistics from
+`definitions/` and `jetstream/defaults/`. The parser does not check statistic names.
 
 ## Validation
 
-metric-config-parser loads every file in `definitions_v2/` when it loads the repository, and fails
-to load if any of the following holds.
+metric-config-parser checks the following wherever it parses a metric definition, including
+`definitions/`, `nimbus/definitions/`, experiment configs and outcomes:
 
-File and keys:
-
-- The file has a top-level key other than `metrics`.
-- A metric, condition or threshold has a key not listed in this document.
-- A metric has no `data_source` or no `aggregation`.
-- A condition has no `column`, or a threshold is missing `op` or `value`.
-
-Fields:
-
+- `select_expression` and `aggregation` are both set.
+- Any other aggregation field is set without `aggregation`.
 - `aggregation` is not one of the five.
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is set on any other aggregation.
 - A `column`, or a condition's `column`, is not a plain column name.
+- A condition or threshold has a key not listed in this document.
+- A condition has no `column`, or a threshold is missing `op` or `value`.
 - A condition's `op` is not one of the listed operators.
 - A comparison operator has no `value`, or `IS NULL`, `IS NOT NULL` or the boolean form has one.
 - `threshold.op` is not a comparison operator, or `threshold.value` is not a number.
 - `scale` is not a number.
 - `cumulative_window` or `incremental_window` is set and is not a positive integer.
 - `repeat_windows` is not a boolean, or is `true` with neither window length set.
-- `statistics` is not a table of tables.
-- `category` is not a string, or `owner` is not a string or a list of strings.
-- `deprecated` is not a boolean.
-- `level` is not one of `gold`, `silver`, `bronze`.
 
 Booleans are not accepted where a number or integer is required.
 
+In `nimbus/definitions/`, loading also fails when:
+
+- The file has a top-level key other than `metrics`.
+- A metric has `select_expression`.
+- A metric has no `data_source` or no `aggregation`.
+- A metric has a key not listed in the field reference.
+
 Across files. When several repositories or directories are loaded together, such as metric-hub,
-`jetstream/` and `opmon/`, these checks run once on the merged set, so every `definitions/`
+`jetstream/` and `opmon/`, this check runs once on the merged set, so every `definitions/`
 directory loaded counts:
 
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
   same application.
-- The metric name is also defined in any loaded `definitions/<application>.toml`.
 
 Not checked:
 
 - Whether a column exists on the data source. The parser has no table schemas.
 - Whether window lengths used together fit a common grid.
-- Statistic names, and the types of `friendly_name`, `description` and `bigger_is_better`.
+- Whether a metric defined in both `definitions/` and `nimbus/definitions/` computes the same value
+  in each.
+- Statistic names. The fields shared with `definitions/` get no checks beyond those `definitions/`
+  applies.
 
-## How consumers use a V2 metric (planned)
+## How consumers use an aggregation-form metric (planned)
 
-This section describes behaviour that is not implemented yet. Nothing reads V2 definitions today.
+This section describes behaviour that is not implemented yet. No consumer reads the aggregation
+fields today.
 
 Both consumers generate SQL from the same fields. In the tables below, `c` is `column` and `p` is
 the conditions joined with AND (the `column` shorthand is the condition `c`).
 
 ### Jetstream
 
-metric-config-parser builds a V1 metric definition from the V2 fields, so Jetstream reads it like
-any other metric. The definition carries the name, the data source, a generated
-`select_expression`, and `friendly_name`, `description`, `bigger_is_better`, `category`, `owner`,
-`deprecated` and `level`. The window fields and `statistics` are not passed through.
+Jetstream reads `definitions/` and uses `select_expression`. Each aggregation corresponds to the
+expression below. metric-config-parser will generate `select_expression` from the aggregation
+fields with these expressions, and check that a metric defined in both directories computes the
+same value in each. The window fields and `statistics` are not passed through.
 
 | aggregation | `select_expression` |
 | --- | --- |
@@ -384,9 +412,9 @@ any other metric. The definition carries the name, the data source, a generated
 
 ### Highwind
 
-Highwind scans each data source once per analysis. It reduces each unit's rows once per bucket,
-then builds each window from those bucket values. Each aggregation therefore splits into four
-parts:
+Highwind reads a metric from `nimbus/definitions/` when it is defined there. It scans each data
+source once per analysis. It reduces each unit's rows once per bucket, then builds each window from
+those bucket values. Each aggregation therefore splits into four parts:
 
 - `bucket_aggregate`: reduces a unit's rows in one bucket to a number.
 - `combine`: how bucket values combine over a window.
@@ -403,8 +431,8 @@ parts:
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(x <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
-The columns Highwind reads from each data source are derived from the V2 definitions: every
-`column` and every condition column, grouped by `data_source`.
+The columns Highwind reads from each data source are derived from the aggregation-form
+definitions: every `column` and every condition column, grouped by `data_source`.
 
 ### Equivalence
 
@@ -420,12 +448,12 @@ the same value for a window. Highwind returns 0/1 integers where Jetstream retur
   window value.
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns.
-- Porting data sources. They stay in `definitions/`.
+- Data sources in `nimbus/definitions/`. They stay in `definitions/`.
 - Segments. They stay in `definitions/`.
 
 ## Example
 
-A complete file for `definitions_v2/firefox_desktop.toml`:
+A complete file for `nimbus/definitions/firefox_desktop.toml`:
 
 ```toml
 [metrics.active_hours]
@@ -449,4 +477,5 @@ incremental_window = 7
 repeat_windows = true
 ```
 
-[example_config.toml.example](example_config.toml.example) shows every field.
+[definitions/example_config.toml.example](definitions/example_config.toml.example) shows every
+field.

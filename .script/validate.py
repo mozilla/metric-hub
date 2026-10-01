@@ -32,10 +32,10 @@ from metric_config_parser.config import (
     DEFINITIONS_DIR,
     ConfigCollection,
     entity_from_path,
+    is_nimbus_definition,
 )
 from metric_config_parser.featmon import FEATMON_DIR
 from metric_config_parser.function import FunctionsSpec
-from metric_config_parser.metric_v2 import METRIC_V2_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +202,7 @@ def validate(path, config_repos):
             print(f"Skipping example config {config_file}")
             continue
 
-        if config_file.parent.name == METRIC_V2_DIR:
+        if is_nimbus_definition(config_file):
             entity = entity_from_path(config_file)
             try:
                 entity.validate(config_collection)
