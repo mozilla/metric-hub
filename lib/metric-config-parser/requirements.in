@@ -48,7 +48,7 @@ librt==0.15.0
     # via mypy
 markupsafe==3.0.3
     # via jinja2
-mozilla-nimbus-schemas==3005.0.0
+mozilla-nimbus-schemas==3005.2.0
     # via mozilla-metric-config-parser
 mypy==2.3.1
     # via mozilla-metric-config-parser
@@ -79,7 +79,7 @@ pytest-cov==7.1.0
     # via mozilla-metric-config-parser
 pytest-ruff==0.5
     # via mozilla-metric-config-parser
-pytz==2026.3.post1
+pytz==2026.4
     # via mozilla-metric-config-parser
 referencing==0.37.0
     # via
@@ -91,7 +91,7 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.16.8
+ruff==0.16.9
     # via
     #   mozilla-metric-config-parser
     #   pytest-ruff
@@ -103,7 +103,7 @@ types-futures==3.3.8
     # via mozilla-metric-config-parser
 types-protobuf==7.35.1.20260906
     # via mozilla-metric-config-parser
-types-pytz==2026.3.1.20260727
+types-pytz==2026.4.0.20260926
     # via mozilla-metric-config-parser
 types-pyyaml==6.0.12.20260906
     # via mozilla-metric-config-parser
