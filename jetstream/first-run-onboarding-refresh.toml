@@ -1,0 +1,260 @@
+[experiment]
+# FXE-1794 First-Run Onboarding refresh test (control / design refresh / refresh + tab-orientation choice screen).
+# Primary metric is D3 activation = the auto-applied daily `retained` / `client_level_daily_active_users_v2`
+# read at Experimenter Day 4 (DS guidance, Bryan Baird). No custom metric needed for the primary.
+# Enrollment is at first startup, so enrollment_date ~= first_seen_date for every enrollee.
+segments = [
+    "windows_v1",
+    "windows_10_v1",
+    "windows_11_v1",
+    "macos_v1",
+    "provenance_verified_direct",
+    "provenance_attributable",
+    "provenance_partial",
+    "provenance_dark",
+]
+
+[metrics]
+
+weekly = [
+    "chosen_theme_in_use",
+    "nova_theme_in_use",
+    "vertical_tabs",
+    "active_2plus_of_days_1_to_5",
+    "reached_import_screen",
+    "reached_theme_picker",
+    "reached_tab_orientation_screen",
+    "uninstalled",
+    "fxa_signed_in",
+    "is_pinned",
+    "imported_bookmarks",
+    "imported_history",
+    "imported_logins",
+]
+
+overall = [
+    "chosen_theme_in_use",
+    "nova_theme_in_use",
+    "vertical_tabs",
+    "active_2plus_of_days_1_to_5",
+    "reached_import_screen",
+    "reached_theme_picker",
+    "reached_tab_orientation_screen",
+    "uninstalled",
+    "fxa_signed_in",
+    "is_pinned",
+    "imported_bookmarks",
+    "imported_history",
+    "imported_logins",
+]
+
+# --- Theme adoption and persistence -------------------------------------------------------
+# State at the END of each analysis window (last reported active theme in the window), so
+# Week 1 ~= Day 7 adoption and Week 4 ~= Day 28 persistence. "Chosen" matches the Nova launch's
+# custom_theme_share (Redash #127414): Nova built-ins + AMO/third-party themes; excludes the
+# default theme and legacy first-party themes (compact light/dark, Alpenglow, Proton, colorways).
+[metrics.chosen_theme_in_use]
+friendly_name = "Chosen theme in use"
+description = "Client's last reported active theme in the window is a Nova built-in or a third-party theme (not default or legacy first-party)."
+data_source = "metrics"
+select_expression = """COALESCE(MAX_BY(
+    JSON_VALUE(metrics.object.addons_theme, '$.id') LIKE 'nova-%@mozilla.org'
+    OR (
+        JSON_VALUE(metrics.object.addons_theme, '$.id') NOT IN (
+            'default-theme@mozilla.org',
+            'firefox-compact-light@mozilla.org',
+            'firefox-compact-dark@mozilla.org',
+            'firefox-alpenglow@mozilla.org',
+            'proton-theme@mozilla.org'
+        )
+        AND JSON_VALUE(metrics.object.addons_theme, '$.id') NOT LIKE '%-colorway@mozilla.org'
+    ),
+    IF(JSON_VALUE(metrics.object.addons_theme, '$.id') IS NOT NULL, submission_timestamp, NULL)
+), FALSE)"""
+
+[metrics.chosen_theme_in_use.statistics.binomial]
+
+[metrics.nova_theme_in_use]
+friendly_name = "Nova theme in use"
+description = "Client's last reported active theme in the window is a Nova built-in theme (nova-*@mozilla.org)."
+data_source = "metrics"
+select_expression = """COALESCE(MAX_BY(
+    JSON_VALUE(metrics.object.addons_theme, '$.id') LIKE 'nova-%@mozilla.org',
+    IF(JSON_VALUE(metrics.object.addons_theme, '$.id') IS NOT NULL, submission_timestamp, NULL)
+), FALSE)"""
+
+[metrics.nova_theme_in_use.statistics.binomial]
+
+# --- Tab orientation (Treatment B choice screen) -----------------------------------------
+# Copied verbatim from jetstream/outcomes/firefox_desktop/sidebar.toml. Read B vs A:
+# share of ALL enrollees on vertical tabs at the end of Week 1 (~Day 7).
+[metrics.vertical_tabs]
+friendly_name = "Vertical Tabs"
+description = "Percentage of clients using Vertical Tabs"
+select_expression = "COALESCE(MAX_BY(tabs_orientation = 'vertical', submission_date), FALSE)"
+data_source = "sidebar_metrics"
+
+[metrics.vertical_tabs.statistics.binomial]
+
+[data_sources.sidebar_metrics]
+from_expression = """(
+  SELECT DISTINCT
+    DATE(submission_timestamp) as submission_date,
+    metrics.uuid.legacy_telemetry_client_id as client_id,
+    metrics.uuid.legacy_telemetry_profile_group_id as profile_group_id,
+    COALESCE(ARRAY_AGG(metrics.string.sidebar_tabs_layout IGNORE NULLS)[SAFE_OFFSET(0)], 'horizontal')  as tabs_orientation,
+    COALESCE(LOGICAL_OR(w.key LIKE 'sidebar-button_pinned%'), FALSE) as sidebar_button
+  FROM
+    `mozdata.firefox_desktop.metrics`
+  CROSS JOIN UNNEST (metrics.labeled_boolean.browser_ui_mirror_for_toolbar_widgets) w
+  WHERE submission_timestamp >= '2024-11-26'
+  GROUP BY 1, 2, 3
+)"""
+experiments_column_type = "none"
+friendly_name = "Metrics related to Sidebar and Vertical Tabs"
+description = "Returns if the user has vertical tabs or the sidebar button when the metrics ping is sent"
+
+# --- Proposed successor activation metric -------------------------------------------------
+# "Active (DAU) on 2+ of days 1-5 after first seen" (Ray's 9/30 activation proposal).
+# Read the Week 1 window only (days 0-6 contain days 1-5); later windows are 0 by construction.
+[metrics.active_2plus_of_days_1_to_5]
+friendly_name = "Active 2+ of days 1-5"
+description = "DAU on at least two of days 1-5 after first seen (first-seen day = day 0)."
+data_source = "desktop_active_users_daily"
+select_expression = "CAST(COALESCE(COUNTIF(is_dau AND DATE_DIFF(submission_date, first_seen_date, DAY) BETWEEN 1 AND 5), 0) >= 2 AS INT)"
+
+[metrics.active_2plus_of_days_1_to_5.statistics.binomial]
+
+[data_sources.desktop_active_users_daily]
+from_expression = """(
+  SELECT client_id, submission_date, first_seen_date, is_dau
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+experiments_column_type = "none"
+friendly_name = "Desktop active users (daily)"
+description = "Per client-day DAU flag and first_seen_date."
+
+# --- Screen reach per enrolled user (about:welcome) ---------------------------------------
+# Share of ALL enrollees with an about:welcome IMPRESSION of the screen. Screen IDs are the same in
+# all arms (control uses the Fx157 in-tree screens). Do not compare end-to-end completion across
+# arms of different length; compare reach of specific screens. Note: about:welcome telemetry
+# undercounts true shows by ~25-33%; check step-0 parity across arms before reading.
+[metrics.reached_import_screen]
+friendly_name = "Reached import screen"
+description = "Enrollee saw the about:welcome import screen (AW_IMPORT_SETTINGS_EMBEDDED)."
+data_source = "aboutwelcome_impressions"
+select_expression = "CAST(COALESCE(LOGICAL_OR(screen_context LIKE '%AW_IMPORT_SETTINGS_EMBEDDED%'), FALSE) AS INT)"
+
+[metrics.reached_import_screen.statistics.binomial]
+
+[metrics.reached_theme_picker]
+friendly_name = "Reached theme picker"
+description = "Enrollee saw the about:welcome theme picker screen (AW_THEME_PICKER). Present in all three arms."
+data_source = "aboutwelcome_impressions"
+select_expression = "CAST(COALESCE(LOGICAL_OR(screen_context LIKE '%AW_THEME_PICKER%'), FALSE) AS INT)"
+
+[metrics.reached_theme_picker.statistics.binomial]
+
+[metrics.reached_tab_orientation_screen]
+friendly_name = "Reached tab-orientation screen"
+description = "Enrollee saw the tab-orientation choice screen (Treatment B only; 0 elsewhere by design)."
+data_source = "aboutwelcome_impressions"
+select_expression = "CAST(COALESCE(LOGICAL_OR(screen_context LIKE '%AW_TABORIENTATION_CHOICE%'), FALSE) AS INT)"
+
+[metrics.reached_tab_orientation_screen.statistics.binomial]
+
+[data_sources.aboutwelcome_impressions]
+from_expression = """(
+  SELECT
+    metrics.uuid.messaging_system_client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    metrics.text2.messaging_system_event_context AS screen_context
+  FROM `moz-fx-data-shared-prod.firefox_desktop_stable.messaging_system_v1`
+  WHERE metrics.string.messaging_system_event = 'IMPRESSION'
+    AND REGEXP_CONTAINS(metrics.text2.messaging_system_event_context, r'"page":"about:welcome"')
+    AND metrics.uuid.messaging_system_client_id IS NOT NULL
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+experiments_column_type = "none"
+friendly_name = "about:welcome screen impressions"
+description = "messaging_system IMPRESSION events on about:welcome, keyed on the legacy telemetry client id."
+
+# --- Guardrails ---------------------------------------------------------------------------
+# Early uninstalls: legacy uninstall ping (Windows only; sent by the uninstaller when telemetry is on).
+[metrics.uninstalled]
+friendly_name = "Uninstalled"
+description = "Client sent a legacy uninstall ping during the window (Windows only)."
+data_source = "legacy_uninstall"
+select_expression = "CAST(COUNT(*) > 0 AS INT)"
+
+[metrics.uninstalled.statistics.binomial]
+
+[data_sources.legacy_uninstall]
+from_expression = """(
+  SELECT client_id, DATE(submission_timestamp) AS submission_date
+  FROM `mozdata.telemetry.uninstall`
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+experiments_column_type = "none"
+friendly_name = "Legacy uninstall ping"
+description = "One row per uninstall ping."
+
+# Built-ins listed above without their own statistics block in definitions/.
+[metrics.fxa_signed_in.statistics.binomial]
+[metrics.is_pinned.statistics.binomial]
+[metrics.imported_bookmarks.statistics.binomial]
+[metrics.imported_history.statistics.binomial]
+[metrics.imported_logins.statistics.binomial]
+
+# --- Segments: provenance tiers ------------------------------------------------------------
+# From download source + installer type at first seen (both pre-randomization attributes).
+# Tier logic matches Ray's activation proposal (Sep 2026).
+[segments.provenance_verified_direct]
+friendly_name = "Provenance: verified direct"
+description = "firefox.com or desktop launcher download source AND stub installer."
+data_source = "first_seen_provenance"
+select_expression = "COALESCE(LOGICAL_OR(tier = 'verified_direct'), FALSE)"
+
+[segments.provenance_attributable]
+friendly_name = "Provenance: attributable"
+description = "Download source and installer type both present, other values."
+data_source = "first_seen_provenance"
+select_expression = "COALESCE(LOGICAL_OR(tier = 'attributable'), FALSE)"
+
+[segments.provenance_partial]
+friendly_name = "Provenance: partial"
+description = "Only one of download source or installer type present."
+data_source = "first_seen_provenance"
+select_expression = "COALESCE(LOGICAL_OR(tier = 'partial'), FALSE)"
+
+[segments.provenance_dark]
+friendly_name = "Provenance: dark"
+description = "Neither download source nor installer type present."
+data_source = "first_seen_provenance"
+select_expression = "COALESCE(LOGICAL_OR(tier = 'dark'), FALSE)"
+
+[segments.data_sources.first_seen_provenance]
+from_expression = """(
+  SELECT
+    client_id,
+    first_seen_date AS submission_date,
+    CASE
+      WHEN COALESCE(NULLIF(attribution_dlsource, ''), '(none)') IN ('fxdotcom', 'desktoplauncher')
+           AND installation_first_seen_installer_type = 'stub' THEN 'verified_direct'
+      WHEN NULLIF(attribution_dlsource, '') IS NOT NULL
+           AND installation_first_seen_installer_type IS NOT NULL THEN 'attributable'
+      WHEN NULLIF(attribution_dlsource, '') IS NOT NULL
+           OR installation_first_seen_installer_type IS NOT NULL THEN 'partial'
+      ELSE 'dark'
+    END AS tier
+  FROM `mozdata.telemetry.clients_first_seen`
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+friendly_name = "First-seen provenance tier"
+description = "Provenance tier from attribution_dlsource + installation_first_seen_installer_type at first seen."
