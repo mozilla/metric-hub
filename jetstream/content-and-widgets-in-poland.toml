@@ -1,2 +1,42 @@
 [experiment]
-end_date = "2026-09-14"
+end_date = "2026-10-01"
+
+[metrics]
+
+weekly = ['urlbar_search_count', 'ad_click_rate', 'search_engine_clicks']
+overall = ['urlbar_search_count', 'ad_click_rate', 'search_engine_clicks']
+
+preenrollment_weekly = [
+  "urlbar_search_count", "search_engine_clicks"
+]
+
+[metrics.urlbar_search_count]
+select_expression = "SUM(CASE WHEN source LIKE 'urlbar%' THEN COALESCE(sap, 0) ELSE 0 END)"
+data_source = "search_clients_engines_sources_daily"
+description = "Number of searches performed in the urlbar, including search mode and handoff, from Legacy telemetry"
+friendly_name = "Urlbar search count (Legacy)"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.urlbar_search_count.statistics.linear_model_mean]
+[metrics.urlbar_search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.ad_click_rate.statistics.population_ratio]
+numerator = "ad_clicks"
+denominator = "search_count"
+
+[metrics.search_engine_clicks]
+select_expression = """SUM(
+  IF(
+    product_result_type IN ('default_partner_search_suggestion', 'search_suggest', 'search_history', 'search_suggest_rich', 'search_engine', 'trending_suggestion', 'recent_search'), 
+    urlbar_clicks, 0
+  )
+)"""
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+description = "Count of clicks on a result shown in the urlbar dropdown menu leading to a SERP"
+friendly_name = "Urlbar sessions ending on a SERP"
+exposure_basis = ["exposures", "enrollments"]
+
+[metrics.search_engine_clicks.statistics.linear_model_mean]
+[metrics.search_engine_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
