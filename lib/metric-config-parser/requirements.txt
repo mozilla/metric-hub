@@ -394,9 +394,9 @@ coverage==7.16.1 \
     # via
     #   -r requirements.in
     #   pytest-cov
-faker==40.39.0 \
-    --hash=sha256:52799ad96fcf92aab2fc96a9e03869bbf1a634300f7cd91c38dbfd51f639f6fa \
-    --hash=sha256:c4c7ec2cddfaf602c5a8a2c960614946aa8c161250bd9d49a8846cd24d1ef028
+faker==40.40.0 \
+    --hash=sha256:803ee7f920679e7367c3f7b7f97752f5a9780aa5566c71723fbe57d591beafe1 \
+    --hash=sha256:cd45ebdd1363f92a45740ac49945e49fa18f7e10771884a83c796a235550d7b7
     # via
     #   -r requirements.in
     #   polyfactory
