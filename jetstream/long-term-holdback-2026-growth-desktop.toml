@@ -1,5 +1,5 @@
 [experiment]
-enrollment_period = 0
+enrollment_period = 1
 
 enrollment_query = """
   SELECT
