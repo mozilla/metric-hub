@@ -25,8 +25,11 @@ from .aggregation import (
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
     Aggregation,
+    BucketedAggregation,
     Clause,
     Threshold,
+    aggregation_bucketed,
+    aggregation_select_expression,
     is_number,
     is_positive_int,
     to_enum,
@@ -246,6 +249,32 @@ class MetricDefinition:
             return [Clause(column=self.column)]
         return self.where
 
+    @property
+    def generated_select_expression(self) -> str | None:
+        if self.aggregation is None:
+            return None
+        return aggregation_select_expression(
+            self.aggregation,
+            self.column,
+            self.conditions,
+            self.within_days,
+            self.threshold,
+            self.scale,
+        )
+
+    @property
+    def bucketed_aggregation(self) -> BucketedAggregation | None:
+        if self.aggregation is None:
+            return None
+        return aggregation_bucketed(
+            self.aggregation,
+            self.column,
+            self.conditions,
+            self.within_days,
+            self.threshold,
+            self.scale,
+        )
+
     @staticmethod
     def generate_select_expression(
         param_definitions: dict[str, ParameterDefinition],
@@ -315,7 +344,13 @@ class MetricDefinition:
 
                 upstream_metrics += upstream_metric.resolve(spec, conf, configs)
 
-        if self.select_expression is None or self.data_source is None:
+        select_expression_template = (
+            self.generated_select_expression
+            if self.select_expression is None
+            else self.select_expression
+        )
+
+        if select_expression_template is None or self.data_source is None:
             # checks if a metric from mozanalysis was referenced
             metric_definition = configs.get_metric_definition(self.name, conf.app_name)
 
@@ -364,7 +399,7 @@ class MetricDefinition:
         else:
             select_expression = self.generate_select_expression(
                 spec.parameters.definitions,
-                select_expr_template=self.select_expression,
+                select_expr_template=select_expression_template,
                 configs=configs,
             )
 
