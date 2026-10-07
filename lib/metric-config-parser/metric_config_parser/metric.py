@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Union
 
 import attr
 import jinja2
+from cattrs.gen import make_dict_structure_fn, override
 from mozilla_nimbus_schemas.jetstream import AnalysisBasis
 
 from metric_config_parser.errors import DefinitionNotFound
@@ -20,6 +21,17 @@ if TYPE_CHECKING:
     from .project import ProjectConfiguration
 
 from . import AnalysisUnit
+from .aggregation import (
+    COLUMN_AGGREGATIONS,
+    CONDITION_AGGREGATIONS,
+    Aggregation,
+    Clause,
+    Threshold,
+    is_number,
+    is_positive_int,
+    to_enum,
+    validate_identifier,
+)
 from .data_source import DataSource, DataSourceReference
 from .parameter import ParameterDefinition
 from .pre_treatment import PreTreatmentReference
@@ -156,6 +168,83 @@ class MetricDefinition:
     deprecated: bool = False
     level: MetricLevel | None = None
     analysis_units: list[AnalysisUnit] | None = None
+    aggregation: Aggregation | None = None
+    column: str | None = None
+    where: list[Clause] = attr.Factory(list)
+    within_days: int | None = None
+    threshold: Threshold | None = None
+    scale: int | float | None = None
+    cumulative_window: int | None = None
+    incremental_window: int | None = None
+    repeat_windows: bool = False
+
+    def __attrs_post_init__(self) -> None:
+        context = f"metric '{self.name}'"
+        if self.aggregation is None:
+            if (
+                self.column is not None
+                or self.where
+                or self.within_days is not None
+                or self.threshold is not None
+                or self.scale is not None
+                or self.cumulative_window is not None
+                or self.incremental_window is not None
+                or self.repeat_windows is not False
+            ):
+                raise ValueError(
+                    f"{context}: column, where, within_days, threshold, scale, "
+                    "cumulative_window, incremental_window and repeat_windows require aggregation"
+                )
+            return
+
+        if self.select_expression is not None:
+            raise ValueError(
+                f"{context}: declare either select_expression or aggregation, not both"
+            )
+        if self.aggregation not in COLUMN_AGGREGATIONS | CONDITION_AGGREGATIONS:
+            raise ValueError(f"{context}: unknown aggregation '{self.aggregation}'")
+        if self.column is not None:
+            validate_identifier(self.column, context)
+
+        if self.aggregation in COLUMN_AGGREGATIONS:
+            if self.column is None:
+                raise ValueError(f"{context}: '{self.aggregation}' requires a column")
+            if self.where:
+                raise ValueError(f"{context}: '{self.aggregation}' does not take where")
+        elif (self.column is None) == (not self.where):
+            raise ValueError(
+                f"{context}: '{self.aggregation}' requires exactly one of column or where"
+            )
+
+        if self.aggregation == Aggregation.RECENCY_WITHIN:
+            if not is_positive_int(self.within_days):
+                raise ValueError(f"{context}: within_days must be a positive integer")
+        elif self.within_days is not None:
+            raise ValueError(f"{context}: within_days is only valid for recency_within")
+
+        if self.scale is not None and not is_number(self.scale):
+            raise ValueError(f"{context}: scale must be a number")
+
+        if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
+            raise ValueError(f"{context}: cumulative_window must be a positive integer")
+        if self.incremental_window is not None and not is_positive_int(self.incremental_window):
+            raise ValueError(f"{context}: incremental_window must be a positive integer")
+        if not isinstance(self.repeat_windows, bool):
+            raise ValueError(f"{context}: repeat_windows must be a boolean")
+        if (
+            self.repeat_windows
+            and self.cumulative_window is None
+            and self.incremental_window is None
+        ):
+            raise ValueError(
+                f"{context}: repeat_windows requires cumulative_window or incremental_window"
+            )
+
+    @property
+    def conditions(self) -> list[Clause]:
+        if self.aggregation in CONDITION_AGGREGATIONS and self.column is not None:
+            return [Clause(column=self.column)]
+        return self.where
 
     @staticmethod
     def generate_select_expression(
@@ -368,6 +457,30 @@ class MetricDefinition:
         """Merge with another metric definition."""
         for key in attr.fields_dict(type(self)):
             setattr(self, key, getattr(other, key) or getattr(self, key))
+
+
+def _passthrough(obj: Any, _type: Any) -> Any:
+    return obj
+
+
+converter.register_structure_hook(
+    MetricDefinition,
+    make_dict_structure_fn(
+        MetricDefinition,
+        converter,
+        aggregation=override(
+            struct_hook=lambda obj, _type: to_enum(Aggregation, obj, "aggregation")
+        ),
+        column=override(struct_hook=_passthrough),
+        where=override(struct_hook=lambda obj, _type: [Clause.from_dict(clause) for clause in obj]),
+        within_days=override(struct_hook=_passthrough),
+        threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
+        scale=override(struct_hook=_passthrough),
+        cumulative_window=override(struct_hook=_passthrough),
+        incremental_window=override(struct_hook=_passthrough),
+        repeat_windows=override(struct_hook=_passthrough),
+    ),
+)
 
 
 MetricsConfigurationType = dict[AnalysisPeriod, list[Summary]]
