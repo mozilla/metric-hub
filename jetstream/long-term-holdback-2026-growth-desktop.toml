@@ -18,9 +18,9 @@ enrollment_query = """
       AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
       AND (
         (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
-          AND MOD(ABS(FARM_FINGERPRINT(e.profile_group_id)), 10000) < 1450)
+          AND `mozdata.udf.safe_sample_id`(e.profile_group_id) < 15)
         OR (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery'
-          AND MOD(ABS(FARM_FINGERPRINT(e.profile_group_id)), 10000) < 76)
+          AND `mozdata.udf.safe_sample_id`(e.profile_group_id) < 1)
       )
   GROUP BY ALL
 """
