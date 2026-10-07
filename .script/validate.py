@@ -202,16 +202,7 @@ def validate(path, config_repos):
             print(f"Skipping example config {config_file}")
             continue
 
-        if is_nimbus_definition(config_file):
-            entity = entity_from_path(config_file)
-            try:
-                entity.validate(config_collection)
-            except Exception as e:
-                dirty = True
-                print(e)
-            continue
-
-        if config_file.parent.name == FEATMON_DIR:
+        if is_nimbus_definition(config_file) or config_file.parent.name == FEATMON_DIR:
             entity = entity_from_path(config_file)
             try:
                 entity.validate(config_collection)

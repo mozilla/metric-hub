@@ -36,7 +36,7 @@ repeat_windows = true
 
 # Optional: statistics, one table per statistic holding its parameters.
 # Nothing reads this field yet.
-[metrics.active_hours.statistics.bootstrap_mean]
+[metrics.active_hours.statistics.linear_model_mean]
 
 # ---------------------------------------------------------------------------
 # sum with a threshold: 0/1
@@ -73,7 +73,9 @@ repeat_windows = true
 [metrics.qualified_cumulative_days_of_use]
 friendly_name = "Qualified cumulative days of use"
 data_source = "clients_daily"
-# count_where takes either column or where, not both.
+# count_where takes either `column` or `where`, not both.
+# `column` names a boolean column and counts the rows where it is true.
+# `where` is a list of conditions and counts the rows where all of them hold.
 aggregation = "count_where"
 cumulative_window = 7
 repeat_windows = true

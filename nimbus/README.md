@@ -330,7 +330,7 @@ Jetstream does not read the window fields. Its analysis windows are configured i
 statistic's parameters. An empty table means no parameters.
 
 ```toml
-[metrics.active_hours.statistics.bootstrap_mean]
+[metrics.active_hours.statistics.linear_model_mean]
 
 [metrics.active_hours.statistics.deciles]
 ```
@@ -465,7 +465,7 @@ column = "active_hours_sum"
 cumulative_window = 7
 repeat_windows = true
 
-[metrics.active_hours.statistics.bootstrap_mean]
+[metrics.active_hours.statistics.linear_model_mean]
 
 [metrics.retained]
 friendly_name = "Retained"

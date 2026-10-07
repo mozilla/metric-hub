@@ -15,6 +15,22 @@ All metric definitions can and should be referenced in other tooling and their c
 Tool-specific configs take precedence over the metric definitions in the top level `definitions/` folder when used in the tooling, while in all other contexts `definitions/` is seen as the source of truth.
 
 
+## Metric Definition Formats
+
+A metric definition describes its computation in one of two ways:
+
+- `select_expression`: a SQL expression evaluated against the metric's data source, for example `'{{agg_sum("active_hours_sum")}}'`.
+- Aggregation fields: `aggregation` (one of `sum`, `count`, `count_where`, `any`, `recency_within`) together with the `column`, `where` conditions and options that aggregation reads. Each consumer generates the SQL it needs from these fields.
+
+A metric declares at most one of the two. A metric that declares neither is still valid, for example one that only overrides `statistics` or one that derives from other metrics with `depends_on`.
+
+Metrics in aggregation form go in `nimbus/definitions/<application>.toml`, which is stricter than `definitions/`: `aggregation` and `data_source` are required, `select_expression` is not allowed, and only a fixed set of keys is accepted. Data sources are not defined there. A metric in `nimbus/definitions/` refers to a data source defined in `definitions/<application>.toml`.
+
+A metric may be defined under the same name in both `definitions/` and `nimbus/definitions/`. Highwind prefers the `nimbus/definitions/` copy. Jetstream reads `definitions/` only.
+
+See [nimbus/README.md](nimbus/README.md) for the field reference and an annotated example.
+
+
 ## Experiment Analysis Considerations
 
 metric-hub's CI is configured to detect when a given change would affect experiment analysis, and to automatically rerun analysis for these experiments in certain scenarios. This behavior is not always desirable, and so it can also be overridden using `[ci rerun-skip]`. Continue reading to learn more about the automated rerun scenarios and when you may want to use `[ci rerun-skip]`.

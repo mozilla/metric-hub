@@ -505,9 +505,12 @@ class TestNimbusSpec:
         [
             (
                 {"aggregation": "sum", "column": "a", "select_expression": "SUM(a)"},
-                "select_expression is not allowed",
+                r"select_expression is not allowed\. Use aggregation instead\.",
             ),
-            ({"select_expression": "SUM(a)"}, "select_expression is not allowed"),
+            (
+                {"select_expression": "SUM(a)"},
+                r"select_expression is not allowed\. Use aggregation instead\.",
+            ),
             ({"column": "a"}, "aggregation is required"),
             ({"statistics": {"bootstrap_mean": {}}}, "aggregation is required"),
             (
@@ -549,7 +552,9 @@ class TestNimbusSpec:
             '[metrics.bad]\ndata_source = "clients_daily"\nselect_expression = "SUM(a)"\n',
         )
 
-        with pytest.raises(ValueError, match="select_expression is not allowed"):
+        with pytest.raises(
+            ValueError, match=r"select_expression is not allowed\. Use aggregation instead\."
+        ):
             LocalConfigCollection.from_local_path(tmp_path)
 
 
@@ -580,7 +585,7 @@ class TestNimbusCollection:
     def test_get_metric_definition_reads_definitions_only(self):
         collection = LocalConfigCollection.from_local_path(FIXTURE_DIR)
 
-        assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
+        assert collection.get_metric_definition("days_of_use", "firefox_desktop") is None
         assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
 
     def test_no_nimbus_directory(self, config_collection):
@@ -653,23 +658,18 @@ class TestNimbusCollection:
             LocalConfigCollection.from_local_path(tmp_path)
 
     def test_same_metric_in_definitions_and_nimbus(self, tmp_path):
-        make_repo(tmp_path)
-        nimbus = toml.load(NIMBUS_FILE)
-        nimbus["metrics"]["uri_count"] = {
-            "data_source": "clients_daily",
-            "aggregation": "sum",
-            "column": "scalar_parent_browser_engagement_total_uri_count_sum",
-        }
-        write_nimbus(tmp_path, toml.dumps(nimbus))
-        Repo(tmp_path).git.commit("-am", "add uri_count to nimbus")
+        collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
 
-        collection = ConfigCollection.from_github_repo(tmp_path)
-
-        definition = collection.get_metric_definition("uri_count", "firefox_desktop")
-        nimbus_definition = collection.get_nimbus_metric_definition("uri_count", "firefox_desktop")
+        definition = collection.get_metric_definition("active_hours", "firefox_desktop")
+        nimbus_definition = collection.get_nimbus_metric_definition(
+            "active_hours", "firefox_desktop"
+        )
         assert definition is not None
-        assert definition.select_expression is not None
+        assert definition.select_expression == '{{agg_sum("active_hours_sum")}}'
+        assert definition.aggregation is None
         assert nimbus_definition is not None
+        assert nimbus_definition == NimbusSpec.from_file(NIMBUS_FILE).metrics["active_hours"]
+        assert nimbus_definition.select_expression is None
         assert nimbus_definition.aggregation == Aggregation.SUM
 
     def test_resolves_data_source_from_another_repo(self, tmp_path):

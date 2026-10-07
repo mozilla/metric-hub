@@ -47,7 +47,9 @@ class NimbusSpec:
         for name, metric in d.get("metrics", {}).items():
             metric_context = f"{context}: metric '{name}'"
             if "select_expression" in metric:
-                raise ValueError(f"{metric_context}: select_expression is not allowed")
+                raise ValueError(
+                    f"{metric_context}: select_expression is not allowed. Use aggregation instead."
+                )
             reject_unknown_keys(metric, NIMBUS_METRIC_KEYS, metric_context)
             for required in ("data_source", "aggregation"):
                 if required not in metric:
