@@ -1,12 +1,6 @@
 [experiment]
-# Left commented out on purpose: the is_holdback flag in Experimenter now drives
-# the enrollment window, extending it by 7 days on each weekly rerun. Setting
-# either of these here would override what the Experimenter API sends and pin
-# the analysis back to a fixed window.
-# enrollment_period = 111
-# end_date = "2026-05-26"
+enrollment_period = 1
 
-# sample treatment-a branch at 5% to even out branch populations (so analysis can run without errors)
 enrollment_query = """
   SELECT
       e.profile_group_id AS analysis_id,
@@ -20,11 +14,13 @@ enrollment_query = """
       e.event_category = 'normandy'
       AND e.event_method = 'enroll'
       AND e.submission_date
-          BETWEEN '2026-01-06' AND '2026-04-27'
+          BETWEEN '2026-01-07' AND '2026-09-16'
       AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
       AND (
-        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery' AND e.sample_id < 1) 
-        OR (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback' AND e.sample_id < 20 )
+        (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
+          AND `mozdata.udf.safe_sample_id`(e.profile_group_id) < 15)
+        OR (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'delivery'
+          AND `mozdata.udf.safe_sample_id`(e.profile_group_id) < 1)
       )
   GROUP BY ALL
 """

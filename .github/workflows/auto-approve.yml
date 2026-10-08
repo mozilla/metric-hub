@@ -10,6 +10,7 @@ jobs:
     with:
       path_filter: |
         definitions/*.toml
+        nimbus/definitions/*.toml
         lib/
         .github/
         .circleci/
