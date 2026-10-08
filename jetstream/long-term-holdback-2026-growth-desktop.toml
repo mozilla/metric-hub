@@ -1,6 +1,4 @@
 [experiment]
-enrollment_period = 1
-
 enrollment_query = """
   SELECT
       e.profile_group_id AS analysis_id,
@@ -14,7 +12,7 @@ enrollment_query = """
       e.event_category = 'normandy'
       AND e.event_method = 'enroll'
       AND e.submission_date
-          BETWEEN '2026-01-07' AND '2026-09-16'
+          BETWEEN '{{experiment.start_date_str}}' AND '{{experiment.last_enrollment_date_str}}'
       AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
       AND (
         (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
