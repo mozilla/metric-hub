@@ -20,7 +20,6 @@ weekly = [
     "chosen_theme_in_use",
     "nova_theme_in_use",
     "vertical_tabs",
-    "active_2plus_of_days_1_to_5",
     "reached_import_screen",
     "reached_theme_picker",
     "reached_tab_orientation_screen",
@@ -36,7 +35,6 @@ overall = [
     "chosen_theme_in_use",
     "nova_theme_in_use",
     "vertical_tabs",
-    "active_2plus_of_days_1_to_5",
     "reached_import_screen",
     "reached_theme_picker",
     "reached_tab_orientation_screen",
@@ -113,29 +111,6 @@ from_expression = """(
 experiments_column_type = "none"
 friendly_name = "Metrics related to Sidebar and Vertical Tabs"
 description = "Returns if the user has vertical tabs or the sidebar button when the metrics ping is sent"
-
-# --- Proposed successor activation metric -------------------------------------------------
-# "Active (DAU) on 2+ of days 1-5 after first seen" (Ray's 9/30 activation proposal).
-# Read the Week 1 window only (days 0-6 contain days 1-5); later windows are 0 by construction.
-[metrics.active_2plus_of_days_1_to_5]
-friendly_name = "Active 2+ of days 1-5"
-description = "DAU on at least two of days 1-5 after first seen (first-seen day = day 0)."
-data_source = "desktop_active_users_daily"
-select_expression = "CAST(COALESCE(COUNTIF(is_dau AND DATE_DIFF(submission_date, first_seen_date, DAY) BETWEEN 1 AND 5), 0) >= 2 AS INT)"
-
-[metrics.active_2plus_of_days_1_to_5.statistics.binomial]
-
-[data_sources.desktop_active_users_daily]
-from_expression = """(
-  SELECT client_id, submission_date, first_seen_date, is_dau
-  FROM `mozdata.telemetry.desktop_active_users`
-  WHERE is_desktop
-)"""
-submission_date_column = "submission_date"
-client_id_column = "client_id"
-experiments_column_type = "none"
-friendly_name = "Desktop active users (daily)"
-description = "Per client-day DAU flag and first_seen_date."
 
 # --- Screen reach per enrolled user (about:welcome) ---------------------------------------
 # Share of ALL enrollees with an about:welcome IMPRESSION of the screen. Screen IDs are the same in
