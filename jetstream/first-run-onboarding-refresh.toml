@@ -20,12 +20,11 @@ weekly = [
     "chosen_theme_in_use",
     "nova_theme_in_use",
     "vertical_tabs",
-    "reached_import_screen",
     "reached_theme_picker",
     "reached_tab_orientation_screen",
     "uninstalled",
     "fxa_signed_in",
-    "is_pinned",
+    "is_pinned_glean",
     "imported_bookmarks",
     "imported_history",
     "imported_logins",
@@ -35,12 +34,11 @@ overall = [
     "chosen_theme_in_use",
     "nova_theme_in_use",
     "vertical_tabs",
-    "reached_import_screen",
     "reached_theme_picker",
     "reached_tab_orientation_screen",
     "uninstalled",
     "fxa_signed_in",
-    "is_pinned",
+    "is_pinned_glean",
     "imported_bookmarks",
     "imported_history",
     "imported_logins",
@@ -117,14 +115,10 @@ description = "Returns if the user has vertical tabs or the sidebar button when 
 # all arms (control uses the Fx157 in-tree screens). Do not compare end-to-end completion across
 # arms of different length; compare reach of specific screens. Note: about:welcome telemetry
 # undercounts true shows by ~25-33%; check step-0 parity across arms before reading.
-[metrics.reached_import_screen]
-friendly_name = "Reached import screen"
-description = "Enrollee saw the about:welcome import screen (AW_IMPORT_SETTINGS_EMBEDDED)."
-data_source = "aboutwelcome_impressions"
-select_expression = "CAST(COALESCE(LOGICAL_OR(screen_context LIKE '%AW_IMPORT_SETTINGS_EMBEDDED%'), FALSE) AS INT)"
-
-[metrics.reached_import_screen.statistics.binomial]
-
+# No import-screen reach metric: in the Fx157 in-tree flow (control) the import screen's IMPRESSION is
+# mostly logged under the AW_LANGUAGE_MISMATCH screen id, so impression-based reach reads ~14% in control vs
+# ~99% in the treatments (10/08 enrollees), which is a telemetry artifact. Import outcomes are covered by
+# imported_bookmarks / imported_history / imported_logins.
 [metrics.reached_theme_picker]
 friendly_name = "Reached theme picker"
 description = "Enrollee saw the about:welcome theme picker screen (AW_THEME_PICKER). Present in all three arms."
@@ -185,7 +179,18 @@ description = "One row per uninstall ping."
 
 # Built-ins listed above without their own statistics block in definitions/.
 [metrics.fxa_signed_in.statistics.binomial]
-[metrics.is_pinned.statistics.binomial]
+
+# Pin from Glean. The built-in is_pinned reads the legacy scalar
+# scalar_parent_os_environment_is_taskbar_pinned, which stopped reporting in Fx156 (2 of 2,132 10/08
+# enrollees have it), so it would read ~0 in every arm. A profile with no metrics ping in the window counts
+# as not pinned, so this is "pinned and still reporting", the same as any client-reported state.
+[metrics.is_pinned_glean]
+friendly_name = "Is Pinned (Windows Taskbar, Glean)"
+description = "Glean os.environment.is_taskbar_pinned was true in any metrics ping during the window."
+data_source = "metrics"
+select_expression = "CAST(COALESCE(LOGICAL_OR(metrics.boolean.os_environment_is_taskbar_pinned), FALSE) AS INT)"
+
+[metrics.is_pinned_glean.statistics.binomial]
 [metrics.imported_bookmarks.statistics.binomial]
 [metrics.imported_history.statistics.binomial]
 [metrics.imported_logins.statistics.binomial]
