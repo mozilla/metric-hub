@@ -40,7 +40,7 @@ jobs:
       # this and `ref` above are needed because opmon performs git operations
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Authenticate to GCP
-      uses: google-github-actions/auth@v2
+      uses: google-github-actions/auth@v3
       id: auth
       with:
         workload_identity_provider: ${{ vars.GCPV2_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
