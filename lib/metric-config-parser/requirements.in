@@ -46,7 +46,7 @@ jsonschema-specifications==2025.9.1
     # via jsonschema
 librt==0.15.0
     # via mypy
-markupsafe==3.0.3
+markupsafe==3.0.4
     # via jinja2
 mozilla-nimbus-schemas==3005.2.0
     # via mozilla-metric-config-parser
