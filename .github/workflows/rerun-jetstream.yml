@@ -36,7 +36,7 @@ jobs:
         project_id: ${{ vars.GCLOUD_PROJECT }}
         access_token_lifetime: 43200s
     - name: Set up GKE
-      uses: google-github-actions/get-gke-credentials@v2
+      uses: google-github-actions/get-gke-credentials@v3
       with:
         cluster_name: ${{ env.CLUSTER_NAME }}
         location: ${{ env.CLUSTER_ZONE }}
