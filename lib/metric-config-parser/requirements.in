@@ -14,7 +14,7 @@ attrs==26.1.0
     #   jsonschema
     #   mozilla-metric-config-parser
     #   referencing
-cattrs==26.2.0
+cattrs==26.2.1
     # via mozilla-metric-config-parser
 certifi==2026.7.22
     # via requests
