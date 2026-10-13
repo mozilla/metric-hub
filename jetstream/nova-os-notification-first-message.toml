@@ -145,6 +145,7 @@ overall = [
   "lal_enabled",
   "number_of_autostart_launches",
   "number_of_launches_all_methods",
+  "returned_week_1_and_active_week_2",
   "returned_week_1_and_active_week_4",
 ]
 
@@ -189,7 +190,23 @@ select_expression = """
 """
 data_source = "firefox_desktop_active_users_view"
 
+# Week-2 twin of returned_week_1_and_active_week_4, read the same way. Weekly
+# retained_dau at week 2 can't stand in for it: that also counts clients who
+# first came back in week 2.
+[metrics.returned_week_1_and_active_week_2]
+friendly_name = "Returned in week 1 and active in week 2"
+description = """
+Whether the client had a DAU-qualifying day in days 0-6 after enrollment AND
+another in days 7-13 after enrollment.
+"""
+select_expression = """
+  COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 0 AND 6), FALSE)
+  AND COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 7 AND 13), FALSE)
+"""
+data_source = "firefox_desktop_active_users_view"
+
 [metrics.lal_enabled.statistics.binomial]
+[metrics.returned_week_1_and_active_week_2.statistics.binomial]
 [metrics.returned_week_1_and_active_week_4.statistics.binomial]
 [metrics.number_of_autostart_launches.statistics.linear_model_mean]
 drop_highest = 0.005
