@@ -1,0 +1,74 @@
+# Jetstream analysis config for the mailto handler-picker experiment.
+# Bug 2046063 / D305618. The picker is gated behind the `mailto.dialog` Nimbus
+# variable (off in control, on in treatment-a).
+#
+# Enrollment, branches (control / treatment-a), dates and targeting are inherited
+# from Experimenter; this file only adds the feature-specific outcome metrics.
+# Standard guardrails (retention, DAU, crashes, ...) are computed automatically.
+
+[metrics]
+weekly  = ["mailto_visits", "mailto_set_default", "mailto_not_now", "mailto_error"]
+overall = ["mailto_visits", "mailto_set_default", "mailto_not_now", "mailto_error"]
+
+# Number of mailto: links handled per client during the analysis window.
+# This is the only outcome present in BOTH branches (the prompt_click / error
+# events below only fire when the picker is shown, i.e. in treatment-a), so it
+# is the primary control-vs-treatment comparison.
+[metrics.mailto_visits]
+friendly_name = "Mailto visits"
+description = "Number of mailto: links handled per client."
+select_expression = "COUNTIF(event_name = 'visit')"
+data_source = "glean_events_stream_mailto"
+
+[metrics.mailto_visits.statistics.bootstrap_mean]
+
+# Adoption: whether the client committed a default via the picker at least once.
+[metrics.mailto_set_default]
+friendly_name = "Set-a-default conversion"
+description = "Client clicked 'Set as default' in the mailto picker at least once."
+select_expression = """
+    CAST(COALESCE(LOGICAL_OR(
+        event_name = 'prompt_click'
+        AND JSON_VALUE(event_extra.button) = 'set_default'
+    ), FALSE) AS INT)
+"""
+data_source = "glean_events_stream_mailto"
+
+[metrics.mailto_set_default.statistics.binomial]
+
+# Friction: whether the client dismissed the picker at least once.
+[metrics.mailto_not_now]
+friendly_name = "Picker dismissed ('Not now')"
+description = "Client clicked 'Not now' in the mailto picker at least once."
+select_expression = """
+    CAST(COALESCE(LOGICAL_OR(
+        event_name = 'prompt_click'
+        AND JSON_VALUE(event_extra.button) = 'not_now'
+    ), FALSE) AS INT)
+"""
+data_source = "glean_events_stream_mailto"
+
+[metrics.mailto_not_now.statistics.binomial]
+
+# Reliability: whether the client hit any picker/launch error at least once.
+[metrics.mailto_error]
+friendly_name = "Mailto handling error"
+description = "Client recorded a mailto picker/launch error at least once."
+select_expression = "CAST(COALESCE(LOGICAL_OR(event_name = 'error'), FALSE) AS INT)"
+data_source = "glean_events_stream_mailto"
+
+[metrics.mailto_error.statistics.binomial]
+
+# Glean events ping, one row per event, filtered to our category. Enrollment is
+# resolved by Jetstream from the Nimbus enrollment events, so this metric data
+# source uses experiments_column_type = "none".
+[data_sources.glean_events_stream_mailto]
+from_expression = """(
+    SELECT *, DATE(submission_timestamp) AS submission_date
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    WHERE event_category = 'protocolhandler.mailto'
+)"""
+friendly_name = "Glean events_stream filtered to 'protocolhandler.mailto'"
+description = "Glean events_stream dataset filtered to event_category 'protocolhandler.mailto'"
+experiments_column_type = "none"
+client_id_column = "legacy_telemetry_client_id"
