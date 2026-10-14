@@ -20,8 +20,14 @@ from metric_config_parser.config import (
 )
 from metric_config_parser.data_source import DataSourceReference
 from metric_config_parser.definition import DefinitionSpec
+from metric_config_parser.function import FunctionsSpec
 from metric_config_parser.metric import MetricDefinition, MetricReference
-from metric_config_parser.nimbus import NIMBUS_METRIC_KEYS, NimbusSpec
+from metric_config_parser.nimbus import (
+    NIMBUS_METRIC_KEYS,
+    NimbusDefinitionMismatch,
+    NimbusSpec,
+    normalize_sql,
+)
 from metric_config_parser.outcome import OutcomeSpec
 from metric_config_parser.util import converter
 
@@ -30,6 +36,11 @@ FIXTURE_DIR = TEST_DIR / "data" / "nimbus_repo"
 DEFINITIONS_FILE = FIXTURE_DIR / "definitions" / "firefox_desktop.toml"
 NIMBUS_FILE = FIXTURE_DIR / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml"
 EXAMPLE_FILE = TEST_DIR.parents[3] / NIMBUS_DEFINITIONS_DIR / "example_config.toml.example"
+FUNCTIONS_FILE = TEST_DIR / "data" / "definitions" / "functions.toml"
+ACTIVE_HOURS_DEFINITION = """[metrics.active_hours]
+select_expression = '{{agg_sum("active_hours_sum")}}'
+data_source = "clients_daily"
+"""
 
 
 def make_repo(tmp_path, source=FIXTURE_DIR):
@@ -58,6 +69,19 @@ def write_nimbus(root, metrics_toml):
     nimbus_dir = root / NIMBUS_DEFINITIONS_DIR
     nimbus_dir.mkdir(parents=True, exist_ok=True)
     (nimbus_dir / "firefox_desktop.toml").write_text(metrics_toml)
+
+
+def collection_with_functions(path):
+    collection = LocalConfigCollection.from_local_path(path)
+    collection.functions = FunctionsSpec.from_dict(toml.load(FUNCTIONS_FILE))
+    return collection
+
+
+def replace_active_hours_definition(root, definition_toml):
+    definitions_file = root / "definitions" / "firefox_desktop.toml"
+    definitions_file.write_text(
+        definitions_file.read_text().replace(ACTIVE_HOURS_DEFINITION, definition_toml)
+    )
 
 
 def parse_metric(**fields):
@@ -726,6 +750,118 @@ class TestNimbusCollection:
         collection = ConfigCollection.from_github_repo(tmp_path, validate_nimbus=False)
 
         assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
+
+
+class TestNimbusDefinitionMismatches:
+    def test_matching_metrics(self):
+        collection = collection_with_functions(FIXTURE_DIR)
+
+        assert collection.get_metric_definition("active_hours", "firefox_desktop") is not None
+        assert collection.get_metric_definition("is_default_browser", "firefox_desktop")
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_ignores_whitespace(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            '[metrics.active_hours]\nselect_expression = """\nCOALESCE(\n'
+            '    SUM(active_hours_sum),\n    0\n)\n"""\ndata_source = "clients_daily"\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == []
+
+    def test_reports_different_select_expression(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            ACTIVE_HOURS_DEFINITION.replace("active_hours_sum", "active_hours_sum * 2"),
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression="COALESCE(SUM(active_hours_sum * 2), 0)",
+                nimbus_data_source="clients_daily",
+                definitions_data_source="clients_daily",
+            )
+        ]
+
+    def test_reports_different_data_source(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            ACTIVE_HOURS_DEFINITION.replace("clients_daily", "firefox_desktop_active_users_view"),
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                nimbus_data_source="clients_daily",
+                definitions_data_source="firefox_desktop_active_users_view",
+            )
+        ]
+
+    def test_reports_definition_without_select_expression(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            '[metrics.active_hours]\ndepends_on = ["uri_count"]\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression=None,
+                nimbus_data_source="clients_daily",
+                definitions_data_source=None,
+            )
+        ]
+
+    def test_ignores_metric_only_in_nimbus(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(tmp_path, "")
+
+        collection = collection_with_functions(tmp_path)
+
+        assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
+        assert collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_mismatch_message(self):
+        mismatch = NimbusDefinitionMismatch(
+            app_name="firefox_desktop",
+            metric="active_hours",
+            nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+            definitions_select_expression="SUM(active_hours_sum)",
+            nimbus_data_source="clients_daily",
+            definitions_data_source="clients_daily",
+        )
+
+        assert str(mismatch) == (
+            "Metric 'active_hours' in nimbus/definitions/firefox_desktop.toml does not match "
+            "definitions/firefox_desktop.toml\n"
+            "  nimbus/definitions: data_source=clients_daily, "
+            "select_expression=COALESCE(SUM(active_hours_sum), 0)\n"
+            "  definitions: data_source=clients_daily, select_expression=SUM(active_hours_sum)"
+        )
+
+    @pytest.mark.parametrize(
+        ("sql", "expected"),
+        [
+            ("COUNT(x)", "COUNT(x)"),
+            ("  COUNTIF(\n  a > 0\n  AND b > 0\n)  ", "COUNTIF(a > 0 AND b > 0)"),
+            ("COALESCE(SUM( x ), 0)", "COALESCE(SUM(x), 0)"),
+        ],
+    )
+    def test_normalize_sql(self, sql, expected):
+        assert normalize_sql(sql) == expected
 
 
 class TestNimbusExample:

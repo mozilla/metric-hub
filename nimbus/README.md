@@ -37,7 +37,8 @@ metric-hub/
 - Each metric is a table under `[metrics]`, keyed by the metric name.
 - A metric may be defined under the same name in both `definitions/<application>.toml` and
   `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
-  Jetstream uses the `definitions/` copy.
+  Jetstream uses the `definitions/` copy. The two copies must generate the same SQL. See
+  [Validation](#validation).
 - Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
   defined there.
 - Files ending in `.example` are not loaded.
@@ -379,12 +380,27 @@ directory loaded counts:
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
   same application.
 
+Between `definitions/` and `nimbus/definitions/`. metric-hub CI runs this check in
+`.script/validate.py`. It does not run when a repository is loaded, so a mismatch fails CI without
+stopping consumers from loading metric-hub:
+
+- A metric defined under the same name in `definitions/<application>.toml` and
+  `nimbus/definitions/<application>.toml` renders different SQL in each, or names a different
+  `data_source`.
+
+The `select_expression` generated for the `nimbus/definitions/` copy and the `select_expression` of
+the `definitions/` copy are both rendered with the functions in `definitions/functions.toml`, so
+`agg_sum` and `agg_any` are expanded. Runs of whitespace are collapsed, and whitespace just inside
+parentheses is removed, before comparing. Metrics defined in only one of the two files are not
+compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ.
+
+metric-hub CI also dry-runs the SQL generated for every metric in a changed
+`nimbus/definitions/<application>.toml`, as it does for `definitions/`.
+
 Not checked:
 
 - Whether a column exists on the data source. The parser has no table schemas.
 - Whether window lengths used together fit a common grid.
-- Whether a metric defined in both `definitions/` and `nimbus/definitions/` computes the same value
-  in each.
 - Statistic names. The fields shared with `definitions/` get no checks beyond those `definitions/`
   applies.
 
@@ -422,8 +438,9 @@ In both shapes, condition values become SQL literals. Numbers are written as the
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
 not finite, or a value of any other type, fails.
 
-Checking that a metric defined in both directories computes the same value in each is not
-implemented yet.
+When a metric is defined in both directories, CI checks that the `select_expression` generated
+from `nimbus/definitions/` matches the one in `definitions/`, so moving a metric to
+`nimbus/definitions/` does not change what Jetstream computes. See [Validation](#validation).
 
 ### Highwind
 
