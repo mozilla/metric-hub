@@ -34,7 +34,7 @@ gitpython==3.1.62
     # via mozilla-metric-config-parser
 idna==3.20
     # via requests
-iniconfig==2.3.0
+iniconfig==2.3.1
     # via pytest
 jinja2==3.1.6
     # via mozilla-metric-config-parser
@@ -79,7 +79,7 @@ pytest-cov==7.1.0
     # via mozilla-metric-config-parser
 pytest-ruff==0.5
     # via mozilla-metric-config-parser
-pytz==2026.4
+pytz==2026.5
     # via mozilla-metric-config-parser
 referencing==0.37.0
     # via
@@ -87,11 +87,11 @@ referencing==0.37.0
     #   jsonschema-specifications
 requests==2.34.2
     # via mozilla-metric-config-parser
-rpds-py==2026.6.3
+rpds-py==2026.9.1
     # via
     #   jsonschema
     #   referencing
-ruff==0.16.9
+ruff==0.17.0
     # via
     #   mozilla-metric-config-parser
     #   pytest-ruff
@@ -103,15 +103,15 @@ types-futures==3.3.8
     # via mozilla-metric-config-parser
 types-protobuf==7.35.1.20260906
     # via mozilla-metric-config-parser
-types-pytz==2026.4.0.20260926
+types-pytz==2026.5.0.20261006
     # via mozilla-metric-config-parser
 types-pyyaml==6.0.12.20260906
     # via mozilla-metric-config-parser
-types-requests==2.33.0.20260906
+types-requests==2.33.0.20261006
     # via mozilla-metric-config-parser
-types-setuptools==84.0.0.20260812
+types-setuptools==84.0.0.20261006
     # via mozilla-metric-config-parser
-types-six==1.17.0.20260724
+types-six==1.17.0.20261008
     # via mozilla-metric-config-parser
 types-toml==0.10.8.20260518
     # via mozilla-metric-config-parser

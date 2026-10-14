@@ -1,0 +1,317 @@
+[experiment]
+analysis_unit = "client_id"
+
+segments = [
+  "last_dau_28_to_34_days_ago",
+  "last_dau_35_to_59_days_ago",
+  "last_dau_60_to_119_days_ago",
+  "last_dau_120_to_179_days_ago",
+  "new_or_last_dau_180plus_days_ago",
+
+  "firefox_default_at_enrollment",
+  "firefox_not_default_at_enrollment",
+]
+
+enrollment_query = """
+SELECT * FROM
+(
+-- Early data shows that the 'experiments' annotation is more robust than either
+-- the 'enrollment' or the 'exposure' event in background update telemetry, see
+-- [Bug 1809275](https://bugzilla.mozilla.org/show_bug.cgi?id=1809275).  That
+-- is, some legacy client IDs do not report 'enrollment' or 'exposure' events,
+-- but do appear in `experiments` annotations.  Therefore, we use 'enrollment'
+-- events as our primary enrollment indicator but also look for an 'experiments'
+-- annotation.
+--
+-- But, some legacy client IDs that click the notification do not correspond to
+-- default profile IDs reported by background update pings: these may be due to
+-- multiple profiles, multiple OS-level users, or telemetry errors.  Some amount
+-- of such client IDs are anticipated.  We use a browsing telemetry query for
+-- these legacy client IDs.
+--
+-- Finally, we take the earliest of these two enrollment signals to determine
+-- enrollment date. This will always be before we witness a notification click,
+-- so we should not have a legacy client ID that does not have at least one
+-- analysis window containing a notification click.
+
+(
+SELECT
+    JSON_VALUE(metrics, '$.uuid.background_update_client_id') AS analysis_id,
+    JSON_VALUE(event_extra, '$.branch') AS branch,
+    MIN(DATE(events.submission_timestamp)) AS enrollment_date,
+    COUNT(events.submission_timestamp) AS num_enrollment_events
+-- Query from events_stream because it's much more efficient than unnesting events.
+FROM `moz-fx-data-shared-prod.firefox_desktop_background_update.events_stream` events
+WHERE
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        -- Here we can restrict to the last enrollment date range.
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'nimbus_events'
+    AND event_name = 'enrollment'
+    -- The background update experiment slug is exact.
+    AND JSON_VALUE(event_extra, '$.experiment') = '{{experiment.normandy_slug}}'
+    -- This should never happen, but belt-and-braces.
+    AND JSON_VALUE(metrics, '$.uuid.background_update_client_id') IS NOT NULL
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    m.metrics.uuid.background_update_client_id AS analysis_id,
+    experiment.value.branch AS branch,
+    MIN(DATE(submission_timestamp)) AS enrollment_date,
+    -- These aren't discrete events, it makes no sense to count them.
+    1 AS num_enrollment_events
+-- We need to query from the Glean `background_update` table because pre-[Bug
+-- 1794053](https://bugzilla.mozilla.org/show_bug.cgi?id=1794053) (scheduled for
+-- Firefox 109) we don't have the legacy client ID in
+-- `mozdata.firefox_desktop_background_update.events`.
+FROM `mozdata.firefox_desktop_background_update.background_update` AS m
+CROSS JOIN
+    UNNEST(ping_info.experiments) AS experiment
+WHERE
+    -- Background update telemetry can be delayed, so we accept enrollment
+    -- _submission_ dates during the elongated enrollment period.  It's safer to
+    -- compare submission dates generated server-side than internal ping dates
+    -- generated client-side.
+    DATE(submission_timestamp) BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    -- The background update experiment slug is exact.
+    AND experiment.key = '{{experiment.normandy_slug}}'
+    AND sample_id < 100
+GROUP BY analysis_id, branch
+)
+
+UNION ALL
+
+(
+SELECT
+    client_id AS analysis_id,
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    SPLIT(mozfun.map.get_key(event_map_values, 'name'), ':')[SAFE_OFFSET(1)] AS branch,
+    MIN(submission_date) AS enrollment_date,
+    COUNT(submission_date) AS num_enrollment_events
+FROM
+    `mozdata.telemetry.events`
+WHERE
+    -- Browsing telemetry should not be delayed, but notification clicks need
+    -- not coincide with actual enrollment.
+    submission_date BETWEEN
+        '{{experiment.start_date_str}}' AND
+        '{{experiment.last_enrollment_date_str}}'
+    AND event_category = 'browser.launched_to_handle'
+    AND event_method = 'system_notification'
+    AND event_object = 'toast'
+    -- Post [Bug 1804988](https://bugzilla.mozilla.org/show_bug.cgi?id=1804988),
+    -- this name looks like 'slug:branch'.
+    AND STARTS_WITH(mozfun.map.get_key(event_map_values, 'name'), '{{experiment.normandy_slug}}:')
+    AND sample_id < 100
+GROUP BY
+    analysis_id, branch
+)
+
+)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY analysis_id ORDER BY enrollment_date ASC) = 1
+"""
+
+
+# ============================================================================
+# METRICS
+# ============================================================================
+# DAU (client_level_daily_active_users_v2), retained_dau, days_of_use, QCDOU,
+# uri_count, active_hours, search and is_default_browser are auto-applied by
+# jetstream/defaults/firefox_desktop.toml and are not re-listed here.
+# Read retained_dau, not retained: retained counts any ping, so Autostart
+# sessions with no browsing would count as retained.
+#
+# The metrics below test whether launch-at-login (LaL) makes toast returners
+# stick. The launch-at-login-infobar-existing-user-rollout recipe turns LaL on
+# in the comeback session, so treatment should raise lal_enabled roughly in
+# proportion to the extra returners it brings back.
+
+[metrics]
+weekly = [
+  "lal_enabled",
+  "number_of_autostart_launches",
+  "number_of_launches_all_methods",
+]
+overall = [
+  "lal_enabled",
+  "number_of_autostart_launches",
+  "number_of_launches_all_methods",
+  "returned_week_1_and_active_week_2",
+  "returned_week_1_and_active_week_4",
+]
+
+[metrics.lal_enabled]
+friendly_name = "Launch at login enabled"
+description = """
+Whether the client reported launch on login as enabled at any startup in the
+analysis window (Glean os.environment.launch_on_login_state = 'enabled' on the
+metrics ping). The state is recorded at startup, so a client that turns LaL on
+shows as enabled from its next launch.
+"""
+select_expression = "COALESCE(LOGICAL_OR(metrics.string.os_environment_launch_on_login_state = 'enabled'), FALSE)"
+data_source = "metrics"
+
+# Copied verbatim from jetstream/auto-trigger-pin-existing-user.toml.
+# Denominator for number_of_autostart_launches. Both count launch-days rather
+# than launches: launch_method has ping lifetime, so a client that launches
+# several times between metrics pings records only the last launch.
+[metrics.number_of_launches_all_methods]
+friendly_name = "Number of Launches (All Methods)"
+description = """
+Number of Glean metrics pings that recorded any value for
+os_environment.launch_method. Sum of all number_of_*_launches metrics.
+"""
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method IS NOT NULL), 0)"
+data_source = "metrics"
+
+# Overall only. The days are relative to enrollment, so the metric only means
+# something in the overall window. Its treatment-minus-control difference,
+# divided by the week-1 retained_dau difference, is the week-4 retention of the
+# users the toast brought back. Compare that with control's organic returners
+# (this metric / week-1 retained_dau in control).
+[metrics.returned_week_1_and_active_week_4]
+friendly_name = "Returned in week 1 and active in week 4"
+description = """
+Whether the client had a DAU-qualifying day in days 0-6 after enrollment AND
+another in days 21-27 after enrollment.
+"""
+select_expression = """
+  COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 0 AND 6), FALSE)
+  AND COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 21 AND 27), FALSE)
+"""
+data_source = "firefox_desktop_active_users_view"
+
+# Week-2 twin of returned_week_1_and_active_week_4, read the same way. Weekly
+# retained_dau at week 2 can't stand in for it: that also counts clients who
+# first came back in week 2.
+[metrics.returned_week_1_and_active_week_2]
+friendly_name = "Returned in week 1 and active in week 2"
+description = """
+Whether the client had a DAU-qualifying day in days 0-6 after enrollment AND
+another in days 7-13 after enrollment.
+"""
+select_expression = """
+  COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 0 AND 6), FALSE)
+  AND COALESCE(LOGICAL_OR(is_dau AND DATE_DIFF(submission_date, e.enrollment_date, DAY) BETWEEN 7 AND 13), FALSE)
+"""
+data_source = "firefox_desktop_active_users_view"
+
+[metrics.lal_enabled.statistics.binomial]
+[metrics.returned_week_1_and_active_week_2.statistics.binomial]
+[metrics.returned_week_1_and_active_week_4.statistics.binomial]
+[metrics.number_of_autostart_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_launches_all_methods.statistics.linear_model_mean]
+drop_highest = 0.005
+
+
+# ============================================================================
+# SEGMENTS
+# ============================================================================
+# All segments are measured BEFORE enrollment. For a lapsed audience, any
+# segment computed over the analysis window only tags users who came back, and
+# treatment brings more of them back (see metric-hub #1416).
+
+[segments]
+
+[segments.last_dau_28_to_34_days_ago]
+friendly_name = "Last DAU 28 to 34 days ago"
+description = "Clients who last counted towards DAU 28–34 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 34, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_dau_35_to_59_days_ago]
+friendly_name = "Last DAU 35 to 59 days ago"
+description = "Clients who last counted towards DAU 35–59 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 35 AND 59, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_dau_60_to_119_days_ago]
+friendly_name = "Last DAU 60 to 119 days ago"
+description = "Clients who last counted towards DAU 60–119 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 119, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.last_dau_120_to_179_days_ago]
+friendly_name = "Last DAU 120 to 179 days ago"
+description = "Clients who last counted towards DAU 120-179 days before enrollment"
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 120 AND 179, FALSE)"
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.new_or_last_dau_180plus_days_ago]
+friendly_name = "New or last DAU 180+ days ago"
+description = """
+New Clients, or those whose last DAU before enrollment is >=180 days ago (or no DAU observed in lookback window).
+"""
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
+  )
+"""
+data_source = "active_users_last_seen"
+window_start = -183
+window_end = -1
+
+[segments.firefox_default_at_enrollment]
+friendly_name = "Firefox is default browser (pre-enrollment)"
+description = "Clients who reported Firefox as their default browser on at least one clients_daily ping in the 365 days before enrollment"
+select_expression = """COALESCE(LOGICAL_OR(is_default_browser), FALSE)"""
+data_source = "client_history"
+window_start = -365
+window_end = -1
+
+[segments.firefox_not_default_at_enrollment]
+friendly_name = "Firefox is NOT default browser (pre-enrollment)"
+description = "Clients who never reported Firefox as their default browser on any clients_daily ping in the 365 days before enrollment (and had at least one ping with is_default_browser = FALSE)"
+select_expression = """COALESCE(LOGICAL_AND(NOT is_default_browser), FALSE)"""
+data_source = "client_history"
+window_start = -365
+window_end = -1
+
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2026-10-06', INTERVAL 183 DAY)
+)"""
+window_start = -183
+
+[segments.data_sources.client_history]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date,
+    is_default_browser
+  FROM `mozdata.telemetry.clients_daily`
+  WHERE submission_date >= DATE_SUB('2026-10-06', INTERVAL 365 DAY)
+    AND submission_date < '2026-10-06'
+)"""
+description = "Pre-enrollment default-browser history from clients_daily, looking back 365 days before the experiment start (2026-10-06)."
+friendly_name = "Client history (pre-enrollment)"
+window_start = -365
+window_end = -1
