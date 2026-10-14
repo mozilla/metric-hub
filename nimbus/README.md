@@ -12,10 +12,10 @@ from other metrics with `depends_on`.
 `nimbus/definitions/` holds metrics in aggregation form, under stricter rules than `definitions/`.
 Highwind prefers a metric's copy in `nimbus/definitions/`. Jetstream reads `definitions/` only.
 
-Keep aggregation-form metrics in `nimbus/definitions/` only for now. Jetstream does not generate
-SQL from the aggregation fields, and consumers on older metric-config-parser releases ignore keys
-they do not know, so in `definitions/` an aggregation-form metric would be read as a metric with no
-SQL.
+Keep aggregation-form metrics in `nimbus/definitions/` only for now. metric-config-parser generates
+`select_expression` from the aggregation fields, but consumers on older metric-config-parser
+releases ignore keys they do not know, so they would read an aggregation-form metric in
+`definitions/` as a metric with no SQL.
 
 See [definitions/example_config.toml.example](definitions/example_config.toml.example) for an
 annotated example that uses every field.
@@ -68,7 +68,7 @@ Aggregation fields:
 | `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
 | `column` | string | | A plain column name on the data source. |
 | `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
-| `within_days` | integer | | Number of days for `recency_within`. |
+| `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
@@ -175,7 +175,8 @@ Each row is decoded to the number of days since the most recent active day, wher
 the row's own date. The unit's value is the smallest of these over its rows in the window. A unit
 with no rows, or with no active days recorded, gets 30, which is outside the 28-day range. The
 result is 1 when that value is less than `within_days`, so `within_days = 3` means active on the
-row's date or one of the two days before it. The result is 0/1.
+row's date or one of the two days before it. `within_days` is at most 28, so a unit with no activity
+is never counted as active. The result is 0/1.
 
 The decoding, the comparison and the value for a unit with no rows are fixed. The author supplies
 only the column and the number of days.
@@ -215,7 +216,8 @@ Operators:
 | (no `op`) | column is true | not allowed |
 
 `value` is a number, string or boolean. The parser checks that it is present when the operator
-needs it, and absent otherwise. It does not check its type.
+needs it, and absent otherwise. It does not check its type. Generating SQL fails for a value of
+any other type.
 
 Null handling: a comparison against a null column does not match. This includes `!=`, so
 `column != 0` does not match rows where the column is null. The boolean form matches only true, not
@@ -349,6 +351,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
+- `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
@@ -385,50 +388,65 @@ Not checked:
 - Statistic names. The fields shared with `definitions/` get no checks beyond those `definitions/`
   applies.
 
-## How consumers use an aggregation-form metric (planned)
+## How consumers use an aggregation-form metric
 
-This section describes behaviour that is not implemented yet. No consumer reads the aggregation
-fields today.
-
-Both consumers generate SQL from the same fields. In the tables below, `c` is `column` and `p` is
-the conditions joined with AND (the `column` shorthand is the condition `c`).
+metric-config-parser generates two shapes of SQL from the same fields, one for each consumer. In
+the tables below, `c` is `column` and `p` is the conditions joined with AND (the `column` shorthand
+is the condition `c`).
 
 ### Jetstream
 
-Jetstream reads `definitions/` and uses `select_expression`. Each aggregation corresponds to the
-expression below. metric-config-parser will generate `select_expression` from the aggregation
-fields with these expressions, and check that a metric defined in both directories computes the
-same value in each. The window fields and `statistics` are not passed through.
+Jetstream reads `definitions/` and uses `select_expression`. When a metric declares the aggregation
+fields instead, metric-config-parser generates its `select_expression` while resolving the metric,
+so Jetstream handles it like any other metric. `MetricDefinition.select_expression_from_aggregation`
+returns the generated expression. `sum` and `any` call the `agg_sum` and `agg_any` functions from
+`definitions/functions.toml`, so they render the same way as a hand-written expression. The window
+fields are not used.
 
-| aggregation | `select_expression` |
-| --- | --- |
-| `sum` | `COALESCE(SUM(c), 0)` |
-| `count` | `COUNT(c)` |
-| `count_where` | `COUNTIF(p)` |
-| `any` | `COALESCE(LOGICAL_OR(p), FALSE)` |
-| `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` |
-| with `threshold` | `<expression> <op> <value>` |
-| with `scale` k | `<expression> * k` |
+| aggregation | `select_expression` | rendered |
+| --- | --- | --- |
+| `sum` | `{{agg_sum("c")}}` | `COALESCE(SUM(c), 0)` |
+| `count` | `COUNT(c)` | same |
+| `count_where` | `COUNTIF(p)` | same |
+| `any` | `{{agg_any("p")}}` | `COALESCE(LOGICAL_OR(p), FALSE)` |
+| `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` | same |
+| with `threshold` | `<expression> <op> <value>` | |
+| with `scale` k | `<expression> * k` | |
+
+`any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
+boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
+described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
+renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`.
+
+In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
+as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
+not finite, or a value of any other type, fails.
+
+Checking that a metric defined in both directories computes the same value in each is not
+implemented yet.
 
 ### Highwind
 
 Highwind reads a metric from `nimbus/definitions/` when it is defined there. It scans each data
 source once per analysis. It reduces each unit's rows once per bucket, then builds each window from
-those bucket values. Each aggregation therefore splits into four parts:
+those bucket values. `MetricDefinition.bucketed_aggregation` returns a `BucketedAggregation`,
+which splits the aggregation into four parts:
 
 - `bucket_aggregate`: reduces a unit's rows in one bucket to a number.
 - `combine`: how bucket values combine over a window.
 - `no_rows`: the value for a unit with no rows in the window.
-- `finalize`: applied once to the combined value. It carries the threshold and scale.
+- `finalize`: applied once to the combined value. It carries the threshold and scale. It is a SQL
+  template in which `{combined}` stands for the combined value, and `finalize_sql(x)` substitutes
+  `x` for it.
 
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
-| `sum` | `SUM(c)` | `SUM` | `0` | `x` |
+| `sum` | `COALESCE(SUM(c), 0)` | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
 | `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
-| `recency_within` N | `MIN(mozfun.bits28.days_since_seen(c))` | `MIN` | `30` | `CAST(x < N AS INT64)` |
-| with `threshold` | unchanged | unchanged | unchanged | `CAST(x <op> <value> AS INT64)` |
+| `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30)` | `MIN` | `30` | `CAST(x < N AS INT64)` |
+| with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
 The columns Highwind reads from each data source are derived from the aggregation-form
