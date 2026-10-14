@@ -68,7 +68,7 @@ Aggregation fields:
 | `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
 | `column` | string | | A plain column name on the data source. |
 | `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
-| `within_days` | integer | | Number of days for `recency_within`. |
+| `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
@@ -175,7 +175,8 @@ Each row is decoded to the number of days since the most recent active day, wher
 the row's own date. The unit's value is the smallest of these over its rows in the window. A unit
 with no rows, or with no active days recorded, gets 30, which is outside the 28-day range. The
 result is 1 when that value is less than `within_days`, so `within_days = 3` means active on the
-row's date or one of the two days before it. The result is 0/1.
+row's date or one of the two days before it. `within_days` is at most 28, so a unit with no activity
+is never counted as active. The result is 0/1.
 
 The decoding, the comparison and the value for a unit with no rows are fixed. The author supplies
 only the column and the number of days.
@@ -350,6 +351,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
+- `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
@@ -396,7 +398,7 @@ is the condition `c`).
 
 Jetstream reads `definitions/` and uses `select_expression`. When a metric declares the aggregation
 fields instead, metric-config-parser generates its `select_expression` while resolving the metric,
-so Jetstream handles it like any other metric. `MetricDefinition.generated_select_expression`
+so Jetstream handles it like any other metric. `MetricDefinition.select_expression_from_aggregation`
 returns the generated expression. `sum` and `any` call the `agg_sum` and `agg_any` functions from
 `definitions/functions.toml`, so they render the same way as a hand-written expression. The window
 fields are not used.
@@ -439,11 +441,11 @@ which splits the aggregation into four parts:
 
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
-| `sum` | `SUM(c)` | `SUM` | `0` | `x` |
+| `sum` | `COALESCE(SUM(c), 0)` | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
 | `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
-| `recency_within` N | `MIN(mozfun.bits28.days_since_seen(c))` | `MIN` | `30` | `CAST(x < N AS INT64)` |
+| `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30)` | `MIN` | `30` | `CAST(x < N AS INT64)` |
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 

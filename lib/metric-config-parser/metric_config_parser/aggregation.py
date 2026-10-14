@@ -2,11 +2,16 @@ import math
 import re
 from collections.abc import Mapping
 from enum import Enum, StrEnum
-from typing import Any
+from typing import Any, TypeGuard
 
 import attr
 
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+NO_ACTIVITY_DAYS = 30
+MAX_WITHIN_DAYS = 28
+JINJA_OPEN = "{{"
+JINJA_CLOSE = "}}"
+COMBINED = "{combined}"
 
 
 class Aggregation(StrEnum):
@@ -48,17 +53,12 @@ CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
 
-NO_ACTIVITY_DAYS = 30
-JINJA_OPEN = "{{"
-JINJA_CLOSE = "}}"
-COMBINED = "{combined}"
-
 
 def is_number(value: Any) -> bool:
     return isinstance(value, int | float) and not isinstance(value, bool)
 
 
-def is_positive_int(value: Any) -> bool:
+def is_positive_int(value: Any) -> TypeGuard[int]:
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
 
 
@@ -170,14 +170,16 @@ def aggregation_select_expression(
     scale: int | float | None,
 ) -> str:
     predicate = predicate_sql(conditions)
+    is_boolean = False
     if aggregation == Aggregation.SUM:
-        expression, is_boolean = f'{JINJA_OPEN}agg_sum("{column}"){JINJA_CLOSE}', False
+        expression = macro_call("agg_sum", str(column))
     elif aggregation == Aggregation.COUNT:
-        expression, is_boolean = f"COUNT({column})", False
+        expression = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
-        expression, is_boolean = f"COUNTIF({predicate})", False
+        expression = f"COUNTIF({predicate})"
     elif aggregation == Aggregation.ANY:
-        expression, is_boolean = macro_call("agg_any", predicate), True
+        expression = macro_call("agg_any", predicate)
+        is_boolean = True
     elif aggregation == Aggregation.RECENCY_WITHIN:
         expression = (
             f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
@@ -190,7 +192,8 @@ def aggregation_select_expression(
     if threshold is not None:
         if is_boolean:
             expression = f"CAST({expression} AS INT64)"
-        expression, is_boolean = threshold.apply(expression), True
+        expression = threshold.apply(expression)
+        is_boolean = True
     if scale is not None:
         if is_boolean:
             expression = f"CAST({expression} AS INT64)"
@@ -200,6 +203,13 @@ def aggregation_select_expression(
 
 @attr.s(auto_attribs=True, frozen=True)
 class BucketedAggregation:
+    """
+    Per-bucket parts of a generated metric. bucket_aggregate reduces a unit's rows in one
+    bucket, combine merges bucket values over a window, no_rows is the value for a unit with
+    no rows, and finalize is applied once to the combined value, with {combined} standing
+    for that value.
+    """
+
     bucket_aggregate: str
     combine: Combine
     no_rows: str
@@ -218,9 +228,11 @@ def aggregation_bucketed(
     scale: int | float | None,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
-    combine, no_rows, finalize = Combine.SUM, "0", COMBINED
+    combine = Combine.SUM
+    no_rows = "0"
+    finalize = COMBINED
     if aggregation == Aggregation.SUM:
-        bucket_aggregate = f"SUM({column})"
+        bucket_aggregate = f"COALESCE(SUM({column}), 0)"
     elif aggregation == Aggregation.COUNT:
         bucket_aggregate = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
@@ -229,8 +241,11 @@ def aggregation_bucketed(
         bucket_aggregate = f"COUNTIF({predicate})"
         finalize = f"CAST({COMBINED} > 0 AS INT64)"
     elif aggregation == Aggregation.RECENCY_WITHIN:
-        bucket_aggregate = f"MIN(mozfun.bits28.days_since_seen({column}))"
-        combine, no_rows = Combine.MIN, str(NO_ACTIVITY_DAYS)
+        bucket_aggregate = (
+            f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
+        )
+        combine = Combine.MIN
+        no_rows = str(NO_ACTIVITY_DAYS)
         finalize = f"CAST({COMBINED} < {within_days} AS INT64)"
     else:
         raise ValueError(f"unknown aggregation '{aggregation}'")

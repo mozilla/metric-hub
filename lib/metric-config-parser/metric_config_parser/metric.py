@@ -24,6 +24,7 @@ from . import AnalysisUnit
 from .aggregation import (
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
+    MAX_WITHIN_DAYS,
     Aggregation,
     BucketedAggregation,
     Clause,
@@ -222,6 +223,8 @@ class MetricDefinition:
         if self.aggregation == Aggregation.RECENCY_WITHIN:
             if not is_positive_int(self.within_days):
                 raise ValueError(f"{context}: within_days must be a positive integer")
+            if self.within_days > MAX_WITHIN_DAYS:
+                raise ValueError(f"{context}: within_days must be at most {MAX_WITHIN_DAYS}")
         elif self.within_days is not None:
             raise ValueError(f"{context}: within_days is only valid for recency_within")
 
@@ -250,7 +253,7 @@ class MetricDefinition:
         return self.where
 
     @property
-    def generated_select_expression(self) -> str | None:
+    def select_expression_from_aggregation(self) -> str | None:
         if self.aggregation is None:
             return None
         return aggregation_select_expression(
@@ -345,7 +348,7 @@ class MetricDefinition:
                 upstream_metrics += upstream_metric.resolve(spec, conf, configs)
 
         select_expression_template = (
-            self.generated_select_expression
+            self.select_expression_from_aggregation
             if self.select_expression is None
             else self.select_expression
         )

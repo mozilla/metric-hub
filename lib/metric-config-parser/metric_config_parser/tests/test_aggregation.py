@@ -75,13 +75,13 @@ class TestSelectExpression:
     def test_aggregation(self, fields, template, rendered):
         metric = parse_metric(**fields)
 
-        assert metric.generated_select_expression == template
+        assert metric.select_expression_from_aggregation == template
         assert render(template) == rendered
 
     def test_select_expression_metric(self):
         metric = parse_metric(select_expression="SUM(a)")
 
-        assert metric.generated_select_expression is None
+        assert metric.select_expression_from_aggregation is None
         assert metric.bucketed_aggregation is None
 
 
@@ -91,7 +91,7 @@ class TestBucketedAggregation:
         [
             (
                 {"aggregation": "sum", "column": "a"},
-                BucketedAggregation("SUM(a)", Combine.SUM, "0", "{combined}"),
+                BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
             ),
             (
                 {"aggregation": "count", "column": "a"},
@@ -116,7 +116,7 @@ class TestBucketedAggregation:
             (
                 {"aggregation": "recency_within", "column": "a", "within_days": 3},
                 BucketedAggregation(
-                    "MIN(mozfun.bits28.days_since_seen(a))",
+                    "COALESCE(MIN(mozfun.bits28.days_since_seen(a)), 30)",
                     Combine.MIN,
                     "30",
                     "CAST({combined} < 3 AS INT64)",
@@ -151,7 +151,7 @@ class TestConditions:
     def test_operator(self, clause, predicate):
         metric = parse_metric(aggregation="any", where=[clause])
 
-        assert render(metric.generated_select_expression) == (
+        assert render(metric.select_expression_from_aggregation) == (
             f"COALESCE(LOGICAL_OR({predicate}), FALSE)"
         )
         assert metric.bucketed_aggregation.bucket_aggregate == f"COUNTIF({predicate})"
@@ -166,7 +166,7 @@ class TestConditions:
         )
 
         with pytest.raises(ValueError, match=match):
-            metric.generated_select_expression  # noqa: B018
+            metric.select_expression_from_aggregation  # noqa: B018
         with pytest.raises(ValueError, match=match):
             metric.bucketed_aggregation  # noqa: B018
 
@@ -174,7 +174,9 @@ class TestConditions:
         shorthand = parse_metric(aggregation="count_where", column="a")
         where = parse_metric(aggregation="count_where", where=[{"column": "a"}])
 
-        assert shorthand.generated_select_expression == where.generated_select_expression
+        assert (
+            shorthand.select_expression_from_aggregation == where.select_expression_from_aggregation
+        )
         assert shorthand.bucketed_aggregation == where.bucketed_aggregation
 
 
@@ -197,7 +199,7 @@ class TestThresholdAndScale:
     def test_threshold(self, fields, rendered, finalize):
         metric = parse_metric(**fields)
 
-        assert render(metric.generated_select_expression) == rendered
+        assert render(metric.select_expression_from_aggregation) == rendered
         assert metric.bucketed_aggregation.finalize == finalize
 
     @pytest.mark.parametrize(
@@ -223,7 +225,7 @@ class TestThresholdAndScale:
     def test_scale(self, fields, rendered, finalize):
         metric = parse_metric(**fields)
 
-        assert render(metric.generated_select_expression) == rendered
+        assert render(metric.select_expression_from_aggregation) == rendered
         assert metric.bucketed_aggregation.finalize == finalize
 
 
