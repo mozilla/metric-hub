@@ -111,7 +111,7 @@ types-requests==2.33.0.20261006
     # via mozilla-metric-config-parser
 types-setuptools==84.0.0.20260812
     # via mozilla-metric-config-parser
-types-six==1.17.0.20260724
+types-six==1.17.0.20261008
     # via mozilla-metric-config-parser
 types-toml==0.10.8.20260518
     # via mozilla-metric-config-parser
