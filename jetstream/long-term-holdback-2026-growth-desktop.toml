@@ -1,4 +1,11 @@
 [experiment]
+segments = [
+    "new_profile",
+    "existing_profile",
+    "new_windows_from_may",
+    "enrolled_jan_apr",
+    "enrolled_may_onward",
+]
 enrollment_query = """
   SELECT
       e.profile_group_id AS analysis_id,
@@ -22,3 +29,76 @@ enrollment_query = """
       )
   GROUP BY ALL
 """
+
+[segments.new_profile]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    FALSE
+)"""
+friendly_name = "New profiles"
+description = """
+    Profiles created at most 7 days before enrollment, identified by a new-profile
+    or first-shutdown ping sent in the 7 days up to the enrollment date.
+"""
+
+[segments.existing_profile]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    FALSE
+)"""
+friendly_name = "Existing profiles"
+description = """
+    Every unit not in New profiles: profiles created more than 7 days before
+    enrollment, plus new profiles that sent no new-profile or first-shutdown ping.
+"""
+
+[segments.new_windows_from_may]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    FALSE
+)
+AND COALESCE(LOGICAL_OR(os = 'Windows_NT'), FALSE)
+AND MIN(e.enrollment_date) >= '2026-05-01'"""
+friendly_name = "New Windows profiles enrolled from May"
+description = """
+    New profiles on Windows that enrolled on or after 2026-05-01, the population
+    eligible for the launch-on-login recipes.
+"""
+
+[segments.enrolled_jan_apr]
+data_source = "first_session_pings"
+select_expression = "MIN(e.enrollment_date) < '2026-05-01'"
+friendly_name = "Enrolled January to April"
+description = """
+    Units whose enrollment date is before 2026-05-01.
+"""
+
+[segments.enrolled_may_onward]
+data_source = "first_session_pings"
+select_expression = "MIN(e.enrollment_date) >= '2026-05-01'"
+friendly_name = "Enrolled from May"
+description = """
+    Units whose enrollment date is on or after 2026-05-01.
+"""
+
+[segments.data_sources.first_session_pings]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        profile_group_id,
+        SAFE.DATE_FROM_UNIX_DATE(SAFE_CAST(environment.profile.creation_date AS INT64)) AS profile_creation_date,
+        environment.system.os.name AS os
+    FROM `moz-fx-data-shared-prod.telemetry.new_profile`
+    UNION ALL
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        profile_group_id,
+        SAFE.DATE_FROM_UNIX_DATE(SAFE_CAST(environment.profile.creation_date AS INT64)) AS profile_creation_date,
+        environment.system.os.name AS os
+    FROM `moz-fx-data-shared-prod.telemetry.first_shutdown`
+)"""
+window_start = -7
+window_end = 0
