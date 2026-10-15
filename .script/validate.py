@@ -358,7 +358,7 @@ def validate(path, config_repos):
 
     if not all(result):
         sys.exit(1)
-    print(f"{config_file} OK")
+    print("All SQL query batches are valid")
 
     sys.exit(1 if dirty else 0)
 

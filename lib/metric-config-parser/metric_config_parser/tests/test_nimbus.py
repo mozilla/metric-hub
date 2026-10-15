@@ -26,10 +26,9 @@ from metric_config_parser.nimbus import (
     NIMBUS_METRIC_KEYS,
     NimbusDefinitionMismatch,
     NimbusSpec,
-    normalize_sql,
 )
 from metric_config_parser.outcome import OutcomeSpec
-from metric_config_parser.util import converter
+from metric_config_parser.util import converter, normalize_sql
 
 TEST_DIR = Path(__file__).parent
 FIXTURE_DIR = TEST_DIR / "data" / "nimbus_repo"
@@ -821,6 +820,35 @@ class TestNimbusDefinitionMismatches:
                 definitions_select_expression=None,
                 nimbus_data_source="clients_daily",
                 definitions_data_source=None,
+            )
+        ]
+
+    def test_matching_aggregation_fields(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            '[metrics.active_hours]\naggregation = "sum"\ncolumn = "active_hours_sum"\n'
+            'data_source = "clients_daily"\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == []
+
+    def test_reports_different_aggregation_fields(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(
+            tmp_path,
+            '[metrics.active_hours]\naggregation = "sum"\ncolumn = "subsession_hours_sum"\n'
+            'data_source = "clients_daily"\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression="COALESCE(SUM(subsession_hours_sum), 0)",
+                nimbus_data_source="clients_daily",
+                definitions_data_source="clients_daily",
             )
         ]
 

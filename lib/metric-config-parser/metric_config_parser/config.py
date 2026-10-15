@@ -25,10 +25,10 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusDefinitionMismatch, NimbusSpec, normalize_sql
+from .nimbus import NIMBUS_DIR, NimbusDefinitionMismatch, NimbusSpec
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
-from .util import TemporaryDirectory
+from .util import TemporaryDirectory, normalize_sql
 
 if TYPE_CHECKING:
     from git.objects.commit import Commit

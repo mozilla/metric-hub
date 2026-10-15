@@ -1,4 +1,3 @@
-import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -32,11 +31,6 @@ NIMBUS_METRIC_KEYS = {
     "deprecated",
     "level",
 }
-
-
-def normalize_sql(sql: str) -> str:
-    collapsed = re.sub(r"\s+", " ", sql).strip()
-    return re.sub(r"\(\s+", "(", re.sub(r"\s+\)", ")", collapsed))
 
 
 @attr.s(auto_attribs=True, frozen=True)
