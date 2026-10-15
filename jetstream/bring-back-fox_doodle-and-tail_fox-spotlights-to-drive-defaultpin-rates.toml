@@ -1,0 +1,276 @@
+# Jetstream config for bring-back-fox_doodle-and-tail_fox-spotlights-to-drive-defaultpin-rates
+# FXE-1851: restores the FOX_DOODLE multi-action, FOX_DOODLE set-default and
+# TAIL_FOX set-default startup Spotlights (new animations, shared message ID
+# KIT_DEFAULT_AND_PIN_SPOTLIGHT_NOVA) for non-default release profiles 7+ days
+# old, against an empty no-message control. Foreground `spotlight` feature on
+# `defaultBrowserCheck`, so no custom enrollment_query.
+#
+# Read on the ENROLLMENTS basis. Control has no messages and logs no exposures,
+# so the exposures basis has no control counterpart.
+#
+# Auto-applied and deliberately not re-listed: is_default_browser (legacy, the
+# primary), client_level_daily_active_users_v2, days_of_use, retained_dau,
+# active_hours, search_count, tagged_search_count, uri_count.
+#
+# Not in Jetstream by design: exposure rate and per-screen impression / click /
+# dismiss rates. They are treatment-only, so randomization adds nothing; they
+# come from messaging telemetry (Redash).
+
+[experiment]
+
+segments = [
+  # Spotlight audience cell at enrollment (profile age x pin state)
+  "cell_7_to_27_days_not_pinned",
+  "cell_28_plus_days_not_pinned",
+  "cell_7_to_27_days_pinned_or_not_applicable",
+  "cell_28_plus_days_pinned_or_not_applicable",
+  # Native default prompt (browser.shell.checkDefaultBrowser) before enrollment
+  "default_prompt_on",
+  "default_prompt_off",
+  # Platform
+  "windows_v1",
+  "windows_msix",
+  "windows_non_msix",
+  "macos_v1",
+  "linux_v1",
+  # Days since last active before enrollment
+  "last_active_less_than_28_days_ago",
+  "last_active_28_to_59_days_ago",
+  "last_active_60_to_179_days_ago",
+  "last_active_180_or_more_days_ago",
+]
+
+[metrics]
+
+weekly = [
+  "is_default_browser_glean",
+  "is_pinned_or_kept_in_dock",
+]
+
+overall = [
+  "is_default_browser_glean",
+  "is_pinned_or_kept_in_dock",
+]
+
+# ============================================================================
+# METRICS
+# ============================================================================
+
+# Built-in Glean twin of the auto-applied legacy is_default_browser. The brief
+# names Glean usage.is_default_browser as the primary source. No stat is
+# pre-declared for it in the defaults, so binomial is set here.
+[metrics.is_default_browser_glean.statistics.binomial]
+
+# Pin rate from Glean. The built-in is_pinned reads the legacy
+# os.environment.is_taskbar_pinned scalar, which stopped reporting in Fx156.
+# Windows uses is_taskbar_pinned, macOS uses is_kept_in_dock; Linux has no pin
+# concept and is always FALSE.
+[metrics.is_pinned_or_kept_in_dock]
+data_source = "metrics"
+select_expression = """COALESCE(LOGICAL_OR(
+  CASE
+    WHEN normalized_os = 'Windows' THEN metrics.boolean.os_environment_is_taskbar_pinned
+    WHEN normalized_os = 'Mac' THEN metrics.boolean.os_environment_is_kept_in_dock
+  END
+), FALSE)"""
+friendly_name = "Pinned to taskbar / kept in Dock (Glean)"
+description = "Was Firefox pinned to the Windows taskbar, or kept in the macOS Dock, at startup on any day in the interval? Glean os.environment.is_taskbar_pinned / is_kept_in_dock."
+
+[metrics.is_pinned_or_kept_in_dock.statistics.binomial]
+
+# ============================================================================
+# SEGMENTS - Spotlight audience cell at enrollment
+# ============================================================================
+# The four cells mirror the four message types: multi-action (not pinned) and
+# set-default (pinned, or pin not applicable), each for 7-27 and 28+ day
+# profiles. All inputs are read STRICTLY BEFORE enrollment (days -28..-1), since
+# the multi-action Spotlight changes pin state in treatment. Pin state is the
+# most recent non-null value in that window. Profile age uses the built-in
+# segments' 7-27 / 28+ convention, from Glean client_info.first_run_date.
+# Clients with no metrics ping in the 28 days before enrollment fall in no cell.
+
+[segments.cell_7_to_27_days_not_pinned]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Cell: 7-27 days, not pinned"
+description = "Profile 7-27 days old at enrollment, and not pinned to the taskbar (Windows) or kept in the Dock (macOS) in the latest metrics ping before enrollment. Multi-action Spotlight audience."
+select_expression = """COALESCE(
+  DATE_DIFF(MIN(e.enrollment_date), MIN(first_run_date), DAY) BETWEEN 7 AND 27
+  AND ARRAY_AGG(is_pinned_or_docked IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = FALSE,
+  FALSE
+)"""
+
+[segments.cell_28_plus_days_not_pinned]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Cell: 28+ days, not pinned"
+description = "Profile 28+ days old at enrollment, and not pinned to the taskbar (Windows) or kept in the Dock (macOS) in the latest metrics ping before enrollment. Multi-action Spotlight audience."
+select_expression = """COALESCE(
+  DATE_DIFF(MIN(e.enrollment_date), MIN(first_run_date), DAY) >= 28
+  AND ARRAY_AGG(is_pinned_or_docked IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = FALSE,
+  FALSE
+)"""
+
+[segments.cell_7_to_27_days_pinned_or_not_applicable]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Cell: 7-27 days, pinned or pin not applicable"
+description = "Profile 7-27 days old at enrollment, and either pinned / kept in Dock in the latest metrics ping before enrollment, or on Linux. Running-fox set-default Spotlight audience."
+select_expression = """COALESCE(
+  DATE_DIFF(MIN(e.enrollment_date), MIN(first_run_date), DAY) BETWEEN 7 AND 27
+  AND (
+    LOGICAL_OR(normalized_os = 'Linux')
+    OR ARRAY_AGG(is_pinned_or_docked IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = TRUE
+  ),
+  FALSE
+)"""
+
+[segments.cell_28_plus_days_pinned_or_not_applicable]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Cell: 28+ days, pinned or pin not applicable"
+description = "Profile 28+ days old at enrollment, and either pinned / kept in Dock in the latest metrics ping before enrollment, or on Linux. Pop-up-fox set-default Spotlight audience."
+select_expression = """COALESCE(
+  DATE_DIFF(MIN(e.enrollment_date), MIN(first_run_date), DAY) >= 28
+  AND (
+    LOGICAL_OR(normalized_os = 'Linux')
+    OR ARRAY_AGG(is_pinned_or_docked IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = TRUE
+  ),
+  FALSE
+)"""
+
+# ============================================================================
+# SEGMENTS - Native default prompt before enrollment
+# ============================================================================
+# The Spotlights can't show on startups where the native default prompt fires
+# (!willShowDefaultPrompt), so prompt-off clients are the reachable group.
+# Glean browser.set_default_always_check is a labeled counter (labels
+# "true"/"false"); the latest non-null state before enrollment is used.
+
+[segments.default_prompt_on]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Native default prompt on"
+description = "browser.shell.checkDefaultBrowser was true in the latest metrics ping before enrollment."
+select_expression = """COALESCE(
+  ARRAY_AGG(default_prompt_state IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = 'on',
+  FALSE
+)"""
+
+[segments.default_prompt_off]
+data_source = "pre_enrollment_glean_metrics"
+friendly_name = "Native default prompt off"
+description = "browser.shell.checkDefaultBrowser was false in the latest metrics ping before enrollment."
+select_expression = """COALESCE(
+  ARRAY_AGG(default_prompt_state IGNORE NULLS ORDER BY submission_timestamp DESC LIMIT 1)[SAFE_OFFSET(0)] = 'off',
+  FALSE
+)"""
+
+# ============================================================================
+# SEGMENTS - Platform
+# ============================================================================
+# windows_v1 / macos_v1 / linux_v1 are built-in. MSIX comes from the Nimbus
+# targeting-context ping (the same isMSIX the message targeting reads). MSIX
+# status can't change with treatment, so the enrollment day is included.
+
+[segments.windows_msix]
+data_source = "msix_targeting_context"
+friendly_name = "Windows MSIX"
+description = "Windows clients whose Nimbus targeting context reported an MSIX install in the 7 days up to enrollment."
+select_expression = "COALESCE(LOGICAL_OR(normalized_os = 'Windows' AND is_msix), FALSE)"
+
+[segments.windows_non_msix]
+data_source = "msix_targeting_context"
+friendly_name = "Windows non-MSIX"
+description = "Windows clients whose Nimbus targeting context never reported an MSIX install in the 7 days up to enrollment."
+select_expression = "COALESCE(LOGICAL_OR(normalized_os = 'Windows') AND NOT LOGICAL_OR(COALESCE(is_msix, FALSE)), FALSE)"
+
+# ============================================================================
+# SEGMENTS - Days since last active before enrollment
+# ============================================================================
+# Same source and SQL shape as the lapse buckets in
+# set-up-your-email-web-app-welcome-back-spotlight-v2, with the brief's
+# buckets (<28 / 28-59 / 60-179 / 180+). FXE-1608 found 180+ responding
+# strongly and 35-59 harmed. The lookback is strictly pre-enrollment
+# (window_end = -1). The buckets are contiguous and mutually exclusive.
+
+[segments.last_active_less_than_28_days_ago]
+data_source = "active_users_last_seen"
+friendly_name = "Last active under 28 days ago"
+description = "Clients whose last DAU before enrollment was 1-27 days prior."
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) < 28, FALSE)"
+
+[segments.last_active_28_to_59_days_ago]
+data_source = "active_users_last_seen"
+friendly_name = "Last active 28 to 59 days ago"
+description = "Clients whose last DAU before enrollment was 28-59 days prior."
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 28 AND 59, FALSE)"
+
+[segments.last_active_60_to_179_days_ago]
+data_source = "active_users_last_seen"
+friendly_name = "Last active 60 to 179 days ago"
+description = "Clients whose last DAU before enrollment was 60-179 days prior."
+select_expression = "COALESCE(DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) BETWEEN 60 AND 179, FALSE)"
+
+[segments.last_active_180_or_more_days_ago]
+data_source = "active_users_last_seen"
+friendly_name = "Last active 180+ days ago"
+description = "Clients whose last DAU before enrollment was 180+ days prior, or with no DAU in the 183-day lookback."
+select_expression = """
+  (
+    MAX(submission_date) IS NULL
+    OR DATE_DIFF(MIN(e.enrollment_date), MAX(submission_date), DAY) >= 180
+  )
+"""
+
+# ============================================================================
+# SEGMENT DATA SOURCES
+# ============================================================================
+# Names are distinct from built-in sources so nothing is shadowed. Date floors
+# are performance guards anchored to the 2026-10-15 start.
+
+[segments.data_sources.pre_enrollment_glean_metrics]
+from_expression = """(
+  SELECT
+    metrics.uuid.legacy_telemetry_client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    submission_timestamp,
+    normalized_os,
+    SAFE.PARSE_DATE('%Y-%m-%d', SUBSTR(client_info.first_run_date, 1, 10)) AS first_run_date,
+    CASE
+      WHEN normalized_os = 'Windows' THEN metrics.boolean.os_environment_is_taskbar_pinned
+      WHEN normalized_os = 'Mac' THEN metrics.boolean.os_environment_is_kept_in_dock
+    END AS is_pinned_or_docked,
+    CASE
+      WHEN EXISTS (SELECT 1 FROM UNNEST(metrics.labeled_counter.browser_set_default_always_check) l WHERE l.key = 'true' AND l.value > 0) THEN 'on'
+      WHEN EXISTS (SELECT 1 FROM UNNEST(metrics.labeled_counter.browser_set_default_always_check) l WHERE l.key = 'false' AND l.value > 0) THEN 'off'
+    END AS default_prompt_state
+  FROM `mozdata.firefox_desktop.metrics`
+  WHERE DATE(submission_timestamp) >= DATE_SUB('2026-10-15', INTERVAL 28 DAY)
+    AND metrics.uuid.legacy_telemetry_client_id IS NOT NULL
+)"""
+window_start = -28
+window_end = -1
+
+[segments.data_sources.msix_targeting_context]
+from_expression = """(
+  SELECT
+    metrics.uuid.legacy_telemetry_client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    normalized_os,
+    metrics.boolean.nimbus_targeting_context_is_msix AS is_msix
+  FROM `mozdata.firefox_desktop.nimbus_targeting_context`
+  WHERE DATE(submission_timestamp) >= DATE_SUB('2026-10-15', INTERVAL 7 DAY)
+    AND metrics.uuid.legacy_telemetry_client_id IS NOT NULL
+)"""
+window_start = -7
+window_end = 0
+
+[segments.data_sources.active_users_last_seen]
+from_expression = """(
+  SELECT
+    client_id,
+    profile_group_id,
+    submission_date
+  FROM `mozdata.telemetry.desktop_active_users`
+  WHERE is_desktop
+    AND is_dau
+    AND submission_date >= DATE_SUB('2026-10-15', INTERVAL 183 DAY)
+)"""
+window_start = -183
+window_end = -1
