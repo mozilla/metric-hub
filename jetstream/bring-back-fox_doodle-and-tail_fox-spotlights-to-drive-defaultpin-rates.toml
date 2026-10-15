@@ -223,11 +223,14 @@ select_expression = """
 # ============================================================================
 # Names are distinct from built-in sources so nothing is shadowed. Date floors
 # are performance guards anchored to the 2026-10-15 start.
+# The recipe randomizes on group_id, so Jetstream joins every segment source on
+# profile_group_id; each source must expose it.
 
 [segments.data_sources.pre_enrollment_glean_metrics]
 from_expression = """(
   SELECT
     metrics.uuid.legacy_telemetry_client_id AS client_id,
+    metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
     DATE(submission_timestamp) AS submission_date,
     submission_timestamp,
     normalized_os,
@@ -251,6 +254,7 @@ window_end = -1
 from_expression = """(
   SELECT
     metrics.uuid.legacy_telemetry_client_id AS client_id,
+    metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
     DATE(submission_timestamp) AS submission_date,
     normalized_os,
     metrics.boolean.nimbus_targeting_context_is_msix AS is_msix
