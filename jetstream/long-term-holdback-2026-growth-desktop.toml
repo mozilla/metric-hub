@@ -60,7 +60,7 @@ select_expression = """COALESCE(
     DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
     FALSE
 )
-AND COALESCE(LOGICAL_OR(os = 'Windows_NT'), FALSE)
+AND COALESCE(LOGICAL_OR(os = 'Windows'), FALSE)
 AND MIN(e.enrollment_date) >= '2026-05-01'"""
 friendly_name = "New Windows profiles enrolled from May"
 description = """
@@ -90,14 +90,14 @@ from_expression = """(
         DATE(submission_timestamp) AS submission_date,
         profile_group_id,
         SAFE.DATE_FROM_UNIX_DATE(SAFE_CAST(environment.profile.creation_date AS INT64)) AS profile_creation_date,
-        environment.system.os.name AS os
+        normalized_os AS os
     FROM `moz-fx-data-shared-prod.telemetry.new_profile`
     UNION ALL
     SELECT
         DATE(submission_timestamp) AS submission_date,
         profile_group_id,
         SAFE.DATE_FROM_UNIX_DATE(SAFE_CAST(environment.profile.creation_date AS INT64)) AS profile_creation_date,
-        environment.system.os.name AS os
+        normalized_os AS os
     FROM `moz-fx-data-shared-prod.telemetry.first_shutdown`
 )"""
 window_start = -7
