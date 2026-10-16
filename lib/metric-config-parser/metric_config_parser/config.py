@@ -25,10 +25,10 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusSpec
+from .nimbus import NIMBUS_DIR, NimbusDefinitionMismatch, NimbusSpec
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
-from .util import TemporaryDirectory
+from .util import TemporaryDirectory, normalize_sql
 
 if TYPE_CHECKING:
     from git.objects.commit import Commit
@@ -807,6 +807,41 @@ class ConfigCollection:
     def validate_nimbus_configs(self) -> None:
         for nimbus_config in self.nimbus_configs:
             nimbus_config.validate(self)
+
+    def nimbus_definition_mismatches(self) -> list[NimbusDefinitionMismatch]:
+        env = self.get_env()
+        mismatches = []
+        for nimbus_config in self.nimbus_configs:
+            for name, metric in nimbus_config.spec.metrics.items():
+                definition = self.get_metric_definition(name, nimbus_config.slug)
+                if definition is None:
+                    continue
+                nimbus_template = metric.select_expression_from_aggregation or ""
+                nimbus_sql = normalize_sql(env.from_string(nimbus_template).render())
+                definitions_template = (
+                    definition.select_expression or definition.select_expression_from_aggregation
+                )
+                definitions_sql = (
+                    normalize_sql(env.from_string(definitions_template).render())
+                    if definitions_template is not None
+                    else None
+                )
+                nimbus_data_source = metric.data_source.name if metric.data_source else None
+                definitions_data_source = (
+                    definition.data_source.name if definition.data_source else None
+                )
+                if nimbus_sql != definitions_sql or nimbus_data_source != definitions_data_source:
+                    mismatches.append(
+                        NimbusDefinitionMismatch(
+                            app_name=nimbus_config.slug,
+                            metric=name,
+                            nimbus_select_expression=nimbus_sql,
+                            definitions_select_expression=definitions_sql,
+                            nimbus_data_source=nimbus_data_source,
+                            definitions_data_source=definitions_data_source,
+                        )
+                    )
+        return mismatches
 
     def get_metrics_sql(
         self,

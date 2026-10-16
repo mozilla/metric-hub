@@ -6,6 +6,10 @@ data_source = "clients_daily"
 select_expression = '{{agg_sum("active_hours_sum")}}'
 data_source = "clients_daily"
 
+[metrics.is_default_browser]
+select_expression = '{{agg_any("is_default_browser")}}'
+data_source = "clients_daily"
+
 [data_sources.clients_daily]
 from_expression = "mozdata.telemetry.clients_daily"
 friendly_name = "Clients Daily"

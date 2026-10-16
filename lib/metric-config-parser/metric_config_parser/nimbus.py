@@ -33,6 +33,26 @@ NIMBUS_METRIC_KEYS = {
 }
 
 
+@attr.s(auto_attribs=True, frozen=True)
+class NimbusDefinitionMismatch:
+    app_name: str
+    metric: str
+    nimbus_select_expression: str
+    definitions_select_expression: str | None
+    nimbus_data_source: str | None
+    definitions_data_source: str | None
+
+    def __str__(self) -> str:
+        return (
+            f"Metric '{self.metric}' in {NIMBUS_DIR}/definitions/{self.app_name}.toml does not "
+            f"match definitions/{self.app_name}.toml\n"
+            f"  {NIMBUS_DIR}/definitions: data_source={self.nimbus_data_source}, "
+            f"select_expression={self.nimbus_select_expression}\n"
+            f"  definitions: data_source={self.definitions_data_source}, "
+            f"select_expression={self.definitions_select_expression}"
+        )
+
+
 @attr.s(auto_attribs=True)
 class NimbusSpec:
     """Metric definitions from a nimbus/definitions/<application>.toml file."""
