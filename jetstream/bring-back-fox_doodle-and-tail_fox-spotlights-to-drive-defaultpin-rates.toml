@@ -12,6 +12,13 @@
 # primary), client_level_daily_active_users_v2, days_of_use, retained_dau,
 # active_hours, search_count, tagged_search_count, uri_count.
 #
+# The Glean twin is_default_browser_glean is left out: its built-in
+# baseline_clients_daily data source declares experiments_column_type = "glean",
+# but that table has no ping_info, so the metric fails to compile. The legacy
+# is_default_browser is populated for 98.7% of Fx150+ release clients and
+# agrees with Glean usage.is_default_browser for 95.5% of matched clients
+# (2026-10-13, 1% sample).
+#
 # Not in Jetstream by design: exposure rate and per-screen impression / click /
 # dismiss rates. They are treatment-only, so randomization adds nothing; they
 # come from messaging telemetry (Redash).
@@ -43,23 +50,16 @@ segments = [
 [metrics]
 
 weekly = [
-  "is_default_browser_glean",
   "is_pinned_or_kept_in_dock",
 ]
 
 overall = [
-  "is_default_browser_glean",
   "is_pinned_or_kept_in_dock",
 ]
 
 # ============================================================================
 # METRICS
 # ============================================================================
-
-# Built-in Glean twin of the auto-applied legacy is_default_browser. The brief
-# names Glean usage.is_default_browser as the primary source. No stat is
-# pre-declared for it in the defaults, so binomial is set here.
-[metrics.is_default_browser_glean.statistics.binomial]
 
 # Pin rate from Glean. The built-in is_pinned reads the legacy
 # os.environment.is_taskbar_pinned scalar, which stopped reporting in Fx156.
