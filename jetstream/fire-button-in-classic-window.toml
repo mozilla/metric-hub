@@ -1,0 +1,159 @@
+# Custom Jetstream config for fire-button-in-classic-window
+# Core question: does the Fire Button displace existing clear-data flows,
+# or does it unlock latent demand (new users clearing data)?
+#
+# Fire Button-specific probes (fire_button.*) are expected from FELTPY-100
+# but are not yet in Glean. Those metrics will be added once probes land.
+
+[experiment]
+enrollment_period = 7
+segments = ["regular_users_v3", "new_or_resurrected_v3", "no_recent_clear_data"]
+
+[metrics]
+weekly = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+]
+28_day = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+]
+overall = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+]
+
+# Segment: users with no clear-data activity in the 28 days before enrollment.
+# Directly measures "net new users clearing browsing data."
+[segments.no_recent_clear_data]
+select_expression = """COALESCE(
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory') +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')) +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem') +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')) +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'),
+    0
+) = 0"""
+data_source = "metrics"
+window_start = -28
+window_end = -1
+
+# ── DISPLACEMENT METRICS (existing probes, ready now) ──
+
+# Total existing clear-data flow actions across all pathways
+[metrics.existing_flow_actions]
+select_expression = """
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'), 0)
+"""
+data_source = "metrics"
+friendly_name = "Existing Clear-Data Flow Actions"
+description = "Total interactions with existing clear-data flows (app menu, keyboard, menu bar, settings, forget button). Decrease in treatment = displacement."
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_actions.statistics.bootstrap_mean]
+[metrics.existing_flow_actions.statistics.deciles]
+
+# Total sanitize actions from ALL entry points (existing + Fire Button)
+[metrics.total_sanitize_actions]
+select_expression = "COALESCE((SELECT SUM(v.value) FROM UNNEST(metrics.timing_distribution.browser_sanitizer_total.values) v), 0)"
+data_source = "metrics"
+friendly_name = "Total Sanitize Actions (all entry points)"
+description = "Count of all sanitize completions regardless of entry point. Increase in treatment = latent demand unlocked."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.total_sanitize_actions.statistics.bootstrap_mean]
+[metrics.total_sanitize_actions.statistics.deciles]
+
+# Binary: did user do any clear-data action at all?
+[metrics.any_clear_data_activity]
+select_expression = """COALESCE(
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory') +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')) +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem') +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')) +
+    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'),
+    0
+) > 0 OR COALESCE((SELECT SUM(v.value) FROM UNNEST(metrics.timing_distribution.browser_sanitizer_total.values) v), 0) > 0"""
+data_source = "metrics"
+friendly_name = "Any Clear-Data Activity"
+description = "Proportion of users who performed any clear-data action. Increase in treatment among no_recent_clear_data segment = net new users."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.any_clear_data_activity.statistics.binomial]
+
+# ── PER-PATHWAY BREAKDOWN (existing probes, ready now) ──
+
+[metrics.existing_flow_app_menu]
+select_expression = "COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory'), 0)"
+data_source = "metrics"
+friendly_name = "App Menu: Clear Recent History"
+description = "Clear-data actions via app menu (dominant pathway, ~56% of existing-flow actions)"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_app_menu.statistics.bootstrap_mean]
+
+[metrics.existing_flow_keyboard]
+select_expression = "COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')), 0)"
+data_source = "metrics"
+friendly_name = "Keyboard Shortcut: Clear History"
+description = "Clear-data actions via Ctrl+Shift+Delete / Cmd+Shift+Delete"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_keyboard.statistics.bootstrap_mean]
+
+[metrics.existing_flow_menu_bar]
+select_expression = "COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem'), 0)"
+data_source = "metrics"
+friendly_name = "Menu Bar: Sanitize"
+description = "Clear-data actions via menu bar"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_menu_bar.statistics.bootstrap_mean]
+
+[metrics.existing_flow_settings]
+select_expression = "COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')), 0)"
+data_source = "metrics"
+friendly_name = "Settings: Clear Site Data / History"
+description = "Clear-data actions via privacy settings"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_settings.statistics.bootstrap_mean]
+
+[metrics.existing_flow_forget_button]
+select_expression = "COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'), 0)"
+data_source = "metrics"
+friendly_name = "Forget Button"
+description = "Clear-data actions via the Forget Button (closest analogue to Fire Button)"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_forget_button.statistics.bootstrap_mean]
