@@ -1,10 +1,27 @@
 [experiment]
+enrollment_period = 1
+
 segments = [
     "new_profile",
     "existing_profile",
-    "new_windows_from_may",
-    "enrolled_jan_apr",
-    "enrolled_may_onward",
+    "jan_new",
+    "jan_existing",
+    "feb_new",
+    "feb_existing",
+    "mar_new",
+    "mar_existing",
+    "apr_new",
+    "apr_existing",
+    "may_new",
+    "may_existing",
+    "jun_new",
+    "jun_existing",
+    "jul_new",
+    "jul_existing",
+    "aug_new",
+    "aug_existing",
+    "sep_new",
+    "sep_existing",
 ]
 enrollment_query = """
   SELECT
@@ -19,7 +36,7 @@ enrollment_query = """
       e.event_category = 'normandy'
       AND e.event_method = 'enroll'
       AND e.submission_date
-          BETWEEN '{{experiment.start_date_str}}' AND '{{experiment.last_enrollment_date_str}}'
+          BETWEEN '2026-01-07' AND '2026-09-23'
       AND e.event_string_value = 'long-term-holdback-2026-growth-desktop'
       AND (
         (`mozfun.map.get_key`(e.event_map_values, 'branch') = 'holdback'
@@ -33,7 +50,11 @@ enrollment_query = """
 [segments.new_profile]
 data_source = "first_session_pings"
 select_expression = """COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
     FALSE
 )"""
 friendly_name = "New profiles"
@@ -45,7 +66,11 @@ description = """
 [segments.existing_profile]
 data_source = "first_session_pings"
 select_expression = """NOT COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
     FALSE
 )"""
 friendly_name = "Existing profiles"
@@ -54,34 +79,292 @@ description = """
     enrollment, plus new profiles that sent no new-profile or first-shutdown ping.
 """
 
-[segments.new_windows_from_may]
+[segments.jan_new]
 data_source = "first_session_pings"
 select_expression = """COALESCE(
-    DATE_DIFF(MIN(e.enrollment_date), MIN(profile_creation_date), DAY) <= 7,
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
     FALSE
 )
-AND COALESCE(LOGICAL_OR(os = 'Windows'), FALSE)
-AND MIN(e.enrollment_date) >= '2026-05-01'"""
-friendly_name = "New Windows profiles enrolled from May"
+AND MIN(e.enrollment_date) BETWEEN '2026-01-01' AND '2026-01-31'"""
+friendly_name = "January enrollees, new profiles"
 description = """
-    New profiles on Windows that enrolled on or after 2026-05-01, the population
-    eligible for the launch-on-login recipes.
+    Units enrolled in January 2026 that are in New profiles.
 """
 
-[segments.enrolled_jan_apr]
+[segments.jan_existing]
 data_source = "first_session_pings"
-select_expression = "MIN(e.enrollment_date) < '2026-05-01'"
-friendly_name = "Enrolled January to April"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-01-01' AND '2026-01-31'"""
+friendly_name = "January enrollees, existing profiles"
 description = """
-    Units whose enrollment date is before 2026-05-01.
+    Units enrolled in January 2026 that are in Existing profiles.
 """
 
-[segments.enrolled_may_onward]
+[segments.feb_new]
 data_source = "first_session_pings"
-select_expression = "MIN(e.enrollment_date) >= '2026-05-01'"
-friendly_name = "Enrolled from May"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-02-01' AND '2026-02-28'"""
+friendly_name = "February enrollees, new profiles"
 description = """
-    Units whose enrollment date is on or after 2026-05-01.
+    Units enrolled in February 2026 that are in New profiles.
+"""
+
+[segments.feb_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-02-01' AND '2026-02-28'"""
+friendly_name = "February enrollees, existing profiles"
+description = """
+    Units enrolled in February 2026 that are in Existing profiles.
+"""
+
+[segments.mar_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-03-01' AND '2026-03-31'"""
+friendly_name = "March enrollees, new profiles"
+description = """
+    Units enrolled in March 2026 that are in New profiles.
+"""
+
+[segments.mar_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-03-01' AND '2026-03-31'"""
+friendly_name = "March enrollees, existing profiles"
+description = """
+    Units enrolled in March 2026 that are in Existing profiles.
+"""
+
+[segments.apr_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-04-01' AND '2026-04-30'"""
+friendly_name = "April enrollees, new profiles"
+description = """
+    Units enrolled in April 2026 that are in New profiles.
+"""
+
+[segments.apr_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-04-01' AND '2026-04-30'"""
+friendly_name = "April enrollees, existing profiles"
+description = """
+    Units enrolled in April 2026 that are in Existing profiles.
+"""
+
+[segments.may_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-05-01' AND '2026-05-31'"""
+friendly_name = "May enrollees, new profiles"
+description = """
+    Units enrolled in May 2026 that are in New profiles.
+"""
+
+[segments.may_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-05-01' AND '2026-05-31'"""
+friendly_name = "May enrollees, existing profiles"
+description = """
+    Units enrolled in May 2026 that are in Existing profiles.
+"""
+
+[segments.jun_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-06-01' AND '2026-06-30'"""
+friendly_name = "June enrollees, new profiles"
+description = """
+    Units enrolled in June 2026 that are in New profiles.
+"""
+
+[segments.jun_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-06-01' AND '2026-06-30'"""
+friendly_name = "June enrollees, existing profiles"
+description = """
+    Units enrolled in June 2026 that are in Existing profiles.
+"""
+
+[segments.jul_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-07-01' AND '2026-07-31'"""
+friendly_name = "July enrollees, new profiles"
+description = """
+    Units enrolled in July 2026 that are in New profiles.
+"""
+
+[segments.jul_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-07-01' AND '2026-07-31'"""
+friendly_name = "July enrollees, existing profiles"
+description = """
+    Units enrolled in July 2026 that are in Existing profiles.
+"""
+
+[segments.aug_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-08-01' AND '2026-08-31'"""
+friendly_name = "August enrollees, new profiles"
+description = """
+    Units enrolled in August 2026 that are in New profiles.
+"""
+
+[segments.aug_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-08-01' AND '2026-08-31'"""
+friendly_name = "August enrollees, existing profiles"
+description = """
+    Units enrolled in August 2026 that are in Existing profiles.
+"""
+
+[segments.sep_new]
+data_source = "first_session_pings"
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-09-01' AND '2026-09-30'"""
+friendly_name = "September enrollees, new profiles"
+description = """
+    Units enrolled in September 2026 that are in New profiles.
+"""
+
+[segments.sep_existing]
+data_source = "first_session_pings"
+select_expression = """NOT COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        MIN(IF(ds.submission_date <= e.enrollment_date, profile_creation_date, NULL)),
+        DAY
+    ) <= 7,
+    FALSE
+)
+AND MIN(e.enrollment_date) BETWEEN '2026-09-01' AND '2026-09-30'"""
+friendly_name = "September enrollees, existing profiles"
+description = """
+    Units enrolled in September 2026 that are in Existing profiles.
 """
 
 [segments.data_sources.first_session_pings]
@@ -101,4 +384,4 @@ from_expression = """(
     FROM `moz-fx-data-shared-prod.telemetry.first_shutdown`
 )"""
 window_start = -7
-window_end = 0
+window_end = 365
