@@ -12,6 +12,8 @@ segments = [
     "provenance_attributable",
     "provenance_partial",
     "provenance_dark",
+    "windows_checkbox_builds",
+    "windows_11_23h2_plus",
 ]
 
 [metrics]
@@ -27,6 +29,7 @@ weekly = [
     "uninstalled",
     "fxa_signed_in",
     "is_pinned_glean",
+    "default_at_end_of_window",
     "imported_bookmarks",
     "imported_history",
     "imported_logins",
@@ -223,6 +226,62 @@ select_expression = "CAST(COALESCE(LOGICAL_OR(metrics.boolean.os_environment_is_
 [metrics.imported_bookmarks.statistics.binomial]
 [metrics.imported_history.statistics.binomial]
 [metrics.imported_logins.statistics.binomial]
+
+# Default at the END of each window, from Glean (baseline_clients_daily). Week 1 ~= Day 7 and Week 2 ~= Day 14,
+# so this shows whether the default gain holds after people have had time to switch back. The built-in
+# is_default_browser is "default at any point in the window" from legacy telemetry, which can't show switch-back
+# and reads about 5pt lower than Glean for FRO enrollees (enrolled 10/08-10/10: 35.8% vs 41.3% in control),
+# with about the same gap between arms. A profile with no baseline ping in the window counts as not default,
+# so this is "default and still reporting", the same as any client-reported state.
+[metrics.default_at_end_of_window]
+friendly_name = "Default at end of window (Glean)"
+description = "Client's last reported default-browser status in the window (Glean baseline) was default."
+data_source = "baseline_daily_default"
+select_expression = """COALESCE(MAX_BY(
+    is_default_browser,
+    IF(is_default_browser IS NOT NULL, submission_date, NULL)
+), FALSE)"""
+
+[metrics.default_at_end_of_window.statistics.binomial]
+
+[data_sources.baseline_daily_default]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id AS client_id,
+    profile_group_id,
+    submission_date,
+    is_default_browser
+  FROM `moz-fx-data-shared-prod.firefox_desktop.baseline_clients_daily`
+  WHERE legacy_telemetry_client_id IS NOT NULL
+)"""
+submission_date_column = "submission_date"
+client_id_column = "client_id"
+experiments_column_type = "none"
+friendly_name = "Glean baseline daily default status"
+description = "One row per client per day with Glean's is_default_browser, keyed on the legacy telemetry client id."
+
+# --- Segments: default path by Windows build ----------------------------------------------
+# Splits by how the default ask reaches people, which Win10 vs Win11 blurs. Dashboard 3370 (Redash #128385,
+# enrolled 10/08-10/14): on Win10 and Win11 21H2/22H2 most control profiles see the Easy Setup default
+# checkbox (68% and 91%); on Win11 23H2+ almost none do (5%) and the Windows Settings prompt fires on first
+# New Tab instead. Build at enrollment is a pre-randomization attribute.
+[segments.windows_checkbox_builds]
+friendly_name = "Windows: default checkbox builds (Win10, Win11 21H2/22H2)"
+description = "Windows build below 22631: one-click default mostly works, so default is asked with a checkbox."
+data_source = "clients_daily"
+select_expression = """COALESCE(LOGICAL_OR(
+    mozfun.norm.os(os) = 'Windows'
+    AND SAFE_CAST(windows_build_number AS INT64) BETWEEN 10240 AND 22630
+), FALSE)"""
+
+[segments.windows_11_23h2_plus]
+friendly_name = "Windows: Settings prompt builds (Win11 23H2+)"
+description = "Windows build 22631 or later: one-click default mostly fails, so default goes through Windows Settings."
+data_source = "clients_daily"
+select_expression = """COALESCE(LOGICAL_OR(
+    mozfun.norm.os(os) = 'Windows'
+    AND SAFE_CAST(windows_build_number AS INT64) >= 22631
+), FALSE)"""
 
 # --- Segments: provenance tiers ------------------------------------------------------------
 # From download source + installer type at first seen (both pre-randomization attributes).
