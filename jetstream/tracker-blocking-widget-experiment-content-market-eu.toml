@@ -47,6 +47,7 @@ from_expression = """(
     SELECT
       DATE(submission_timestamp) AS submission_date,
       client_info.client_id AS client_id,
+      metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
       ping_info.experiments AS experiments,
       mozfun.map.get_key(e.extra, 'newtab_visit_id') AS newtab_visit_id,
       mozfun.newtab.is_default_ui_v1(
@@ -150,6 +151,7 @@ from_expression = """(
     submission_date,
     client_id,
     newtab_visit_id,
+    ANY_VALUE(profile_group_id) AS profile_group_id,
     ANY_VALUE(experiments) AS experiments
   FROM events
   WHERE newtab_visit_id IS NOT NULL
