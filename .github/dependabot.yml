@@ -5,6 +5,10 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 99
+  groups:
+    minor-and-patch:
+      patterns: ["*"]
+      update-types: ["minor", "patch"]
 
 # MCP server Python dependencies (catches vulnerable / drifting deps).
 - package-ecosystem: pip
@@ -12,6 +16,10 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 99
+  groups:
+    minor-and-patch:
+      patterns: ["*"]
+      update-types: ["minor", "patch"]
 
 # MCP server container base image (catches OS-level CVE patches for python:3.x-slim).
 - package-ecosystem: docker
@@ -19,6 +27,10 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 99
+  groups:
+    minor-and-patch:
+      patterns: ["*"]
+      update-types: ["minor", "patch"]
 
 # GitHub Actions used across workflows (catches vulnerable action versions).
 - package-ecosystem: github-actions
@@ -26,3 +38,7 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 99
+  groups:
+    minor-and-patch:
+      patterns: ["*"]
+      update-types: ["minor", "patch"]
