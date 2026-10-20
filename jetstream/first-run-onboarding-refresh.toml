@@ -28,6 +28,7 @@ weekly = [
     "reached_tab_orientation_screen",
     "uninstalled",
     "fxa_signed_in",
+    "fxa_signed_in_glean",
     "is_pinned_glean",
     "default_at_end_of_window",
     "imported_bookmarks",
@@ -43,6 +44,7 @@ overall = [
     "reached_tab_orientation_screen",
     "uninstalled",
     "fxa_signed_in",
+    "fxa_signed_in_glean",
     "is_pinned_glean",
     "imported_bookmarks",
     "imported_history",
@@ -210,7 +212,13 @@ friendly_name = "Legacy uninstall ping"
 description = "One row per uninstall ping."
 
 # Built-ins listed above without their own statistics block in definitions/.
+# fxa_signed_in reads clients_daily.fxa_configured, which stopped reporting sign-ins on Firefox 158
+# (release-wide 1% sample: about 20% true on Fx157 vs under 1% on Fx158 by 2026-10-19, Windows and Mac;
+# sync_configured drops the same way). For this experiment that means signed-in falls from 13-20% for
+# 10/09-10/12 enrollees to about 0.2% from 10/14. Read fxa_signed_in_glean (Glean fxa.account_enabled,
+# steady 9-14% on every enrollment day) instead; fxa_signed_in is kept only so the break stays visible.
 [metrics.fxa_signed_in.statistics.binomial]
+[metrics.fxa_signed_in_glean.statistics.binomial]
 
 # Pin from Glean. The built-in is_pinned reads the legacy scalar
 # scalar_parent_os_environment_is_taskbar_pinned, which stopped reporting in Fx156 (2 of 2,132 10/08
