@@ -41,7 +41,8 @@ Whether or not the client had any New Tab engagement, excluding the privacy widg
 # Replicates the any_engagement_visits logic of
 # firefox_desktop_derived.newtab_visits_daily_v2 / newtab_clients_daily_v2 at the visit level,
 # keeping only engaged visits, with the privacy widget impressions removed from the
-# interaction count.
+# interaction count. Only `newtab.opened` (needed for the default UI check) and interaction
+# events are kept; impression events can't affect the result and are ~92% of newtab events.
 from_expression = """(
   WITH events AS (
     SELECT
@@ -57,74 +58,32 @@ from_expression = """(
         metrics.string.newtab_homepage_category,
         metrics.string.newtab_newtab_category
       ) AS is_default_ui,
-      e.name IN (
-        'click',
-        'dismiss',
-        'issued',
-        'thumb_voting_interaction',
-        'weather_change_display',
-        'weather_open_provider_url',
-        'weather_location_selected',
-        'widgets_lists_user_event',
-        'widgets_lists_change_display',
-        'widgets_timer_change_display',
-        'widgets_timer_toggle_notification',
-        'widgets_timer_user_event',
-        'wallpaper_click',
-        'wallpaper_category_click',
-        'wallpaper_highlight_cta_click',
-        'wallpaper_highlight_dismissed',
-        'topic_selection_open',
-        'topic_selection_dismiss',
-        'topic_selection_topics_saved',
-        'sections_block_section',
-        'sections_follow_section',
-        'sections_unblock_section',
-        'sections_unfollow_section',
-        'inline_selection_click',
-        'widgets_enabled',
-        'widgets_user_event',
-        'widgets_container_action'
-      )
-      AND NOT (
-        e.category = 'newtab'
-        AND e.name = 'widgets_user_event'
-        AND mozfun.map.get_key(e.extra, 'user_action') IN (
-          'message_impression',
-          'trackers_blocked_impression'
-        )
-      ) AS is_interaction
+      NOT (e.category = 'newtab' AND e.name = 'opened') AS is_interaction
     FROM `moz-fx-data-shared-prod.firefox_desktop.newtab`, UNNEST(events) AS e
     WHERE
       (
         (e.category = 'newtab.search' AND e.name IN ('issued'))
-        OR (e.category = 'newtab.search.ad' AND e.name IN ('click', 'impression'))
+        OR (e.category = 'newtab.search.ad' AND e.name IN ('click'))
         OR (
           e.category = 'pocket'
-          AND e.name IN ('click', 'impression', 'dismiss', 'thumb_voting_interaction')
+          AND e.name IN ('click', 'dismiss', 'thumb_voting_interaction')
         )
         OR (
           e.category = 'topsites'
-          AND e.name IN ('click', 'impression', 'dismiss', 'pin', 'unpin')
+          AND e.name IN ('click', 'dismiss')
         )
         OR (
           e.category = 'newtab'
           AND e.name IN (
             'opened',
-            'closed',
             'weather_change_display',
             'weather_open_provider_url',
             'weather_location_selected',
-            'weather_impression',
-            'weather_load_error',
             'widgets_lists_user_event',
             'widgets_lists_change_display',
             'widgets_timer_change_display',
             'widgets_timer_toggle_notification',
             'widgets_timer_user_event',
-            'widgets_lists_impression',
-            'widgets_timer_impression',
-            'widgets_impression',
             'widgets_enabled',
             'widgets_user_event',
             'widgets_container_action',
@@ -139,10 +98,16 @@ from_expression = """(
             'sections_follow_section',
             'sections_unblock_section',
             'sections_unfollow_section',
-            'sections_impression',
-            'inline_selection_click',
-            'inline_selection_impression'
+            'inline_selection_click'
           )
+        )
+      )
+      AND NOT (
+        e.category = 'newtab'
+        AND e.name = 'widgets_user_event'
+        AND mozfun.map.get_key(e.extra, 'user_action') IN (
+          'message_impression',
+          'trackers_blocked_impression'
         )
       )
       AND NOT `moz-fx-data-shared-prod.udf.newtab_is_noise_widget_event`(e.category, e.name, e.extra)
