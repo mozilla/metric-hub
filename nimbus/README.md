@@ -469,6 +469,17 @@ which splits the aggregation into four parts:
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.
 
+`aggregation_plan(configs, app_name, metric_names)` builds this grouping for a run. It looks up
+each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:
+
+- `sources`: one `AggregationSource` per data source the resolved metrics read, keyed by data
+  source name. Carries the resolved `from_expression`, `client_id_column`,
+  `submission_date_column`, and the sorted union of columns every requesting metric needs.
+- `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
+  source name, the `BucketedAggregation`, and the window fields.
+- `missing`: requested names with no `nimbus/` definition for the app. A missing name never raises,
+  so Highwind computes every name that resolved and reports the rest.
+
 ### Equivalence
 
 The column and condition text is the same in both consumers. Only the wrapper differs. Over a

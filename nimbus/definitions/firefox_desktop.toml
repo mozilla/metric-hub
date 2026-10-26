@@ -8,6 +8,8 @@ description = """
 data_source = "clients_daily"
 aggregation = "sum"
 column = "active_hours_sum"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.uri_count]
 friendly_name = "URIs visited"
@@ -19,6 +21,8 @@ category = "performance"
 data_source = "clients_daily"
 aggregation = "sum"
 column = "scalar_parent_browser_engagement_total_uri_count_sum"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.search_count]
 friendly_name = "SAP searches in Glean"
@@ -32,6 +36,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "sap"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.tagged_search_count]
 friendly_name = "Tagged SAP searches"
@@ -46,6 +52,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "tagged_sap"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.tagged_follow_on_search_count]
 friendly_name = "Tagged follow-on searches"
@@ -60,6 +68,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "tagged_follow_on"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.ad_clicks]
 friendly_name = "Ad clicks"
@@ -71,6 +81,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "ad_click"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.searches_with_ads]
 friendly_name = "Search result pages with ads"
@@ -84,6 +96,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "search_with_ads"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.organic_search_count]
 friendly_name = "Organic searches"
@@ -97,6 +111,8 @@ category = "search"
 data_source = "search_clients_engines_sources_daily"
 aggregation = "sum"
 column = "organic"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.days_of_use]
 friendly_name = "Days of use"
@@ -104,6 +120,8 @@ description = "The number of days in the interval that each client sent a main p
 data_source = "clients_daily"
 aggregation = "count"
 column = "submission_date"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.qualified_cumulative_days_of_use]
 friendly_name = "QCDOU"
@@ -113,6 +131,8 @@ description = """
 """
 data_source = "clients_daily"
 aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
 
 [[metrics.qualified_cumulative_days_of_use.where]]
 column = "active_hours_sum"
@@ -138,6 +158,8 @@ deprecated = false
 data_source = "firefox_desktop_active_users_view"
 aggregation = "count_where"
 column = "is_dau"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.daily_active_users_per_1000_clients_legacy]
 friendly_name = "DAU per 1,000 clients"
@@ -158,6 +180,8 @@ data_source = "firefox_desktop_active_users_view"
 aggregation = "count_where"
 column = "is_dau"
 scale = 1000
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.is_default_browser]
 friendly_name = "Is Default Browser"
@@ -167,6 +191,8 @@ Was Firefox the default browser at any point during the interval?
 data_source = "clients_daily"
 aggregation = "any"
 column = "is_default_browser"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.is_pinned]
 friendly_name = "Is Pinned (Windows Taskbar)"
@@ -176,6 +202,8 @@ Was Firefox pinned to the Windows Taskbar at any point during the interval?
 data_source = "clients_daily"
 aggregation = "any"
 column = "scalar_parent_os_environment_is_taskbar_pinned"
+cumulative_window = 7
+repeat_windows = true
 
 [metrics.retained]
 friendly_name = "Retained"
@@ -191,6 +219,8 @@ data_source = "clients_daily"
 aggregation = "sum"
 column = "pings_aggregated_by_this_row"
 threshold = { op = ">", value = 0 }
+incremental_window = 7
+repeat_windows = true
 
 [metrics.retained_dau]
 friendly_name = "Retained (DAU)"
@@ -205,6 +235,8 @@ description = """
 data_source = "firefox_desktop_active_users_view"
 aggregation = "any"
 column = "is_dau"
+incremental_window = 7
+repeat_windows = true
 
 [metrics.active_in_last_3_days_legacy]
 friendly_name = "3 Days Retention"
@@ -213,4 +245,6 @@ data_source = "firefox_desktop_active_users_view"
 aggregation = "recency_within"
 column = "days_active_bits"
 within_days = 3
+incremental_window = 7
+repeat_windows = true
 
