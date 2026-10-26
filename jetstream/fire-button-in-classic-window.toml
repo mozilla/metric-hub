@@ -2,8 +2,8 @@
 # Core question: does the Fire Button displace existing clear-data flows,
 # or does it unlock latent demand (new users clearing data)?
 #
-# Fire Button-specific probes (fire_button.*) are expected from FELTPY-100
-# but are not yet in Glean. Those metrics will be added once probes land.
+# Fire Button probes (fire_button.*) landed in Nightly 160 (FELTPY-100).
+# See FELTPY-197 for consolidated telemetry events list.
 
 [experiment]
 enrollment_period = 7
@@ -19,6 +19,11 @@ weekly = [
     "existing_flow_menu_bar",
     "existing_flow_settings",
     "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
 ]
 28_day = [
     "existing_flow_actions",
@@ -29,6 +34,11 @@ weekly = [
     "existing_flow_menu_bar",
     "existing_flow_settings",
     "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
 ]
 overall = [
     "existing_flow_actions",
@@ -39,6 +49,11 @@ overall = [
     "existing_flow_menu_bar",
     "existing_flow_settings",
     "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
 ]
 
 # Segment: users with no clear-data activity in the 28 days before enrollment.
@@ -157,3 +172,81 @@ bigger_is_better = false
 analysis_bases = ["enrollments"]
 
 [metrics.existing_flow_forget_button.statistics.bootstrap_mean]
+
+# ── FIRE BUTTON METRICS (fire_button.* events, landed Nightly 160) ──
+
+[metrics.fire_button_activations]
+select_expression = "COALESCE(SUM(CASE WHEN event_name = 'activated' THEN 1 ELSE 0 END), 0)"
+data_source = "fire_button_events"
+friendly_name = "Fire Button Activations"
+description = "Number of Fire Button activations (button clicks). Denominator for completion rate."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_activations.statistics.bootstrap_mean]
+[metrics.fire_button_activations.statistics.deciles]
+
+[metrics.fire_button_completions]
+select_expression = """COALESCE(SUM(CASE
+  WHEN event_name = 'flow_completed'
+  AND JSON_VALUE(event_extra, '$.outcome') = 'deleted'
+  THEN 1 ELSE 0
+END), 0)"""
+data_source = "fire_button_events"
+friendly_name = "Fire Button Completions"
+description = "Fire Button flows that resulted in data deletion. Numerator for completion rate."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_completions.statistics.bootstrap_mean]
+[metrics.fire_button_completions.statistics.deciles]
+
+[metrics.fire_button_any_use]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'activated'), FALSE)"
+data_source = "fire_button_events"
+friendly_name = "Any Fire Button Use"
+description = "Proportion of users who activated the Fire Button at least once. Key adoption metric."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_any_use.statistics.binomial]
+
+[metrics.fire_button_abandonments]
+select_expression = """COALESCE(SUM(CASE
+  WHEN event_name = 'flow_completed'
+  AND JSON_VALUE(event_extra, '$.outcome') IN ('cancelled', 'dismissed', 'aborted')
+  THEN 1 ELSE 0
+END), 0)"""
+data_source = "fire_button_events"
+friendly_name = "Fire Button Abandonments"
+description = "Fire Button flows where user backed out without deleting (cancelled, dismissed, or aborted)."
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.fire_button_abandonments.statistics.bootstrap_mean]
+
+[metrics.fire_button_choose_clicked]
+select_expression = "COALESCE(SUM(CASE WHEN event_name = 'choose_clicked' THEN 1 ELSE 0 END), 0)"
+data_source = "fire_button_events"
+friendly_name = "Fire Button Choose Clicked"
+description = "Users who clicked 'Choose what to delete' from the confirmation panel (panel flow only)."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.fire_button_choose_clicked.statistics.bootstrap_mean]
+
+# ── DATA SOURCES ──
+
+[data_sources.fire_button_events]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    event_name,
+    event_extra
+  FROM `mozdata.firefox_desktop.events_stream`
+  WHERE event_category = 'fire_button'
+)"""
+experiments_column_type = "none"
+friendly_name = "Fire Button Events"
+description = "Glean events for Fire Button (activated, flow_completed, choose_clicked)"
