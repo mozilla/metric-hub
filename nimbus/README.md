@@ -473,8 +473,9 @@ definitions: every `column` and every condition column, grouped by `data_source`
 each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:
 
 - `sources`: one `AggregationSource` per data source the resolved metrics read, keyed by data
-  source name. Carries the resolved `from_expression`, `client_id_column`,
-  `submission_date_column`, and the sorted union of columns every requesting metric needs.
+  source name. Carries the resolved `from_expression`, `client_id_column`, `group_id_column`,
+  `analysis_units`, `submission_date_column`, and the sorted union of columns every requesting
+  metric needs.
 - `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
   source name, the `BucketedAggregation`, and the window fields.
 - `missing`: requested names with no `nimbus/` definition for the app. A missing name never raises,

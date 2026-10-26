@@ -13,6 +13,8 @@ class AggregationSource:
     data_source: str
     from_expression: str
     client_id_column: str
+    group_id_column: str
+    analysis_units: tuple[str, ...]
     submission_date_column: str
     columns: tuple[str, ...]
 
@@ -86,6 +88,8 @@ def _resolve_data_source(
         data_source=data_source_name,
         from_expression=data_source.from_expr_for(None),
         client_id_column=data_source.client_id_column,
+        group_id_column=data_source.group_id_column,
+        analysis_units=tuple(unit.value for unit in data_source.analysis_units),
         submission_date_column=data_source.submission_date_column,
         columns=tuple(sorted(columns)),
     )

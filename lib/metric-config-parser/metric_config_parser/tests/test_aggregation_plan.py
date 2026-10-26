@@ -43,6 +43,8 @@ class TestAggregationPlan:
         source = plan.sources["clients_daily"]
         assert source.from_expression == "mozdata.telemetry.clients_daily"
         assert source.client_id_column == "client_id"
+        assert source.group_id_column == "profile_group_id"
+        assert source.analysis_units == ("client_id", "profile_group_id")
         assert source.submission_date_column == "submission_date"
         assert source.columns == (
             "active_hours_sum",
