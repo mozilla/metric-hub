@@ -59,14 +59,13 @@ overall = [
 # Segment: users with no clear-data activity in the 28 days before enrollment.
 # Directly measures "net new users clearing browsing data."
 [segments.no_recent_clear_data]
-select_expression = """COALESCE(
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory') +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')) +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem') +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')) +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'),
-    0
-) = 0"""
+select_expression = """
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'), 0)
+= 0"""
 data_source = "metrics"
 window_start = -28
 window_end = -1
@@ -105,14 +104,13 @@ analysis_bases = ["enrollments"]
 
 # Binary: did user do any clear-data action at all?
 [metrics.any_clear_data_activity]
-select_expression = """COALESCE(
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory') +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')) +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem') +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')) +
-    (SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'),
-    0
-) > 0 OR COALESCE((SELECT SUM(v.value) FROM UNNEST(metrics.timing_distribution.browser_sanitizer_total.values) v), 0) > 0"""
+select_expression = """
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem'), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')), 0)
+  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'), 0)
+> 0 OR COALESCE((SELECT SUM(v.value) FROM UNNEST(metrics.timing_distribution.browser_sanitizer_total.values) v), 0) > 0"""
 data_source = "metrics"
 friendly_name = "Any Clear-Data Activity"
 description = "Proportion of users who performed any clear-data action. Increase in treatment among no_recent_clear_data segment = net new users."
