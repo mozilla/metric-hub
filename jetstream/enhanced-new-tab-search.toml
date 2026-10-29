@@ -1,0 +1,89 @@
+[experiment]
+end_date = "2026-10-27"
+
+segments = ["pre_enrollment_low_sap_searchers", "pre_enrollment_non_sap_searchers"]
+
+[metrics]
+
+daily = ["sap_clients", "sap_searches_per_searcher"]
+weekly = ["sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days"]
+overall = ["sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days"]
+
+
+[metrics.sap_clients]
+select_expression = "CAST(COALESCE(SUM(sap) > 0, FALSE) AS INT64)"
+data_source = "search_clients_engines_sources_daily"
+friendly_name = "SAP clients"
+description = "Share of clients with a SAP search"
+category = "search"
+
+[metrics.sap_clients.statistics.binomial]
+
+[metrics.sap_searches_per_searcher]
+depends_on = ["search_count", "sap_clients"]
+friendly_name = "SAP searches per SAP searcher"
+description = """
+    This is a Population Ratio Metric. It is the total number of
+    searches in the population divided by the
+    total number of SAP searchers.
+"""
+category = "search"
+
+[metrics.sap_searches_per_searcher.statistics.population_ratio]
+numerator = "search_count"
+denominator = "sap_clients"
+
+[metrics.sap_habit_3plus_days]
+friendly_name = "3+ SAP search days in 7"
+description = """ 1 if the client had at least one SAP search on 3 or more days
+    of the 7-day window, else 0.
+"""
+data_source = "search_clients_engines_sources_daily"
+select_expression = "CAST(COUNT(DISTINCT IF(sap > 0, submission_date, NULL)) >= 3 AS INT64)"
+
+[metrics.sap_habit_3plus_days.statistics.binomial]
+
+[segments]
+
+[segments.pre_enrollment_low_sap_searchers]
+friendly_name = "Pre-enrollment SAP searchers"
+description = "Clients with between one and 10 SAP searches in the 28 days before enrollment."
+select_expression = "COALESCE(SUM(sap_searches), 0) BETWEEN 1 AND 10"
+data_source = "pre_enrollment_activity"
+
+[segments.pre_enrollment_non_sap_searchers]
+friendly_name = "Pre-enrollment non-SAP searchers"
+description = "Clients active in the 28 days before enrollment with no SAP searches."
+select_expression = "COALESCE(SUM(sap_searches), 0) = 0"
+data_source = "pre_enrollment_activity"
+
+
+[segments.data_sources.pre_enrollment_activity]
+from_expression = """(
+    WITH sap AS (
+      -- grain is client x day x engine x source; roll up to client x day
+      SELECT
+        client_id,
+        submission_date,
+        SUM(sap) AS sap_searches
+      FROM
+        `mozdata.search.search_clients_engines_sources_daily`
+      GROUP BY
+        client_id,
+        submission_date
+    )
+    SELECT
+      cd.client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      cd.profile_group_id,
+      cd.submission_date,
+      sap.sap_searches
+    FROM
+      `mozdata.telemetry.clients_daily` AS cd
+    LEFT JOIN
+      sap
+      USING (client_id, submission_date)
+)"""
+# Days relative to enrollment: the 28 days before enrollment day.
+window_start = -28
+window_end = -1
