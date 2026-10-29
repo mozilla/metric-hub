@@ -1042,6 +1042,36 @@ class TestAnalysisSpec:
         assert "active_hours" in upstream_metrics
         assert "view_about_logins" in upstream_metrics
 
+    def test_depends_on_definition_uses_spec_statistics(self, experiments, config_collection):
+        # upstream metrics come from definitions without statistics; the statistics
+        # defined in the spec must be used regardless of the order metrics are resolved
+        config_str = dedent(
+            """
+            [metrics]
+            weekly = ["combined_metric", "active_hours", "view_about_logins"]
+
+            [metrics.combined_metric]
+            depends_on = ["active_hours", "view_about_logins"]
+
+            [metrics.combined_metric.statistics.population_ratio]
+            numerator = "active_hours"
+            denominator = "view_about_logins"
+
+            [metrics.active_hours.statistics.sum]
+
+            [metrics.view_about_logins.statistics.sum]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+
+        metric = next(
+            m for m in cfg.metrics[AnalysisPeriod.WEEK] if m.metric.name == "combined_metric"
+        ).metric
+        upstream = {(m.metric.name, m.statistic.name) for m in metric.depends_on}
+        assert upstream == {("active_hours", "sum"), ("view_about_logins", "sum")}
+
     def test_non_existing_depends_on(self, experiments, config_collection):
         config_str = dedent(
             """
