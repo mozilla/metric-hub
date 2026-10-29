@@ -1,5 +1,6 @@
 from pathlib import Path
 from textwrap import dedent
+from unittest.mock import patch
 
 import attr
 import pytest
@@ -641,6 +642,124 @@ class TestAnalysisSpec:
 
         assert AnalysisBasis.EXPOSURES in metric.analysis_bases
         assert AnalysisBasis.ENROLLMENTS in metric.analysis_bases
+
+    def test_experiment_analysis_bases(self, experiments, config_collection):
+        config_str = dedent(
+            """
+            [experiment]
+            analysis_bases = ["enrollments"]
+
+            [metrics]
+            weekly = ["spam", "eggs", "test_active_hours", "active_hours"]
+
+            [metrics.spam]
+            data_source = "main"
+            select_expression = "1"
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs]
+            data_source = "main"
+            select_expression = "2"
+            analysis_bases = ["exposures"]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+
+            [metrics.test_active_hours.statistics.bootstrap_mean]
+
+            [metrics.active_hours]
+            analysis_bases = ["exposures", "enrollments"]
+
+            [metrics.active_hours.statistics.bootstrap_mean]
+            """
+        )
+
+        spec = AnalysisSpec.from_dict(toml.loads(config_str))
+        cfg = spec.resolve(experiments[0], config_collection)
+        bases = {m.metric.name: m.metric.analysis_bases for m in cfg.metrics[AnalysisPeriod.WEEK]}
+
+        assert cfg.experiment.analysis_bases == [AnalysisBasis.ENROLLMENTS]
+        # inline metric without analysis_bases uses the experiment-level value
+        assert bases["spam"] == [AnalysisBasis.ENROLLMENTS]
+        # metric-level analysis_bases in the experiment config take precedence
+        assert bases["eggs"] == [AnalysisBasis.EXPOSURES]
+        # experiment-level value overrides analysis_bases from metric-hub definitions
+        assert bases["test_active_hours"] == [AnalysisBasis.ENROLLMENTS]
+        assert bases["active_hours"] == [AnalysisBasis.EXPOSURES, AnalysisBasis.ENROLLMENTS]
+
+        # the shared metric-hub definition is not mutated by the override
+        definition = config_collection.get_metric_definition(
+            "test_active_hours", experiments[0].app_name
+        )
+        assert definition.analysis_bases == [AnalysisBasis.EXPOSURES]
+
+    def test_experiment_analysis_bases_override_defaults(self, experiments, config_collection):
+        defaults_conf = dedent(
+            """
+            [metrics]
+            weekly = ["spam", "eggs"]
+
+            [metrics.spam]
+            data_source = "main"
+            select_expression = "1"
+            analysis_bases = ["exposures"]
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs]
+            data_source = "main"
+            select_expression = "2"
+            analysis_bases = ["exposures"]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+        base_conf = dedent(
+            """
+            [metrics.eggs]
+            analysis_bases = ["exposures", "enrollments"]
+            """
+        )
+        override_conf = dedent(
+            """
+            [experiment]
+            analysis_bases = ["enrollments"]
+            """
+        )
+
+        defaults = AnalysisSpec.from_dict(toml.loads(defaults_conf))
+        with patch.object(
+            config_collection,
+            "get_platform_defaults",
+            lambda name: defaults if name == experiments[0].app_name else None,
+        ):
+            spec = AnalysisSpec.default_for_experiment(experiments[0], config_collection)
+        # experiment configs can be layered, e.g. a local config on top of metric-hub's
+        spec.merge(AnalysisSpec.from_dict(toml.loads(base_conf)))
+        spec.merge(AnalysisSpec.from_dict(toml.loads(override_conf)))
+        cfg = spec.resolve(experiments[0], config_collection)
+        bases = {m.metric.name: m.metric.analysis_bases for m in cfg.metrics[AnalysisPeriod.WEEK]}
+
+        # experiment-level value overrides the defaults' metric-level analysis_bases
+        assert bases["spam"] == [AnalysisBasis.ENROLLMENTS]
+        # metric-level analysis_bases from any experiment config still take precedence
+        assert bases["eggs"] == [AnalysisBasis.EXPOSURES, AnalysisBasis.ENROLLMENTS]
+        # the shared platform defaults are not modified
+        assert defaults.metrics.definitions["spam"].analysis_bases == [AnalysisBasis.EXPOSURES]
+
+    def test_experiment_analysis_bases_invalid(self):
+        config_str = dedent(
+            """
+            [experiment]
+            analysis_bases = ["not_a_basis"]
+            """
+        )
+
+        with pytest.raises(ClassValidationError):
+            AnalysisSpec.from_dict(toml.loads(config_str))
+
+        with pytest.raises(ClassValidationError):
+            AnalysisSpec.from_dict({"experiment": {"analysis_bases": []}})
 
     def test_change_metric_to_exposure(self, experiments, config_collection):
         config_str = dedent(

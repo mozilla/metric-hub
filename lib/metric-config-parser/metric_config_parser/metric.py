@@ -42,6 +42,8 @@ from .pre_treatment import PreTreatmentReference
 from .statistic import Statistic
 from .util import converter, is_valid_slug
 
+DEFAULT_ANALYSIS_BASES = (AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES)
+
 
 class AnalysisPeriod(Enum):
     DAY = "day"
@@ -181,6 +183,9 @@ class MetricDefinition:
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
+    # analysis_bases from platform defaults or outcomes; not configurable, these
+    # are overridden by experiment-level analysis_bases (see inherit_analysis_bases)
+    inherited_analysis_bases: list[AnalysisBasis] | None = attr.ib(default=None, init=False)
 
     def __attrs_post_init__(self) -> None:
         context = f"metric '{self.name}'"
@@ -245,6 +250,16 @@ class MetricDefinition:
             raise ValueError(
                 f"{context}: repeat_windows requires cumulative_window or incremental_window"
             )
+
+    def inherit_analysis_bases(self) -> None:
+        """Mark analysis_bases as coming from platform defaults or outcomes.
+
+        Inherited analysis_bases take precedence over metric-hub definitions, but are
+        overridden by experiment-level analysis_bases.
+        """
+        if self.analysis_bases:
+            self.inherited_analysis_bases = self.analysis_bases
+            self.analysis_bases = None
 
     @property
     def conditions(self) -> list[Clause]:
@@ -328,6 +343,14 @@ class MetricDefinition:
         if conf.app_name == "firefox_desktop":
             default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
 
+        # precedence: experiment config metric > experiment-level > platform defaults
+        # or outcome metric > metric-hub definition > default
+        analysis_bases = (
+            self.analysis_bases
+            or getattr(conf, "analysis_bases", None)
+            or self.inherited_analysis_bases
+        )
+
         # check if metric depends on other metrics
         if self.depends_on:
             upstream_metrics = []
@@ -373,8 +396,7 @@ class MetricDefinition:
                         dedent(self.description) if self.description else self.description
                     ),
                     bigger_is_better=self.bigger_is_better,
-                    analysis_bases=self.analysis_bases
-                    or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
+                    analysis_bases=analysis_bases or list(DEFAULT_ANALYSIS_BASES),
                     type=self.type or "scalar",
                     category=self.category,
                     depends_on=upstream_metrics,
@@ -384,13 +406,12 @@ class MetricDefinition:
                     analysis_units=self.analysis_units or default_analysis_units,
                 )
             elif metric_definition:
+                # copy to avoid leaking overrides into the shared definition
+                metric_definition = copy.copy(metric_definition)
                 metric_definition.analysis_bases = (
-                    self.analysis_bases
+                    analysis_bases
                     or metric_definition.analysis_bases
-                    or [
-                        AnalysisBasis.ENROLLMENTS,
-                        AnalysisBasis.EXPOSURES,
-                    ]
+                    or list(DEFAULT_ANALYSIS_BASES)
                 )
                 metric_definition.statistics = self.statistics
                 metric_definition.analysis_units = (
@@ -428,8 +449,7 @@ class MetricDefinition:
                 ),
                 description=(dedent(self.description) if self.description else self.description),
                 bigger_is_better=self.bigger_is_better,
-                analysis_bases=self.analysis_bases
-                or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
+                analysis_bases=analysis_bases or list(DEFAULT_ANALYSIS_BASES),
                 type=self.type or "scalar",
                 category=self.category,
                 depends_on=upstream_metrics,
