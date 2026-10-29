@@ -60,16 +60,18 @@ analysis_bases = ["enrollments", "exposures"]
 [data_sources.pbw_usage]
 from_expression = """(
   SELECT
-    metrics.uuid.legacy_telemetry_client_id AS client_id,
-    DATE(submission_timestamp) AS submission_date,
-    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenu-new-private-window-button2'), 0)
-    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key = 'key-privatebrowsing'), 0)
-    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_content_context) kv WHERE kv.key = 'context-openlinkprivate'), 0)
-    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'menu-newPrivateWindow'), 0)
-    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'privatebrowsing-button'), 0) AS open_count,
-    metrics.boolean.dom_parentprocess_private_window_used AS used_pbw
-  FROM `mozdata.firefox_desktop.metrics`
+    p.*,
+    p.metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
+    DATE(p.submission_timestamp) AS submission_date,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenu-new-private-window-button2'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key = 'key-privatebrowsing'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_content_context) kv WHERE kv.key = 'context-openlinkprivate'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'menu-newPrivateWindow'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'privatebrowsing-button'), 0) AS open_count,
+    p.metrics.boolean.dom_parentprocess_private_window_used AS used_pbw
+  FROM `mozdata.firefox_desktop.metrics` p
 )"""
-experiments_column_type = "none"
+experiments_column_type = "glean"
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
 friendly_name = "PBW Usage"
 description = "Per-ping PBW open counts and usage boolean from the Glean metrics table"
