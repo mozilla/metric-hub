@@ -356,12 +356,14 @@ class MetricDefinition:
             upstream_metrics = []
             # resolve upstream metrics
             for metric_ref in self.depends_on:
-                # check if upstream metric is defined externally as a "definition"
-                upstream_metric = configs.get_metric_definition(metric_ref.name, conf.app_name)
+                # prefer the analysis spec's version of the upstream metric, since it
+                # carries the statistics and overrides; it falls back to the external
+                # definition for its select_expression/data_source when resolved
+                upstream_metric = spec.metrics.definitions.get(metric_ref.name, None)
 
                 if upstream_metric is None:
-                    # check if upstream metric is part of the analysis spec
-                    upstream_metric = spec.metrics.definitions.get(metric_ref.name, None)
+                    # check if upstream metric is defined externally as a "definition"
+                    upstream_metric = configs.get_metric_definition(metric_ref.name, conf.app_name)
 
                 if upstream_metric is None:
                     raise DefinitionNotFound(
