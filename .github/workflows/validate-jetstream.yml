@@ -72,7 +72,7 @@ jobs:
           exit "$VALIDATE_EXIT_CODE";
         fi
     - name: Validation Success Message
-      uses: actions/github-script@v8
+      uses: actions/github-script@v9
       if: ${{ github.event_name == 'pull_request' && success() }}
       # add a helpful message about where to find generated SQL and data processing estimates
       with:

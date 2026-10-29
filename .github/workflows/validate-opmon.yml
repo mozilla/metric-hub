@@ -59,7 +59,7 @@ jobs:
         echo "Run validation on changed files: "
         echo $ALL_CHANGED_FILES
         opmon validate_config --config_repos='.' --config_repos=opmon/ $ALL_CHANGED_FILES
-    - uses: actions/github-script@v6
+    - uses: actions/github-script@v9
       if: ${{ github.event_name == 'pull_request' && success() }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
