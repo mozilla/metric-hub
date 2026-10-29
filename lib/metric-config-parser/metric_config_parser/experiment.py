@@ -7,6 +7,7 @@ import attr
 import jinja2
 from jinja2 import StrictUndefined
 from mozilla_nimbus_schemas import RandomizationUnit
+from mozilla_nimbus_schemas.jetstream import AnalysisBasis
 
 if TYPE_CHECKING:
     from .analysis import AnalysisSpec
@@ -252,6 +253,10 @@ class ExperimentConfiguration:
         return self.experiment_spec.dataset_id
 
     @property
+    def analysis_bases(self) -> list[AnalysisBasis] | None:
+        return self.experiment_spec.analysis_bases
+
+    @property
     def enrollments_query_type(self) -> EnrollmentsQueryType | None:
         if self.experiment_spec.enrollments_query_type:
             return EnrollmentsQueryType(self.experiment_spec.enrollments_query_type)
@@ -303,6 +308,11 @@ def _validate_analysis_unit(instance: Any, attribute, value):
         AnalysisUnit(value)
 
 
+def _validate_analysis_bases(instance: Any, attribute, value):
+    if value is not None and len(value) == 0:
+        raise ValueError("analysis_bases must not be empty")
+
+
 def _validate_enrollments_query_type(instance: Any, attribute, value):
     if value is not None:
         EnrollmentsQueryType(value)
@@ -327,6 +337,9 @@ class ExperimentSpec:
     analysis_unit: str | None = attr.ib(default=None, validator=_validate_analysis_unit)
     enrollments_query_type: str | None = attr.ib(
         default=None, validator=_validate_enrollments_query_type
+    )
+    analysis_bases: list[AnalysisBasis] | None = attr.ib(
+        default=None, validator=_validate_analysis_bases
     )
 
     def resolve(

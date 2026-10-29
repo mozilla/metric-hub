@@ -83,7 +83,10 @@ class AnalysisSpec:
         if type_metrics is not None or not isinstance(default_metrics, AnalysisSpec):
             default_metrics.merge(type_metrics)
 
-        return copy.deepcopy(default_metrics)
+        spec = copy.deepcopy(default_metrics)
+        for definition in spec.metrics.definitions.values():
+            definition.inherit_analysis_bases()
+        return spec
 
     def resolve(
         self,
@@ -127,6 +130,11 @@ class AnalysisSpec:
 
     def merge_outcome(self, other: "OutcomeSpec"):
         """Merges an outcome snippet into the analysis spec."""
+        # copy to avoid modifying the shared outcome definitions
+        outcome_metrics = {name: copy.copy(d) for name, d in other.metrics.items()}
+        for definition in outcome_metrics.values():
+            definition.inherit_analysis_bases()
+
         declared = (
             other.daily
             or other.weekly
@@ -145,7 +153,7 @@ class AnalysisSpec:
                 overall=other.overall,
                 preenrollment_weekly=other.preenrollment_weekly,
                 preenrollment_days28=other.preenrollment_days28,
-                definitions=other.metrics,
+                definitions=outcome_metrics,
             )
         else:
             # Back-compat: with no period lists declared, every metric defined in
@@ -156,7 +164,7 @@ class AnalysisSpec:
                 weekly=metrics,
                 days28=[],
                 overall=metrics,
-                definitions=other.metrics,
+                definitions=outcome_metrics,
             )
         outcome_spec.merge(self.metrics)
         other.data_sources.merge(self.data_sources)
