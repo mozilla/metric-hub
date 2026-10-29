@@ -11,7 +11,7 @@ name = "opened_pbw"
 friendly_name = "Opened Private Browsing Window"
 description = "Clients who opened a Private Browsing Window during the analysis window"
 select_expression = "COALESCE(dom_parentprocess_private_window_used, false)"
-data_source = "clients_daily_v6"
+data_source = "clients_daily"
 window_end = "analysis_window_end"
 
 [metrics]
