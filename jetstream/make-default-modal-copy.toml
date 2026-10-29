@@ -97,7 +97,7 @@ analysis_bases = ["enrollments", "exposures"]
 # the action manually, so this measures real conversion, not just click intent.
 [metrics.became_default_browser]
 select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
-data_source = "clients_daily_v6"
+data_source = "clients_daily"
 friendly_name = "Became Default Browser"
 description = "Whether Firefox was detected as the default browser at any point during the analysis window. Most meaningful on the exposures basis."
 bigger_is_better = true
