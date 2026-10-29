@@ -22,14 +22,8 @@ overall = ["pbw_open_count", "pbw_distinct_days", "pbw_any_usage"]
 # Primary: total PBW opens from all tracked UI entry points.
 # Covers ~95% of UI-initiated opens (app menu, keyboard, context menu, menu bar, toolbar).
 [metrics.pbw_open_count]
-select_expression = """
-    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenu-new-private-window-button2'), 0)
-  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key = 'key-privatebrowsing'), 0)
-  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_content_context) kv WHERE kv.key = 'context-openlinkprivate'), 0)
-  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'menu-newPrivateWindow'), 0)
-  + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'privatebrowsing-button'), 0)
-"""
-data_source = "metrics"
+select_expression = "COALESCE(SUM(open_count), 0)"
+data_source = "pbw_usage"
 friendly_name = "PBW Open Count"
 description = "Total private browsing window opens from all tracked UI entry points in the analysis window"
 bigger_is_better = true
@@ -40,15 +34,8 @@ analysis_bases = ["enrollments", "exposures"]
 
 # Secondary: number of distinct days with PBW usage
 [metrics.pbw_distinct_days]
-select_expression = """COALESCE(
-    COUNT(DISTINCT IF(
-        metrics.boolean.dom_parentprocess_private_window_used,
-        submission_date,
-        NULL
-    )),
-    0
-)"""
-data_source = "metrics"
+select_expression = "COALESCE(COUNT(DISTINCT IF(used_pbw, submission_date, NULL)), 0)"
+data_source = "pbw_usage"
 friendly_name = "PBW Distinct Usage Days"
 description = "Number of distinct days the client used Private Browsing in the analysis window"
 bigger_is_better = true
@@ -59,11 +46,30 @@ analysis_bases = ["enrollments", "exposures"]
 
 # Guardrail: any PBW usage at all
 [metrics.pbw_any_usage]
-select_expression = "COALESCE(LOGICAL_OR(metrics.boolean.dom_parentprocess_private_window_used), FALSE)"
-data_source = "metrics"
+select_expression = "COALESCE(LOGICAL_OR(used_pbw), FALSE)"
+data_source = "pbw_usage"
 friendly_name = "Any PBW Usage"
 description = "Proportion of clients who used Private Browsing at all in the analysis window"
 bigger_is_better = true
 analysis_bases = ["enrollments", "exposures"]
 
 [metrics.pbw_any_usage.statistics.binomial]
+
+# ── DATA SOURCES ──
+
+[data_sources.pbw_usage]
+from_expression = """(
+  SELECT
+    metrics.uuid.legacy_telemetry_client_id AS client_id,
+    DATE(submission_timestamp) AS submission_date,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenu-new-private-window-button2'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key = 'key-privatebrowsing'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_content_context) kv WHERE kv.key = 'context-openlinkprivate'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'menu-newPrivateWindow'), 0)
+    + COALESCE((SELECT SUM(kv.value) FROM UNNEST(metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'privatebrowsing-button'), 0) AS open_count,
+    metrics.boolean.dom_parentprocess_private_window_used AS used_pbw
+  FROM `mozdata.firefox_desktop.metrics`
+)"""
+experiments_column_type = "none"
+friendly_name = "PBW Usage"
+description = "Per-ping PBW open counts and usage boolean from the Glean metrics table"
