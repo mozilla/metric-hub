@@ -1,0 +1,106 @@
+# Custom Jetstream config for make-default-modal copy experiment
+# Metric source: browser.set_default_result (custom_distribution in Glean metrics ping)
+# Buckets: 0=SetDefault+DontAskAgain, 1=SetDefault, 2=NotNow+DontAskAgain, 3=NotNow
+
+[experiment]
+enrollment_period = 7
+segments = ["regular_users_v3", "new_or_resurrected_v3"]
+
+[experiment.exposure_signal]
+name = "saw_default_modal"
+friendly_name = "Saw Make Default Modal"
+description = "Clients who interacted with the make-default modal during the analysis window"
+select_expression = """COALESCE(
+    SUM(CAST(v.value AS INT64)) > 0,
+    FALSE
+)"""
+data_source = "make_default_modal"
+window_end = "analysis_window_end"
+
+[data_sources.make_default_modal]
+from_expression = """(
+    SELECT
+        m.*,
+        DATE(m.submission_timestamp) AS submission_date,
+        m.metrics.uuid.legacy_telemetry_client_id AS client_id
+    FROM `mozdata.firefox_desktop.metrics` m,
+    UNNEST(m.metrics.custom_distribution.browser_set_default_result.values) v
+)"""
+experiments_column_type = "glean"
+client_id_column = "client_id"
+
+[metrics]
+weekly = ["default_modal_set_default", "default_modal_not_now", "default_modal_dont_ask_again", "default_modal_set_default_per_user", "became_default_browser"]
+28_day = ["default_modal_set_default", "default_modal_not_now", "default_modal_dont_ask_again", "default_modal_set_default_per_user", "became_default_browser"]
+overall = ["default_modal_set_default", "default_modal_not_now", "default_modal_dont_ask_again", "default_modal_set_default_per_user", "became_default_browser"]
+
+# Per-impression: fraction of modal impressions where user clicked "Set as default"
+[metrics.default_modal_set_default]
+select_expression = """SAFE_DIVIDE(
+    SUM(IF(CAST(v.key AS INT64) IN (0, 1), v.value, 0)),
+    SUM(v.value)
+)"""
+data_source = "make_default_modal"
+friendly_name = "Set Default Rate (per impression)"
+description = "Fraction of modal impressions where the user clicked 'Set as default browser' (buckets 0+1 / total)"
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.default_modal_set_default.statistics.bootstrap_mean]
+
+# Per-impression: fraction of modal impressions where user clicked "Not now"
+[metrics.default_modal_not_now]
+select_expression = """SAFE_DIVIDE(
+    SUM(IF(CAST(v.key AS INT64) IN (2, 3), v.value, 0)),
+    SUM(v.value)
+)"""
+data_source = "make_default_modal"
+friendly_name = "Not Now Rate (per impression)"
+description = "Fraction of modal impressions where the user clicked 'Not now' (buckets 2+3 / total)"
+bigger_is_better = false
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.default_modal_not_now.statistics.bootstrap_mean]
+
+# Per-impression: fraction of impressions where "Don't show again" was checked
+[metrics.default_modal_dont_ask_again]
+select_expression = """SAFE_DIVIDE(
+    SUM(IF(CAST(v.key AS INT64) IN (0, 2), v.value, 0)),
+    SUM(v.value)
+)"""
+data_source = "make_default_modal"
+friendly_name = "Don't Ask Again Rate (per impression)"
+description = "Fraction of modal impressions where the user checked 'Don't show this message again' (buckets 0+2 / total)"
+bigger_is_better = false
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.default_modal_dont_ask_again.statistics.bootstrap_mean]
+
+# Per-user: did this user click "Set as default" at least once?
+[metrics.default_modal_set_default_per_user]
+select_expression = """COALESCE(
+    SUM(IF(CAST(v.key AS INT64) IN (0, 1), v.value, 0)) > 0,
+    FALSE
+)"""
+data_source = "make_default_modal"
+friendly_name = "Set Default (per user, binary)"
+description = "Proportion of users who clicked 'Set as default browser' at least once in the analysis window"
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.default_modal_set_default_per_user.statistics.binomial]
+
+# Outcome: did Firefox actually become the default browser?
+# Users who see the modal are not currently default, so on the exposures basis,
+# any TRUE = the user successfully set Firefox as default after clicking the button.
+# On Windows 10+, clicking "Set as default" opens Settings — the user must complete
+# the action manually, so this measures real conversion, not just click intent.
+[metrics.became_default_browser]
+select_expression = "COALESCE(LOGICAL_OR(is_default_browser), FALSE)"
+data_source = "clients_daily_v6"
+friendly_name = "Became Default Browser"
+description = "Whether Firefox was detected as the default browser at any point during the analysis window. Most meaningful on the exposures basis."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.became_default_browser.statistics.binomial]
