@@ -1,10 +1,6 @@
 [experiment]
 segments = ["pre_enrollment_low_sap_searchers", "pre_enrollment_non_sap_searchers"]
 
-[experiment.exposure_signal]
-window_start = "enrollment_start"
-window_end = "analysis_period_end"
-
 [metrics]
 
 daily = [

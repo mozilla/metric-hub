@@ -1,9 +1,10 @@
 [experiment]
+end_date = "2026-11-03"
 segments = ["pre_enrollment_low_sap_searchers", "pre_enrollment_non_sap_searchers"]
 
 [experiment.exposure_signal]
 window_start = "enrollment_start"
-window_end = "analysis_period_end"
+window_end = "analysis_window_end"
 
 [metrics]
 
