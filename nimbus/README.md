@@ -10,7 +10,9 @@ declares neither stays valid, for example one that only overrides `statistics`, 
 from other metrics with `depends_on`.
 
 `nimbus/definitions/` holds metrics in aggregation form, under stricter rules than `definitions/`.
-Highwind prefers a metric's copy in `nimbus/definitions/`. Jetstream reads `definitions/` only.
+Both Highwind and Jetstream prefer a metric's copy in `nimbus/definitions/`, falling back to
+`definitions/` when there is none. Jetstream still applies `jetstream/definitions/` overrides on
+top of whichever copy it reads.
 
 Keep aggregation-form metrics in `nimbus/definitions/` only for now. metric-config-parser generates
 `select_expression` from the aggregation fields, but consumers on older metric-config-parser
@@ -36,16 +38,18 @@ metric-hub/
 - The only top-level table is `[metrics]`. Any other top-level key is rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
 - A metric may be defined under the same name in both `definitions/<application>.toml` and
-  `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
-  Jetstream uses the `definitions/` copy. The two copies must generate the same SQL. See
+  `nimbus/definitions/<application>.toml`. Both Highwind and Jetstream prefer the
+  `nimbus/definitions/` copy. The two copies must generate the same SQL. See
   [Validation](#validation).
 - Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
   defined there.
 - Files ending in `.example` are not loaded.
 
 metric-config-parser loads these files when it loads a repository. `ConfigCollection` returns a
-metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metric_definition` reads
-`definitions/` only.
+metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metric_definition`
+returns that same copy when one exists, falling back to `definitions/` otherwise.
+`get_definitions_metric_definition` reads `definitions/` only; the equivalence check in
+[Validation](#validation) uses it to compare the two copies.
 
 ## Rules for `nimbus/definitions/`
 
@@ -404,6 +408,20 @@ Not checked:
 - Statistic names. The fields shared with `definitions/` get no checks beyond those `definitions/`
   applies.
 
+## Merging repositories
+
+A consumer that loads more than one repository, such as Jetstream loading metric-hub and
+`jetstream/`, calls `ConfigCollection.merge()` to fold the second repository's
+`definitions/<application>.toml` into the first's, field by field, by metric name. A metric name in
+the second repository may use `*` and other glob wildcards, matched against every metric name in the
+first.
+
+This merge applies to a metric's `nimbus/definitions/` copy as well, when one exists for that
+application and metric name. A `select_expression` set by the overlay on a metric that otherwise
+resolves from aggregation fields takes precedence over those fields, matching how `definitions/`
+already resolves a metric with both. The overlay does not add a metric to
+`nimbus/definitions/` that is not already there.
+
 ## How consumers use an aggregation-form metric
 
 metric-config-parser generates two shapes of SQL from the same fields, one for each consumer. In
@@ -412,12 +430,18 @@ is the condition `c`).
 
 ### Jetstream
 
-Jetstream reads `definitions/` and uses `select_expression`. When a metric declares the aggregation
+Jetstream reads a metric's `nimbus/definitions/` copy when one exists, falling back to
+`definitions/`, and uses `select_expression`. When the copy it reads declares the aggregation
 fields instead, metric-config-parser generates its `select_expression` while resolving the metric,
 so Jetstream handles it like any other metric. `MetricDefinition.select_expression_from_aggregation`
 returns the generated expression. `sum` and `any` call the `agg_sum` and `agg_any` functions from
 `definitions/functions.toml`, so they render the same way as a hand-written expression. The window
 fields are not used.
+
+Jetstream also loads `jetstream/definitions/<application>.toml`, an overlay of statistics and other
+metadata for experiment analysis. Loading more than one repository, as Jetstream does, applies this
+overlay to a metric's `nimbus/definitions/` copy as well as its `definitions/` copy, field by field,
+with the same wildcard matching. See [Merging repositories](#merging-repositories).
 
 | aggregation | `select_expression` | rendered |
 | --- | --- | --- |

@@ -1,10 +1,46 @@
 import re
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
+from metric_config_parser.config import ConfigCollection, DefinitionConfig, NimbusConfig
+from metric_config_parser.definition import DefinitionSpec
+from metric_config_parser.function import FunctionsSpec
+from metric_config_parser.nimbus import NimbusSpec
+
 ROOT = Path(__file__).parent
 TEST_DATA = ROOT / "sql"
+
+
+def nimbus_collection(nimbus_metrics, definitions_metrics=None):
+    definitions = DefinitionConfig(
+        slug="firefox_desktop",
+        platform="firefox_desktop",
+        spec=DefinitionSpec.from_dict(
+            {
+                "data_sources": {
+                    "clients_daily": {"from_expression": "mozdata.telemetry.clients_daily"}
+                },
+                "metrics": definitions_metrics or {},
+            }
+        ),
+        last_modified=datetime.now(UTC),
+    )
+    nimbus_config = NimbusConfig(
+        slug="firefox_desktop",
+        spec=NimbusSpec.from_dict({"metrics": nimbus_metrics}, platform="firefox_desktop"),
+    )
+    collection = ConfigCollection(definitions=[definitions], nimbus_configs=[nimbus_config])
+    collection.functions = FunctionsSpec.from_dict(
+        {
+            "functions": {
+                "agg_sum": {"definition": "COALESCE(SUM({select_expr}), 0)"},
+                "agg_any": {"definition": "COALESCE(LOGICAL_OR({select_expr}), FALSE)"},
+            }
+        }
+    )
+    return collection
 
 
 def test_generate_query_single_metric(config_collection):
@@ -130,6 +166,45 @@ def test_data_source_with_multiple_join(config_collection):
         )
         == (TEST_DATA / "test_generate_data_source_with_multi_join.expected.sql").read_text()
     )
+
+
+def test_generate_query_metric_only_in_nimbus():
+    collection = nimbus_collection(
+        {
+            "days_of_use": {
+                "data_source": "clients_daily",
+                "aggregation": "count",
+                "column": "submission_date",
+            }
+        }
+    )
+
+    sql = collection.get_metrics_sql(metrics=["days_of_use"], platform="firefox_desktop")
+
+    assert "COUNT(submission_date)" in sql
+
+
+def test_generate_query_metric_in_definitions_and_nimbus():
+    collection = nimbus_collection(
+        nimbus_metrics={
+            "active_hours": {
+                "data_source": "clients_daily",
+                "aggregation": "sum",
+                "column": "active_hours_sum",
+            }
+        },
+        definitions_metrics={
+            "active_hours": {
+                "data_source": "clients_daily",
+                "select_expression": "SUM(definitions_only_column)",
+            }
+        },
+    )
+
+    sql = collection.get_metrics_sql(metrics=["active_hours"], platform="firefox_desktop")
+
+    assert "SUM(active_hours_sum)" in sql
+    assert "definitions_only_column" not in sql
 
 
 def test_metric_with_joined_data_source(config_collection):

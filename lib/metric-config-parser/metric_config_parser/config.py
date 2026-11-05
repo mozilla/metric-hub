@@ -744,6 +744,15 @@ class ConfigCollection:
         return None
 
     def get_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
+        nimbus_definition = self.get_nimbus_metric_definition(slug, app_name)
+        if nimbus_definition is not None:
+            return nimbus_definition
+
+        return self.get_definitions_metric_definition(slug, app_name)
+
+    def get_definitions_metric_definition(
+        self, slug: str, app_name: str
+    ) -> MetricDefinition | None:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for metric_slug, metric in definition.spec.metrics.definitions.items():
@@ -813,7 +822,7 @@ class ConfigCollection:
         mismatches = []
         for nimbus_config in self.nimbus_configs:
             for name, metric in nimbus_config.spec.metrics.items():
-                definition = self.get_metric_definition(name, nimbus_config.slug)
+                definition = self.get_definitions_metric_definition(name, nimbus_config.slug)
                 if definition is None:
                     continue
                 nimbus_template = metric.select_expression_from_aggregation or ""
@@ -973,6 +982,10 @@ class ConfigCollection:
             if nc.slug not in nimbus_configs:
                 nimbus_configs[nc.slug] = nc
         self.nimbus_configs = list(nimbus_configs.values())
+
+        for slug, definition in other_definitions.items():
+            if slug in nimbus_configs:
+                nimbus_configs[slug].spec.apply_overlay(definition.spec.metrics.definitions)
 
         self.repos += other.repos
 

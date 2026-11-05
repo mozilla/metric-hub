@@ -277,7 +277,7 @@ def validate(path, config_repos):
                     data_sources = {}
                     for metric_name in entity.spec.metrics.definitions.keys():
                         i += 1
-                        metric = config_collection.get_metric_definition(
+                        metric = config_collection.get_definitions_metric_definition(
                             metric_name, config_file.stem
                         )
 

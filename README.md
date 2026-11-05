@@ -26,7 +26,7 @@ A metric declares at most one of the two. A metric that declares neither is stil
 
 Metrics in aggregation form go in `nimbus/definitions/<application>.toml`, which is stricter than `definitions/`: `aggregation` and `data_source` are required, `select_expression` is not allowed, and only a fixed set of keys is accepted. Data sources are not defined there. A metric in `nimbus/definitions/` refers to a data source defined in `definitions/<application>.toml`.
 
-A metric may be defined under the same name in both `definitions/` and `nimbus/definitions/`. Highwind prefers the `nimbus/definitions/` copy. Jetstream reads `definitions/` only.
+A metric may be defined under the same name in both `definitions/` and `nimbus/definitions/`. Both Highwind and Jetstream prefer the `nimbus/definitions/` copy, falling back to `definitions/` when there is none.
 
 See [nimbus/README.md](nimbus/README.md) for the field reference and an annotated example.
 

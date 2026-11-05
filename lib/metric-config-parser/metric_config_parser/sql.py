@@ -35,11 +35,13 @@ def generate_metrics_sql(
 
     metrics_per_data_source: dict[str, Any] = {}
     for metric in metric_definitions:
-        if metric.select_expression is None:
+        select_expression = metric.select_expression or metric.select_expression_from_aggregation
+
+        if select_expression is None:
             raise ValueError(f"No definition for metric {metric.name}")
 
         metric.select_expression = (
-            config_collection.get_env().from_string(metric.select_expression).render()
+            config_collection.get_env().from_string(select_expression).render()
         )
 
         if metric.data_source is None:
