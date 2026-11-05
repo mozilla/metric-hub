@@ -1,0 +1,206 @@
+[experiment]
+# We sized this OMC experiment assuming Jetstream would count everyone who sees the message over the entire experiment duration.
+# We did not know it only counts users exposed during enrollment (October 6 to 14, 2026).
+# The revised enrollment period will allow us to salvage our experiment by ensuring more users who saw the message are counted.
+# The revised end date (November 17, 2026) then allows us to measure impact for 21 days post exposure for each of the exposed users.
+# We're also adding our H2 search metrics and some useful segment splits.
+enrollment_period = 21
+end_date = "2026-11-17"
+segments = [
+    "profile_age_0_to_7_days",
+    "profile_age_7_to_28_days",
+    "profile_age_more_than_28_days",
+    "us",
+    "de",
+    "fr",
+    "gb",
+    "it",
+    "pre_enrollment_low_sap_searchers",
+    "pre_enrollment_non_sap_searchers",
+]
+
+[metrics]
+
+daily = [
+    "sap_clients", "sap_searches_per_searcher", "sap_search_count"
+]
+weekly = [
+    "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
+    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+]
+# sap_habit_3plus_days is left out of overall on purpose. Overall covers 21 days, so it would count
+# 3+ days in 21. The weekly results measure it over each 7-day week, which is what the metric means.
+overall = [
+    "sap_clients", "sap_searches_per_searcher", "sap_search_count",
+    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+]
+preenrollment_weekly = [
+    "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
+    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+]
+
+
+[metrics.sap_clients]
+select_expression = "CAST(COALESCE(SUM(sap_counts_total) > 0, FALSE) AS INT64)"
+data_source = "search_clients_daily_glean"
+friendly_name = "SAP clients"
+description = "Share of clients with a SAP search"
+category = "search"
+
+[metrics.sap_clients.statistics.linear_model_mean]
+[metrics.sap_clients.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+# Local replacement for metric-hub's `search_count`
+[metrics.sap_search_count]
+select_expression = "COALESCE(SUM(sap_counts_total), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "SAP searches"
+description = "Number of searches through Firefox's Search Access Points (Glean sap.counts events)."
+category = "search"
+
+[metrics.sap_search_count.statistics.linear_model_mean]
+[metrics.sap_search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.sap_searches_per_searcher]
+depends_on = ["sap_search_count", "sap_clients"]
+friendly_name = "SAP searches per SAP searcher"
+description = """
+    This is a Population Ratio Metric. It is the total number of
+    searches in the population divided by the
+    total number of SAP searchers.
+"""
+category = "search"
+
+[metrics.sap_searches_per_searcher.statistics.population_ratio]
+numerator = "sap_search_count"
+denominator = "sap_clients"
+
+[metrics.sap_habit_3plus_days]
+friendly_name = "3+ SAP search days in 7"
+description = """ 1 if the client had at least one SAP search on 3 or more days
+    of the 7-day window, else 0.
+"""
+data_source = "search_clients_daily_glean"
+select_expression = "CAST(COUNT(DISTINCT IF(sap_counts_total > 0, submission_date, NULL)) >= 3 AS INT64)"
+
+[metrics.sap_habit_3plus_days.statistics.linear_model_mean]
+[metrics.sap_habit_3plus_days.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.serp_tagged_follow_on]
+select_expression = "COALESCE(SUM(serp_follow_on_searches_tagged_count), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Tagged follow-on searches"
+description = "Tagged SERP impressions reached by refining a search from the results page (Glean SERP events)."
+category = "search"
+
+[metrics.serp_tagged_follow_on.statistics.linear_model_mean]
+[metrics.serp_tagged_follow_on.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.serp_organic]
+select_expression = "COALESCE(SUM(serp_searches_organic_count), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Organic searches"
+description = "SERP impressions with no partner code (Glean SERP events)."
+category = "search"
+
+[metrics.serp_organic.statistics.linear_model_mean]
+[metrics.serp_organic.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.serp_searches_with_ads]
+select_expression = "COALESCE(SUM(serp_searches_with_ads_tagged_count + serp_searches_with_ads_organic_count), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Searches with ads"
+description = "SERP impressions, tagged and organic, with at least one ad visible (Glean SERP events)."
+category = "search"
+
+[metrics.serp_searches_with_ads.statistics.linear_model_mean]
+[metrics.serp_searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.serp_ad_clicks]
+select_expression = "COALESCE(SUM(serp_ad_clicks_sum), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Ad clicks"
+description = "Ad clicks on SERP impressions, tagged and organic (Glean SERP events)."
+category = "search"
+
+[metrics.serp_ad_clicks.statistics.linear_model_mean]
+[metrics.serp_ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
+
+[data_sources]
+
+[data_sources.search_clients_daily_glean]
+from_expression = """(
+    SELECT
+      -- desktop enrollments are keyed on the legacy client id
+      legacy_telemetry_client_id AS client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      profile_group_id,
+      submission_date,
+      sap_counts_total,
+      serp_follow_on_searches_tagged_count,
+      serp_searches_organic_count,
+      serp_searches_with_ads_tagged_count,
+      serp_searches_with_ads_organic_count,
+      serp_ad_clicks_sum
+    FROM
+      `mozdata.search.search_clients_daily_glean`
+)"""
+experiments_column_type = "none"
+friendly_name = "Search Clients Daily (Glean)"
+description = "Glean search aggregate, one row per client x day x engine x partner code x source"
+
+
+[segments]
+
+[segments.pre_enrollment_low_sap_searchers]
+friendly_name = "Pre-enrollment SAP searchers"
+description = "Clients with between one and 10 SAP searches in the 28 days before enrollment."
+select_expression = "COALESCE(SUM(sap_searches), 0) BETWEEN 1 AND 10"
+data_source = "pre_enrollment_activity"
+
+[segments.pre_enrollment_non_sap_searchers]
+friendly_name = "Pre-enrollment non-SAP searchers"
+description = "Clients active in the 28 days before enrollment with no SAP searches."
+select_expression = "COALESCE(SUM(sap_searches), 0) = 0"
+data_source = "pre_enrollment_activity"
+
+
+[segments.data_sources.pre_enrollment_activity]
+from_expression = """(
+    WITH sap AS (
+      -- grain is client x day x engine x partner code x source; roll up to client x day
+      SELECT
+        client_id,
+        submission_date,
+        SUM(sap_counts_total) AS sap_searches
+      FROM
+        `mozdata.search.search_clients_daily_glean`
+      GROUP BY
+        client_id,
+        submission_date
+    )
+    SELECT
+      -- desktop enrollments are keyed on the legacy client id
+      bcd.legacy_telemetry_client_id AS client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      bcd.profile_group_id,
+      bcd.submission_date,
+      sap.sap_searches
+    FROM
+      `mozdata.firefox_desktop.baseline_clients_daily` AS bcd
+    LEFT JOIN
+      sap
+      USING (client_id, submission_date)
+)"""
+# Days relative to enrollment: the 28 days before enrollment day.
+window_start = -28
+window_end = -1
