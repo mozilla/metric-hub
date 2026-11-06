@@ -1,3 +1,5 @@
+import fnmatch
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -80,3 +82,9 @@ class NimbusSpec:
     @classmethod
     def from_file(cls, path: Path) -> "NimbusSpec":
         return cls.from_dict(toml.load(str(path)), platform=path.stem)
+
+    def apply_overlay(self, overlay: dict[str, MetricDefinition]) -> None:
+        for name, metric in self.metrics.items():
+            for overlay_name, overlay_metric in overlay.items():
+                if re.compile(fnmatch.translate(overlay_name)).fullmatch(name):
+                    metric.merge(overlay_metric)
