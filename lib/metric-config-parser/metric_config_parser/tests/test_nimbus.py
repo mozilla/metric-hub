@@ -618,11 +618,16 @@ class TestNimbusCollection:
         assert days_of_use.aggregation == Aggregation.COUNT
 
         active_hours = collection.get_metric_definition("active_hours", "firefox_desktop")
-        assert active_hours == collection.get_nimbus_metric_definition(
+        nimbus_active_hours = collection.get_nimbus_metric_definition(
             "active_hours", "firefox_desktop"
         )
-        assert active_hours.select_expression is None
         assert active_hours.aggregation == Aggregation.SUM
+        assert (
+            active_hours.select_expression == nimbus_active_hours.select_expression_from_aggregation
+        )
+        assert active_hours.type == "scalar"
+        assert nimbus_active_hours.select_expression is None
+        assert nimbus_active_hours.type is None
 
         uri_count = collection.get_metric_definition("uri_count", "firefox_desktop")
         assert uri_count is not None
@@ -636,6 +641,18 @@ class TestNimbusCollection:
         uri_count = collection.get_definitions_metric_definition("uri_count", "firefox_desktop")
         assert uri_count is not None
         assert uri_count.select_expression is not None
+
+    def test_get_metric_definition_fills_select_expression_for_raw_readers(self):
+        collection = LocalConfigCollection.from_local_path(FIXTURE_DIR)
+
+        nimbus_definition = collection.get_nimbus_metric_definition(
+            "active_hours", "firefox_desktop"
+        )
+        resolved = collection.get_metric_definition("active_hours", "firefox_desktop")
+
+        assert resolved.select_expression
+        assert resolved.select_expression == nimbus_definition.select_expression_from_aggregation
+        assert nimbus_definition.select_expression is None
 
     def test_no_nimbus_directory(self, config_collection):
         assert config_collection.nimbus_configs == []
@@ -721,9 +738,9 @@ class TestNimbusCollection:
         assert nimbus_definition.select_expression is None
         assert nimbus_definition.aggregation == Aggregation.SUM
 
-        assert collection.get_metric_definition("active_hours", "firefox_desktop") == (
-            nimbus_definition
-        )
+        resolved = collection.get_metric_definition("active_hours", "firefox_desktop")
+        assert resolved.aggregation == nimbus_definition.aggregation
+        assert resolved.select_expression == nimbus_definition.select_expression_from_aggregation
 
     def test_resolves_data_source_from_another_repo(self, tmp_path):
         nimbus_repo = make_repo(tmp_path / "metric-hub")
@@ -902,9 +919,11 @@ class TestNimbusDefinitionMismatches:
         )
         collection = collection_with_functions(tmp_path)
 
-        assert collection.get_metric_definition(
+        resolved = collection.get_metric_definition("active_hours", "firefox_desktop")
+        nimbus_definition = collection.get_nimbus_metric_definition(
             "active_hours", "firefox_desktop"
-        ) == collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
+        )
+        assert resolved.select_expression == nimbus_definition.select_expression_from_aggregation
         assert collection.nimbus_definition_mismatches() != []
 
     def test_ignores_whitespace(self, tmp_path):

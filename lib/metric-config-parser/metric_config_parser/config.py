@@ -1,3 +1,4 @@
+import copy
 import datetime as dt
 import shutil
 import tempfile
@@ -745,10 +746,16 @@ class ConfigCollection:
 
     def get_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
         nimbus_definition = self.get_nimbus_metric_definition(slug, app_name)
-        if nimbus_definition is not None:
+        if nimbus_definition is None:
+            return self.get_definitions_metric_definition(slug, app_name)
+
+        if nimbus_definition.select_expression is not None:
             return nimbus_definition
 
-        return self.get_definitions_metric_definition(slug, app_name)
+        definition = copy.copy(nimbus_definition)
+        definition.select_expression = nimbus_definition.select_expression_from_aggregation
+        definition.type = nimbus_definition.type or "scalar"
+        return definition
 
     def get_definitions_metric_definition(
         self, slug: str, app_name: str
