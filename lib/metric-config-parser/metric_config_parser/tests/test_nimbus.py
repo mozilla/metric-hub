@@ -1,3 +1,4 @@
+import copy
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
@@ -878,6 +879,99 @@ class TestMergeAppliesOverlayToNimbus:
         assert active_hours.select_expression == "overlay_expression"
         assert active_hours.aggregation == Aggregation.SUM
         assert active_hours.select_expression_from_aggregation != active_hours.select_expression
+
+    def test_double_merge_of_nimbus_backed_root_matches_single_merge(self, tmp_path):
+        root = make_repo(tmp_path / "root")
+        jetstream_repo = make_definitions_repo(
+            tmp_path / "jetstream",
+            "[metrics.active_hours.statistics.bootstrap_mean]\n",
+        )
+
+        single = ConfigCollection.from_github_repo(root)
+        single.merge(ConfigCollection.from_github_repo(jetstream_repo))
+
+        double = ConfigCollection.from_github_repo(root)
+        double.merge(ConfigCollection.from_github_repo(jetstream_repo))
+        combined_again = ConfigCollection.from_github_repo(root)
+        combined_again.merge(ConfigCollection.from_github_repo(jetstream_repo))
+        double.merge(combined_again)
+
+        single_metric = single.get_metric_definition("active_hours", "firefox_desktop")
+        double_metric = double.get_metric_definition("active_hours", "firefox_desktop")
+        assert single_metric.select_expression is not None
+        assert double_metric.select_expression == single_metric.select_expression
+        assert double_metric.statistics == single_metric.statistics
+        assert double_metric.friendly_name == single_metric.friendly_name
+
+    def test_merge_of_nimbus_backed_collection_skips_definitions_overlay(self):
+        nimbus_config = NimbusConfig(
+            slug="firefox_desktop",
+            spec=NimbusSpec(
+                metrics={
+                    "active_hours": parse_metric(
+                        name="active_hours", aggregation="sum", column="active_hours_sum"
+                    ),
+                }
+            ),
+        )
+        collection = ConfigCollection(nimbus_configs=[nimbus_config])
+
+        config_str = dedent(
+            """
+            [metrics.active_hours.statistics.bootstrap_mean]
+            """
+        )
+        other = ConfigCollection(
+            definitions=[
+                DefinitionConfig(
+                    slug="firefox_desktop",
+                    platform="firefox_desktop",
+                    spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+                    last_modified=datetime.now(UTC),
+                )
+            ],
+            nimbus_configs=[NimbusConfig(slug="fenix", spec=NimbusSpec())],
+        )
+
+        collection.merge(other)
+
+        active_hours = collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
+        assert active_hours.statistics is None
+
+    def test_merge_does_not_mutate_either_collections_nimbus_specs(self):
+        nimbus_config = NimbusConfig(
+            slug="firefox_desktop",
+            spec=NimbusSpec(
+                metrics={
+                    "active_hours": parse_metric(
+                        name="active_hours", aggregation="sum", column="active_hours_sum"
+                    ),
+                }
+            ),
+        )
+        collection = ConfigCollection(nimbus_configs=[nimbus_config])
+        original_metric = copy.deepcopy(nimbus_config.spec.metrics["active_hours"])
+
+        config_str = dedent(
+            """
+            [metrics.active_hours.statistics.bootstrap_mean]
+            """
+        )
+        definition = DefinitionConfig(
+            slug="firefox_desktop",
+            platform="firefox_desktop",
+            spec=AnalysisSpec.from_dict(toml.loads(config_str)),
+            last_modified=datetime.now(UTC),
+        )
+        overlay = ConfigCollection(definitions=[definition])
+        original_overlay_metric = copy.deepcopy(definition.spec.metrics.definitions["active_hours"])
+
+        collection.merge(overlay)
+
+        assert nimbus_config.spec.metrics["active_hours"] == original_metric
+        assert definition.spec.metrics.definitions["active_hours"] == original_overlay_metric
+        merged = collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
+        assert merged.statistics == {"bootstrap_mean": {}}
 
     def test_experiment_override_wins_over_nimbus(self, experiments):
         collection = collection_with_functions(FIXTURE_DIR)

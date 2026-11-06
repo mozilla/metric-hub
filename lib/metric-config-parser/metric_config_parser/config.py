@@ -985,14 +985,15 @@ class ConfigCollection:
         self.featmon_configs = list(featmons.values())
 
         nimbus_configs = {nc.slug: nc for nc in deepcopy(other.nimbus_configs)}
-        for nc in self.nimbus_configs:
+        for nc in deepcopy(self.nimbus_configs):
             if nc.slug not in nimbus_configs:
                 nimbus_configs[nc.slug] = nc
         self.nimbus_configs = list(nimbus_configs.values())
 
-        for slug, definition in other_definitions.items():
-            if slug in nimbus_configs:
-                nimbus_configs[slug].spec.apply_overlay(definition.spec.metrics.definitions)
+        if not other.nimbus_configs:
+            for slug, definition in other_definitions.items():
+                if slug in nimbus_configs:
+                    nimbus_configs[slug].spec.apply_overlay(definition.spec.metrics.definitions)
 
         self.repos += other.repos
 
