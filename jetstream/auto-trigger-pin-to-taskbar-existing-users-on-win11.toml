@@ -1,0 +1,525 @@
+[experiment]
+
+# Foreground Nimbus experiment (fxms-message, defaultBrowserCheck startup
+# trigger), NOT a background-updater experiment, so no custom enrollment_query
+# and no analysis_unit override. Nimbus randomizes on group_id, so every custom
+# data source below exposes profile_group_id alongside client_id.
+#
+# enrollment_period and end_date are deliberately omitted so Nimbus defaults
+# apply (per metric-hub review feedback on PR #1401).
+#
+# Successor to jetstream/auto-trigger-pin-existing-user.toml (FXE-1746), with
+# the pin and launch metrics rebuilt on Glean. Firefox 156 removed the legacy
+# os.environment.* scalars from the main ping, so the built-in `is_pinned` and
+# the FXE-1746 `taskbar_launch_rate` (both on clients_daily) read FALSE for every
+# client on 156+ and must not be used here.
+
+segments = [
+  # --- Activity level (built-in) -----------------------------------------
+  "activity_infrequent",
+  "activity_casual",
+  "activity_regular",
+  "activity_core",
+
+  # --- Profile age at enrollment (the ship decision is made per band) ------
+  "profile_age_28_to_90_days",
+  "profile_age_91_to_180_days",
+  "profile_age_181_to_365_days",
+  "profile_age_more_than_365_days",
+
+  # --- Prior pin toast (Glean taskbar.pin_winrt, all history) --------------
+  "pin_toast_shown_before",
+  "pin_toast_never_shown",
+
+  # --- In the new-user auto-pin rollout (rollout-v2 family) at enrollment ---
+  "in_new_user_pin_rollout",
+  "not_in_new_user_pin_rollout",
+
+  # --- FXE-1746 history (treatment is excluded by targeting, so not listed) -
+  "fxe_1746_control",
+  "fxe_1746_never_enrolled",
+]
+
+[metrics]
+
+# Deliberately NOT listed: these auto-apply via jetstream/defaults/firefox_desktop.toml
+# and re-listing them would override the covariate-adjusted default statistics:
+#   client_level_daily_active_users_v2 (DAU, per_client_dau_impact; the brief reads
+#   the mean of daily effects over days 20-28 from the daily table),
+#   is_default_browser, search_count / organic_search_count / searches_with_ads /
+#   ad_clicks, active_hours, uri_count, days_of_use,
+#   qualified_cumulative_days_of_use, unenroll, active_in_last_3_days_legacy,
+#   and the deprecated ping-based `retained` (superseded below by retained_dau).
+
+daily = [
+  "is_taskbar_pinned_glean",
+  "pin_prompt_accepted",
+]
+
+weekly = [
+  # Primary (ship / no-ship)
+  "is_taskbar_pinned_glean",
+  "pin_prompt_accepted",
+  # Toast funnel
+  "pin_prompt_shown",
+  "pin_prompt_rejected",
+  "pin_prompt_error",
+  "pin_prompts_shown_count",
+  # Retention guardrail (W2 backlash check, W4 alongside DAU)
+  "retained_dau",
+  # Launch source (Glean launch_method, launch-days)
+  "taskbar_launch_rate_glean",
+  "number_of_taskbar_launches",
+  "number_of_desktop_launches",
+  "number_of_startmenu_launches",
+  "number_of_othershortcut_launches",
+  "number_of_autostart_launches",
+  "number_of_other_launches",
+  "number_of_launches_all_methods",
+  # Overall launches (do pins add launches or only move them?)
+  "sessions_started",
+  # Guardrail
+  "uninstalled",
+]
+
+overall = [
+  "is_taskbar_pinned_glean",
+  "pin_prompt_accepted",
+  "pin_prompt_shown",
+  "pin_prompt_rejected",
+  "pin_prompt_error",
+  "pin_prompts_shown_count",
+  "taskbar_launch_rate_glean",
+  "number_of_taskbar_launches",
+  "number_of_desktop_launches",
+  "number_of_startmenu_launches",
+  "number_of_othershortcut_launches",
+  "number_of_autostart_launches",
+  "number_of_other_launches",
+  "number_of_launches_all_methods",
+  "sessions_started",
+  "uninstalled",
+]
+
+# retained_dau is built-in ("Retained (DAU)", at least one is_dau day in the
+# window). It replaces the deprecated ping-based `retained`, which counts any
+# ping including a silent launch. Retention is read from the weekly table only.
+[metrics.retained_dau.statistics.binomial]
+
+# Built-in launch-method counts have no pre-declared statistic.
+[metrics.number_of_taskbar_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_desktop_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_startmenu_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_othershortcut_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_autostart_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+[metrics.number_of_other_launches.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# PRIMARY METRIC: pinned to the taskbar, Glean
+# ============================================================================
+# The brief's ship rule: cumulative-ever pinned after enrollment, treatment vs
+# control, enrollments basis. Glean os.environment.is_taskbar_pinned is set at
+# startup and sent on the metrics ping (~1 per client-day), so a newly pinned
+# client reports TRUE from its next startup onward. Non-reporters count as not
+# pinned, the same convention as the built-in is_pinned.
+
+[metrics.is_taskbar_pinned_glean]
+friendly_name = "Is Pinned (Windows Taskbar, Glean)"
+description = """
+Did any Glean metrics ping in the interval report Firefox pinned to the Windows
+taskbar (os.environment.is_taskbar_pinned = TRUE)? Replaces the built-in
+is_pinned, whose legacy scalar was removed in Firefox 156.
+"""
+select_expression = "COALESCE(LOGICAL_OR(metrics.boolean.os_environment_is_taskbar_pinned), FALSE)"
+data_source = "metrics"
+
+[metrics.is_taskbar_pinned_glean.statistics.binomial]
+
+# ============================================================================
+# TOAST FUNNEL: Glean taskbar.pin_winrt events
+# ============================================================================
+# One event per pin attempt through the WinRT TaskbarManager API, with extra
+# `result`: success_pinned (user accepted), success_rejected (user or system
+# declined), error_* (API failure; may fall back to a silent COM pin). The brief
+# makes consented pins (success_pinned, treatment minus control) part of the
+# per-band ship rule, to keep silent pins out of it. Control fires the same
+# events only when the user reaches a pin prompt some other way.
+
+[metrics.pin_prompt_accepted]
+friendly_name = "Pin Prompt Accepted"
+description = """
+Client had at least one taskbar.pin_winrt event with result = success_pinned
+in the interval (the user consented to the Windows pin prompt).
+"""
+select_expression = """COALESCE(LOGICAL_OR(
+    event_category = 'taskbar' AND event_name = 'pin_winrt'
+    AND JSON_VALUE(event_extra, '$.result') = 'success_pinned'
+), FALSE)"""
+data_source = "glean_events_stream"
+
+[metrics.pin_prompt_accepted.statistics.binomial]
+
+[metrics.pin_prompt_shown]
+friendly_name = "Pin Prompt Shown"
+description = """
+Client had at least one taskbar.pin_winrt event with result = success_pinned
+or success_rejected in the interval (the Windows pin toast rendered).
+"""
+select_expression = """COALESCE(LOGICAL_OR(
+    event_category = 'taskbar' AND event_name = 'pin_winrt'
+    AND JSON_VALUE(event_extra, '$.result') IN ('success_pinned', 'success_rejected')
+), FALSE)"""
+data_source = "glean_events_stream"
+
+[metrics.pin_prompt_shown.statistics.binomial]
+
+[metrics.pin_prompt_rejected]
+friendly_name = "Pin Prompt Rejected"
+description = """
+Client had at least one taskbar.pin_winrt event with result = success_rejected
+in the interval (the user or system declined the Windows pin prompt).
+"""
+select_expression = """COALESCE(LOGICAL_OR(
+    event_category = 'taskbar' AND event_name = 'pin_winrt'
+    AND JSON_VALUE(event_extra, '$.result') = 'success_rejected'
+), FALSE)"""
+data_source = "glean_events_stream"
+
+[metrics.pin_prompt_rejected.statistics.binomial]
+
+[metrics.pin_prompt_error]
+friendly_name = "Pin Prompt Error"
+description = """
+Client had at least one taskbar.pin_winrt event with an error_* result in the
+interval (the WinRT pin request failed; the code may then fall back to a silent
+COM pin, which is why consented pins are required alongside is_pinned).
+"""
+select_expression = """COALESCE(LOGICAL_OR(
+    event_category = 'taskbar' AND event_name = 'pin_winrt'
+    AND STARTS_WITH(JSON_VALUE(event_extra, '$.result'), 'error')
+), FALSE)"""
+data_source = "glean_events_stream"
+
+[metrics.pin_prompt_error.statistics.binomial]
+
+[metrics.pin_prompts_shown_count]
+friendly_name = "Pin Prompts Shown (count)"
+description = """
+Number of taskbar.pin_winrt events with result success_pinned or
+success_rejected in the interval. The message is capped at 2 asks at least
+7 days apart, so a mean above ~2 in treatment points at the lifetime-cap
+breach seen in FXE-1746 (FIDE-4171).
+"""
+select_expression = """COALESCE(COUNTIF(
+    event_category = 'taskbar' AND event_name = 'pin_winrt'
+    AND JSON_VALUE(event_extra, '$.result') IN ('success_pinned', 'success_rejected')
+), 0)"""
+data_source = "glean_events_stream"
+
+[metrics.pin_prompts_shown_count.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# LAUNCH SOURCE: Glean os.environment.launch_method
+# ============================================================================
+# Rebuilt from FXE-1746's taskbar_launch_rate, which read the legacy
+# scalar_parent_os_environment_launched_via_taskbar (gone in Firefox 156). The
+# mediator the causal story rests on: a pin that never converts into a taskbar
+# launch has not changed behaviour.
+#
+# Caveat shared with every number_of_*_launches metric: launch_method is a
+# string metric with ping lifetime on the metrics ping (~1 per client-day), so
+# a client that launches several times between pings records only the last
+# launch. These count launch-days by method, not launches. Read them as a
+# share-of-launch-days shift; `sessions_started` below is the total-launches read.
+
+[metrics.taskbar_launch_rate_glean]
+friendly_name = "Taskbar Launch Rate (Glean)"
+description = """
+Fraction of clients with at least one Glean metrics ping in the interval whose
+os.environment.launch_method was Taskbar (normal mode).
+"""
+select_expression = "COALESCE(LOGICAL_OR(metrics.string.os_environment_launch_method = 'Taskbar'), FALSE)"
+data_source = "metrics"
+
+[metrics.taskbar_launch_rate_glean.statistics.binomial]
+
+# Copied verbatim from jetstream/auto-trigger-pin-existing-user.toml (PR #1686).
+[metrics.number_of_launches_all_methods]
+friendly_name = "Number of Launches (All Methods)"
+description = """
+Number of Glean metrics pings that recorded any value for
+os_environment.launch_method. Sum of all number_of_*_launches metrics.
+"""
+select_expression = "COALESCE(COUNTIF(metrics.string.os_environment_launch_method IS NOT NULL), 0)"
+data_source = "metrics"
+
+[metrics.number_of_launches_all_methods.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# OVERALL LAUNCHES: sessions started per client
+# ============================================================================
+# The brief's "overall launches" read: does pinning add launches or only move
+# them between entry points? Legacy main-ping session count from clients_daily
+# (still populated on Firefox 156+; only the os.environment.* mirrors were
+# removed). Counts every session start, not launch-days.
+
+[metrics.sessions_started]
+friendly_name = "Sessions Started"
+description = """
+Total sessions started by the client in the interval
+(SUM of clients_daily.sessions_started_on_this_day).
+"""
+select_expression = "COALESCE(SUM(sessions_started_on_this_day), 0)"
+data_source = "clients_daily"
+
+[metrics.sessions_started.statistics.linear_model_mean]
+drop_highest = 0.005
+
+# ============================================================================
+# GUARDRAIL: uninstall pings
+# ============================================================================
+# The brief adds uninstalls to the Jetstream config this time (FXE-1746 read
+# them ad hoc: 2.0% both arms). The uninstall ping is sent by the Windows
+# uninstaller with the default profile's client_id and profile_group_id, and
+# carries no Nimbus events, so the data source is joined on id only.
+
+[metrics.uninstalled]
+friendly_name = "Uninstalled"
+description = """
+Client sent at least one uninstall ping in the interval (Firefox was
+uninstalled on Windows).
+"""
+select_expression = "COALESCE(COUNT(document_id) > 0, FALSE)"
+data_source = "uninstall_pings"
+
+[metrics.uninstalled.statistics.binomial]
+
+[data_sources.uninstall_pings]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        client_id,
+        profile_group_id,
+        document_id
+    FROM `mozdata.telemetry.uninstall`
+    WHERE DATE(submission_timestamp) >= '2026-11-04'
+)"""
+experiments_column_type = "none"
+friendly_name = "Uninstall Pings"
+description = "Legacy telemetry uninstall ping, one row per uninstall event."
+
+# ============================================================================
+# SEGMENTS: profile age at enrollment
+# ============================================================================
+# Bands follow the brief; the ship decision is made per band. Age is measured
+# from profile_creation_date (what the targeting's profileAgeCreated uses),
+# which clients_last_seen stores as a 'YYYY-MM-DD HH:MM:SS' string, with
+# first_seen_date as the fallback when it is missing or unparseable. Measured
+# against the enrollment date, same pattern as the built-in
+# profile_age_more_than_28_days, so the bands are disjoint and pre-treatment.
+
+[segments.profile_age_28_to_90_days]
+friendly_name = "Profile age 28 to 90 days at enrollment"
+description = "Profile was 28-90 days old on the enrollment date."
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        COALESCE(DATE(SAFE_CAST(ANY_VALUE(profile_creation_date) AS DATETIME)), ANY_VALUE(first_seen_date)),
+        DAY
+    ) BETWEEN 28 AND 90,
+    FALSE
+)"""
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_91_to_180_days]
+friendly_name = "Profile age 91 to 180 days at enrollment"
+description = "Profile was 91-180 days old on the enrollment date."
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        COALESCE(DATE(SAFE_CAST(ANY_VALUE(profile_creation_date) AS DATETIME)), ANY_VALUE(first_seen_date)),
+        DAY
+    ) BETWEEN 91 AND 180,
+    FALSE
+)"""
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_181_to_365_days]
+friendly_name = "Profile age 181 to 365 days at enrollment"
+description = "Profile was 181-365 days old on the enrollment date."
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        COALESCE(DATE(SAFE_CAST(ANY_VALUE(profile_creation_date) AS DATETIME)), ANY_VALUE(first_seen_date)),
+        DAY
+    ) BETWEEN 181 AND 365,
+    FALSE
+)"""
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+[segments.profile_age_more_than_365_days]
+friendly_name = "Profile age over 365 days at enrollment"
+description = "Profile was more than 365 days old on the enrollment date."
+select_expression = """COALESCE(
+    DATE_DIFF(
+        MIN(e.enrollment_date),
+        COALESCE(DATE(SAFE_CAST(ANY_VALUE(profile_creation_date) AS DATETIME)), ANY_VALUE(first_seen_date)),
+        DAY
+    ) > 365,
+    FALSE
+)"""
+data_source = "clients_last_seen"
+window_start = 0
+window_end = 0
+
+# ============================================================================
+# SEGMENTS: prior pin toast (Glean taskbar.pin_winrt, all history)
+# ============================================================================
+# Separates re-asks from first asks. The Glean event exists since 2026-07-18,
+# so window_start = -120 from a 2026-11-04..11 enrollment covers its whole
+# history; window_end = -1 keeps the cut strictly pre-enrollment.
+
+[segments.pin_toast_shown_before]
+friendly_name = "Pin toast shown before enrollment"
+description = """
+Client rendered the Windows pin toast (taskbar.pin_winrt result success_pinned
+or success_rejected) at least once before enrolling here, so this startup ask
+is a re-ask.
+"""
+select_expression = "COALESCE(LOGICAL_OR(toast_shown), FALSE)"
+data_source = "pin_toast_history"
+window_start = -120
+window_end = -1
+
+[segments.pin_toast_never_shown]
+friendly_name = "Pin toast never shown before enrollment"
+description = """
+Client has no taskbar.pin_winrt toast-rendered event before enrolling here, so
+this is their first auto-fired pin ask.
+"""
+select_expression = "COALESCE(NOT LOGICAL_OR(toast_shown), TRUE)"
+data_source = "pin_toast_history"
+window_start = -120
+window_end = -1
+
+[segments.data_sources.pin_toast_history]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        legacy_telemetry_client_id AS client_id,
+        profile_group_id,
+        JSON_VALUE(event_extra, '$.result') IN ('success_pinned', 'success_rejected') AS toast_shown
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    WHERE event_category = 'taskbar'
+      AND event_name = 'pin_winrt'
+      AND DATE(submission_timestamp) >= '2026-07-01'
+)"""
+friendly_name = "Pin Toast History"
+description = """
+Per-event flag for whether a Glean taskbar.pin_winrt attempt rendered the
+Windows pin toast, for pre-enrollment segmentation.
+"""
+
+# ============================================================================
+# SEGMENTS: new-user auto-pin rollout membership and FXE-1746 history
+# ============================================================================
+# Both read the clients_daily experiments annotation (key = slug, value =
+# branch string). One shared data source; the windows live on the segments.
+#
+# Rollout membership at enrollment (window -7..0) confirms that capping the
+# rollout-v2 "Finish setup" button to profiles 7 days old or younger removed
+# the trigger conflict: exposure should now match across this cut, against
+# 6% vs 80% in FXE-1746. The LIKE prefix catches every rollout in the family
+# (rollout-v2, treatment-a-rollout, with-checklist).
+#
+# FXE-1746 (auto-trigger-pin-existing-user) enrolled 2026-08-25..09-03 and
+# ran 28 days, so window_start = -100 from a November enrollment covers its
+# whole life. Its treatment branch is excluded by this experiment's targeting,
+# so only control and never-enrolled are cut. FXE-1746 control was never asked;
+# the brief reads it as the 28-90 day band's first-ask baseline.
+
+[segments.in_new_user_pin_rollout]
+friendly_name = "In new-user auto-pin rollout at enrollment"
+description = """
+Client was enrolled in an auto-trigger-pin-to-taskbar-notification rollout
+(rollout-v2 family) in the week up to and including enrollment.
+"""
+select_expression = "COALESCE(LOGICAL_OR(in_pin_rollout), FALSE)"
+data_source = "pin_experiment_history"
+window_start = -7
+window_end = 0
+
+[segments.not_in_new_user_pin_rollout]
+friendly_name = "Not in new-user auto-pin rollout at enrollment"
+description = """
+Client was NOT enrolled in any auto-trigger-pin-to-taskbar-notification
+rollout in the week up to and including enrollment.
+"""
+select_expression = "COALESCE(NOT LOGICAL_OR(in_pin_rollout), TRUE)"
+data_source = "pin_experiment_history"
+window_start = -7
+window_end = 0
+
+[segments.fxe_1746_control]
+friendly_name = "FXE-1746 control"
+description = """
+Client was in the control branch of auto-trigger-pin-existing-user (FXE-1746)
+before enrolling here.
+"""
+select_expression = "COALESCE(LOGICAL_OR(fxe_1746_control), FALSE)"
+data_source = "pin_experiment_history"
+window_start = -100
+window_end = -1
+
+[segments.fxe_1746_never_enrolled]
+friendly_name = "FXE-1746 never enrolled"
+description = """
+Client was never enrolled in auto-trigger-pin-existing-user (FXE-1746) before
+enrolling here.
+"""
+select_expression = "COALESCE(NOT LOGICAL_OR(fxe_1746_any), TRUE)"
+data_source = "pin_experiment_history"
+window_start = -100
+window_end = -1
+
+[segments.data_sources.pin_experiment_history]
+from_expression = """(
+    SELECT
+        submission_date,
+        client_id,
+        profile_group_id,
+        EXISTS(
+            SELECT 1 FROM UNNEST(experiments) AS x
+            WHERE x.key LIKE 'auto-trigger-pin-to-taskbar-notification%'
+        ) AS in_pin_rollout,
+        EXISTS(
+            SELECT 1 FROM UNNEST(experiments) AS x
+            WHERE x.key = 'auto-trigger-pin-existing-user' AND x.value = 'control'
+        ) AS fxe_1746_control,
+        EXISTS(
+            SELECT 1 FROM UNNEST(experiments) AS x
+            WHERE x.key = 'auto-trigger-pin-existing-user'
+        ) AS fxe_1746_any
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE submission_date >= '2026-07-01'
+)"""
+friendly_name = "Pin Experiment History"
+description = """
+Per-client-day flags for membership in the new-user auto-pin rollouts and in
+FXE-1746, read from the clients_daily experiments annotation, for
+pre-enrollment segmentation.
+"""
