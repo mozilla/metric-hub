@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 import shutil
 import tempfile
 from copy import deepcopy
@@ -9,6 +10,7 @@ from typing import TYPE_CHECKING
 import attr
 import jinja2
 import toml
+from cattrs.errors import ClassValidationError
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from jinja2 import StrictUndefined
@@ -32,6 +34,8 @@ from .util import TemporaryDirectory, normalize_sql
 
 if TYPE_CHECKING:
     from git.objects.commit import Commit
+
+logger = logging.getLogger(__name__)
 
 OUTCOMES_DIR = "outcomes"
 DEFAULTS_DIR = "defaults"
@@ -262,6 +266,36 @@ def is_nimbus_definition(path: Path) -> bool:
     return path.parent.name == DEFINITIONS_DIR and path.parent.parent.name == NIMBUS_DIR
 
 
+def _load_nimbus_configs(nimbus_dir: Path) -> list[NimbusConfig]:
+    nimbus_configs = []
+    if nimbus_dir.is_dir():
+        for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
+            try:
+                spec = NimbusSpec.from_file(nimbus_file)
+            except (ValueError, ClassValidationError) as e:
+                logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+                continue
+            nimbus_configs.append(NimbusConfig(slug=nimbus_file.stem, spec=spec))
+    return nimbus_configs
+
+
+def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
+    valid_configs = []
+    for nimbus_config in collection.nimbus_configs:
+        try:
+            nimbus_config.validate(collection)
+        except ValueError as e:
+            logger.warning(
+                "%s/%s.toml: skipping file, failed validation: %s",
+                NIMBUS_DEFINITIONS_DIR,
+                nimbus_config.slug,
+                e,
+            )
+            continue
+        valid_configs.append(nimbus_config)
+    collection.nimbus_configs = valid_configs
+
+
 def entity_from_path(
     path: Path, is_private: bool = False
 ) -> (
@@ -472,7 +506,7 @@ class ConfigCollection:
                 configs.merge(collection)
         if configs is None:
             return ConfigCollection.from_github_repo()
-        configs.validate_nimbus_configs()
+        _drop_invalid_nimbus_configs(configs)
         return configs
 
     @classmethod
@@ -573,16 +607,7 @@ class ConfigCollection:
                     )
                 )
 
-        nimbus_configs = []
-        nimbus_dir = files_path / NIMBUS_DEFINITIONS_DIR
-        if nimbus_dir.is_dir():
-            for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-                nimbus_configs.append(
-                    NimbusConfig(
-                        slug=nimbus_file.stem,
-                        spec=NimbusSpec.from_file(nimbus_file),
-                    )
-                )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
 
         collection = cls(
             external_configs,
@@ -603,7 +628,7 @@ class ConfigCollection:
             nimbus_configs=nimbus_configs,
         )
         if validate_nimbus:
-            collection.validate_nimbus_configs()
+            _drop_invalid_nimbus_configs(collection)
         return collection
 
     def as_of(self, timestamp: datetime) -> "ConfigCollection":
@@ -702,7 +727,7 @@ class ConfigCollection:
         if config_collection is None:
             return self
 
-        config_collection.validate_nimbus_configs()
+        _drop_invalid_nimbus_configs(config_collection)
         return config_collection
 
     def spec_for_outcome(self, slug: str, platform: str) -> OutcomeSpec | None:
@@ -1082,16 +1107,7 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        nimbus_configs = []
-        nimbus_dir = files_path / NIMBUS_DEFINITIONS_DIR
-        if nimbus_dir.is_dir():
-            for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-                nimbus_configs.append(
-                    NimbusConfig(
-                        slug=nimbus_file.stem,
-                        spec=NimbusSpec.from_file(nimbus_file),
-                    )
-                )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
 
         collection = cls(
             external_configs,
@@ -1104,7 +1120,7 @@ class LocalConfigCollection(ConfigCollection):
             featmon_configs=featmons,
             nimbus_configs=nimbus_configs,
         )
-        collection.validate_nimbus_configs()
+        _drop_invalid_nimbus_configs(collection)
         return collection
 
     @classmethod
