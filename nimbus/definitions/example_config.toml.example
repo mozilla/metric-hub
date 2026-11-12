@@ -26,7 +26,7 @@ level = "gold"
 deprecated = false
 # Required: a data source defined in definitions/<application>.toml.
 data_source = "clients_daily"
-# Required: one of sum, count, count_where, any, recency_within.
+# Required: one of sum, sum_where, count, count_where, any, recency_within.
 aggregation = "sum"
 # Required for sum: a plain column name, never an expression.
 column = "active_hours_sum"
@@ -38,6 +38,25 @@ repeat_windows = true
 # Optional: statistics, one table per statistic holding its parameters.
 # Nothing reads this field yet.
 [metrics.active_hours.statistics.linear_model_mean]
+
+# ---------------------------------------------------------------------------
+# sum_where: the sum of a column over rows matching conditions
+# ---------------------------------------------------------------------------
+
+[metrics.form_autofill_address_fields_filled]
+data_source = "clients_daily"
+aggregation = "sum_where"
+# Required for sum_where: a plain column name, the value to sum. There is no
+# column shorthand, since column already names the summed value.
+column = "autofilled_fields"
+cumulative_window = 7
+repeat_windows = true
+
+# Required for sum_where: at least one condition, like count_where and any.
+[[metrics.form_autofill_address_fields_filled.where]]
+column = "form_type"
+op = "="
+value = "address"
 
 # ---------------------------------------------------------------------------
 # sum with a threshold: 0/1

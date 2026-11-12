@@ -49,6 +49,11 @@ class TestSelectExpression:
         ("fields", "template", "rendered"),
         [
             ({"aggregation": "sum", "column": "a"}, '{{agg_sum("a")}}', "COALESCE(SUM(a), 0)"),
+            (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+            ),
             ({"aggregation": "count", "column": "a"}, "COUNT(a)", "COUNT(a)"),
             (
                 {
@@ -93,6 +98,12 @@ class TestBucketedAggregation:
             (
                 {"aggregation": "sum", "column": "a"},
                 BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                BucketedAggregation(
+                    "COALESCE(SUM(IF(b, a, 0)), 0)", Combine.SUM, "0", "{combined}"
+                ),
             ),
             (
                 {"aggregation": "count", "column": "a"},
@@ -295,6 +306,23 @@ class TestCoalesce:
                 BucketedAggregation("SUM(a)", Combine.SUM, "NULL", "{combined}"),
             ),
             (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+                BucketedAggregation(
+                    "COALESCE(SUM(IF(b, a, 0)), 0)", Combine.SUM, "0", "{combined}"
+                ),
+            ),
+            (
+                {
+                    "aggregation": "sum_where",
+                    "column": "a",
+                    "where": [{"column": "b"}],
+                    "coalesce": "none",
+                },
+                "SUM(IF(b, a, 0))",
+                BucketedAggregation("SUM(IF(b, a, 0))", Combine.SUM, "NULL", "{combined}"),
+            ),
+            (
                 {"aggregation": "count_where", "column": "a"},
                 "COUNTIF(a)",
                 BucketedAggregation("COUNTIF(a)", Combine.SUM, "0", "{combined}"),
@@ -326,6 +354,21 @@ class TestCoalesce:
 
         assert render(metric.select_expression_from_aggregation) == "COALESCE(SUM(a) > 0, FALSE)"
         assert metric.bucketed_aggregation.bucket_aggregate == "SUM(a)"
+        assert metric.bucketed_aggregation.no_rows == "NULL"
+
+    def test_coalesce_result_wraps_final_expression_sum_where(self):
+        metric = parse_metric(
+            aggregation="sum_where",
+            column="a",
+            where=[{"column": "b"}],
+            coalesce="result",
+            threshold={"op": ">", "value": 0},
+        )
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(SUM(IF(b, a, 0)) > 0, FALSE)"
+        )
+        assert metric.bucketed_aggregation.bucket_aggregate == "SUM(IF(b, a, 0))"
         assert metric.bucketed_aggregation.no_rows == "NULL"
 
     def test_coalesce_result_on_any_defaults_to_false(self):
@@ -417,6 +460,13 @@ class TestSingleBucketCollapse:
         [
             {"aggregation": "sum", "column": "a"},
             {"aggregation": "sum", "column": "a", "coalesce": "none"},
+            {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+            {
+                "aggregation": "sum_where",
+                "column": "a",
+                "where": [{"column": "b"}],
+                "coalesce": "none",
+            },
             {"aggregation": "count", "column": "a"},
             {"aggregation": "count_where", "column": "a"},
             {"aggregation": "count_where", "column": "a", "coalesce": "aggregate"},
@@ -444,6 +494,12 @@ class TestSingleBucketCollapse:
                 "within_days": 3,
             },
             {"aggregation": "any", "column": "a", "cast_as_int": True},
+            {
+                "aggregation": "sum_where",
+                "column": "a",
+                "where": [{"column": "b"}],
+                "threshold": {"op": ">", "value": 0},
+            },
         ],
     )
     def test_collapses_to_the_same_value_not_text(self, fields):

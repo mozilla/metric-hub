@@ -394,6 +394,21 @@ class TestAggregationFieldRejections:
                 {"aggregation": "any", "column": "a", "where": [{"column": "b"}]},
                 "exactly one of column or where",
             ),
+            ({"aggregation": "sum_where"}, "requires both column and where"),
+            ({"aggregation": "sum_where", "column": "a"}, "requires both column and where"),
+            (
+                {"aggregation": "sum_where", "where": [{"column": "b"}]},
+                "requires both column and where",
+            ),
+            (
+                {
+                    "aggregation": "sum_where",
+                    "column": "a",
+                    "where": [{"column": "b"}],
+                    "within_days": 3,
+                },
+                "only valid for recency_within",
+            ),
             (
                 {"aggregation": "recency_within", "column": "a"},
                 "within_days must be a positive integer",
@@ -678,6 +693,20 @@ class TestNimbusSpec:
         )
 
         assert spec.metrics["m"].encoding == RecencyEncoding.DAYS
+
+    def test_parses_sum_where(self):
+        spec = parse_nimbus(
+            data_source="clients_daily",
+            aggregation="sum_where",
+            column="autofilled_fields",
+            where=[{"column": "form_type", "op": "=", "value": "address"}],
+        )
+
+        metric = spec.metrics["m"]
+        assert metric.aggregation == Aggregation.SUM_WHERE
+        assert metric.column == "autofilled_fields"
+        assert metric.where == [Clause(column="form_type", op=Operator.EQ, value="address")]
+        assert metric.conditions == metric.where
 
     def test_invalid_file_fails_to_load(self, tmp_path):
         make_repo(tmp_path)

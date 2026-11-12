@@ -16,6 +16,7 @@ COMBINED = "{combined}"
 
 class Aggregation(StrEnum):
     SUM = "sum"
+    SUM_WHERE = "sum_where"
     COUNT = "count"
     COUNT_WHERE = "count_where"
     ANY = "any"
@@ -61,10 +62,17 @@ COMPARISON_OPERATORS = {
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
 CAST_AS_INT_AGGREGATIONS = {Aggregation.ANY, Aggregation.RECENCY_WITHIN}
+VALUE_AND_CONDITION_AGGREGATIONS = {Aggregation.SUM_WHERE}
 
-COALESCE_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT_WHERE, Aggregation.ANY}
+COALESCE_AGGREGATIONS = {
+    Aggregation.SUM,
+    Aggregation.SUM_WHERE,
+    Aggregation.COUNT_WHERE,
+    Aggregation.ANY,
+}
 DEFAULT_COALESCE_MODE = {
     Aggregation.SUM: CoalesceMode.AGGREGATE,
+    Aggregation.SUM_WHERE: CoalesceMode.AGGREGATE,
     Aggregation.COUNT_WHERE: CoalesceMode.NONE,
     Aggregation.ANY: CoalesceMode.AGGREGATE,
 }
@@ -211,6 +219,9 @@ def aggregation_select_expression(
             expression = macro_call("agg_sum", str(column))
         else:
             expression = f"SUM({column})"
+    elif aggregation == Aggregation.SUM_WHERE:
+        base = f"SUM(IF({predicate}, {column}, 0))"
+        expression = f"COALESCE({base}, 0)" if coalesce_mode == CoalesceMode.AGGREGATE else base
     elif aggregation == Aggregation.COUNT:
         expression = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
@@ -287,6 +298,13 @@ def aggregation_bucketed(
             bucket_aggregate = f"COALESCE(SUM({column}), 0)"
         else:
             bucket_aggregate = f"SUM({column})"
+            no_rows = "NULL"
+    elif aggregation == Aggregation.SUM_WHERE:
+        base = f"SUM(IF({predicate}, {column}, 0))"
+        if coalesce_mode == CoalesceMode.AGGREGATE:
+            bucket_aggregate = f"COALESCE({base}, 0)"
+        else:
+            bucket_aggregate = base
             no_rows = "NULL"
     elif aggregation == Aggregation.COUNT:
         bucket_aggregate = f"COUNT({column})"

@@ -70,13 +70,13 @@ Aggregation fields:
 
 | field | type | default | meaning |
 | --- | --- | --- | --- |
-| `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
+| `aggregation` | string | | One of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
 | `column` | string | | A column name on the data source, or a dotted path to one. |
-| `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
+| `where` | list of conditions | empty | Row conditions for `count_where`, `any` and `sum_where`. |
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
-| `coalesce` | string | aggregation-dependent | Where a null-safety default is applied: `aggregate`, `none` or `result`. Valid only for `sum`, `count_where` and `any`. See [Coalesce](#coalesce). |
+| `coalesce` | string | aggregation-dependent | Where a null-safety default is applied: `aggregate`, `none` or `result`. Valid only for `sum`, `sum_where`, `count_where` and `any`. See [Coalesce](#coalesce). |
 | `cast_as_int` | boolean | `false` | Casts an `any`/`recency_within` boolean result to `INT64` with no threshold or scale. See [Cast as int](#cast-as-int). |
 | `encoding` | string | `bits28` | For `recency_within`: `bits28` decodes a 28-day activity bit pattern; `days` means `column` already holds the number of days since the unit was last active. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
@@ -89,6 +89,7 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 | aggregation | `column` | `where` | `within_days` |
 | --- | --- | --- | --- |
 | `sum` | required | not allowed | not allowed |
+| `sum_where` | required | required | not allowed |
 | `count` | required | not allowed | not allowed |
 | `recency_within` | required | not allowed | required |
 | `count_where` | exactly one of `column` or `where` | exactly one of `column` or `where` | not allowed |
@@ -130,6 +131,26 @@ result is a number.
 data_source = "clients_daily"
 aggregation = "sum"
 column = "active_hours_sum"
+```
+
+### `sum_where`
+
+The sum of `column` over the unit's rows where every condition holds. A row where a condition
+evaluates to null does not match, and contributes nothing to the sum. A unit with no rows, or no
+matching rows, gets 0 by default; see [Coalesce](#coalesce) to place that default differently.
+The result is a number. There is no `column` shorthand: both `column` and `where` are required,
+since `column` already names the value to sum.
+
+```toml
+[metrics.form_autofill_address_fields_filled]
+data_source = "clients_daily"
+aggregation = "sum_where"
+column = "autofilled_fields"
+
+[[metrics.form_autofill_address_fields_filled.where]]
+column = "form_type"
+op = "="
+value = "address"
 ```
 
 ### `count`
@@ -312,11 +333,11 @@ scale = 1000
 
 ## Coalesce
 
-`sum`, `count_where` and `any` can return null for a unit with no matching rows, before any
-null-safety default is applied. `coalesce` says where that default is applied:
+`sum`, `sum_where`, `count_where` and `any` can return null for a unit with no matching rows,
+before any null-safety default is applied. `coalesce` says where that default is applied:
 
-- `aggregate` (the default for `sum` and `any`): the default applies to the raw aggregate, before
-  any threshold. `sum` defaults to 0, `any` to `FALSE`.
+- `aggregate` (the default for `sum`, `sum_where` and `any`): the default applies to the raw
+  aggregate, before any threshold. `sum` and `sum_where` default to 0, `any` to `FALSE`.
 - `none` (the default for `count_where`, which never needs one since `COUNTIF` already returns 0
   for no matching rows): no default is applied anywhere; the aggregate, and the full expression
   including any threshold, is left as the database would return it.
@@ -457,13 +478,14 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 - `select_expression` and `aggregation` are both set.
 - Any other aggregation field is set without `aggregation`.
-- `aggregation` is not one of the five.
+- `aggregation` is not one of the six.
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
+- `sum_where` does not have both `column` and `where` set.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
-- `coalesce` is set on any aggregation other than `sum`, `count_where` or `any`.
+- `coalesce` is set on any aggregation other than `sum`, `sum_where`, `count_where` or `any`.
 - `encoding` is set on any aggregation other than `recency_within`.
 - `cast_as_int` is set on any aggregation other than `any` or `recency_within`, or is set together
   with `threshold` or `scale`.
@@ -538,6 +560,7 @@ fields are not used.
 | aggregation | `select_expression` (default `coalesce`) | rendered |
 | --- | --- | --- |
 | `sum` | `{{agg_sum("c")}}` (`aggregate`) | `COALESCE(SUM(c), 0)` |
+| `sum_where` | `COALESCE(SUM(IF(p, c, 0)), 0)` (`aggregate`) | same |
 | `count` | `COUNT(c)` | same |
 | `count_where` | `COUNTIF(p)` (`none`) | same |
 | `any` | `{{agg_any("p")}}` (`aggregate`) | `COALESCE(LOGICAL_OR(p), FALSE)` |
@@ -581,6 +604,7 @@ which splits the aggregation into four parts:
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
 | `sum` | `COALESCE(SUM(c), 0)` (`coalesce = "none"` or `"result"`: bare `SUM(c)`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
+| `sum_where` | `COALESCE(SUM(IF(p, c, 0)), 0)` (`coalesce = "none"` or `"result"`: bare `SUM(IF(p, c, 0))`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` (`coalesce = "aggregate"`: `COALESCE(COUNTIF(p), 0)`) | `SUM` | `0` | `x` |
 | `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
@@ -588,11 +612,12 @@ which splits the aggregation into four parts:
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
-`coalesce` does not change `finalize`, only `bucket_aggregate` and `no_rows`, on `sum` and
-`count_where`. For `sum`, a bare `SUM(c)` over a bucket with no matching rows is `NULL` in SQL, and
-`SUM` combine ignores nulls, so `no_rows = "NULL"` reproduces the same value Jetstream's bare
-`SUM(c)` would return for a unit with zero rows in the whole window, and collapses correctly over a
-single bucket. For `count_where`, `COUNTIF` never returns null regardless of the `coalesce` mode, so
+`coalesce` does not change `finalize`, only `bucket_aggregate` and `no_rows`, on `sum`, `sum_where`
+and `count_where`. For `sum` and `sum_where`, a bare `SUM(c)` or `SUM(IF(p, c, 0))` over a bucket
+with no matching rows is `NULL` in SQL, and `SUM` combine ignores nulls, so `no_rows = "NULL"`
+reproduces the same value Jetstream's bare expression would return for a unit with zero rows in the
+whole window, and collapses correctly over a single bucket. For `count_where`, `COUNTIF` never
+returns null regardless of the `coalesce` mode, so
 `no_rows` stays `0` either way; the `aggregate` mode's `bucket_aggregate` wraps in `COALESCE` to
 match Jetstream's text, even though it changes no value. `any`'s Highwind parts never change with
 `coalesce`: `COUNTIF(p)` is never null, and `finalize` already always casts to `INT64`, so `any`

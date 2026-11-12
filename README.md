@@ -20,7 +20,7 @@ Tool-specific configs take precedence over the metric definitions in the top lev
 A metric definition describes its computation in one of two ways:
 
 - `select_expression`: a SQL expression evaluated against the metric's data source, for example `'{{agg_sum("active_hours_sum")}}'`.
-- Aggregation fields: `aggregation` (one of `sum`, `count`, `count_where`, `any`, `recency_within`) together with the `column`, `where` conditions and options that aggregation reads. Each consumer generates the SQL it needs from these fields.
+- Aggregation fields: `aggregation` (one of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`) together with the `column`, `where` conditions and options that aggregation reads. Each consumer generates the SQL it needs from these fields.
 
 A metric declares at most one of the two. A metric that declares neither is still valid, for example one that only overrides `statistics` or one that derives from other metrics with `depends_on`.
 

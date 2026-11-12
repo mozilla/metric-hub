@@ -27,6 +27,7 @@ from .aggregation import (
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
     MAX_WITHIN_DAYS,
+    VALUE_AND_CONDITION_AGGREGATIONS,
     Aggregation,
     BucketedAggregation,
     Clause,
@@ -221,7 +222,10 @@ class MetricDefinition:
             raise ValueError(
                 f"{context}: declare either select_expression or aggregation, not both"
             )
-        if self.aggregation not in COLUMN_AGGREGATIONS | CONDITION_AGGREGATIONS:
+        if (
+            self.aggregation
+            not in COLUMN_AGGREGATIONS | CONDITION_AGGREGATIONS | VALUE_AND_CONDITION_AGGREGATIONS
+        ):
             raise ValueError(f"{context}: unknown aggregation '{self.aggregation}'")
         if self.column is not None:
             validate_identifier(self.column, context)
@@ -231,6 +235,9 @@ class MetricDefinition:
                 raise ValueError(f"{context}: '{self.aggregation}' requires a column")
             if self.where:
                 raise ValueError(f"{context}: '{self.aggregation}' does not take where")
+        elif self.aggregation in VALUE_AND_CONDITION_AGGREGATIONS:
+            if self.column is None or not self.where:
+                raise ValueError(f"{context}: '{self.aggregation}' requires both column and where")
         elif (self.column is None) == (not self.where):
             raise ValueError(
                 f"{context}: '{self.aggregation}' requires exactly one of column or where"
