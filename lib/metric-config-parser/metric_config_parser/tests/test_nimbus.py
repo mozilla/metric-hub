@@ -15,6 +15,7 @@ from metric_config_parser.config import (
     DefinitionConfig,
     LocalConfigCollection,
     NimbusConfig,
+    Outcome,
     entity_from_path,
     is_nimbus_definition,
 )
@@ -862,6 +863,144 @@ class TestNimbusDefinitionMismatches:
         assert collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
         assert collection.nimbus_definition_mismatches() == []
 
+    def test_outcome_redefines_metric_sql_is_reported(self):
+        collection = collection_with_functions(FIXTURE_DIR)
+        collection.outcomes = [
+            Outcome(
+                slug="new_user_onboarding",
+                spec=OutcomeSpec(
+                    friendly_name="Onboarding",
+                    description="Onboarding",
+                    metrics={
+                        "active_hours": parse_metric(
+                            name="active_hours",
+                            select_expression="SUM(active_hours_sum) * 2",
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        assert collection.nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression="SUM(active_hours_sum) * 2",
+                nimbus_data_source="clients_daily",
+                definitions_data_source="clients_daily",
+                outcome="new_user_onboarding",
+            )
+        ]
+
+    def test_outcome_same_sql_is_not_reported(self):
+        collection = collection_with_functions(FIXTURE_DIR)
+        collection.outcomes = [
+            Outcome(
+                slug="new_user_onboarding",
+                spec=OutcomeSpec(
+                    friendly_name="Onboarding",
+                    description="Onboarding",
+                    metrics={
+                        "active_hours": parse_metric(
+                            name="active_hours",
+                            select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_outcome_statistics_only_is_not_reported(self):
+        collection = collection_with_functions(FIXTURE_DIR)
+        collection.outcomes = [
+            Outcome(
+                slug="new_user_onboarding",
+                spec=OutcomeSpec(
+                    friendly_name="Onboarding",
+                    description="Onboarding",
+                    metrics={
+                        "active_hours": parse_metric(
+                            name="active_hours",
+                            data_source=None,
+                            statistics={"bootstrap_mean": {}},
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_jetstream_definitions_overlay_changes_sql_is_reported(self):
+        collection = collection_with_functions(FIXTURE_DIR)
+        jetstream = ConfigCollection(
+            definitions=[
+                DefinitionConfig(
+                    slug="firefox_desktop",
+                    platform="firefox_desktop",
+                    spec=DefinitionSpec.from_dict(
+                        {
+                            "metrics": {
+                                "active_hours": {
+                                    "select_expression": "SUM(active_hours_sum) * 2",
+                                    "data_source": "clients_daily",
+                                }
+                            }
+                        }
+                    ),
+                    last_modified=datetime.now(UTC),
+                )
+            ]
+        )
+        collection.merge(jetstream)
+
+        assert collection.nimbus_definition_mismatches() == [
+            NimbusDefinitionMismatch(
+                app_name="firefox_desktop",
+                metric="active_hours",
+                nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+                definitions_select_expression="SUM(active_hours_sum) * 2",
+                nimbus_data_source="clients_daily",
+                definitions_data_source="clients_daily",
+            )
+        ]
+
+    def test_ignores_metric_only_in_nimbus_with_outcomes_in_scope(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        replace_active_hours_definition(tmp_path, "")
+
+        collection = collection_with_functions(tmp_path)
+        collection.outcomes = [
+            Outcome(
+                slug="unrelated",
+                spec=OutcomeSpec(
+                    friendly_name="Unrelated",
+                    description="Unrelated",
+                    metrics={
+                        "uri_count": parse_metric(
+                            name="uri_count",
+                            data_source=None,
+                            statistics={"bootstrap_mean": {}},
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
+        assert collection.nimbus_definition_mismatches() == []
+
     def test_mismatch_message(self):
         mismatch = NimbusDefinitionMismatch(
             app_name="firefox_desktop",
@@ -878,6 +1017,26 @@ class TestNimbusDefinitionMismatches:
             "  nimbus/definitions: data_source=clients_daily, "
             "select_expression=COALESCE(SUM(active_hours_sum), 0)\n"
             "  definitions: data_source=clients_daily, select_expression=SUM(active_hours_sum)"
+        )
+
+    def test_mismatch_message_names_outcome(self):
+        mismatch = NimbusDefinitionMismatch(
+            app_name="firefox_desktop",
+            metric="active_hours",
+            nimbus_select_expression="COALESCE(SUM(active_hours_sum), 0)",
+            definitions_select_expression="SUM(active_hours_sum)",
+            nimbus_data_source="clients_daily",
+            definitions_data_source="clients_daily",
+            outcome="new_user_onboarding",
+        )
+
+        assert str(mismatch) == (
+            "Metric 'active_hours' in nimbus/definitions/firefox_desktop.toml does not match "
+            "outcomes/firefox_desktop/new_user_onboarding.toml\n"
+            "  nimbus/definitions: data_source=clients_daily, "
+            "select_expression=COALESCE(SUM(active_hours_sum), 0)\n"
+            "  outcomes/firefox_desktop/new_user_onboarding: data_source=clients_daily, "
+            "select_expression=SUM(active_hours_sum)"
         )
 
     @pytest.mark.parametrize(

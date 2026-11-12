@@ -41,14 +41,21 @@ class NimbusDefinitionMismatch:
     definitions_select_expression: str | None
     nimbus_data_source: str | None
     definitions_data_source: str | None
+    outcome: str | None = None
 
     def __str__(self) -> str:
+        if self.outcome is not None:
+            match_target = f"outcomes/{self.app_name}/{self.outcome}.toml"
+            label = f"outcomes/{self.app_name}/{self.outcome}"
+        else:
+            match_target = f"definitions/{self.app_name}.toml"
+            label = "definitions"
         return (
             f"Metric '{self.metric}' in {NIMBUS_DIR}/definitions/{self.app_name}.toml does not "
-            f"match definitions/{self.app_name}.toml\n"
+            f"match {match_target}\n"
             f"  {NIMBUS_DIR}/definitions: data_source={self.nimbus_data_source}, "
             f"select_expression={self.nimbus_select_expression}\n"
-            f"  definitions: data_source={self.definitions_data_source}, "
+            f"  {label}: data_source={self.definitions_data_source}, "
             f"select_expression={self.definitions_select_expression}"
         )
 
