@@ -66,3 +66,10 @@ scale = 1000
 bigger_is_better = true
 cumulative_window = 7
 repeat_windows = true
+
+[metrics.glean_counter_example]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "metrics.counter.example_counter"
+cumulative_window = 7
+repeat_windows = true

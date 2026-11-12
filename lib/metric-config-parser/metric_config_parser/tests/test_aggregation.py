@@ -181,6 +181,56 @@ class TestConditions:
         assert shorthand.bucketed_aggregation == where.bucketed_aggregation
 
 
+class TestDottedColumn:
+    def test_sum_with_dotted_column(self):
+        metric = parse_metric(aggregation="sum", column="metrics.counter.example_counter")
+
+        assert metric.select_expression_from_aggregation == (
+            '{{agg_sum("metrics.counter.example_counter")}}'
+        )
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(SUM(metrics.counter.example_counter), 0)"
+        )
+        assert metric.bucketed_aggregation == BucketedAggregation(
+            "COALESCE(SUM(metrics.counter.example_counter), 0)",
+            Combine.SUM,
+            "0",
+            "{combined}",
+        )
+
+    def test_condition_with_dotted_column(self):
+        metric = parse_metric(
+            aggregation="count_where",
+            where=[{"column": "payload.processes.parent.scalars.a", "op": ">", "value": 0}],
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "COUNTIF(payload.processes.parent.scalars.a > 0)"
+        )
+        assert metric.bucketed_aggregation.bucket_aggregate == (
+            "COUNTIF(payload.processes.parent.scalars.a > 0)"
+        )
+
+    def test_column_shorthand_with_dotted_column(self):
+        shorthand = parse_metric(aggregation="any", column="metrics.boolean.flag")
+        where = parse_metric(aggregation="any", where=[{"column": "metrics.boolean.flag"}])
+
+        assert (
+            shorthand.select_expression_from_aggregation == where.select_expression_from_aggregation
+        )
+        assert shorthand.bucketed_aggregation == where.bucketed_aggregation
+
+    @pytest.mark.parametrize(
+        "column",
+        ["COALESCE(a, 0)", "1a", "a.1b", "a..b", "a.", ".a", "a > 0", "a.b.", "a b"],
+    )
+    def test_rejects_non_identifier_columns(self, column):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(aggregation="sum", column=column)
+
+        assert exc_info.group_contains(ValueError, match="must be a plain column name")
+
+
 class TestThresholdAndScale:
     @pytest.mark.parametrize(
         ("fields", "rendered", "finalize"),

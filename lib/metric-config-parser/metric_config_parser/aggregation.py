@@ -6,7 +6,7 @@ from typing import Any, TypeGuard
 
 import attr
 
-IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
 NO_ACTIVITY_DAYS = 30
 MAX_WITHIN_DAYS = 28
 JINJA_OPEN = "{{"

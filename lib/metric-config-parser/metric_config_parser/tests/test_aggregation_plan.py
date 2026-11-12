@@ -114,6 +114,24 @@ class TestAggregationPlan:
         assert plan.missing == ["not_a_real_metric"]
         assert set(plan.metrics) == {"active_hours"}
 
+    def test_dotted_column_contributes_its_full_path(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_example"])
+
+        source = plan.sources["clients_daily"]
+        assert source.columns == ("metrics.counter.example_counter",)
+
+    def test_dotted_column_shares_a_source_with_a_plain_column(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(
+            collection, "firefox_desktop", ["glean_counter_example", "active_hours"]
+        )
+
+        source = plan.sources["clients_daily"]
+        assert source.columns == ("active_hours_sum", "metrics.counter.example_counter")
+
     def test_plan_ordering_is_deterministic(self):
         collection = load_collection()
 
