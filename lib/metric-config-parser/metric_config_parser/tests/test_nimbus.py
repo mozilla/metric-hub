@@ -70,6 +70,15 @@ def write_nimbus(root, metrics_toml):
     (nimbus_dir / "firefox_desktop.toml").write_text(metrics_toml)
 
 
+def write_fenix_nimbus(root, metrics_toml):
+    (root / "definitions" / "fenix.toml").write_text(
+        '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.clients_daily"\n'
+    )
+    nimbus_dir = root / NIMBUS_DEFINITIONS_DIR
+    nimbus_dir.mkdir(parents=True, exist_ok=True)
+    (nimbus_dir / "fenix.toml").write_text(metrics_toml)
+
+
 def collection_with_functions(path):
     collection = LocalConfigCollection.from_local_path(path)
     collection.functions = FunctionsSpec.from_dict(toml.load(FUNCTIONS_FILE))
@@ -582,7 +591,22 @@ class TestNimbusSpec:
         with pytest.raises(
             ValueError, match=r"select_expression is not allowed\. Use aggregation instead\."
         ):
-            LocalConfigCollection.from_local_path(tmp_path)
+            NimbusSpec.from_file(tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml")
+
+    def test_invalid_file_is_skipped_by_collection(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[metrics.bad]\ndata_source = "clients_daily"\nselect_expression = "SUM(a)"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.nimbus_configs == []
+        assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
+        assert any(
+            "select_expression is not allowed" in record.message for record in caplog.records
+        )
 
 
 class TestNimbusCollection:
@@ -665,24 +689,112 @@ class TestNimbusCollection:
             "firefox_desktop",
         ]
 
-    def test_rejects_undefined_data_source(self, tmp_path):
+    def test_config_failing_validation_is_dropped_at_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "search_clients_engines_sources_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n'
+            '[metrics.active_hours]\nfriendly_name = "Active hours"\n'
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "active_hours_sum"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.nimbus_configs == []
+        assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
+        assert any(
+            "search_clients_engines_sources_daily" in record.message for record in caplog.records
+        )
+
+    def test_config_from_another_app_is_dropped_at_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        nimbus_dir = tmp_path / NIMBUS_DEFINITIONS_DIR
+        (nimbus_dir / "firefox_desktop.toml").rename(nimbus_dir / "fenix.toml")
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.nimbus_configs == []
+        assert any(
+            "not defined in definitions/fenix.toml" in record.message for record in caplog.records
+        )
+
+    def test_entity_from_path_raises_on_invalid_metric(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[metrics.bad]\ndata_source = "clients_daily"\nselect_expression = "SUM(a)"\n',
+        )
+
+        with pytest.raises(ValueError, match=r"select_expression is not allowed"):
+            entity_from_path(tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml")
+
+    def test_validate_raises_on_undefined_data_source(self, tmp_path):
         make_repo(tmp_path)
         write_nimbus(
             tmp_path,
             '[metrics.search_count]\ndata_source = "search_clients_engines_sources_daily"\n'
             'aggregation = "sum"\ncolumn = "sap"\n',
         )
+        entity = entity_from_path(tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml")
+        collection = LocalConfigCollection.from_local_path(tmp_path)
 
         with pytest.raises(ValueError, match="search_clients_engines_sources_daily"):
-            LocalConfigCollection.from_local_path(tmp_path)
+            entity.validate(collection)
 
-    def test_rejects_data_source_from_another_app(self, tmp_path):
+    def test_unknown_metric_key_skips_file_others_still_load(self, tmp_path, caplog):
         make_repo(tmp_path)
-        nimbus_dir = tmp_path / NIMBUS_DEFINITIONS_DIR
-        (nimbus_dir / "firefox_desktop.toml").rename(nimbus_dir / "fenix.toml")
+        write_fenix_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        write_nimbus(
+            tmp_path,
+            '[metrics.active_hours]\nfriendly_name = "Active hours"\n'
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "active_hours_sum"\n'
+            "bogus = 1\n",
+        )
 
-        with pytest.raises(ValueError, match=r"not defined in definitions/fenix\.toml"):
-            LocalConfigCollection.from_local_path(tmp_path)
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert {config.slug for config in collection.nimbus_configs} == {"fenix"}
+        assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
+        assert any("firefox_desktop.toml" in record.message for record in caplog.records)
+
+    def test_unknown_top_level_table_skips_file_others_still_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_fenix_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        write_nimbus(
+            tmp_path,
+            '[data_sources]\n[metrics.active_hours]\nfriendly_name = "Active hours"\n'
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "active_hours_sum"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert {config.slug for config in collection.nimbus_configs} == {"fenix"}
+        assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
+        assert any("firefox_desktop.toml" in record.message for record in caplog.records)
+
+    def test_unparseable_toml_skips_file_others_still_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_fenix_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        write_nimbus(tmp_path, "[metrics.active_hours\n")
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert {config.slug for config in collection.nimbus_configs} == {"fenix"}
+        assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
+        assert any("firefox_desktop.toml" in record.message for record in caplog.records)
 
     def test_same_metric_in_definitions_and_nimbus(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
@@ -712,8 +824,8 @@ class TestNimbusCollection:
             '[data_sources.search_clients]\nfrom_expression = "mozdata.search.search_clients"\n',
         )
 
-        with pytest.raises(ValueError, match="search_clients"):
-            ConfigCollection.from_github_repo(nimbus_repo)
+        collection = ConfigCollection.from_github_repo(nimbus_repo)
+        assert collection.nimbus_configs == []
 
         collection = ConfigCollection.from_github_repos([str(nimbus_repo), str(data_source_repo)])
         assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
@@ -721,7 +833,7 @@ class TestNimbusCollection:
         collection = collection.as_of(datetime.now(UTC))
         assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
 
-    def test_rejects_data_source_missing_from_every_repo(self, tmp_path):
+    def test_config_missing_data_source_from_every_repo_is_dropped(self, tmp_path, caplog):
         nimbus_repo = make_repo(tmp_path / "metric-hub")
         write_nimbus(
             nimbus_repo,
@@ -734,8 +846,10 @@ class TestNimbusCollection:
             '[data_sources.events]\nfrom_expression = "mozdata.firefox_desktop.events"\n',
         )
 
-        with pytest.raises(ValueError, match="'search_clients'"):
-            ConfigCollection.from_github_repos([str(nimbus_repo), str(other_repo)])
+        collection = ConfigCollection.from_github_repos([str(nimbus_repo), str(other_repo)])
+
+        assert collection.nimbus_configs == []
+        assert any("'search_clients'" in record.message for record in caplog.records)
 
     def test_skips_validation_when_disabled(self, tmp_path):
         make_repo(tmp_path)
