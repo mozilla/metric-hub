@@ -85,7 +85,7 @@ Aggregation fields:
 | field | type | default | meaning |
 | --- | --- | --- | --- |
 | `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
-| `column` | string | | A plain column name on the data source. |
+| `column` | string | | A column name on the data source, or a dotted path to one. |
 | `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
@@ -107,8 +107,10 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 | `count_where` | exactly one of `column` or `where` | exactly one of `column` or `where` | not allowed |
 | `any` | exactly one of `column` or `where` | exactly one of `column` or `where` | not allowed |
 
-A column name must match `^[A-Za-z_][A-Za-z0-9_]*$`. It is a name, never an expression, so
-`COALESCE(x, 0)`, `a.b` and `x > 0` are all rejected. No aggregation field takes SQL.
+A column name must match `^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$`: one or more
+`.`-separated plain names, such as a Glean `metrics.counter.x` or legacy `payload.processes.y`
+field path. It is a name, never an expression, so `COALESCE(x, 0)`, `x + 1` and `x > 0` are all
+rejected. No aggregation field takes SQL.
 
 Other fields allowed in `nimbus/`. These are existing metric fields and are parsed as
 they are in `definitions/`:
@@ -234,7 +236,7 @@ Each condition is a table with these keys:
 
 | key | required | meaning |
 | --- | --- | --- |
-| `column` | yes | A plain column name. |
+| `column` | yes | A column name, or a dotted path to one. |
 | `op` | no | One of the operators below. Leave it out to test a boolean column for true. |
 | `value` | with a comparison operator | The value to compare against. |
 
@@ -410,7 +412,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `within_days` is set on any other aggregation.
 - `keep_nulls` is set on any aggregation other than `sum` or `any`.
 - `encoding` is set on any aggregation other than `recency_within`.
-- A `column`, or a condition's `column`, is not a plain column name.
+- A `column`, or a condition's `column`, is not a plain column name or dotted path.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
 - A condition's `op` is not one of the listed operators.
@@ -547,7 +549,9 @@ With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself wh
 `encoding = "days"`, the same substitution as on the Jetstream side.
 
 The columns Highwind reads from each data source are derived from the aggregation-form
-definitions: every `column` and every condition column, grouped by `data_source`.
+definitions: every `column` and every condition column, grouped by `data_source`. A dotted
+`column` contributes its full path as one entry; Highwind selects it as written, not just its
+final segment.
 
 `aggregation_plan(configs, app_name, metric_names)` builds this grouping for a run. It looks up
 each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:
@@ -614,7 +618,8 @@ above).
 - Averages, or any aggregation that cannot be split into per-bucket values that combine into the
   window value.
 - `count_distinct`.
-- OR, IN, NOT, LIKE, function calls and expressions in conditions or columns.
+- OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the single
+  dotted-path column names covered above.
 - Data sources in `nimbus/`. They stay in `definitions/`.
 - A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
   for how Highwind resolves them.
