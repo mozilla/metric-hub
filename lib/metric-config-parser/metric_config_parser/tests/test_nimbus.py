@@ -8,6 +8,7 @@ from cattrs.errors import ClassValidationError
 from git import Repo
 
 from metric_config_parser.aggregation import Aggregation, Clause, Operator, Threshold
+from metric_config_parser.aggregation_plan import aggregation_plan
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.config import (
     NIMBUS_DEFINITIONS_DIR,
@@ -23,6 +24,7 @@ from metric_config_parser.definition import DefinitionSpec
 from metric_config_parser.function import FunctionsSpec
 from metric_config_parser.metric import MetricDefinition, MetricReference
 from metric_config_parser.nimbus import (
+    NIMBUS_DIR,
     NIMBUS_METRIC_KEYS,
     NimbusDefinitionMismatch,
     NimbusSpec,
@@ -77,6 +79,12 @@ def write_fenix_nimbus(root, metrics_toml):
     nimbus_dir = root / NIMBUS_DEFINITIONS_DIR
     nimbus_dir.mkdir(parents=True, exist_ok=True)
     (nimbus_dir / "fenix.toml").write_text(metrics_toml)
+
+
+def write_nimbus_app_file(root, app_name, filename, metrics_toml):
+    app_dir = root / NIMBUS_DIR / app_name
+    app_dir.mkdir(parents=True, exist_ok=True)
+    (app_dir / filename).write_text(metrics_toml)
 
 
 def collection_with_functions(path):
@@ -680,7 +688,9 @@ class TestNimbusCollection:
 
     def test_merge_keeps_configs_for_other_apps(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
-        other = ConfigCollection(nimbus_configs=[NimbusConfig(slug="fenix", spec=NimbusSpec())])
+        other = ConfigCollection(
+            nimbus_configs=[NimbusConfig(slug="fenix", app_name="fenix", spec=NimbusSpec())]
+        )
 
         collection.merge(other)
 
@@ -863,6 +873,207 @@ class TestNimbusCollection:
         collection = ConfigCollection.from_github_repo(tmp_path, validate_nimbus=False)
 
         assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
+
+
+class TestNimbusAppLayout:
+    def test_loads_new_layout_file(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        metric = collection.get_nimbus_metric_definition("uri_count", "firefox_desktop")
+        assert metric is not None
+        assert metric.aggregation == Aggregation.SUM
+        assert metric.column == "scalar_parent_browser_engagement_total_uri_count_sum"
+
+    def test_merges_legacy_and_new_layout(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert (
+            collection.get_nimbus_metric_definition("active_hours", "firefox_desktop") is not None
+        )
+        assert collection.get_nimbus_metric_definition("uri_count", "firefox_desktop") is not None
+        assert {
+            config.slug
+            for config in collection.nimbus_configs
+            if config.app_name == "firefox_desktop"
+        } == {"firefox_desktop", "defaults"}
+
+    def test_entity_from_path_new_layout(self, tmp_path):
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+
+        entity = entity_from_path(tmp_path / NIMBUS_DIR / "firefox_desktop" / "defaults.toml")
+
+        assert isinstance(entity, NimbusConfig)
+        assert entity.slug == "defaults"
+        assert entity.app_name == "firefox_desktop"
+        assert entity.is_legacy is False
+        assert "uri_count" in entity.spec.metrics
+
+    def test_is_nimbus_definition_new_layout(self):
+        assert is_nimbus_definition(Path("nimbus") / "firefox_desktop" / "defaults.toml")
+
+    def test_duplicate_metric_across_new_layout_files_is_dropped_at_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "networking.toml",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "count"\ncolumn = "sap"\n',
+        )
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "other.toml",
+            '[metrics.other_metric]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.get_nimbus_metric_definition("search_count", "firefox_desktop") is None
+        assert (
+            collection.get_nimbus_metric_definition("other_metric", "firefox_desktop") is not None
+        )
+        assert (
+            collection.get_nimbus_metric_definition("active_hours", "firefox_desktop") is not None
+        )
+        assert any("are also defined in" in record.message for record in caplog.records)
+
+    def test_duplicate_between_legacy_and_new_layout_is_dropped_at_load(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.active_hours]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "active_hours_sum"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.get_nimbus_metric_definition("active_hours", "firefox_desktop") is None
+        assert collection.get_nimbus_metric_definition("days_of_use", "firefox_desktop") is None
+        assert any("are also defined in" in record.message for record in caplog.records)
+
+    def test_duplicate_is_strict_when_checked_directly(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "networking.toml",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "count"\ncolumn = "sap"\n',
+        )
+        collection = ConfigCollection.from_github_repos([str(tmp_path)], validate_nimbus=False)
+        entity = entity_from_path(tmp_path / NIMBUS_DIR / "firefox_desktop" / "defaults.toml")
+
+        with pytest.raises(ValueError, match="also defined in"):
+            entity.validate(collection)
+
+    def test_aggregation_plan_across_several_files(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "networking.toml",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        plan = aggregation_plan(
+            collection, "firefox_desktop", ["uri_count", "search_count", "active_hours"]
+        )
+
+        assert plan.missing == []
+        assert set(plan.metrics) == {"uri_count", "search_count", "active_hours"}
+        assert plan.sources["clients_daily"].columns == (
+            "active_hours_sum",
+            "sap",
+            "scalar_parent_browser_engagement_total_uri_count_sum",
+        )
+
+    def test_nimbus_definition_mismatches_new_layout_metric(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+
+        collection = collection_with_functions(tmp_path)
+
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_nimbus_definition_mismatches_reports_new_layout_drift(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_app_file(
+            tmp_path,
+            "firefox_desktop",
+            "defaults.toml",
+            '[metrics.uri_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "count"\n'
+            'column = "scalar_parent_browser_engagement_total_uri_count_sum"\n',
+        )
+
+        collection = collection_with_functions(tmp_path)
+
+        mismatches = collection.nimbus_definition_mismatches()
+        assert len(mismatches) == 1
+        assert mismatches[0].metric == "uri_count"
 
 
 class TestNimbusDefinitionMismatches:

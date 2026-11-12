@@ -19,6 +19,8 @@ jobs:
         definitions/*.toml.example
         nimbus/definitions/*.toml
         nimbus/definitions/*.toml.example
+        nimbus/*/*.toml
+        nimbus/*/*.toml.example
 
   validate-metrics:
     runs-on: ubuntu-latest

@@ -178,7 +178,7 @@ def _nimbus_metric_queries(config_collection, entity):
         (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
     )
     definition = next(
-        d for d in config_collection.definitions if d.platform == entity.slug
+        d for d in config_collection.definitions if d.platform == entity.app_name
     )
     metrics = [
         MetricDefinition(
@@ -221,7 +221,7 @@ def _nimbus_metric_queries(config_collection, entity):
 def validate(path, config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos)
+    config_collection = ConfigCollection.from_github_repos(config_repos, validate_nimbus=False)
 
     # get updated function definitions
     for config_file in path:

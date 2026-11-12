@@ -27,7 +27,7 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusDefinitionMismatch, NimbusSpec
+from .nimbus import NIMBUS_DIR, NIMBUS_LEGACY_DIR, NimbusDefinitionMismatch, NimbusSpec
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory, normalize_sql
@@ -243,39 +243,79 @@ class FeatmonConfig:
 
 @attr.s(auto_attribs=True)
 class NimbusConfig:
-    """Represents a nimbus/definitions config file for a single application."""
+    """Represents one file of aggregation-form metrics for a single application: either the
+    legacy nimbus/definitions/<application>.toml, or one file under the application's own
+    folder under nimbus/ (e.g. nimbus/<application>/defaults.toml)."""
 
     slug: str
+    app_name: str
     spec: NimbusSpec
+    is_legacy: bool = False
+
+    @property
+    def path(self) -> Path:
+        folder = NIMBUS_LEGACY_DIR if self.is_legacy else self.app_name
+        return Path(NIMBUS_DIR) / folder / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
         for name, metric in self.spec.metrics.items():
             data_source = metric.data_source.name if metric.data_source else None
             if (
                 data_source is None
-                or configs.get_data_source_definition(data_source, self.slug) is None
+                or configs.get_data_source_definition(data_source, self.app_name) is None
             ):
                 raise ValueError(
-                    f"Metric '{name}' in {NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml references "
+                    f"Metric '{name}' in {self.path} references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.slug}.toml"
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml"
+                )
+
+        for other in configs.nimbus_configs:
+            if other.app_name != self.app_name:
+                continue
+            if other.slug == self.slug and other.is_legacy == self.is_legacy:
+                continue
+            duplicates = sorted(set(self.spec.metrics) & set(other.spec.metrics))
+            if duplicates:
+                raise ValueError(
+                    f"Metric(s) {', '.join(duplicates)} in {self.path} are also defined in "
+                    f"{other.path}"
                 )
 
 
 def is_nimbus_definition(path: Path) -> bool:
-    return path.parent.name == DEFINITIONS_DIR and path.parent.parent.name == NIMBUS_DIR
+    return path.parent.parent.name == NIMBUS_DIR
+
+
+def _load_nimbus_config(nimbus_file: Path, app_name: str, is_legacy: bool) -> NimbusConfig | None:
+    try:
+        spec = NimbusSpec.from_file(nimbus_file)
+    except (ValueError, ClassValidationError) as e:
+        logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+        return None
+    return NimbusConfig(slug=nimbus_file.stem, app_name=app_name, spec=spec, is_legacy=is_legacy)
 
 
 def _load_nimbus_configs(nimbus_dir: Path) -> list[NimbusConfig]:
-    nimbus_configs = []
-    if nimbus_dir.is_dir():
-        for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-            try:
-                spec = NimbusSpec.from_file(nimbus_file)
-            except (ValueError, ClassValidationError) as e:
-                logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
-                continue
-            nimbus_configs.append(NimbusConfig(slug=nimbus_file.stem, spec=spec))
+    nimbus_configs: list[NimbusConfig] = []
+    if not nimbus_dir.is_dir():
+        return nimbus_configs
+
+    legacy_dir = nimbus_dir / NIMBUS_LEGACY_DIR
+    if legacy_dir.is_dir():
+        for nimbus_file in sorted(legacy_dir.glob("*.toml")):
+            config = _load_nimbus_config(nimbus_file, app_name=nimbus_file.stem, is_legacy=True)
+            if config is not None:
+                nimbus_configs.append(config)
+
+    for app_dir in sorted(nimbus_dir.iterdir()):
+        if not app_dir.is_dir() or app_dir.name == NIMBUS_LEGACY_DIR:
+            continue
+        for nimbus_file in sorted(app_dir.glob("*.toml")):
+            config = _load_nimbus_config(nimbus_file, app_name=app_dir.name, is_legacy=False)
+            if config is not None:
+                nimbus_configs.append(config)
+
     return nimbus_configs
 
 
@@ -285,12 +325,7 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
         try:
             nimbus_config.validate(collection)
         except ValueError as e:
-            logger.warning(
-                "%s/%s.toml: skipping file, failed validation: %s",
-                NIMBUS_DEFINITIONS_DIR,
-                nimbus_config.slug,
-                e,
-            )
+            logger.warning("%s: skipping file, failed validation: %s", nimbus_config.path, e)
             continue
         valid_configs.append(nimbus_config)
     collection.nimbus_configs = valid_configs
@@ -324,9 +359,14 @@ def entity_from_path(
         )
 
     if is_nimbus_definition(path):
+        is_legacy = path.parent.name == NIMBUS_LEGACY_DIR
+        app_name = slug if is_legacy else path.parent.name
+        context = f"{NIMBUS_DIR}/{path.parent.name}/{slug}.toml"
         return NimbusConfig(
             slug=slug,
-            spec=NimbusSpec.from_dict(config_dict, platform=slug),
+            app_name=app_name,
+            spec=NimbusSpec.from_dict(config_dict, platform=app_name, context=context),
+            is_legacy=is_legacy,
         )
 
     validate_config_settings(path)
@@ -486,11 +526,14 @@ class ConfigCollection:
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        validate_nimbus: bool = True,
     ) -> "ConfigCollection":
         """Load configs from the provided repos."""
         if repo_urls is None or len(repo_urls) < 1:
-            return ConfigCollection.from_github_repo()
+            return ConfigCollection.from_github_repo(validate_nimbus=validate_nimbus)
 
         configs = None
 
@@ -505,8 +548,9 @@ class ConfigCollection:
                 )
                 configs.merge(collection)
         if configs is None:
-            return ConfigCollection.from_github_repo()
-        _drop_invalid_nimbus_configs(configs)
+            return ConfigCollection.from_github_repo(validate_nimbus=validate_nimbus)
+        if validate_nimbus:
+            _drop_invalid_nimbus_configs(configs)
         return configs
 
     @classmethod
@@ -607,7 +651,7 @@ class ConfigCollection:
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR)
 
         collection = cls(
             external_configs,
@@ -824,8 +868,10 @@ class ConfigCollection:
 
     def get_nimbus_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
         for nimbus_config in self.nimbus_configs:
-            if app_name == nimbus_config.slug:
-                return nimbus_config.spec.metrics.get(slug)
+            if app_name == nimbus_config.app_name:
+                metric = nimbus_config.spec.metrics.get(slug)
+                if metric is not None:
+                    return metric
 
         return None
 
@@ -838,7 +884,7 @@ class ConfigCollection:
         mismatches = []
         for nimbus_config in self.nimbus_configs:
             for name, metric in nimbus_config.spec.metrics.items():
-                definition = self.get_metric_definition(name, nimbus_config.slug)
+                definition = self.get_metric_definition(name, nimbus_config.app_name)
                 if definition is None:
                     continue
                 nimbus_template = metric.select_expression_from_aggregation or ""
@@ -858,7 +904,7 @@ class ConfigCollection:
                 if nimbus_sql != definitions_sql or nimbus_data_source != definitions_data_source:
                     mismatches.append(
                         NimbusDefinitionMismatch(
-                            app_name=nimbus_config.slug,
+                            app_name=nimbus_config.app_name,
                             metric=name,
                             nimbus_select_expression=nimbus_sql,
                             definitions_select_expression=definitions_sql,
@@ -993,11 +1039,17 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
-        nimbus_configs = {nc.slug: nc for nc in deepcopy(other.nimbus_configs)}
+        other_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
+        for nc in deepcopy(other.nimbus_configs):
+            other_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
+        self_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
         for nc in self.nimbus_configs:
-            if nc.slug not in nimbus_configs:
-                nimbus_configs[nc.slug] = nc
-        self.nimbus_configs = list(nimbus_configs.values())
+            self_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
+
+        nimbus_configs = []
+        for app_name in sorted(set(self_nimbus_by_app) | set(other_nimbus_by_app)):
+            nimbus_configs += other_nimbus_by_app.get(app_name) or self_nimbus_by_app[app_name]
+        self.nimbus_configs = nimbus_configs
 
         self.repos += other.repos
 
@@ -1107,7 +1159,7 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR)
 
         collection = cls(
             external_configs,
@@ -1139,7 +1191,10 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        validate_nimbus: bool = True,
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_github_repos` is not valid for non-repo-based LocalConfigCollection. "

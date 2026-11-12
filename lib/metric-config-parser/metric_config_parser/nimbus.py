@@ -10,6 +10,7 @@ from .metric import MetricDefinition
 from .util import converter
 
 NIMBUS_DIR = "nimbus"
+NIMBUS_LEGACY_DIR = "definitions"
 
 NIMBUS_METRIC_KEYS = {
     "data_source",
@@ -55,13 +56,17 @@ class NimbusDefinitionMismatch:
 
 @attr.s(auto_attribs=True)
 class NimbusSpec:
-    """Metric definitions from a nimbus/definitions/<application>.toml file."""
+    """Metric definitions from a nimbus/definitions/<application>.toml file, or from one of the
+    files under an application's folder under nimbus/."""
 
     metrics: dict[str, MetricDefinition] = attr.Factory(dict)
 
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any], platform: str) -> "NimbusSpec":
-        context = f"{NIMBUS_DIR}/definitions/{platform}.toml"
+    def from_dict(
+        cls, d: Mapping[str, Any], platform: str, context: str | None = None
+    ) -> "NimbusSpec":
+        if context is None:
+            context = f"{NIMBUS_DIR}/{NIMBUS_LEGACY_DIR}/{platform}.toml"
         reject_unknown_keys(d, {"metrics"}, context)
         metrics = {}
         for name, metric in d.get("metrics", {}).items():
@@ -79,4 +84,7 @@ class NimbusSpec:
 
     @classmethod
     def from_file(cls, path: Path) -> "NimbusSpec":
-        return cls.from_dict(toml.load(str(path)), platform=path.stem)
+        is_legacy = path.parent.name == NIMBUS_LEGACY_DIR
+        platform = path.stem if is_legacy else path.parent.name
+        context = f"{NIMBUS_DIR}/{path.parent.name}/{path.stem}.toml"
+        return cls.from_dict(toml.load(str(path)), platform=platform, context=context)

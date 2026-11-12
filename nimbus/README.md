@@ -9,10 +9,10 @@ metric declares at most one of `select_expression` or the aggregation fields. A 
 declares neither stays valid, for example one that only overrides `statistics`, or one that derives
 from other metrics with `depends_on`.
 
-`nimbus/definitions/` holds metrics in aggregation form, under stricter rules than `definitions/`.
-Highwind prefers a metric's copy in `nimbus/definitions/`. Jetstream reads `definitions/` only.
+`nimbus/` holds metrics in aggregation form, under stricter rules than `definitions/`. Highwind
+prefers a metric's copy under `nimbus/`. Jetstream reads `definitions/` only.
 
-Keep aggregation-form metrics in `nimbus/definitions/` only for now. metric-config-parser generates
+Keep aggregation-form metrics under `nimbus/` only for now. metric-config-parser generates
 `select_expression` from the aggregation fields, but consumers on older metric-config-parser
 releases ignore keys they do not know, so they would read an aggregation-form metric in
 `definitions/` as a metric with no SQL.
@@ -27,18 +27,31 @@ metric-hub/
   definitions/              metrics with select_expression, and every data source
     firefox_desktop.toml
   nimbus/
-    definitions/            metrics in aggregation form
+    definitions/            legacy: one file per application, aggregation form
       firefox_desktop.toml
+    firefox_desktop/        an application's folder, several files
+      defaults.toml         the application's guardrail metrics
+      <outcome>.toml        one file per outcome, named after the outcome
 ```
 
-- One TOML file per application, named `<application>.toml`.
-- The application comes from the file stem, as in `definitions/`. Do not put it inside the file.
-- The only top-level table is `[metrics]`. Any other top-level key is rejected.
+- Every `.toml` file directly under a folder in `nimbus/`, other than `nimbus/definitions/`,
+  belongs to the application the folder is named after.
+- `nimbus/definitions/<application>.toml` is the original, one-file-per-application layout.
+  metric-config-parser still reads it. Its metrics join the same application namespace as the
+  application's own folder under `nimbus/`, so an application may use either or both.
+- Inside an application's folder, `defaults.toml` holds the application's guardrail metrics, and
+  one further file per outcome, named after the outcome, holds that outcome's metrics. Which file a
+  metric is declared in is only its default grouping; either file may be absent, and nothing
+  requires a `defaults.toml` to exist.
+- The only top-level table in any of these files is `[metrics]`. Any other top-level key is
+  rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
-- A metric may be defined under the same name in both `definitions/<application>.toml` and
-  `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
-  Jetstream uses the `definitions/` copy. The two copies must generate the same SQL. See
+- A metric name is declared at most once per application, across every file for that application,
+  including `nimbus/definitions/`. A metric declared more than once is a validation error. See
   [Validation](#validation).
+- A metric may also be defined under the same name in `definitions/<application>.toml`. Highwind
+  uses the `nimbus/` copy and Jetstream uses the `definitions/` copy. The two copies must generate
+  the same SQL. See [Validation](#validation).
 - Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
   defined there.
 - Files ending in `.example` are not loaded.
@@ -47,14 +60,19 @@ metric-config-parser loads these files when it loads a repository. `ConfigCollec
 metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metric_definition` reads
 `definitions/` only.
 
-## Rules for `nimbus/definitions/`
+A consumer on a metric-config-parser release from before this layout does not read an
+application's folder under `nimbus/` at all, since it never looks there, so adding one is always
+safe for it. It still reads `nimbus/definitions/`, and skips a file there it cannot parse (see
+[Validation](#validation)).
+
+## Rules for `nimbus/`
 
 - `aggregation` and `data_source` are required.
 - `select_expression` is not allowed.
 - Only the keys in the field reference below are allowed. Other metric keys accepted in
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
   rejected.
-- Keys are case sensitive. `definitions/` lowercases keys, `nimbus/definitions/` does not.
+- Keys are case sensitive. `definitions/` lowercases keys, `nimbus/` does not.
 - `data_source` must name a data source defined in `definitions/<application>.toml`.
 
 ## Field reference
@@ -90,7 +108,7 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 A column name must match `^[A-Za-z_][A-Za-z0-9_]*$`. It is a name, never an expression, so
 `COALESCE(x, 0)`, `a.b` and `x > 0` are all rejected. No aggregation field takes SQL.
 
-Other fields allowed in `nimbus/definitions/`. These are existing metric fields and are parsed as
+Other fields allowed in `nimbus/`. These are existing metric fields and are parsed as
 they are in `definitions/`:
 
 | field | type | required | default | meaning |
@@ -338,13 +356,13 @@ statistic's parameters. An empty table means no parameters.
 [metrics.active_hours.statistics.deciles]
 ```
 
-Nothing reads this field in `nimbus/definitions/` yet. Jetstream takes statistics from
+Nothing reads this field in `nimbus/` yet. Jetstream takes statistics from
 `definitions/` and `jetstream/defaults/`. The parser does not check statistic names.
 
 ## Validation
 
 metric-config-parser checks the following wherever it parses a metric definition, including
-`definitions/`, `nimbus/definitions/`, experiment configs and outcomes:
+`definitions/`, `nimbus/`, experiment configs and outcomes:
 
 - `select_expression` and `aggregation` are both set.
 - Any other aggregation field is set without `aggregation`.
@@ -366,7 +384,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 Booleans are not accepted where a number or integer is required.
 
-In `nimbus/definitions/`, a file is also rejected when:
+In `nimbus/`, a file is also rejected when:
 
 - The file has a top-level key other than `metrics`.
 - A metric has `select_expression`.
@@ -380,26 +398,30 @@ directory loaded counts:
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
   same application.
 
-metric-hub CI rejects a `nimbus/definitions/` file that fails any of these checks. A consumer that
-loads metric-hub skips such a file with a warning instead, so metric-hub keeps loading for it,
-including every other `definitions/` and `nimbus/definitions/` file.
+Across an application's own files under `nimbus/`:
 
-Between `definitions/` and `nimbus/definitions/`. metric-hub CI runs this check in
-`.script/validate.py`. It does not run when a repository is loaded, so a mismatch fails CI without
-stopping consumers from loading metric-hub:
+- A metric name is declared in more than one file for the application, whether both files are new
+  layout, both `nimbus/definitions/`, or one of each.
 
-- A metric defined under the same name in `definitions/<application>.toml` and
-  `nimbus/definitions/<application>.toml` renders different SQL in each, or names a different
-  `data_source`.
+metric-hub CI rejects a `nimbus/` file that fails any of these checks. A consumer that loads
+metric-hub skips such a file with a warning instead, so metric-hub keeps loading for it, including
+every other file under `definitions/` and `nimbus/`.
 
-The `select_expression` generated for the `nimbus/definitions/` copy and the `select_expression` of
-the `definitions/` copy are both rendered with the functions in `definitions/functions.toml`, so
+Between `definitions/` and `nimbus/`. metric-hub CI runs this check in `.script/validate.py`. It
+does not run when a repository is loaded, so a mismatch fails CI without stopping consumers from
+loading metric-hub:
+
+- A metric defined under the same name in `definitions/<application>.toml` and under `nimbus/` for
+  the application renders different SQL in each, or names a different `data_source`.
+
+The `select_expression` generated for the `nimbus/` copy and the `select_expression` of the
+`definitions/` copy are both rendered with the functions in `definitions/functions.toml`, so
 `agg_sum` and `agg_any` are expanded. Runs of whitespace are collapsed, and whitespace just inside
 parentheses is removed, before comparing. Metrics defined in only one of the two files are not
 compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ.
 
-metric-hub CI also dry-runs the SQL generated for every metric in a changed
-`nimbus/definitions/<application>.toml`, as it does for `definitions/`.
+metric-hub CI also dry-runs the SQL generated for every metric in a changed file under `nimbus/`, as
+it does for `definitions/`.
 
 Not checked:
 
@@ -443,12 +465,12 @@ as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. 
 not finite, or a value of any other type, fails.
 
 When a metric is defined in both directories, CI checks that the `select_expression` generated
-from `nimbus/definitions/` matches the one in `definitions/`, so moving a metric to
-`nimbus/definitions/` does not change what Jetstream computes. See [Validation](#validation).
+from `nimbus/` matches the one in `definitions/`, so moving a metric to `nimbus/` does not
+change what Jetstream computes. See [Validation](#validation).
 
 ### Highwind
 
-Highwind reads a metric from `nimbus/definitions/` when it is defined there. It scans each data
+Highwind reads a metric from `nimbus/` when it is defined there. It scans each data
 source once per analysis. It reduces each unit's rows once per bucket, then builds each window from
 those bucket values. `MetricDefinition.bucketed_aggregation` returns a `BucketedAggregation`,
 which splits the aggregation into four parts:
@@ -499,7 +521,7 @@ the same value for a window. Highwind returns 0/1 integers where Jetstream retur
   window value.
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns.
-- Data sources in `nimbus/definitions/`. They stay in `definitions/`.
+- Data sources in `nimbus/`. They stay in `definitions/`.
 - Segments. They stay in `definitions/`.
 
 ## Example

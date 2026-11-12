@@ -11,6 +11,7 @@ jobs:
       path_filter: |
         definitions/*.toml
         nimbus/definitions/*.toml
+        nimbus/*/*.toml
         lib/
         .github/
         .circleci/
