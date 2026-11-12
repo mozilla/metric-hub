@@ -179,7 +179,7 @@ def _nimbus_metric_queries(config_collection, entity):
         (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
     )
     definition = next(
-        d for d in config_collection.definitions if d.platform == entity.slug
+        d for d in config_collection.definitions if d.platform == entity.app_name
     )
     metrics = [
         MetricDefinition(
