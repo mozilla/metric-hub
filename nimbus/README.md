@@ -101,6 +101,8 @@ Aggregation fields:
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
 | `numerator` | string | | For `ratio` only: the name of a metric declared in `nimbus/` for the same application. See [Ratios](#ratios). |
 | `denominator` | string | | For `ratio` only: the name of a metric declared in `nimbus/` for the same application, distinct from `numerator`. See [Ratios](#ratios). |
+| `winsorize_quantile` | number | | Highwind-only. The cut point Highwind clips the upper tail at: `0 < q <= 1`. Unset means Highwind's own default. Not valid on a `ratio` or a yes/no metric. See [Winsorization](#winsorization). |
+| `winsorize_threshold` | number | | Highwind-only. A fixed upper bound per 7 days that Highwind clips at. Not valid on a `ratio` or a yes/no metric. See [Winsorization](#winsorization). |
 
 Every field other than `aggregation` requires `aggregation`. Which of `column`, `where` and
 `within_days` are required depends on the aggregation; `ratio` takes none of them, `numerator` or
@@ -499,6 +501,40 @@ lengths that do not fit are handled is decided by Highwind.
 Jetstream does not read the window fields. Its analysis windows are configured in
 `jetstream/defaults/`.
 
+## Winsorization
+
+`winsorize_quantile` and `winsorize_threshold` are Highwind-only. Highwind clips a heavy-tailed
+metric's value at a ceiling before computing statistics on it; these fields say where that ceiling
+comes from. At most one may be set.
+
+- `winsorize_quantile`: the cut point Highwind clips the upper tail at, `0 < q <= 1`. Leaving it
+  unset means Highwind's own default, which is a different value than `1`: `winsorize_quantile = 1`
+  turns winsorization off for this metric explicitly, while an unset field lets Highwind's default
+  change later without touching the metric. This matches the vocabulary Jetstream and mozanalysis
+  already use for the cut point (`CensorHighestValues.fraction`, `threshold_quantile`): a Jetstream
+  `drop_highest = d` corresponds to `winsorize_quantile = 1 - d`, so Jetstream's
+  `drop_highest = 0.0` is `winsorize_quantile = 1`.
+- `winsorize_threshold`: a fixed upper bound, per 7 days, that Highwind clips at instead of a
+  quantile.
+
+Neither field is valid on a yes/no metric: `any`, `recency_within`, or any metric with a
+`threshold`, since clipping a 0/1 value does nothing. Neither is valid on a `ratio` either; Highwind
+clips the numerator and denominator independently, as ordinary metrics, before dividing them. See
+[Ratios](#ratios).
+
+Nothing reads these fields except Highwind. Jetstream does its own clipping through
+`drop_highest` in its statistics configuration, unaffected by either field. Setting or leaving
+unset either field never changes `select_expression_from_aggregation` or `bucketed_aggregation`;
+the ceiling is applied by Highwind after computing the aggregation, not as part of it.
+
+```toml
+[metrics.urlbar_search_count]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "urlbar_search_count"
+winsorize_quantile = 0.995
+```
+
 ## Statistics
 
 `statistics` is a table of tables. Each key is a statistic name and its table holds that
@@ -586,6 +622,11 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `scale` is not a number.
 - `cumulative_window` or `incremental_window` is set and is not a positive integer.
 - `repeat_windows` is not a boolean, or is `true` with neither window length set.
+- Both `winsorize_quantile` and `winsorize_threshold` are set.
+- `winsorize_quantile` is not a number greater than 0 and at most 1.
+- `winsorize_threshold` is not a positive number.
+- `winsorize_quantile` or `winsorize_threshold` is set on a yes/no metric: `any`,
+  `recency_within`, or any metric with a `threshold`.
 
 Booleans are not accepted where a number or integer is required.
 
@@ -748,7 +789,10 @@ each requested name with `get_nimbus_metric_definition`, and returns an `Aggrega
   `analysis_units`, `submission_date_column`, and the sorted union of columns every requesting
   metric needs.
 - `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
-  source name, the `BucketedAggregation`, and the window fields. A `ratio`'s numerator and
+  source name, the `BucketedAggregation`, the window fields, `is_binary` (true for `any`,
+  `recency_within`, or any metric with a `threshold`, the same rule used to validate
+  [Winsorization](#winsorization), so the two cannot disagree), and `winsorize_quantile` and
+  `winsorize_threshold`, passed through unchanged with `None` preserved. A `ratio`'s numerator and
   denominator are resolved into this dict like any other requested metric, even when only the
   ratio itself was requested; the ratio's own name is not a key here.
 - `ratios`: one `AggregationRatio` per resolved `ratio`, keyed by metric name. Carries the

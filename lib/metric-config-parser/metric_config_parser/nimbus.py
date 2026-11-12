@@ -38,6 +38,8 @@ NIMBUS_METRIC_KEYS = {
     "repeat_windows",
     "numerator",
     "denominator",
+    "winsorize_quantile",
+    "winsorize_threshold",
     "statistics",
     "friendly_name",
     "description",
