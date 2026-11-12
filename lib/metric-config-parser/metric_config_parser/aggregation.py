@@ -63,6 +63,7 @@ LIST_OPERATORS = {Operator.IN}
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
 VALUE_AND_CONDITION_AGGREGATIONS = {Aggregation.SUM_WHERE}
+BINARY_AGGREGATIONS = {Aggregation.ANY, Aggregation.RECENCY_WITHIN}
 
 KEEP_NULLS_AGGREGATIONS = {Aggregation.SUM, Aggregation.SUM_WHERE, Aggregation.ANY}
 DEFAULT_KEEP_NULLS = False
@@ -298,6 +299,10 @@ def predicate_sql(conditions: list[Any]) -> str:
             text = f"({text})"
         parts.append(text)
     return " AND ".join(parts)
+
+
+def is_binary(aggregation: Aggregation, threshold: Threshold | None) -> bool:
+    return aggregation in BINARY_AGGREGATIONS or threshold is not None
 
 
 def recency_inner_expression(

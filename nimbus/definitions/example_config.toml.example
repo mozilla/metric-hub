@@ -329,5 +329,37 @@ numerator = "example_ratio_clicks"
 # Required: a metric declared in nimbus/ for this application, distinct from
 # numerator.
 denominator = "example_ratio_impressions"
-# A ratio takes no data_source, column, where or other aggregation field.
+# A ratio takes no data_source, column, where or other aggregation field,
+# including winsorize_quantile and winsorize_threshold.
 aggregation = "ratio"
+
+# ---------------------------------------------------------------------------
+# winsorize_quantile: the cut point Highwind clips the upper tail at, Highwind-only
+# ---------------------------------------------------------------------------
+
+[metrics.example_winsorized_sum]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_column"
+# Optional: 0 < q <= 1. Omit to use Highwind's own default; 1 turns
+# winsorization off explicitly. At most one of winsorize_quantile or
+# winsorize_threshold may be set. Not valid on a yes/no metric (any,
+# recency_within, or anything with a threshold) or a ratio. No effect on
+# generated SQL.
+winsorize_quantile = 0.995
+cumulative_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# winsorize_threshold: a fixed upper bound per 7 days, Highwind-only
+# ---------------------------------------------------------------------------
+
+[metrics.example_winsorized_sum_with_threshold]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_other_column"
+# Optional: a fixed upper bound per 7 days. Same restrictions as
+# winsorize_quantile.
+winsorize_threshold = 500
+cumulative_window = 7
+repeat_windows = true
