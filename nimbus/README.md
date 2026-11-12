@@ -87,13 +87,13 @@ Aggregation fields:
 
 | field | type | default | meaning |
 | --- | --- | --- | --- |
-| `aggregation` | string | | One of `sum`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
+| `aggregation` | string | | One of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
 | `column` | string | | A column name on the data source, or a dotted path to one. |
-| `where` | list of conditions | empty | Row conditions for `count_where` and `any`. |
+| `where` | list of conditions | empty | Row conditions for `count_where`, `any` and `sum_where`. |
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
-| `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum` and `any`. See [Keep nulls](#keep-nulls). |
+| `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum`, `sum_where` and `any`. See [Keep nulls](#keep-nulls). |
 | `encoding` | string | `bits28` | For `recency_within`: `bits28` decodes a 28-day activity bit pattern; `days` means `column` already holds the number of days since the unit was last active. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
@@ -105,6 +105,7 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 | aggregation | `column` | `where` | `within_days` |
 | --- | --- | --- | --- |
 | `sum` | required | not allowed | not allowed |
+| `sum_where` | required | required | not allowed |
 | `count` | required | not allowed | not allowed |
 | `recency_within` | required | not allowed | required |
 | `count_where` | exactly one of `column` or `where` | exactly one of `column` or `where` | not allowed |
@@ -146,6 +147,26 @@ number.
 data_source = "clients_daily"
 aggregation = "sum"
 column = "active_hours_sum"
+```
+
+### `sum_where`
+
+The sum of `column` over the unit's rows where every condition holds. A row where a condition
+evaluates to null does not match, and contributes nothing to the sum. A unit with no rows, or no
+matching rows, gets 0 by default; set `keep_nulls = true` to leave it null instead. The result is a
+number. There is no `column` shorthand: both `column` and `where` are required, since `column`
+already names the value to sum.
+
+```toml
+[metrics.example_sum_where]
+data_source = "clients_daily"
+aggregation = "sum_where"
+column = "example_column"
+
+[[metrics.example_sum_where.where]]
+column = "example_condition_column"
+op = "="
+value = "example_value"
 ```
 
 ### `count`
@@ -329,10 +350,10 @@ scale = 1000
 
 ## Keep nulls
 
-`sum` and `any` return 0 (or `FALSE`) for a unit with no matching rows, unless `keep_nulls` is set.
-`keep_nulls = true` leaves that unit null instead. Valid only for `sum` and `any`: `count`,
-`count_where` and `recency_within` are rejected, since none of them can return null for a unit with
-no rows.
+`sum`, `sum_where` and `any` return 0 (or `FALSE`) for a unit with no matching rows, unless
+`keep_nulls` is set. `keep_nulls = true` leaves that unit null instead. Valid only for `sum`,
+`sum_where` and `any`: `count`, `count_where` and `recency_within` are rejected, since none of them
+can return null for a unit with no rows.
 
 Set `keep_nulls = true` when a unit with no matching rows had no opportunity to act, so it should
 drop out of the mean rather than count as 0.
@@ -443,13 +464,14 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 - `select_expression` and `aggregation` are both set.
 - Any other aggregation field is set without `aggregation`.
-- `aggregation` is not one of the five.
+- `aggregation` is not one of the six.
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
+- `sum_where` does not have both `column` and `where` set.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
-- `keep_nulls` is set on any aggregation other than `sum` or `any`.
+- `keep_nulls` is set on any aggregation other than `sum`, `sum_where` or `any`.
 - `encoding` is set on any aggregation other than `recency_within`.
 - A `column`, or a condition's `column`, is not a plain column name or dotted path.
 - A condition or threshold has a key not listed in this document.
@@ -531,13 +553,14 @@ fields are not used.
 | aggregation | `select_expression` | rendered |
 | --- | --- | --- |
 | `sum` | `{{agg_sum("c")}}` | `COALESCE(SUM(c), 0)` |
+| `sum_where` | `COALESCE(SUM(IF(p, c, 0)), 0)` | same |
 | `count` | `COUNT(c)` | same |
 | `count_where` | `COUNTIF(p)` | same |
 | `any` | `{{agg_any("p")}}` | `COALESCE(LOGICAL_OR(p), FALSE)` |
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` | same |
 | with `threshold` | `<expression> <op> <value>` | |
 | with `scale` k | `<expression> * k` | |
-| with `keep_nulls = true` (`sum`, `any` only) | drops the default above: bare `SUM(c)` or `LOGICAL_OR(p)` | |
+| with `keep_nulls = true` (`sum`, `sum_where`, `any` only) | drops the default above: bare `SUM(c)`, `SUM(IF(p, c, 0))` or `LOGICAL_OR(p)` | |
 
 `any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
@@ -571,6 +594,7 @@ which splits the aggregation into four parts:
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
 | `sum` | `COALESCE(SUM(c), 0)` (`keep_nulls = true`: bare `SUM(c)`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
+| `sum_where` | `COALESCE(SUM(IF(p, c, 0)), 0)` (`keep_nulls = true`: bare `SUM(IF(p, c, 0))`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
 | `any` | `COUNTIF(p)` | `SUM` | `0` (`keep_nulls = true`: `NULL`) | `CAST(x > 0 AS INT64)` |
@@ -578,14 +602,15 @@ which splits the aggregation into four parts:
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
-`keep_nulls = true` does not change `finalize`, only `bucket_aggregate` (for `sum`) or `no_rows`
-(for `any`). For `sum`, a bare `SUM(c)` over a bucket with no matching rows is `NULL` in SQL, and
-`SUM` combine ignores nulls, so `no_rows = "NULL"` reproduces the same value Jetstream's bare
-`SUM(c)` would return for a unit with zero rows in the whole window, and collapses correctly over a
-single bucket. For `any`, `bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket
-that has any rows at all always returns a real count, never null; only `no_rows` changes, so a unit
-with zero rows in every bucket combines to `NULL` and `finalize` casts that to `NULL`, matching
-Jetstream's bare `LOGICAL_OR(p)`.
+`keep_nulls = true` does not change `finalize`, only `bucket_aggregate` (for `sum` and `sum_where`)
+or `no_rows` (for `any`). For `sum` and `sum_where`, a bare `SUM(c)` or `SUM(IF(p, c, 0))` over a
+bucket with no matching rows is `NULL` in SQL, and `SUM` combine ignores nulls, so
+`no_rows = "NULL"` reproduces the same value Jetstream's bare expression would return for a unit
+with zero rows in the whole window, and collapses correctly over a single bucket. For `any`,
+`bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket that has any rows at all
+always returns a real count, never null; only `no_rows` changes, so a unit with zero rows in every
+bucket combines to `NULL` and `finalize` casts that to `NULL`, matching Jetstream's bare
+`LOGICAL_OR(p)`.
 
 With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself when
 `encoding = "days"`, the same substitution as on the Jetstream side.

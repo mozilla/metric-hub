@@ -49,6 +49,11 @@ class TestSelectExpression:
         ("fields", "template", "rendered"),
         [
             ({"aggregation": "sum", "column": "a"}, '{{agg_sum("a")}}', "COALESCE(SUM(a), 0)"),
+            (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+            ),
             ({"aggregation": "count", "column": "a"}, "COUNT(a)", "COUNT(a)"),
             (
                 {
@@ -93,6 +98,12 @@ class TestBucketedAggregation:
             (
                 {"aggregation": "sum", "column": "a"},
                 BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                BucketedAggregation(
+                    "COALESCE(SUM(IF(b, a, 0)), 0)", Combine.SUM, "0", "{combined}"
+                ),
             ),
             (
                 {"aggregation": "count", "column": "a"},
@@ -297,6 +308,23 @@ class TestKeepNulls:
                 BucketedAggregation("SUM(a)", Combine.SUM, "NULL", "{combined}"),
             ),
             (
+                {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+                "COALESCE(SUM(IF(b, a, 0)), 0)",
+                BucketedAggregation(
+                    "COALESCE(SUM(IF(b, a, 0)), 0)", Combine.SUM, "0", "{combined}"
+                ),
+            ),
+            (
+                {
+                    "aggregation": "sum_where",
+                    "column": "a",
+                    "where": [{"column": "b"}],
+                    "keep_nulls": True,
+                },
+                "SUM(IF(b, a, 0))",
+                BucketedAggregation("SUM(IF(b, a, 0))", Combine.SUM, "NULL", "{combined}"),
+            ),
+            (
                 {"aggregation": "any", "column": "a"},
                 '{{agg_any("a")}}',
                 BucketedAggregation(
@@ -402,6 +430,13 @@ class TestSingleBucketCollapse:
         [
             {"aggregation": "sum", "column": "a"},
             {"aggregation": "sum", "column": "a", "keep_nulls": True},
+            {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+            {
+                "aggregation": "sum_where",
+                "column": "a",
+                "where": [{"column": "b"}],
+                "keep_nulls": True,
+            },
             {"aggregation": "count", "column": "a"},
             {"aggregation": "count_where", "column": "a"},
         ],
@@ -427,6 +462,12 @@ class TestSingleBucketCollapse:
                 "encoding": "days",
                 "within_days": 3,
             },
+            {
+                "aggregation": "sum_where",
+                "column": "a",
+                "where": [{"column": "b"}],
+                "threshold": {"op": ">", "value": 0},
+            },
         ],
     )
     def test_collapses_to_the_same_value_not_text(self, fields):
@@ -442,6 +483,15 @@ class TestSingleBucketCollapse:
 
     def test_sum_no_rows_collapses_to_null_with_keep_nulls(self):
         metric = parse_metric(aggregation="sum", column="a", keep_nulls=True)
+        bucketed = metric.bucketed_aggregation
+
+        assert bucketed.no_rows == "NULL"
+        assert render(bucketed.finalize_sql(bucketed.no_rows)) == "NULL"
+
+    def test_sum_where_no_rows_collapses_to_null_with_keep_nulls(self):
+        metric = parse_metric(
+            aggregation="sum_where", column="a", where=[{"column": "b"}], keep_nulls=True
+        )
         bucketed = metric.bucketed_aggregation
 
         assert bucketed.no_rows == "NULL"

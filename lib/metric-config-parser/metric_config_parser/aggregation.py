@@ -16,6 +16,7 @@ COMBINED = "{combined}"
 
 class Aggregation(StrEnum):
     SUM = "sum"
+    SUM_WHERE = "sum_where"
     COUNT = "count"
     COUNT_WHERE = "count_where"
     ANY = "any"
@@ -54,8 +55,9 @@ COMPARISON_OPERATORS = {
 
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
+VALUE_AND_CONDITION_AGGREGATIONS = {Aggregation.SUM_WHERE}
 
-KEEP_NULLS_AGGREGATIONS = {Aggregation.SUM, Aggregation.ANY}
+KEEP_NULLS_AGGREGATIONS = {Aggregation.SUM, Aggregation.SUM_WHERE, Aggregation.ANY}
 DEFAULT_KEEP_NULLS = False
 
 CLAUSE_KEYS = {"column", "op", "value"}
@@ -189,6 +191,9 @@ def aggregation_select_expression(
     is_boolean = False
     if aggregation == Aggregation.SUM:
         expression = f"SUM({column})" if keep_nulls else macro_call("agg_sum", str(column))
+    elif aggregation == Aggregation.SUM_WHERE:
+        base = f"SUM(IF({predicate}, {column}, 0))"
+        expression = base if keep_nulls else f"COALESCE({base}, 0)"
     elif aggregation == Aggregation.COUNT:
         expression = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
@@ -254,6 +259,13 @@ def aggregation_bucketed(
             no_rows = "NULL"
         else:
             bucket_aggregate = f"COALESCE(SUM({column}), 0)"
+    elif aggregation == Aggregation.SUM_WHERE:
+        base = f"SUM(IF({predicate}, {column}, 0))"
+        if keep_nulls:
+            bucket_aggregate = base
+            no_rows = "NULL"
+        else:
+            bucket_aggregate = f"COALESCE({base}, 0)"
     elif aggregation == Aggregation.COUNT:
         bucket_aggregate = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
