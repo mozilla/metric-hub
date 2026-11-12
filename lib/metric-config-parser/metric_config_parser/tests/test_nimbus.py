@@ -136,6 +136,7 @@ class TestAggregationFields:
             "retained",
             "active_in_last_3_days_legacy",
             "daily_active_users_per_1000_clients_legacy",
+            "glean_counter_example",
         }
 
     def test_sum(self):
@@ -458,13 +459,23 @@ class TestAggregationFieldRejections:
                 {"aggregation": "any", "column": "a", "within_days": 3},
                 "only valid for recency_within",
             ),
-            ({"aggregation": "sum", "column": "COALESCE(a, 0)"}, "must be a plain column name"),
-            ({"aggregation": "sum", "column": "1a"}, "must be a plain column name"),
-            ({"aggregation": "sum", "column": "a.b"}, "must be a plain column name"),
-            ({"aggregation": "sum", "column": 1}, "must be a plain column name"),
+            (
+                {"aggregation": "sum", "column": "COALESCE(a, 0)"},
+                "must be a plain column name or dotted path",
+            ),
+            ({"aggregation": "sum", "column": "1a"}, "must be a plain column name or dotted path"),
+            (
+                {"aggregation": "sum", "column": "a.1b"},
+                "must be a plain column name or dotted path",
+            ),
+            (
+                {"aggregation": "sum", "column": "a > 0"},
+                "must be a plain column name or dotted path",
+            ),
+            ({"aggregation": "sum", "column": 1}, "must be a plain column name or dotted path"),
             (
                 {"aggregation": "count_where", "where": [{"column": "a > 0"}]},
-                "must be a plain column name",
+                "must be a plain column name or dotted path",
             ),
             (
                 {"aggregation": "count_where", "where": [{"op": ">", "value": 0}]},
