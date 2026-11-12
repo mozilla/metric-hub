@@ -27,6 +27,11 @@ class Combine(StrEnum):
     MIN = "MIN"
 
 
+class RecencyEncoding(StrEnum):
+    BITS28 = "bits28"
+    DAYS = "days"
+
+
 class Operator(StrEnum):
     GT = ">"
     GE = ">="
@@ -164,6 +169,12 @@ def predicate_sql(conditions: list[Clause]) -> str:
     return " AND ".join(clause.sql for clause in conditions)
 
 
+def recency_inner_expression(column: str | None, encoding: RecencyEncoding | None) -> str:
+    if encoding == RecencyEncoding.DAYS:
+        return str(column)
+    return f"mozfun.bits28.days_since_seen({column})"
+
+
 def aggregation_select_expression(
     aggregation: Aggregation,
     column: str | None,
@@ -172,6 +183,7 @@ def aggregation_select_expression(
     threshold: Threshold | None,
     scale: int | float | None,
     keep_nulls: bool = DEFAULT_KEEP_NULLS,
+    encoding: RecencyEncoding | None = None,
 ) -> str:
     predicate = predicate_sql(conditions)
     is_boolean = False
@@ -185,10 +197,8 @@ def aggregation_select_expression(
         expression = f"LOGICAL_OR({predicate})" if keep_nulls else macro_call("agg_any", predicate)
         is_boolean = True
     elif aggregation == Aggregation.RECENCY_WITHIN:
-        expression = (
-            f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
-            f" < {within_days}"
-        )
+        inner = recency_inner_expression(column, encoding)
+        expression = f"COALESCE(MIN({inner}), {NO_ACTIVITY_DAYS}) < {within_days}"
         is_boolean = True
     else:
         raise ValueError(f"unknown aggregation '{aggregation}'")
@@ -232,6 +242,7 @@ def aggregation_bucketed(
     threshold: Threshold | None,
     scale: int | float | None,
     keep_nulls: bool = DEFAULT_KEEP_NULLS,
+    encoding: RecencyEncoding | None = None,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
     combine = Combine.SUM
@@ -253,9 +264,8 @@ def aggregation_bucketed(
         if keep_nulls:
             no_rows = "NULL"
     elif aggregation == Aggregation.RECENCY_WITHIN:
-        bucket_aggregate = (
-            f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
-        )
+        inner = recency_inner_expression(column, encoding)
+        bucket_aggregate = f"COALESCE(MIN({inner}), {NO_ACTIVITY_DAYS})"
         combine = Combine.MIN
         no_rows = str(NO_ACTIVITY_DAYS)
         finalize = f"CAST({COMBINED} < {within_days} AS INT64)"

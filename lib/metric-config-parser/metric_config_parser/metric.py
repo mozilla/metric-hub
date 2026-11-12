@@ -30,6 +30,7 @@ from .aggregation import (
     Aggregation,
     BucketedAggregation,
     Clause,
+    RecencyEncoding,
     Threshold,
     aggregation_bucketed,
     aggregation_select_expression,
@@ -183,6 +184,7 @@ class MetricDefinition:
     threshold: Threshold | None = None
     scale: int | float | None = None
     keep_nulls: bool | None = None
+    encoding: RecencyEncoding | None = None
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
@@ -200,13 +202,15 @@ class MetricDefinition:
                 or self.threshold is not None
                 or self.scale is not None
                 or self.keep_nulls is not None
+                or self.encoding is not None
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
             ):
                 raise ValueError(
                     f"{context}: column, where, within_days, threshold, scale, keep_nulls, "
-                    "cumulative_window, incremental_window and repeat_windows require aggregation"
+                    "encoding, cumulative_window, incremental_window and repeat_windows "
+                    "require aggregation"
                 )
             return
 
@@ -232,10 +236,13 @@ class MetricDefinition:
         if self.aggregation == Aggregation.RECENCY_WITHIN:
             if not is_positive_int(self.within_days):
                 raise ValueError(f"{context}: within_days must be a positive integer")
-            if self.within_days > MAX_WITHIN_DAYS:
+            if self.encoding != RecencyEncoding.DAYS and self.within_days > MAX_WITHIN_DAYS:
                 raise ValueError(f"{context}: within_days must be at most {MAX_WITHIN_DAYS}")
         elif self.within_days is not None:
             raise ValueError(f"{context}: within_days is only valid for recency_within")
+
+        if self.encoding is not None and self.aggregation != Aggregation.RECENCY_WITHIN:
+            raise ValueError(f"{context}: encoding is only valid for recency_within")
 
         if self.scale is not None and not is_number(self.scale):
             raise ValueError(f"{context}: scale must be a number")
@@ -290,6 +297,7 @@ class MetricDefinition:
             self.threshold,
             self.scale,
             self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
+            self.encoding,
         )
 
     @property
@@ -304,6 +312,7 @@ class MetricDefinition:
             self.threshold,
             self.scale,
             self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
+            self.encoding,
         )
 
     @staticmethod
@@ -556,6 +565,7 @@ converter.register_structure_hook(
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),
         keep_nulls=override(struct_hook=_passthrough),
+        encoding=override(struct_hook=lambda obj, _type: to_enum(RecencyEncoding, obj, "encoding")),
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),
