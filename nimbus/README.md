@@ -82,6 +82,8 @@ Aggregation fields:
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
+| `winsorize_quantile` | number | | Highwind-only. The cut point Highwind clips the upper tail at: `0 < q <= 1`. Unset means Highwind's own default. See [Winsorization](#winsorization). |
+| `winsorize_threshold` | number | | Highwind-only. A fixed upper bound per 7 days that Highwind clips at. See [Winsorization](#winsorization). |
 
 Every field other than `aggregation` requires `aggregation`. Which of `column`, `where` and
 `within_days` are required depends on the aggregation:
@@ -423,6 +425,38 @@ lengths that do not fit are handled is decided by Highwind.
 Jetstream does not read the window fields. Its analysis windows are configured in
 `jetstream/defaults/`.
 
+## Winsorization
+
+`winsorize_quantile` and `winsorize_threshold` are Highwind-only. Highwind clips a heavy-tailed
+metric's value at a ceiling before computing statistics on it; these fields say where that ceiling
+comes from. At most one may be set.
+
+- `winsorize_quantile`: the cut point Highwind clips the upper tail at, `0 < q <= 1`. Leaving it
+  unset means Highwind's own default, which is a different value than `1`: `winsorize_quantile = 1`
+  turns winsorization off for this metric explicitly, while an unset field lets Highwind's default
+  change later without touching the metric. This matches the vocabulary Jetstream and mozanalysis
+  already use for the cut point (`CensorHighestValues.fraction`, `threshold_quantile`): a Jetstream
+  `drop_highest = d` corresponds to `winsorize_quantile = 1 - d`, so Jetstream's
+  `drop_highest = 0.0` is `winsorize_quantile = 1`.
+- `winsorize_threshold`: a fixed upper bound, per 7 days, that Highwind clips at instead of a
+  quantile.
+
+Neither field is valid on a yes/no metric: `any`, `recency_within`, or any metric with a
+`threshold`, since clipping a 0/1 value does nothing. `cast_as_int` does not change this.
+
+Nothing reads these fields except Highwind. Jetstream does its own clipping through
+`drop_highest` in its statistics configuration, unaffected by either field. Setting or leaving
+unset either field never changes `select_expression_from_aggregation` or `bucketed_aggregation`;
+the ceiling is applied by Highwind after computing the aggregation, not as part of it.
+
+```toml
+[metrics.urlbar_search_count]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "urlbar_search_count"
+winsorize_quantile = 0.995
+```
+
 ## Statistics
 
 `statistics` is a table of tables. Each key is a statistic name and its table holds that
@@ -498,6 +532,11 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `scale` is not a number.
 - `cumulative_window` or `incremental_window` is set and is not a positive integer.
 - `repeat_windows` is not a boolean, or is `true` with neither window length set.
+- Both `winsorize_quantile` and `winsorize_threshold` are set.
+- `winsorize_quantile` is not a number greater than 0 and at most 1.
+- `winsorize_threshold` is not a positive number.
+- `winsorize_quantile` or `winsorize_threshold` is set on a yes/no metric: `any`,
+  `recency_within`, or any metric with a `threshold`.
 
 Booleans are not accepted where a number or integer is required.
 
@@ -641,7 +680,11 @@ each requested name with `get_nimbus_metric_definition`, and returns an `Aggrega
   `analysis_units`, `submission_date_column`, and the sorted union of columns every requesting
   metric needs.
 - `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
-  source name, the `BucketedAggregation`, and the window fields.
+  source name, the `BucketedAggregation`, the window fields, `is_binary` (true for `any`,
+  `recency_within`, or any metric with a `threshold`, the same rule used to validate
+  [Winsorization](#winsorization), so the two cannot disagree; `cast_as_int` does not change it),
+  and `winsorize_quantile` and `winsorize_threshold`, passed through unchanged with `None`
+  preserved.
 - `missing`: requested names with no `nimbus/` definition for the app. A missing name never raises,
   so Highwind computes every name that resolved and reports the rest.
 

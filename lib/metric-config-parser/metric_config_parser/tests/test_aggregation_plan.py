@@ -164,3 +164,124 @@ class TestAggregationPlan:
 
         assert list(plan.metrics) == sorted(plan.metrics)
         assert list(plan.sources) == sorted(plan.sources)
+
+    def test_is_binary_false_for_plain_sum(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["active_hours"])
+
+        assert plan.metrics["active_hours"].is_binary is False
+
+    def test_is_binary_false_for_count_and_count_where(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(
+            collection,
+            "firefox_desktop",
+            ["days_of_use", "qualified_cumulative_days_of_use"],
+        )
+
+        assert plan.metrics["days_of_use"].is_binary is False
+        assert plan.metrics["qualified_cumulative_days_of_use"].is_binary is False
+
+    def test_is_binary_true_for_any(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["is_default_browser"])
+
+        assert plan.metrics["is_default_browser"].is_binary is True
+
+    def test_is_binary_true_for_recency_within(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["active_in_last_3_days_legacy"])
+
+        assert plan.metrics["active_in_last_3_days_legacy"].is_binary is True
+
+    def test_is_binary_true_for_sum_with_threshold(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["retained"])
+
+        assert plan.metrics["retained"].is_binary is True
+
+    def test_winsorize_fields_default_to_none(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["active_hours"])
+
+        metric = plan.metrics["active_hours"]
+        assert metric.winsorize_quantile is None
+        assert metric.winsorize_threshold is None
+
+    def test_winsorize_quantile_passes_through_unchanged(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            nimbus_file.read_text().replace(
+                "[metrics.glean_counter_example]",
+                "[metrics.glean_counter_example]\nwinsorize_quantile = 0.995",
+            )
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_example"])
+
+        assert plan.metrics["glean_counter_example"].winsorize_quantile == 0.995
+        assert plan.metrics["glean_counter_example"].winsorize_threshold is None
+
+    def test_winsorize_quantile_one_is_preserved_as_explicitly_off(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            nimbus_file.read_text().replace(
+                "[metrics.glean_counter_example]",
+                "[metrics.glean_counter_example]\nwinsorize_quantile = 1",
+            )
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_example"])
+
+        metric = plan.metrics["glean_counter_example"]
+        assert metric.winsorize_quantile == 1
+        assert metric.winsorize_quantile is not None
+
+    def test_winsorize_threshold_passes_through_unchanged(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            nimbus_file.read_text().replace(
+                "[metrics.glean_counter_example]",
+                "[metrics.glean_counter_example]\nwinsorize_threshold = 500",
+            )
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_example"])
+
+        assert plan.metrics["glean_counter_example"].winsorize_threshold == 500
+        assert plan.metrics["glean_counter_example"].winsorize_quantile is None
+
+    def test_winsorize_fields_do_not_change_generated_sql(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            nimbus_file.read_text().replace(
+                "[metrics.glean_counter_example]",
+                "[metrics.glean_counter_example]\nwinsorize_quantile = 0.995",
+            )
+        )
+
+        without_winsorize = load_collection()
+        with_winsorize = LocalConfigCollection.from_local_path(tmp_path)
+
+        plan_without = aggregation_plan(
+            without_winsorize, "firefox_desktop", ["glean_counter_example"]
+        )
+        plan_with = aggregation_plan(with_winsorize, "firefox_desktop", ["glean_counter_example"])
+
+        assert (
+            plan_without.metrics["glean_counter_example"].aggregation
+            == plan_with.metrics["glean_counter_example"].aggregation
+        )

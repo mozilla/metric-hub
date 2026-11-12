@@ -5,7 +5,14 @@ import pytest
 import toml
 from cattrs.errors import ClassValidationError
 
-from metric_config_parser.aggregation import BucketedAggregation, Combine
+from metric_config_parser.aggregation import (
+    Aggregation,
+    BucketedAggregation,
+    Combine,
+    Operator,
+    Threshold,
+    is_binary,
+)
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.config import ConfigCollection, DefinitionConfig
 from metric_config_parser.definition import DefinitionSpec
@@ -441,6 +448,76 @@ class TestRecencyEncoding:
             "30",
             "CAST({combined} < 3 AS INT64)",
         )
+
+
+class TestIsBinary:
+    @pytest.mark.parametrize(
+        "aggregation",
+        [Aggregation.SUM, Aggregation.SUM_WHERE, Aggregation.COUNT, Aggregation.COUNT_WHERE],
+    )
+    def test_false_without_a_threshold(self, aggregation):
+        assert is_binary(aggregation, None) is False
+
+    @pytest.mark.parametrize("aggregation", [Aggregation.ANY, Aggregation.RECENCY_WITHIN])
+    def test_true_for_any_and_recency_within(self, aggregation):
+        assert is_binary(aggregation, None) is True
+
+    @pytest.mark.parametrize(
+        "aggregation",
+        [Aggregation.SUM, Aggregation.SUM_WHERE, Aggregation.COUNT, Aggregation.COUNT_WHERE],
+    )
+    def test_true_with_a_threshold(self, aggregation):
+        assert is_binary(aggregation, Threshold(op=Operator.GT, value=0)) is True
+
+
+class TestWinsorize:
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "sum", "column": "a"},
+            {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+            {"aggregation": "count", "column": "a"},
+            {"aggregation": "count_where", "column": "a"},
+        ],
+    )
+    def test_winsorize_quantile_does_not_change_generated_sql(self, fields):
+        without_winsorize = parse_metric(**fields)
+        with_winsorize = parse_metric(**fields, winsorize_quantile=0.995)
+
+        assert (
+            without_winsorize.select_expression_from_aggregation
+            == with_winsorize.select_expression_from_aggregation
+        )
+        assert without_winsorize.bucketed_aggregation == with_winsorize.bucketed_aggregation
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "sum", "column": "a"},
+            {"aggregation": "sum_where", "column": "a", "where": [{"column": "b"}]},
+            {"aggregation": "count", "column": "a"},
+            {"aggregation": "count_where", "column": "a"},
+        ],
+    )
+    def test_winsorize_threshold_does_not_change_generated_sql(self, fields):
+        without_winsorize = parse_metric(**fields)
+        with_winsorize = parse_metric(**fields, winsorize_threshold=500)
+
+        assert (
+            without_winsorize.select_expression_from_aggregation
+            == with_winsorize.select_expression_from_aggregation
+        )
+        assert without_winsorize.bucketed_aggregation == with_winsorize.bucketed_aggregation
+
+    def test_winsorize_quantile_one_does_not_change_generated_sql(self):
+        without_winsorize = parse_metric(aggregation="sum", column="a")
+        with_winsorize = parse_metric(aggregation="sum", column="a", winsorize_quantile=1)
+
+        assert (
+            without_winsorize.select_expression_from_aggregation
+            == with_winsorize.select_expression_from_aggregation
+        )
+        assert without_winsorize.bucketed_aggregation == with_winsorize.bucketed_aggregation
 
 
 class TestSingleBucketCollapse:

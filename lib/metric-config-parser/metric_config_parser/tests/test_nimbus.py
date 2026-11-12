@@ -363,6 +363,8 @@ class TestAggregationFieldRejections:
             ({"cumulative_window": 7}, "require aggregation"),
             ({"incremental_window": 7}, "require aggregation"),
             ({"repeat_windows": True}, "require aggregation"),
+            ({"winsorize_quantile": 0.995}, "require aggregation"),
+            ({"winsorize_threshold": 500}, "require aggregation"),
             ({"select_expression": "SUM(a)", "column": "a"}, "require aggregation"),
             ({"aggregation": "sum"}, "requires a column"),
             ({"aggregation": "count"}, "requires a column"),
@@ -585,6 +587,73 @@ class TestAggregationFieldRejections:
                 },
                 "cast_as_int cannot be combined with threshold or scale",
             ),
+            (
+                {
+                    "aggregation": "sum",
+                    "column": "a",
+                    "winsorize_quantile": 0.995,
+                    "winsorize_threshold": 500,
+                },
+                "declare at most one of winsorize_quantile or winsorize_threshold",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_quantile": 0},
+                "winsorize_quantile must be a number greater than 0 and at most 1",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_quantile": -0.1},
+                "winsorize_quantile must be a number greater than 0 and at most 1",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_quantile": 1.1},
+                "winsorize_quantile must be a number greater than 0 and at most 1",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_quantile": "0.995"},
+                "winsorize_quantile must be a number greater than 0 and at most 1",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_quantile": True},
+                "winsorize_quantile must be a number greater than 0 and at most 1",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_threshold": 0},
+                "winsorize_threshold must be a positive number",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_threshold": -1},
+                "winsorize_threshold must be a positive number",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_threshold": "500"},
+                "winsorize_threshold must be a positive number",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "winsorize_threshold": True},
+                "winsorize_threshold must be a positive number",
+            ),
+            (
+                {"aggregation": "any", "column": "a", "winsorize_quantile": 0.995},
+                "winsorize_quantile and winsorize_threshold are not valid for yes/no metrics",
+            ),
+            (
+                {
+                    "aggregation": "recency_within",
+                    "column": "a",
+                    "within_days": 3,
+                    "winsorize_threshold": 500,
+                },
+                "winsorize_quantile and winsorize_threshold are not valid for yes/no metrics",
+            ),
+            (
+                {
+                    "aggregation": "sum",
+                    "column": "a",
+                    "threshold": {"op": ">", "value": 0},
+                    "winsorize_quantile": 0.995,
+                },
+                "winsorize_quantile and winsorize_threshold are not valid for yes/no metrics",
+            ),
         ],
     )
     def test_rejects(self, fields, match):
@@ -592,6 +661,47 @@ class TestAggregationFieldRejections:
             parse_metric(**fields)
 
         assert exc_info.group_contains(ValueError, match=match)
+
+    def test_winsorize_quantile_rejected_without_aggregation_even_with_depends_on(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(depends_on=["active_hours"], winsorize_quantile=0.995)
+
+        assert exc_info.group_contains(ValueError, match="require aggregation")
+
+    def test_winsorize_threshold_rejected_without_aggregation_even_with_depends_on(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(depends_on=["active_hours"], winsorize_threshold=500)
+
+        assert exc_info.group_contains(ValueError, match="require aggregation")
+
+    def test_winsorize_quantile_accepted_on_sum(self):
+        metric = parse_metric(aggregation="sum", column="a", winsorize_quantile=0.995)
+
+        assert metric.winsorize_quantile == 0.995
+        assert metric.winsorize_threshold is None
+
+    def test_winsorize_quantile_one_is_explicitly_off(self):
+        metric = parse_metric(aggregation="sum", column="a", winsorize_quantile=1)
+
+        assert metric.winsorize_quantile == 1
+        assert metric.winsorize_quantile is not None
+
+    def test_winsorize_threshold_accepted_on_count_where(self):
+        metric = parse_metric(aggregation="count_where", column="a", winsorize_threshold=500)
+
+        assert metric.winsorize_threshold == 500
+        assert metric.winsorize_quantile is None
+
+    def test_cast_as_int_does_not_change_is_binary_or_winsorize_rejection(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(
+                aggregation="any",
+                column="a",
+                cast_as_int=True,
+                winsorize_quantile=0.995,
+            )
+
+        assert exc_info.group_contains(ValueError, match="not valid for yes/no metrics")
 
 
 class TestNimbusSpec:

@@ -36,6 +36,7 @@ from .aggregation import (
     Threshold,
     aggregation_bucketed,
     aggregation_select_expression,
+    is_binary,
     is_number,
     is_positive_int,
     to_enum,
@@ -191,6 +192,8 @@ class MetricDefinition:
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
+    winsorize_quantile: int | float | None = None
+    winsorize_threshold: int | float | None = None
     # analysis_bases from platform defaults or outcomes; not configurable, these
     # are overridden by experiment-level analysis_bases (see inherit_analysis_bases)
     inherited_analysis_bases: list[AnalysisBasis] | None = attr.ib(default=None, init=False)
@@ -210,11 +213,14 @@ class MetricDefinition:
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
+                or self.winsorize_quantile is not None
+                or self.winsorize_threshold is not None
             ):
                 raise ValueError(
                     f"{context}: column, where, within_days, threshold, scale, coalesce, "
-                    "cast_as_int, encoding, cumulative_window, incremental_window and "
-                    "repeat_windows require aggregation"
+                    "cast_as_int, encoding, cumulative_window, incremental_window, "
+                    "repeat_windows, winsorize_quantile and winsorize_threshold require "
+                    "aggregation"
                 )
             return
 
@@ -287,6 +293,28 @@ class MetricDefinition:
         ):
             raise ValueError(
                 f"{context}: repeat_windows requires cumulative_window or incremental_window"
+            )
+
+        if self.winsorize_quantile is not None and self.winsorize_threshold is not None:
+            raise ValueError(
+                f"{context}: declare at most one of winsorize_quantile or winsorize_threshold"
+            )
+        if self.winsorize_quantile is not None and (
+            not is_number(self.winsorize_quantile) or not (0 < self.winsorize_quantile <= 1)
+        ):
+            raise ValueError(
+                f"{context}: winsorize_quantile must be a number greater than 0 and at most 1"
+            )
+        if self.winsorize_threshold is not None and (
+            not is_number(self.winsorize_threshold) or self.winsorize_threshold <= 0
+        ):
+            raise ValueError(f"{context}: winsorize_threshold must be a positive number")
+        if (
+            self.winsorize_quantile is not None or self.winsorize_threshold is not None
+        ) and is_binary(self.aggregation, self.threshold):
+            raise ValueError(
+                f"{context}: winsorize_quantile and winsorize_threshold are not valid for "
+                "yes/no metrics"
             )
 
     def inherit_analysis_bases(self) -> None:
@@ -585,6 +613,8 @@ converter.register_structure_hook(
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),
+        winsorize_quantile=override(struct_hook=_passthrough),
+        winsorize_threshold=override(struct_hook=_passthrough),
     ),
 )
 

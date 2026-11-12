@@ -223,3 +223,33 @@ column = "site_breakage_opened"
 # Optional: cast the any/recency_within boolean to INT64. Cannot be combined
 # with threshold or scale.
 cast_as_int = true
+
+# ---------------------------------------------------------------------------
+# winsorize_quantile: the cut point Highwind clips the upper tail at, Highwind-only
+# ---------------------------------------------------------------------------
+
+[metrics.urlbar_search_count]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "urlbar_search_count"
+# Optional: 0 < q <= 1. Omit to use Highwind's own default; 1 turns
+# winsorization off explicitly. At most one of winsorize_quantile or
+# winsorize_threshold may be set. Not valid on a yes/no metric (any,
+# recency_within, or anything with a threshold). No effect on generated SQL.
+winsorize_quantile = 0.995
+cumulative_window = 7
+repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# winsorize_threshold: a fixed upper bound per 7 days, Highwind-only
+# ---------------------------------------------------------------------------
+
+[metrics.tabs_opened]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "tab_open_event_count"
+# Optional: a fixed upper bound per 7 days. Same restrictions as
+# winsorize_quantile.
+winsorize_threshold = 500
+cumulative_window = 7
+repeat_windows = true

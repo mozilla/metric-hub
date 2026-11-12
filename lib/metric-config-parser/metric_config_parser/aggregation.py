@@ -63,6 +63,7 @@ COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_W
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
 CAST_AS_INT_AGGREGATIONS = {Aggregation.ANY, Aggregation.RECENCY_WITHIN}
 VALUE_AND_CONDITION_AGGREGATIONS = {Aggregation.SUM_WHERE}
+BINARY_AGGREGATIONS = {Aggregation.ANY, Aggregation.RECENCY_WITHIN}
 
 COALESCE_AGGREGATIONS = {
     Aggregation.SUM,
@@ -186,6 +187,10 @@ class Threshold:
 
 def predicate_sql(conditions: list[Clause]) -> str:
     return " AND ".join(clause.sql for clause in conditions)
+
+
+def is_binary(aggregation: Aggregation, threshold: Threshold | None) -> bool:
+    return aggregation in BINARY_AGGREGATIONS or threshold is not None
 
 
 def resolved_coalesce_mode(aggregation: Aggregation, coalesce: CoalesceMode | None) -> CoalesceMode:

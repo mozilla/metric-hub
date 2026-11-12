@@ -1,6 +1,6 @@
 import attr
 
-from .aggregation import BucketedAggregation
+from .aggregation import BucketedAggregation, is_binary
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -27,6 +27,9 @@ class AggregationMetric:
     cumulative_window: int | None
     incremental_window: int | None
     repeat_windows: bool
+    is_binary: bool
+    winsorize_quantile: int | float | None
+    winsorize_threshold: int | float | None
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -45,6 +48,9 @@ class _ResolvedMetric:
     cumulative_window: int | None
     incremental_window: int | None
     repeat_windows: bool
+    is_binary: bool
+    winsorize_quantile: int | float | None
+    winsorize_threshold: int | float | None
 
 
 def _metric_columns(metric: MetricDefinition) -> set[str]:
@@ -70,6 +76,9 @@ def _resolve_metric(name: str, metric: MetricDefinition) -> _ResolvedMetric:
         cumulative_window=metric.cumulative_window,
         incremental_window=metric.incremental_window,
         repeat_windows=metric.repeat_windows,
+        is_binary=is_binary(metric.aggregation, metric.threshold),
+        winsorize_quantile=metric.winsorize_quantile,
+        winsorize_threshold=metric.winsorize_threshold,
     )
 
 
@@ -128,6 +137,9 @@ def aggregation_plan(
             cumulative_window=resolved_metric.cumulative_window,
             incremental_window=resolved_metric.incremental_window,
             repeat_windows=resolved_metric.repeat_windows,
+            is_binary=resolved_metric.is_binary,
+            winsorize_quantile=resolved_metric.winsorize_quantile,
+            winsorize_threshold=resolved_metric.winsorize_threshold,
         )
         for resolved_metric in sorted(resolved, key=lambda m: m.name)
     }

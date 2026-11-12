@@ -26,6 +26,8 @@ NIMBUS_METRIC_KEYS = {
     "cumulative_window",
     "incremental_window",
     "repeat_windows",
+    "winsorize_quantile",
+    "winsorize_threshold",
     "statistics",
     "friendly_name",
     "description",
