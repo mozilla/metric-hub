@@ -17,3 +17,30 @@ friendly_name = "Clients Daily"
 [data_sources.firefox_desktop_active_users_view]
 from_expression = "mozdata.firefox_desktop.firefox_desktop_active_users"
 friendly_name = "Firefox Desktop Active Users"
+
+[segments.regular_user]
+select_expression = "COALESCE(LOGICAL_OR(is_regular_user_v3), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.new_profile]
+select_expression = "COALESCE(LOGICAL_OR(is_new_profile), FALSE)"
+data_source = "clients_last_seen"
+
+[segments.suggest_user]
+select_expression = "COALESCE(LOGICAL_OR(uses_suggest), FALSE)"
+data_source = "newtab"
+
+[segments.templated_segment]
+select_expression = "COALESCE(LOGICAL_OR(flag), FALSE)"
+data_source = "templated_source"
+
+[segments.data_sources.clients_last_seen]
+from_expression = "mozdata.telemetry.clients_last_seen"
+
+[segments.data_sources.newtab]
+from_expression = "mozdata.activity_stream.newtab"
+window_start = -7
+window_end = -1
+
+[segments.data_sources.templated_source]
+from_expression = "mozdata.templated.{{experiment.normandy_slug}}"

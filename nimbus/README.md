@@ -487,6 +487,29 @@ The column and condition text is the same in both consumers. Only the wrapper di
 single bucket the four Highwind parts reduce to the Jetstream expression, so both consumers compute
 the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans.
 
+### Segments
+
+A segment is not an aggregation-form metric. It keeps its existing SQL `select_expression` and
+`data_source` in `definitions/<app>.toml`, the same definitions Jetstream and mozanalysis read, so
+Highwind computes a segment from the same SQL rather than a ported definition.
+
+`segment_plan(configs, app_name, segment_names)` resolves a list of shared segment names for an app
+into what Highwind needs to compute them. It looks up each requested name with
+`get_segment_definition` and returns a `SegmentPlan`:
+
+- `sources`: one `SegmentSource` per segment data source the resolved segments read, keyed by data
+  source name. Carries the resolved `from_expression`, `window_start`, `window_end`,
+  `client_id_column`, `group_id_column` and `submission_date_column`.
+- `segments`: one `SegmentMetric` per resolved name, keyed by segment name. Carries the data source
+  name and the rendered `select_expression`.
+- `missing`: requested names with no definition in `definitions/` for the app. A missing name never
+  raises, so Highwind computes every name that resolved and reports the rest.
+
+A segment data source whose `from_expression` references `{{experiment...}}` needs an experiment to
+render. `segment_plan` resolves with no experiment in scope, so such a source raises rather than
+silently resolving, the same as a templated `nimbus/definitions/` metric data source (see Highwind
+above).
+
 ## Not supported yet
 
 - Ratios, where one metric is divided by another.
@@ -496,7 +519,8 @@ the same value for a window. Highwind returns 0/1 integers where Jetstream retur
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns.
 - Data sources in `nimbus/definitions/`. They stay in `definitions/`.
-- Segments. They stay in `definitions/`.
+- A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
+  for how Highwind resolves them.
 
 ## Example
 
