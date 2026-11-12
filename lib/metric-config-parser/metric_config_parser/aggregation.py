@@ -33,6 +33,11 @@ class CoalesceMode(StrEnum):
     RESULT = "result"
 
 
+class RecencyEncoding(StrEnum):
+    BITS28 = "bits28"
+    DAYS = "days"
+
+
 class Operator(StrEnum):
     GT = ">"
     GE = ">="
@@ -55,6 +60,7 @@ COMPARISON_OPERATORS = {
 
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
+CAST_AS_INT_AGGREGATIONS = {Aggregation.ANY, Aggregation.RECENCY_WITHIN}
 
 COALESCE_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT_WHERE, Aggregation.ANY}
 DEFAULT_COALESCE_MODE = {
@@ -180,6 +186,12 @@ def resolved_coalesce_mode(aggregation: Aggregation, coalesce: CoalesceMode | No
     return DEFAULT_COALESCE_MODE.get(aggregation, CoalesceMode.NONE)
 
 
+def recency_inner_expression(column: str | None, encoding: RecencyEncoding | None) -> str:
+    if encoding == RecencyEncoding.DAYS:
+        return str(column)
+    return f"mozfun.bits28.days_since_seen({column})"
+
+
 def aggregation_select_expression(
     aggregation: Aggregation,
     column: str | None,
@@ -188,6 +200,8 @@ def aggregation_select_expression(
     threshold: Threshold | None,
     scale: int | float | None,
     coalesce: CoalesceMode | None = None,
+    cast_as_int: bool = False,
+    encoding: RecencyEncoding | None = None,
 ) -> str:
     predicate = predicate_sql(conditions)
     is_boolean = False
@@ -209,13 +223,15 @@ def aggregation_select_expression(
             expression = f"LOGICAL_OR({predicate})"
         is_boolean = True
     elif aggregation == Aggregation.RECENCY_WITHIN:
-        expression = (
-            f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
-            f" < {within_days}"
-        )
+        inner = recency_inner_expression(column, encoding)
+        expression = f"COALESCE(MIN({inner}), {NO_ACTIVITY_DAYS}) < {within_days}"
         is_boolean = True
     else:
         raise ValueError(f"unknown aggregation '{aggregation}'")
+
+    if cast_as_int:
+        expression = f"CAST({expression} AS INT64)"
+        is_boolean = False
 
     if threshold is not None:
         if is_boolean:
@@ -259,6 +275,7 @@ def aggregation_bucketed(
     threshold: Threshold | None,
     scale: int | float | None,
     coalesce: CoalesceMode | None = None,
+    encoding: RecencyEncoding | None = None,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
     combine = Combine.SUM
@@ -282,9 +299,8 @@ def aggregation_bucketed(
         bucket_aggregate = f"COUNTIF({predicate})"
         finalize = f"CAST({COMBINED} > 0 AS INT64)"
     elif aggregation == Aggregation.RECENCY_WITHIN:
-        bucket_aggregate = (
-            f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"
-        )
+        inner = recency_inner_expression(column, encoding)
+        bucket_aggregate = f"COALESCE(MIN({inner}), {NO_ACTIVITY_DAYS})"
         combine = Combine.MIN
         no_rows = str(NO_ACTIVITY_DAYS)
         finalize = f"CAST({COMBINED} < {within_days} AS INT64)"

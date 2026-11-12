@@ -73,6 +73,8 @@ Aggregation fields:
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
 | `coalesce` | string | aggregation-dependent | Where a null-safety default is applied: `aggregate`, `none` or `result`. Valid only for `sum`, `count_where` and `any`. See [Coalesce](#coalesce). |
+| `cast_as_int` | boolean | `false` | Casts an `any`/`recency_within` boolean result to `INT64` with no threshold or scale. See [Cast as int](#cast-as-int). |
+| `encoding` | string | `bits28` | For `recency_within`: `bits28` decodes a 28-day activity bit pattern; `days` means `column` already holds the number of days since the unit was last active. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
@@ -190,6 +192,18 @@ only the column and the number of days.
 data_source = "firefox_desktop_active_users_view"
 aggregation = "recency_within"
 column = "days_active_bits"
+within_days = 3
+```
+
+Set `encoding = "days"` when `column` already holds the number of days since the unit was last
+active, rather than a 28-day bit pattern to decode:
+
+```toml
+[metrics.active_in_last_3_days]
+data_source = "firefox_desktop_active_users_view"
+aggregation = "recency_within"
+column = "days_since_desktop_active"
+encoding = "days"
 within_days = 3
 ```
 
@@ -327,6 +341,21 @@ threshold = { op = ">", value = 0 }
 coalesce = "result"
 ```
 
+## Cast as int
+
+`cast_as_int` casts an `any` or `recency_within` boolean result to `INT64`, with no threshold or
+scale (those already produce an `INT64` 0/1 result of their own, so combining them with
+`cast_as_int` is rejected rather than silently redundant). Use it to reproduce a hand-written
+metric that casts its boolean result to an integer without comparing it to anything:
+
+```toml
+[metrics.site_breakage_impressions]
+data_source = "clients_daily"
+aggregation = "any"
+column = "site_breakage_opened"
+cast_as_int = true
+```
+
 ## Windows
 
 Three fields say which windows Highwind computes for the metric. Lengths are in days, counted from
@@ -395,6 +424,9 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
 - `coalesce` is set on any aggregation other than `sum`, `count_where` or `any`.
+- `encoding` is set on any aggregation other than `recency_within`.
+- `cast_as_int` is set on any aggregation other than `any` or `recency_within`, or is set together
+  with `threshold` or `scale`.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
@@ -471,12 +503,15 @@ fields are not used.
 | with `scale` k | `<expression> * k` | |
 | with `coalesce = "none"` | drops the `aggregate`-mode default above (bare `SUM(c)` or `LOGICAL_OR(p)`) | |
 | with `coalesce = "result"` | drops the `aggregate`-mode default and instead wraps the whole expression, after any threshold, in `COALESCE(..., FALSE or 0)` | |
+| with `cast_as_int` | `CAST(<expression> AS INT64)`, applied to `any`/`recency_within` with no threshold or scale | |
 
 `any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
 described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
 renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`. See [Coalesce](#coalesce) for the
-`coalesce` field.
+`coalesce` field and [Cast as int](#cast-as-int) for the `cast_as_int` field. With `recency_within`,
+`mozfun.bits28.days_since_seen(c)` above is `c` itself when `encoding = "days"`; see
+[recency_within](#recency_within).
 
 In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
@@ -521,6 +556,10 @@ match Jetstream's text, even though it changes no value. `any`'s Highwind parts 
 collapses to the same value regardless of which `coalesce` mode Jetstream's side uses, the same
 pre-existing gap as `any` with no `coalesce` field at all (see [Equivalence](#equivalence)).
 
+`cast_as_int` changes no Highwind part: Highwind already always returns an `INT64` 0/1 for `any`
+and `recency_within`. With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself
+when `encoding = "days"`, the same substitution as on the Jetstream side.
+
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.
 
@@ -540,7 +579,11 @@ each requested name with `get_nimbus_metric_definition`, and returns an `Aggrega
 
 The column and condition text is the same in both consumers. Only the wrapper differs. Over a
 single bucket the four Highwind parts reduce to the Jetstream expression, so both consumers compute
-the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans.
+the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans; that
+is also why a threshold, `any` or `recency_within` collapses to the same *value* as the Jetstream
+expression but not always the same SQL *text* (Highwind's `finalize` always casts to `INT64`,
+Jetstream's `select_expression` only does when something follows a boolean base expression, or
+`cast_as_int` is set).
 
 ## Not supported yet
 

@@ -19,6 +19,8 @@ NIMBUS_METRIC_KEYS = {
     "threshold",
     "scale",
     "coalesce",
+    "cast_as_int",
+    "encoding",
     "within_days",
     "cumulative_window",
     "incremental_window",

@@ -300,15 +300,66 @@ class TestCoalesce:
         assert exc_info.group_contains(ValueError, match="require aggregation")
 
 
+class TestCastAsInt:
+    def test_any_with_no_threshold(self):
+        metric = parse_metric(aggregation="any", column="a", cast_as_int=True)
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "CAST(COALESCE(LOGICAL_OR(a), FALSE) AS INT64)"
+        )
+
+    def test_recency_within(self):
+        metric = parse_metric(
+            aggregation="recency_within", column="a", within_days=3, cast_as_int=True
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "CAST(COALESCE(MIN(mozfun.bits28.days_since_seen(a)), 30) < 3 AS INT64)"
+        )
+
+
+class TestRecencyEncoding:
+    def test_bits28_is_the_default(self):
+        default = parse_metric(aggregation="recency_within", column="a", within_days=3)
+        explicit = parse_metric(
+            aggregation="recency_within", column="a", within_days=3, encoding="bits28"
+        )
+
+        assert (
+            default.select_expression_from_aggregation
+            == explicit.select_expression_from_aggregation
+        )
+        assert default.bucketed_aggregation == explicit.bucketed_aggregation
+
+    def test_days_encoding(self):
+        metric = parse_metric(
+            aggregation="recency_within",
+            column="days_since_desktop_active",
+            encoding="days",
+            within_days=3,
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "COALESCE(MIN(days_since_desktop_active), 30) < 3"
+        )
+        assert metric.bucketed_aggregation == BucketedAggregation(
+            "COALESCE(MIN(days_since_desktop_active), 30)",
+            Combine.MIN,
+            "30",
+            "CAST({combined} < 3 AS INT64)",
+        )
+
+
 class TestSingleBucketCollapse:
     """Over exactly one bucket, combine(bucket_aggregate) is the identity, so the
     window's combined value is bucket_aggregate itself. Where neither side casts a
     boolean to INT64 (no threshold, and the aggregation is not any/recency_within),
     that text must equal the Jetstream expression exactly. Where one side does
-    (any, recency_within, or any aggregation with a threshold), Highwind always
-    returns INT64 and Jetstream does not unless something follows the boolean, so
-    the two compute the same value without being the same text; that half of this
-    test documents the known gap instead of asserting a false equality.
+    (any, recency_within, or any aggregation with a threshold or cast_as_int),
+    Highwind always returns INT64 and Jetstream does not unless something follows
+    the boolean, so the two compute the same value without being the same text;
+    that half of this test documents the known gap instead of asserting a false
+    equality.
     """
 
     @pytest.mark.parametrize(
@@ -336,6 +387,13 @@ class TestSingleBucketCollapse:
             {"aggregation": "any", "column": "a", "coalesce": "none"},
             {"aggregation": "recency_within", "column": "a", "within_days": 3},
             {"aggregation": "sum", "column": "a", "threshold": {"op": ">", "value": 0}},
+            {
+                "aggregation": "recency_within",
+                "column": "days_since_desktop_active",
+                "encoding": "days",
+                "within_days": 3,
+            },
+            {"aggregation": "any", "column": "a", "cast_as_int": True},
         ],
     )
     def test_collapses_to_the_same_value_not_text(self, fields):
@@ -348,6 +406,46 @@ class TestSingleBucketCollapse:
         assert collapsed != jetstream
         assert collapsed.startswith("CAST(")
         assert collapsed.endswith("AS INT64)")
+
+    def test_cast_as_int_makes_jetstream_int64_too(self):
+        metric = parse_metric(aggregation="any", column="a", cast_as_int=True)
+
+        jetstream = render(metric.select_expression_from_aggregation)
+
+        assert jetstream.startswith("CAST(")
+        assert jetstream.endswith("AS INT64)")
+
+    def test_cast_as_int_does_not_change_bucketed_aggregation(self):
+        with_cast = parse_metric(aggregation="any", column="a", cast_as_int=True)
+        without_cast = parse_metric(aggregation="any", column="a")
+
+        assert with_cast.bucketed_aggregation == without_cast.bucketed_aggregation
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "recency_within", "column": "a", "within_days": 3, "cast_as_int": True},
+            {
+                "aggregation": "recency_within",
+                "column": "days_since_desktop_active",
+                "encoding": "days",
+                "within_days": 3,
+                "cast_as_int": True,
+            },
+        ],
+    )
+    def test_cast_as_int_collapses_recency_within_to_the_same_text(self, fields):
+        """`recency_within`'s Jetstream expression is already the same COALESCE(MIN(...),
+        30) < N text Highwind combines; without cast_as_int only Highwind's finalize casts
+        it to INT64, but with cast_as_int both sides do, so the two become byte-identical.
+        """
+        metric = parse_metric(**fields)
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = render(bucketed.finalize_sql(bucketed.bucket_aggregate))
+        jetstream = render(metric.select_expression_from_aggregation)
+
+        assert collapsed == jetstream
 
 
 class TestResolve:

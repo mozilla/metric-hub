@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 from . import AnalysisUnit
 from .aggregation import (
+    CAST_AS_INT_AGGREGATIONS,
     COALESCE_AGGREGATIONS,
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
@@ -30,6 +31,7 @@ from .aggregation import (
     BucketedAggregation,
     Clause,
     CoalesceMode,
+    RecencyEncoding,
     Threshold,
     aggregation_bucketed,
     aggregation_select_expression,
@@ -183,6 +185,8 @@ class MetricDefinition:
     threshold: Threshold | None = None
     scale: int | float | None = None
     coalesce: CoalesceMode | None = None
+    cast_as_int: bool = False
+    encoding: RecencyEncoding | None = None
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
@@ -200,13 +204,16 @@ class MetricDefinition:
                 or self.threshold is not None
                 or self.scale is not None
                 or self.coalesce is not None
+                or self.cast_as_int is not False
+                or self.encoding is not None
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
             ):
                 raise ValueError(
                     f"{context}: column, where, within_days, threshold, scale, coalesce, "
-                    "cumulative_window, incremental_window and repeat_windows require aggregation"
+                    "cast_as_int, encoding, cumulative_window, incremental_window and "
+                    "repeat_windows require aggregation"
                 )
             return
 
@@ -236,6 +243,20 @@ class MetricDefinition:
                 raise ValueError(f"{context}: within_days must be at most {MAX_WITHIN_DAYS}")
         elif self.within_days is not None:
             raise ValueError(f"{context}: within_days is only valid for recency_within")
+
+        if self.encoding is not None and self.aggregation != Aggregation.RECENCY_WITHIN:
+            raise ValueError(f"{context}: encoding is only valid for recency_within")
+
+        if self.cast_as_int:
+            if self.aggregation not in CAST_AS_INT_AGGREGATIONS:
+                raise ValueError(
+                    f"{context}: cast_as_int is only valid for "
+                    f"{sorted(a.value for a in CAST_AS_INT_AGGREGATIONS)}"
+                )
+            if self.threshold is not None or self.scale is not None:
+                raise ValueError(
+                    f"{context}: cast_as_int cannot be combined with threshold or scale"
+                )
 
         if self.scale is not None and not is_number(self.scale):
             raise ValueError(f"{context}: scale must be a number")
@@ -289,6 +310,8 @@ class MetricDefinition:
             self.threshold,
             self.scale,
             self.coalesce,
+            self.cast_as_int,
+            self.encoding,
         )
 
     @property
@@ -303,6 +326,7 @@ class MetricDefinition:
             self.threshold,
             self.scale,
             self.coalesce,
+            self.encoding,
         )
 
     @staticmethod
@@ -549,6 +573,8 @@ converter.register_structure_hook(
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),
         coalesce=override(struct_hook=lambda obj, _type: to_enum(CoalesceMode, obj, "coalesce")),
+        cast_as_int=override(struct_hook=_passthrough),
+        encoding=override(struct_hook=lambda obj, _type: to_enum(RecencyEncoding, obj, "encoding")),
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),

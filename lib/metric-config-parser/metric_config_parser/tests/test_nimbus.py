@@ -7,7 +7,13 @@ import toml
 from cattrs.errors import ClassValidationError
 from git import Repo
 
-from metric_config_parser.aggregation import Aggregation, Clause, Operator, Threshold
+from metric_config_parser.aggregation import (
+    Aggregation,
+    Clause,
+    Operator,
+    RecencyEncoding,
+    Threshold,
+)
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.config import (
     NIMBUS_DEFINITIONS_DIR,
@@ -351,6 +357,8 @@ class TestAggregationFieldRejections:
             ({"within_days": 3}, "require aggregation"),
             ({"threshold": {"op": ">", "value": 0}}, "require aggregation"),
             ({"scale": 1000}, "require aggregation"),
+            ({"cast_as_int": True}, "require aggregation"),
+            ({"encoding": "days"}, "require aggregation"),
             ({"cumulative_window": 7}, "require aggregation"),
             ({"incremental_window": 7}, "require aggregation"),
             ({"repeat_windows": True}, "require aggregation"),
@@ -517,6 +525,49 @@ class TestAggregationFieldRejections:
                 {"aggregation": "sum", "column": "a", "cumulative_window": 7, "repeat_windows": 1},
                 "repeat_windows must be a boolean",
             ),
+            (
+                {"aggregation": "sum", "column": "a", "encoding": "days"},
+                "encoding is only valid for recency_within",
+            ),
+            (
+                {"aggregation": "any", "column": "a", "encoding": "days"},
+                "encoding is only valid for recency_within",
+            ),
+            (
+                {"aggregation": "recency_within", "column": "a", "within_days": 3, "encoding": "x"},
+                "is not one of",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "cast_as_int": True},
+                "cast_as_int is only valid for",
+            ),
+            (
+                {
+                    "aggregation": "count_where",
+                    "where": [{"column": "a"}],
+                    "cast_as_int": True,
+                },
+                "cast_as_int is only valid for",
+            ),
+            (
+                {
+                    "aggregation": "any",
+                    "column": "a",
+                    "cast_as_int": True,
+                    "threshold": {"op": ">", "value": 0},
+                },
+                "cast_as_int cannot be combined with threshold or scale",
+            ),
+            (
+                {
+                    "aggregation": "recency_within",
+                    "column": "a",
+                    "within_days": 3,
+                    "cast_as_int": True,
+                    "scale": 10,
+                },
+                "cast_as_int cannot be combined with threshold or scale",
+            ),
         ],
     )
     def test_rejects(self, fields, match):
@@ -571,6 +622,24 @@ class TestNimbusSpec:
             parse_nimbus(data_source="clients_daily", aggregation="sum")
 
         assert exc_info.group_contains(ValueError, match="requires a column")
+
+    def test_accepts_cast_as_int(self):
+        spec = parse_nimbus(
+            data_source="clients_daily", aggregation="any", column="a", cast_as_int=True
+        )
+
+        assert spec.metrics["m"].cast_as_int is True
+
+    def test_accepts_encoding(self):
+        spec = parse_nimbus(
+            data_source="clients_daily",
+            aggregation="recency_within",
+            column="a",
+            within_days=3,
+            encoding="days",
+        )
+
+        assert spec.metrics["m"].encoding == RecencyEncoding.DAYS
 
     def test_invalid_file_fails_to_load(self, tmp_path):
         make_repo(tmp_path)
