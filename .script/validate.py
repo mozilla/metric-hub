@@ -35,6 +35,7 @@ from metric_config_parser.config import (
     entity_from_path,
     is_nimbus_definition,
 )
+from metric_config_parser.errors import DefinitionNotFound
 from metric_config_parser.featmon import FEATMON_DIR
 from metric_config_parser.function import FunctionsSpec
 from metric_config_parser.metric import MetricDefinition
@@ -174,6 +175,17 @@ def _is_sql_valid(sql):
     return True
 
 
+def _resolve_nimbus_data_source(config_collection, definition, entity, data_source_name):
+    data_source_definition = config_collection.get_nimbus_data_source_definition(
+        data_source_name, entity.app_name
+    )
+    if data_source_definition is None:
+        raise DefinitionNotFound(
+            f"No default definition for data source '{data_source_name}' [{entity.app_name}] found"
+        )
+    return data_source_definition.resolve(definition.spec, definition, config_collection)
+
+
 def _nimbus_metric_queries(config_collection, entity):
     env = config_collection.get_env().from_string(
         (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
@@ -201,8 +213,8 @@ def _nimbus_metric_queries(config_collection, entity):
                 segments=[],
                 segment_data_sources=[],
                 data_sources={
-                    metric.data_source.name: metric.data_source.resolve(
-                        definition.spec, definition, config_collection
+                    metric.data_source.name: _resolve_nimbus_data_source(
+                        config_collection, definition, entity, metric.data_source.name
                     )
                     for metric in batch
                 },

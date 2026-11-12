@@ -271,16 +271,30 @@ class NimbusConfig:
         return Path(NIMBUS_DIR) / folder / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
+        for name, nimbus_data_source in self.spec.data_sources.items():
+            definitions_data_source = configs.get_definitions_data_source_definition(
+                name, self.app_name
+            )
+            if (
+                definitions_data_source is not None
+                and definitions_data_source != nimbus_data_source
+            ):
+                raise ValueError(
+                    f"Data source '{name}' in {self.path} does not match "
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml"
+                )
+
         for name, metric in self.spec.metrics.items():
             data_source = metric.data_source.name if metric.data_source else None
             if (
                 data_source is None
-                or configs.get_data_source_definition(data_source, self.app_name) is None
+                or configs.get_nimbus_data_source_definition(data_source, self.app_name) is None
             ):
                 raise ValueError(
                     f"Metric '{name}' in {self.path} references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.app_name}.toml"
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml or under {NIMBUS_DIR}/ for "
+                    f"{self.app_name}"
                 )
 
         for other in configs.nimbus_configs:
@@ -288,11 +302,19 @@ class NimbusConfig:
                 continue
             if other.slug == self.slug and other.kind == self.kind:
                 continue
-            duplicates = sorted(set(self.spec.metrics) & set(other.spec.metrics))
-            if duplicates:
+            duplicate_metrics = sorted(set(self.spec.metrics) & set(other.spec.metrics))
+            if duplicate_metrics:
                 raise ValueError(
-                    f"Metric(s) {', '.join(duplicates)} in {self.path} are also defined in "
+                    f"Metric(s) {', '.join(duplicate_metrics)} in {self.path} are also defined in "
                     f"{other.path}"
+                )
+            duplicate_data_sources = sorted(
+                set(self.spec.data_sources) & set(other.spec.data_sources)
+            )
+            if duplicate_data_sources:
+                raise ValueError(
+                    f"Data source(s) {', '.join(duplicate_data_sources)} in {self.path} are also "
+                    f"defined in {other.path}"
                 )
 
 
@@ -367,15 +389,19 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
 
 
 def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
-    valid_configs = []
-    for nimbus_config in collection.nimbus_configs:
-        try:
-            nimbus_config.validate(collection)
-        except Exception as e:
-            logger.warning(f"{nimbus_config.path}: skipping file, failed validation: {e}")
-            continue
-        valid_configs.append(nimbus_config)
-    collection.nimbus_configs = valid_configs
+    dropped_any = True
+    while dropped_any:
+        dropped_any = False
+        valid_configs = []
+        for nimbus_config in collection.nimbus_configs:
+            try:
+                nimbus_config.validate(collection)
+            except Exception as e:
+                logger.warning(f"{nimbus_config.path}: skipping file, failed validation: {e}")
+                dropped_any = True
+                continue
+            valid_configs.append(nimbus_config)
+        collection.nimbus_configs = valid_configs
 
 
 def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
@@ -391,25 +417,46 @@ def _merge_nimbus_configs(
     self_keys = {(nc.app_name, nc.kind, nc.slug) for nc in self_configs}
     other_by_key = {(nc.app_name, nc.kind, nc.slug): nc for nc in other_configs}
     other_metric_names_by_app: dict[str, set[str]] = {}
+    other_data_source_names_by_app: dict[str, set[str]] = {}
     for nc in other_configs:
         other_metric_names_by_app.setdefault(nc.app_name, set()).update(nc.spec.metrics)
+        other_data_source_names_by_app.setdefault(nc.app_name, set()).update(nc.spec.data_sources)
 
     merged = []
     for nc in self_configs:
         key = (nc.app_name, nc.kind, nc.slug)
         other_nc = other_by_key.get(key)
-        redefined = other_metric_names_by_app.get(nc.app_name, set())
-        if other_nc is None and redefined.isdisjoint(nc.spec.metrics):
+        redefined_metrics = other_metric_names_by_app.get(nc.app_name, set())
+        redefined_data_sources = other_data_source_names_by_app.get(nc.app_name, set())
+        if (
+            other_nc is None
+            and redefined_metrics.isdisjoint(nc.spec.metrics)
+            and redefined_data_sources.isdisjoint(nc.spec.data_sources)
+        ):
             merged.append(nc)
             continue
         other_metrics = other_nc.spec.metrics if other_nc is not None else {}
+        other_data_sources = other_nc.spec.data_sources if other_nc is not None else {}
         remaining_metrics = {
-            name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
+            name: metric
+            for name, metric in nc.spec.metrics.items()
+            if name not in redefined_metrics
+        }
+        remaining_data_sources = {
+            name: data_source
+            for name, data_source in nc.spec.data_sources.items()
+            if name not in redefined_data_sources
         }
         merged_metrics = {**remaining_metrics, **other_metrics}
-        if not merged_metrics:
+        merged_data_sources = {**remaining_data_sources, **other_data_sources}
+        if not merged_metrics and not merged_data_sources:
             continue
-        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=merged_metrics)))
+        merged.append(
+            attr.evolve(
+                nc,
+                spec=NimbusSpec(metrics=merged_metrics, data_sources=merged_data_sources),
+            )
+        )
 
     merged += [nc for nc in other_configs if (nc.app_name, nc.kind, nc.slug) not in self_keys]
     return merged
@@ -924,7 +971,9 @@ class ConfigCollection:
 
         return None
 
-    def get_data_source_definition(self, slug: str, app_name: str) -> DataSourceDefinition | None:
+    def get_definitions_data_source_definition(
+        self, slug: str, app_name: str
+    ) -> DataSourceDefinition | None:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for (
@@ -933,6 +982,22 @@ class ConfigCollection:
                 ) in definition.spec.data_sources.definitions.items():
                     if data_source_slug == slug:
                         return data_source
+        return None
+
+    def get_data_source_definition(self, slug: str, app_name: str) -> DataSourceDefinition | None:
+        return self.get_definitions_data_source_definition(slug, app_name)
+
+    def get_nimbus_data_source_definition(
+        self, slug: str, app_name: str
+    ) -> DataSourceDefinition | None:
+        definitions_data_source = self.get_definitions_data_source_definition(slug, app_name)
+        if definitions_data_source is not None:
+            return definitions_data_source
+        for nimbus_config in self.nimbus_configs:
+            if app_name == nimbus_config.app_name:
+                nimbus_data_source = nimbus_config.spec.data_sources.get(slug)
+                if nimbus_data_source is not None:
+                    return nimbus_data_source
         return None
 
     def get_segment_data_source_definition(

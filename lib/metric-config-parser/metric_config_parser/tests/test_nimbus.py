@@ -28,6 +28,7 @@ from metric_config_parser.config import (
 )
 from metric_config_parser.data_source import DataSourceReference
 from metric_config_parser.definition import DefinitionSpec
+from metric_config_parser.errors import DefinitionNotFound
 from metric_config_parser.function import FunctionsSpec
 from metric_config_parser.metric import MetricDefinition, MetricReference
 from metric_config_parser.nimbus import (
@@ -38,6 +39,7 @@ from metric_config_parser.nimbus import (
     NimbusSpec,
 )
 from metric_config_parser.outcome import OutcomeSpec
+from metric_config_parser.project import ProjectConfiguration
 from metric_config_parser.util import converter, normalize_sql
 
 TEST_DIR = Path(__file__).parent
@@ -629,8 +631,44 @@ class TestNimbusSpec:
             parse_nimbus(aggregation="sum", column="a")
 
     def test_rejects_unknown_top_level_key(self):
-        with pytest.raises(ValueError, match="data_sources"):
-            NimbusSpec.from_dict({"metrics": {}, "data_sources": {}}, "firefox_desktop")
+        with pytest.raises(ValueError, match="segments"):
+            NimbusSpec.from_dict({"metrics": {}, "segments": {}}, "firefox_desktop")
+
+    def test_accepts_data_sources_top_level_key(self):
+        spec = NimbusSpec.from_dict(
+            {
+                "metrics": {},
+                "data_sources": {
+                    "events_certerror": {
+                        "from_expression": "(SELECT * FROM telemetry.events)",
+                        "submission_date_column": "submission_date",
+                    }
+                },
+            },
+            "firefox_desktop",
+        )
+
+        assert spec.data_sources["events_certerror"].from_expression == (
+            "(SELECT * FROM telemetry.events)"
+        )
+        assert spec.data_sources["events_certerror"].submission_date_column == "submission_date"
+
+    def test_lowercases_data_source_keys(self):
+        spec = NimbusSpec.from_dict(
+            {
+                "metrics": {},
+                "data_sources": {
+                    "events_certerror": {
+                        "From_Expression": "(SELECT * FROM telemetry.events)",
+                    }
+                },
+            },
+            "firefox_desktop",
+        )
+
+        assert spec.data_sources["events_certerror"].from_expression == (
+            "(SELECT * FROM telemetry.events)"
+        )
 
     def test_applies_aggregation_rules(self):
         with pytest.raises(ClassValidationError) as exc_info:
@@ -765,6 +803,45 @@ class TestNimbusCollection:
         merged_metrics = collection.nimbus_configs[0].spec.metrics
         assert set(merged_metrics) == base_metrics
         assert merged_metrics["active_hours"].column == "active_hours_sum_v2"
+
+    def test_merge_same_file_redefines_one_data_source_keeps_others(self, tmp_path):
+        base = make_repo(tmp_path / "base")
+        write_nimbus(
+            base,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n\n'
+            "[data_sources.events_other]\n"
+            'from_expression = "(SELECT * FROM telemetry.other_events)"\n\n'
+            "[metrics.cert_error_page_loaded]\n"
+            'data_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+        Repo(base).git.commit("-am", "add nimbus data sources")
+
+        override = make_repo(tmp_path / "override")
+        write_nimbus(
+            override,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events_v2)"\n',
+        )
+        Repo(override).git.commit("-am", "redefine a nimbus data source")
+
+        collection = ConfigCollection.from_github_repo(base)
+        collection.merge(ConfigCollection.from_github_repo(override))
+
+        assert len(collection.nimbus_configs) == 1
+        merged_data_sources = collection.nimbus_configs[0].spec.data_sources
+        assert set(merged_data_sources) == {"events_certerror", "events_other"}
+        assert merged_data_sources["events_certerror"].from_expression == (
+            "(SELECT * FROM telemetry.events_v2)"
+        )
+        assert merged_data_sources["events_other"].from_expression == (
+            "(SELECT * FROM telemetry.other_events)"
+        )
 
     def test_merge_keeps_configs_for_other_apps(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
@@ -987,7 +1064,7 @@ class TestNimbusCollection:
         )
         write_nimbus(
             tmp_path,
-            '[data_sources]\n[metrics.active_hours]\nfriendly_name = "Active hours"\n'
+            '[bogus_table]\n[metrics.active_hours]\nfriendly_name = "Active hours"\n'
             'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "active_hours_sum"\n',
         )
 
@@ -1011,6 +1088,67 @@ class TestNimbusCollection:
         assert {config.slug for config in collection.nimbus_configs} == {"fenix"}
         assert collection.get_metric_definition("uri_count", "firefox_desktop") is not None
         assert any("firefox_desktop.toml" in record.message for record in caplog.records)
+
+    def test_resolves_data_source_declared_in_nimbus_itself(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n'
+            'submission_date_column = "submission_date"\n\n'
+            "[metrics.cert_error_page_loaded]\n"
+            'data_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "events_certerror", "firefox_desktop"
+        )
+        assert data_source is not None
+        assert data_source.from_expression == "(SELECT * FROM telemetry.events)"
+        assert (
+            collection.get_definitions_data_source_definition("events_certerror", "firefox_desktop")
+            is None
+        )
+        metric = collection.get_nimbus_metric_definition(
+            "cert_error_page_loaded", "firefox_desktop"
+        )
+        assert metric is not None
+        assert metric.data_source.name == "events_certerror"
+
+    def test_rejects_data_source_differing_from_definitions(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.other_table"\n\n'
+            "[metrics.search_count]\n"
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        with pytest.raises(ValueError, match=r"does not match definitions/firefox_desktop\.toml"):
+            LocalConfigCollection.from_local_path(tmp_path, strict_nimbus=True)
+
+    def test_accepts_data_source_identical_to_definitions(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.clients_daily"\n'
+            'friendly_name = "Clients Daily"\n\n'
+            "[metrics.search_count]\n"
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.get_data_source_definition(
+            "clients_daily", "firefox_desktop"
+        ) == collection.get_definitions_data_source_definition("clients_daily", "firefox_desktop")
 
     def test_same_metric_in_definitions_and_nimbus(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
@@ -1342,6 +1480,121 @@ class TestNimbusAppLayout:
         )
         Repo(tmp_path).git.add(".")
         Repo(tmp_path).git.commit("-am", "add duplicate metric across files")
+
+        with pytest.raises(ValueError, match="also defined in"):
+            ConfigCollection.from_github_repos([str(tmp_path)], strict_nimbus=True)
+
+    def test_data_source_in_defaults_used_by_metric_in_outcome(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n',
+        )
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            '[metrics.cert_error_page_loaded]\ndata_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "events_certerror", "firefox_desktop"
+        )
+        assert data_source is not None
+        assert data_source.from_expression == "(SELECT * FROM telemetry.events)"
+        metric = collection.get_nimbus_metric_definition(
+            "cert_error_page_loaded", "firefox_desktop"
+        )
+        assert metric is not None
+        assert metric.data_source.name == "events_certerror"
+
+    def test_duplicate_data_source_between_defaults_and_outcomes_is_dropped_at_load(
+        self, tmp_path, caplog
+    ):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n',
+        )
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.other_events)"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert (
+            collection.get_nimbus_data_source_definition("events_certerror", "firefox_desktop")
+            is None
+        )
+        assert any("are also defined in" in record.message for record in caplog.records)
+
+    def test_dropping_a_file_also_drops_another_file_left_depending_on_it(self, tmp_path, caplog):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            "[data_sources.shared_source]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n\n'
+            "[metrics.broken_metric]\n"
+            'data_source = "undefined_source"\n'
+            'aggregation = "sum"\n'
+            'column = "a"\n',
+        )
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            "[metrics.shared_user]\n"
+            'data_source = "shared_source"\n'
+            'aggregation = "any"\n'
+            'column = "x"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.get_nimbus_metric_definition("broken_metric", "firefox_desktop") is None
+        assert collection.get_nimbus_metric_definition("shared_user", "firefox_desktop") is None
+        assert any(
+            "broken_metric" in record.message and "undefined_source" in record.message
+            for record in caplog.records
+        )
+        assert any(
+            "shared_user" in record.message and "shared_source" in record.message
+            for record in caplog.records
+        )
+
+    def test_strict_raises_on_duplicate_data_source_between_defaults_and_outcomes(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n',
+        )
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.other_events)"\n',
+        )
+        Repo(tmp_path).git.add(".")
+        Repo(tmp_path).git.commit("-am", "add duplicate data source across files")
 
         with pytest.raises(ValueError, match="also defined in"):
             ConfigCollection.from_github_repos([str(tmp_path)], strict_nimbus=True)
@@ -1693,6 +1946,55 @@ class TestNimbusDefinitionMismatches:
         assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
         assert collection.nimbus_definition_mismatches() == []
 
+    def test_matches_metric_using_data_source_declared_in_nimbus(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.nimbus_sourced_metric]\n"
+            "select_expression = '{{agg_sum(\"x\")}}'\n"
+            'data_source = "nimbus_only_source"\n'
+        )
+        nimbus_file = tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n[data_sources.nimbus_only_source]\n"
+            'from_expression = "mozdata.foo.bar"\n\n'
+            "[metrics.nimbus_sourced_metric]\n"
+            'data_source = "nimbus_only_source"\n'
+            'aggregation = "sum"\n'
+            'column = "x"\n'
+        )
+
+        collection = collection_with_functions(tmp_path)
+
+        assert (
+            collection.get_nimbus_data_source_definition("nimbus_only_source", "firefox_desktop")
+            is not None
+        )
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_definitions_metric_does_not_resolve_a_nimbus_only_data_source(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.nimbus_sourced_metric]\n"
+            "select_expression = '{{agg_sum(\"x\")}}'\n"
+            'data_source = "nimbus_only_source"\n'
+        )
+        nimbus_file = tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n[data_sources.nimbus_only_source]\n"
+            'from_expression = "mozdata.foo.bar"\n'
+        )
+
+        collection = collection_with_functions(tmp_path)
+        metric = collection.get_metric_definition("nimbus_sourced_metric", "firefox_desktop")
+
+        assert metric is not None
+        with pytest.raises(DefinitionNotFound):
+            metric.data_source.resolve(
+                DefinitionSpec(), ProjectConfiguration(app_name="firefox_desktop"), collection
+            )
+
     def test_mismatch_message(self):
         mismatch = NimbusDefinitionMismatch(
             app_name="firefox_desktop",
@@ -1750,8 +2052,12 @@ class TestNimbusExample:
 
         collection = LocalConfigCollection.from_local_path(tmp_path)
 
-        metrics = collection.nimbus_configs[0].spec.metrics
+        nimbus_config = collection.nimbus_configs[0]
+        metrics = nimbus_config.spec.metrics
         assert {metric.aggregation for metric in metrics.values()} == set(Aggregation)
+
+        assert "example_events" in nimbus_config.spec.data_sources
+        assert metrics["example_data_source_metric"].data_source.name == "example_events"
 
     def test_example_uses_every_field(self):
         metrics = toml.load(EXAMPLE_FILE)["metrics"]
