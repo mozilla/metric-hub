@@ -163,3 +163,18 @@ incremental_window = 7
 repeat_windows = true
 # Set to false when a lower value is an improvement.
 bigger_is_better = true
+
+# ---------------------------------------------------------------------------
+# coalesce: where the null-safety default is applied
+# ---------------------------------------------------------------------------
+
+[metrics.urlbar_clicks]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "urlbar_clicks"
+# Optional: aggregate (default) wraps the raw aggregate in COALESCE before any
+# threshold; none leaves it bare; result wraps the final expression (after any
+# threshold) in COALESCE instead. Valid for sum, count_where and any.
+coalesce = "none"
+cumulative_window = 7
+repeat_windows = true

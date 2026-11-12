@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import toml
+from cattrs.errors import ClassValidationError
 
 from metric_config_parser.aggregation import BucketedAggregation, Combine
 from metric_config_parser.analysis import AnalysisSpec
@@ -227,6 +228,126 @@ class TestThresholdAndScale:
 
         assert render(metric.select_expression_from_aggregation) == rendered
         assert metric.bucketed_aggregation.finalize == finalize
+
+
+class TestCoalesce:
+    @pytest.mark.parametrize(
+        ("fields", "template", "bucketed"),
+        [
+            (
+                {"aggregation": "sum", "column": "a"},
+                '{{agg_sum("a")}}',
+                BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "coalesce": "none"},
+                "SUM(a)",
+                BucketedAggregation("SUM(a)", Combine.SUM, "NULL", "{combined}"),
+            ),
+            (
+                {"aggregation": "count_where", "column": "a"},
+                "COUNTIF(a)",
+                BucketedAggregation("COUNTIF(a)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "count_where", "column": "a", "coalesce": "aggregate"},
+                "COALESCE(COUNTIF(a), 0)",
+                BucketedAggregation("COALESCE(COUNTIF(a), 0)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "any", "column": "a", "coalesce": "none"},
+                "LOGICAL_OR(a)",
+                BucketedAggregation(
+                    "COUNTIF(a)", Combine.SUM, "0", "CAST({combined} > 0 AS INT64)"
+                ),
+            ),
+        ],
+    )
+    def test_coalesce_mode(self, fields, template, bucketed):
+        metric = parse_metric(**fields)
+
+        assert metric.select_expression_from_aggregation == template
+        assert metric.bucketed_aggregation == bucketed
+
+    def test_coalesce_result_wraps_final_expression(self):
+        metric = parse_metric(
+            aggregation="sum", column="a", coalesce="result", threshold={"op": ">", "value": 0}
+        )
+
+        assert render(metric.select_expression_from_aggregation) == "COALESCE(SUM(a) > 0, FALSE)"
+        assert metric.bucketed_aggregation.bucket_aggregate == "SUM(a)"
+        assert metric.bucketed_aggregation.no_rows == "NULL"
+
+    def test_coalesce_result_on_any_defaults_to_false(self):
+        metric = parse_metric(aggregation="any", column="a", coalesce="result")
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(LOGICAL_OR(a), FALSE)"
+        )
+
+    @pytest.mark.parametrize("aggregation", ["count", "recency_within"])
+    def test_rejects_coalesce_on_other_aggregations(self, aggregation):
+        fields = {"aggregation": aggregation, "column": "a", "coalesce": "none"}
+        if aggregation == "recency_within":
+            fields["within_days"] = 3
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(**fields)
+        assert exc_info.group_contains(ValueError, match="coalesce is only valid for")
+
+    def test_rejects_coalesce_without_aggregation(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(coalesce="none")
+        assert exc_info.group_contains(ValueError, match="require aggregation")
+
+
+class TestSingleBucketCollapse:
+    """Over exactly one bucket, combine(bucket_aggregate) is the identity, so the
+    window's combined value is bucket_aggregate itself. Where neither side casts a
+    boolean to INT64 (no threshold, and the aggregation is not any/recency_within),
+    that text must equal the Jetstream expression exactly. Where one side does
+    (any, recency_within, or any aggregation with a threshold), Highwind always
+    returns INT64 and Jetstream does not unless something follows the boolean, so
+    the two compute the same value without being the same text; that half of this
+    test documents the known gap instead of asserting a false equality.
+    """
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "sum", "column": "a"},
+            {"aggregation": "sum", "column": "a", "coalesce": "none"},
+            {"aggregation": "count", "column": "a"},
+            {"aggregation": "count_where", "column": "a"},
+            {"aggregation": "count_where", "column": "a", "coalesce": "aggregate"},
+        ],
+    )
+    def test_collapses_to_jetstream_text(self, fields):
+        metric = parse_metric(**fields)
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "any", "column": "a"},
+            {"aggregation": "any", "column": "a", "coalesce": "none"},
+            {"aggregation": "recency_within", "column": "a", "within_days": 3},
+            {"aggregation": "sum", "column": "a", "threshold": {"op": ">", "value": 0}},
+        ],
+    )
+    def test_collapses_to_the_same_value_not_text(self, fields):
+        metric = parse_metric(**fields)
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = render(bucketed.finalize_sql(bucketed.bucket_aggregate))
+        jetstream = render(metric.select_expression_from_aggregation)
+
+        assert collapsed != jetstream
+        assert collapsed.startswith("CAST(")
+        assert collapsed.endswith("AS INT64)")
 
 
 class TestResolve:

@@ -72,6 +72,7 @@ Aggregation fields:
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
+| `coalesce` | string | aggregation-dependent | Where a null-safety default is applied: `aggregate`, `none` or `result`. Valid only for `sum`, `count_where` and `any`. See [Coalesce](#coalesce). |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
@@ -113,7 +114,8 @@ unit's rows in one window to one value.
 ### `sum`
 
 The sum of `column` over the unit's rows. Null values are ignored. A unit with no rows, or with only
-null values, gets 0. The result is a number.
+null values, gets 0 by default; see [Coalesce](#coalesce) to place that default differently. The
+result is a number.
 
 ```toml
 [metrics.active_hours]
@@ -136,7 +138,8 @@ column = "submission_date"
 ### `count_where`
 
 The number of rows where every condition holds. A row where a condition evaluates to null does not
-match. A unit with no rows gets 0. The result is a count.
+match. A unit with no rows gets 0, already without any `COALESCE` needed; see
+[Coalesce](#coalesce) to add one anyway. The result is a count.
 
 ```toml
 [metrics.qualified_cumulative_days_of_use]
@@ -156,8 +159,8 @@ value = 0
 
 ### `any`
 
-1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0. The result
-is 0/1.
+1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0 by default;
+see [Coalesce](#coalesce) to place that default differently. The result is 0/1.
 
 ```toml
 [metrics.is_default_browser]
@@ -287,6 +290,43 @@ column = "is_default_browser"
 scale = 1000
 ```
 
+## Coalesce
+
+`sum`, `count_where` and `any` can return null for a unit with no matching rows, before any
+null-safety default is applied. `coalesce` says where that default is applied:
+
+- `aggregate` (the default for `sum` and `any`): the default applies to the raw aggregate, before
+  any threshold. `sum` defaults to 0, `any` to `FALSE`.
+- `none` (the default for `count_where`, which never needs one since `COUNTIF` already returns 0
+  for no matching rows): no default is applied anywhere; the aggregate, and the full expression
+  including any threshold, is left as the database would return it.
+- `result`: no default applies to the raw aggregate; instead the default is applied to the final
+  expression, after any threshold. The default is `FALSE` when a threshold is present (or the
+  aggregation is `any`), otherwise 0.
+
+This only changes which exact SQL is generated, never the metric's own semantics; `aggregate` and
+`result` compute the same value whenever the aggregate is non-null. Use it to reproduce a
+hand-written metric whose null handling was placed differently than nimbus's own default, for
+example a bare `SUM(x)` with no `COALESCE`, or a `COALESCE(SUM(x) > 0, FALSE)` that defaults the
+comparison rather than the sum:
+
+```toml
+[metrics.urlbar_clicks]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "urlbar_clicks"
+coalesce = "none"
+```
+
+```toml
+[metrics.annoyances]
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+aggregation = "sum"
+column = "urlbar_annoyances"
+threshold = { op = ">", value = 0 }
+coalesce = "result"
+```
+
 ## Windows
 
 Three fields say which windows Highwind computes for the metric. Lengths are in days, counted from
@@ -354,6 +394,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
+- `coalesce` is set on any aggregation other than `sum`, `count_where` or `any`.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
@@ -419,20 +460,23 @@ returns the generated expression. `sum` and `any` call the `agg_sum` and `agg_an
 `definitions/functions.toml`, so they render the same way as a hand-written expression. The window
 fields are not used.
 
-| aggregation | `select_expression` | rendered |
+| aggregation | `select_expression` (default `coalesce`) | rendered |
 | --- | --- | --- |
-| `sum` | `{{agg_sum("c")}}` | `COALESCE(SUM(c), 0)` |
+| `sum` | `{{agg_sum("c")}}` (`aggregate`) | `COALESCE(SUM(c), 0)` |
 | `count` | `COUNT(c)` | same |
-| `count_where` | `COUNTIF(p)` | same |
-| `any` | `{{agg_any("p")}}` | `COALESCE(LOGICAL_OR(p), FALSE)` |
+| `count_where` | `COUNTIF(p)` (`none`) | same |
+| `any` | `{{agg_any("p")}}` (`aggregate`) | `COALESCE(LOGICAL_OR(p), FALSE)` |
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` | same |
 | with `threshold` | `<expression> <op> <value>` | |
 | with `scale` k | `<expression> * k` | |
+| with `coalesce = "none"` | drops the `aggregate`-mode default above (bare `SUM(c)` or `LOGICAL_OR(p)`) | |
+| with `coalesce = "result"` | drops the `aggregate`-mode default and instead wraps the whole expression, after any threshold, in `COALESCE(..., FALSE or 0)` | |
 
 `any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
 described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
-renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`.
+renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`. See [Coalesce](#coalesce) for the
+`coalesce` field.
 
 In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
@@ -458,13 +502,24 @@ which splits the aggregation into four parts:
 
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
-| `sum` | `COALESCE(SUM(c), 0)` | `SUM` | `0` | `x` |
+| `sum` | `COALESCE(SUM(c), 0)` (`coalesce = "none"` or `"result"`: bare `SUM(c)`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
-| `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
+| `count_where` | `COUNTIF(p)` (`coalesce = "aggregate"`: `COALESCE(COUNTIF(p), 0)`) | `SUM` | `0` | `x` |
 | `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30)` | `MIN` | `30` | `CAST(x < N AS INT64)` |
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
+
+`coalesce` does not change `finalize`, only `bucket_aggregate` and `no_rows`, on `sum` and
+`count_where`. For `sum`, a bare `SUM(c)` over a bucket with no matching rows is `NULL` in SQL, and
+`SUM` combine ignores nulls, so `no_rows = "NULL"` reproduces the same value Jetstream's bare
+`SUM(c)` would return for a unit with zero rows in the whole window, and collapses correctly over a
+single bucket. For `count_where`, `COUNTIF` never returns null regardless of the `coalesce` mode, so
+`no_rows` stays `0` either way; the `aggregate` mode's `bucket_aggregate` wraps in `COALESCE` to
+match Jetstream's text, even though it changes no value. `any`'s Highwind parts never change with
+`coalesce`: `COUNTIF(p)` is never null, and `finalize` already always casts to `INT64`, so `any`
+collapses to the same value regardless of which `coalesce` mode Jetstream's side uses, the same
+pre-existing gap as `any` with no `coalesce` field at all (see [Equivalence](#equivalence)).
 
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.

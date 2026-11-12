@@ -22,12 +22,14 @@ if TYPE_CHECKING:
 
 from . import AnalysisUnit
 from .aggregation import (
+    COALESCE_AGGREGATIONS,
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
     MAX_WITHIN_DAYS,
     Aggregation,
     BucketedAggregation,
     Clause,
+    CoalesceMode,
     Threshold,
     aggregation_bucketed,
     aggregation_select_expression,
@@ -180,6 +182,7 @@ class MetricDefinition:
     within_days: int | None = None
     threshold: Threshold | None = None
     scale: int | float | None = None
+    coalesce: CoalesceMode | None = None
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
@@ -196,12 +199,13 @@ class MetricDefinition:
                 or self.within_days is not None
                 or self.threshold is not None
                 or self.scale is not None
+                or self.coalesce is not None
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
             ):
                 raise ValueError(
-                    f"{context}: column, where, within_days, threshold, scale, "
+                    f"{context}: column, where, within_days, threshold, scale, coalesce, "
                     "cumulative_window, incremental_window and repeat_windows require aggregation"
                 )
             return
@@ -235,6 +239,12 @@ class MetricDefinition:
 
         if self.scale is not None and not is_number(self.scale):
             raise ValueError(f"{context}: scale must be a number")
+
+        if self.coalesce is not None and self.aggregation not in COALESCE_AGGREGATIONS:
+            raise ValueError(
+                f"{context}: coalesce is only valid for "
+                f"{sorted(a.value for a in COALESCE_AGGREGATIONS)}"
+            )
 
         if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
             raise ValueError(f"{context}: cumulative_window must be a positive integer")
@@ -278,6 +288,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
+            self.coalesce,
         )
 
     @property
@@ -291,6 +302,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
+            self.coalesce,
         )
 
     @staticmethod
@@ -536,6 +548,7 @@ converter.register_structure_hook(
         within_days=override(struct_hook=_passthrough),
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),
+        coalesce=override(struct_hook=lambda obj, _type: to_enum(CoalesceMode, obj, "coalesce")),
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),

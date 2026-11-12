@@ -27,6 +27,12 @@ class Combine(StrEnum):
     MIN = "MIN"
 
 
+class CoalesceMode(StrEnum):
+    AGGREGATE = "aggregate"
+    NONE = "none"
+    RESULT = "result"
+
+
 class Operator(StrEnum):
     GT = ">"
     GE = ">="
@@ -49,6 +55,13 @@ COMPARISON_OPERATORS = {
 
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
+
+COALESCE_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT_WHERE, Aggregation.ANY}
+DEFAULT_COALESCE_MODE = {
+    Aggregation.SUM: CoalesceMode.AGGREGATE,
+    Aggregation.COUNT_WHERE: CoalesceMode.NONE,
+    Aggregation.ANY: CoalesceMode.AGGREGATE,
+}
 
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
@@ -161,6 +174,12 @@ def predicate_sql(conditions: list[Clause]) -> str:
     return " AND ".join(clause.sql for clause in conditions)
 
 
+def resolved_coalesce_mode(aggregation: Aggregation, coalesce: CoalesceMode | None) -> CoalesceMode:
+    if coalesce is not None:
+        return coalesce
+    return DEFAULT_COALESCE_MODE.get(aggregation, CoalesceMode.NONE)
+
+
 def aggregation_select_expression(
     aggregation: Aggregation,
     column: str | None,
@@ -168,17 +187,26 @@ def aggregation_select_expression(
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
+    coalesce: CoalesceMode | None = None,
 ) -> str:
     predicate = predicate_sql(conditions)
     is_boolean = False
+    coalesce_mode = resolved_coalesce_mode(aggregation, coalesce)
     if aggregation == Aggregation.SUM:
-        expression = macro_call("agg_sum", str(column))
+        if coalesce_mode == CoalesceMode.AGGREGATE:
+            expression = macro_call("agg_sum", str(column))
+        else:
+            expression = f"SUM({column})"
     elif aggregation == Aggregation.COUNT:
         expression = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
-        expression = f"COUNTIF({predicate})"
+        base = f"COUNTIF({predicate})"
+        expression = f"COALESCE({base}, 0)" if coalesce_mode == CoalesceMode.AGGREGATE else base
     elif aggregation == Aggregation.ANY:
-        expression = macro_call("agg_any", predicate)
+        if coalesce_mode == CoalesceMode.AGGREGATE:
+            expression = macro_call("agg_any", predicate)
+        else:
+            expression = f"LOGICAL_OR({predicate})"
         is_boolean = True
     elif aggregation == Aggregation.RECENCY_WITHIN:
         expression = (
@@ -198,6 +226,10 @@ def aggregation_select_expression(
         if is_boolean:
             expression = f"CAST({expression} AS INT64)"
         expression = f"{expression} * {sql_value(scale)}"
+
+    if coalesce_mode == CoalesceMode.RESULT:
+        default = "FALSE" if is_boolean else "0"
+        expression = f"COALESCE({expression}, {default})"
     return expression
 
 
@@ -226,17 +258,26 @@ def aggregation_bucketed(
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
+    coalesce: CoalesceMode | None = None,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
     combine = Combine.SUM
     no_rows = "0"
     finalize = COMBINED
+    coalesce_mode = resolved_coalesce_mode(aggregation, coalesce)
     if aggregation == Aggregation.SUM:
-        bucket_aggregate = f"COALESCE(SUM({column}), 0)"
+        if coalesce_mode == CoalesceMode.AGGREGATE:
+            bucket_aggregate = f"COALESCE(SUM({column}), 0)"
+        else:
+            bucket_aggregate = f"SUM({column})"
+            no_rows = "NULL"
     elif aggregation == Aggregation.COUNT:
         bucket_aggregate = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
-        bucket_aggregate = f"COUNTIF({predicate})"
+        base = f"COUNTIF({predicate})"
+        bucket_aggregate = (
+            f"COALESCE({base}, 0)" if coalesce_mode == CoalesceMode.AGGREGATE else base
+        )
     elif aggregation == Aggregation.ANY:
         bucket_aggregate = f"COUNTIF({predicate})"
         finalize = f"CAST({COMBINED} > 0 AS INT64)"
