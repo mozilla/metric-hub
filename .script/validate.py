@@ -11,6 +11,7 @@ accidentally running queries during tests, leaking and overwriting production
 data, we proxy the queries through the dry run service endpoint.
 """
 
+import copy
 import json
 import os
 import random
@@ -230,7 +231,15 @@ def validate(path, config_repos):
             functions = entity_from_path(config_file)
             config_collection.functions = functions
 
-    for mismatch in config_collection.nimbus_definition_mismatches():
+    jetstream_dir = Path("jetstream")
+    nimbus_check_collection = config_collection
+    if jetstream_dir.is_dir():
+        nimbus_check_collection = copy.deepcopy(config_collection)
+        nimbus_check_collection.merge(
+            ConfigCollection.from_github_repo(str(jetstream_dir), validate_nimbus=False)
+        )
+
+    for mismatch in nimbus_check_collection.nimbus_definition_mismatches():
         dirty = True
         print(mismatch)
 
