@@ -33,14 +33,17 @@ metric-hub/
 
 - One TOML file per application, named `<application>.toml`.
 - The application comes from the file stem, as in `definitions/`. Do not put it inside the file.
-- The only top-level table is `[metrics]`. Any other top-level key is rejected.
+- The only top-level tables are `[metrics]` and `[data_sources]`. Any other top-level key is
+  rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
 - A metric may be defined under the same name in both `definitions/<application>.toml` and
   `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
   Jetstream uses the `definitions/` copy. The two copies must generate the same SQL. See
   [Validation](#validation).
-- Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
-  defined there.
+- A metric's `data_source` usually names a data source defined in
+  `definitions/<application>.toml`. A data source used only by `nimbus/definitions/` metrics, such
+  as one defined inside an outcome file, can instead be declared here, under `[data_sources]`. See
+  [Data sources](#data-sources).
 - Files ending in `.example` are not loaded.
 
 metric-config-parser loads these files when it loads a repository. `ConfigCollection` returns a
@@ -55,7 +58,8 @@ metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metri
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
   rejected.
 - Keys are case sensitive. `definitions/` lowercases keys, `nimbus/definitions/` does not.
-- `data_source` must name a data source defined in `definitions/<application>.toml`.
+- `data_source` must name a data source defined in `definitions/<application>.toml` or in this
+  file's own `[data_sources]` table.
 
 ## Field reference
 
@@ -100,7 +104,7 @@ they are in `definitions/`:
 
 | field | type | required | default | meaning |
 | --- | --- | --- | --- | --- |
-| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml`. |
+| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml` or in this file's own `[data_sources]` table. |
 | `statistics` | table of tables | no | | Statistics for the metric. |
 | `friendly_name` | string | no | | Display name on the results page. |
 | `description` | string | no | | Display description on the results page. |
@@ -412,6 +416,40 @@ statistic's parameters. An empty table means no parameters.
 Nothing reads this field in `nimbus/definitions/` yet. Jetstream takes statistics from
 `definitions/` and `jetstream/defaults/`. The parser does not check statistic names.
 
+## Data sources
+
+A metric's `data_source` usually names a data source already defined in
+`definitions/<application>.toml`. When a data source is used only by `nimbus/definitions/`
+metrics, such as one that otherwise exists only inside an outcome file, it can be declared here
+instead, under a top-level `[data_sources]` table:
+
+```toml
+[data_sources.events_certerror]
+from_expression = "(SELECT * FROM telemetry.events)"
+submission_date_column = "submission_date"
+
+[metrics.cert_error_page_loaded]
+data_source = "events_certerror"
+aggregation = "any"
+
+[[metrics.cert_error_page_loaded.where]]
+column = "event_name"
+op = "="
+value = "loaded"
+```
+
+A `[data_sources.<name>]` table here takes the same fields as a `definitions/` data source. Keys
+are lowercased, matching `definitions/`.
+
+A `data_source` reference on a metric resolves against `definitions/<application>.toml` first.
+Only when no data source of that name exists there does the parser look at this file's own
+`[data_sources]` table. `ConfigCollection.get_data_source_definition(slug, app_name)` and
+`aggregation_plan()` both resolve a data source this way.
+
+A data source declared here under a name that also exists in `definitions/<application>.toml`
+must be identical to the `definitions/` copy. A name means one data source per application, so a
+differing copy under the same name fails validation; an identical copy is redundant but allowed.
+
 ## Validation
 
 metric-config-parser checks the following wherever it parses a metric definition, including
@@ -443,7 +481,7 @@ Booleans are not accepted where a number or integer is required.
 
 In `nimbus/definitions/`, loading also fails when:
 
-- The file has a top-level key other than `metrics`.
+- The file has a top-level key other than `metrics` or `data_sources`.
 - A metric has `select_expression`.
 - A metric has no `data_source` or no `aggregation`.
 - A metric has a key not listed in the field reference.
@@ -452,8 +490,11 @@ Across files. When several repositories or directories are loaded together, such
 `jetstream/` and `opmon/`, this check runs once on the merged set, so every `definitions/`
 directory loaded counts:
 
-- `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
-  same application.
+- `data_source` does not name a data source in any loaded `definitions/<application>.toml`, nor in
+  the matching `nimbus/definitions/<application>.toml`'s own `[data_sources]` table, for the same
+  application.
+- A data source declared in `nimbus/definitions/<application>.toml`'s own `[data_sources]` table
+  has the same name as one in `definitions/<application>.toml`, but the two differ.
 
 Between `definitions/` and `nimbus/definitions/`. metric-hub CI runs this check in
 `.script/validate.py`. It does not run when a repository is loaded, so a mismatch fails CI without
@@ -598,7 +639,6 @@ Jetstream's `select_expression` only does when something follows a boolean base 
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the single
   dotted-path column names covered above.
-- Data sources in `nimbus/definitions/`. They stay in `definitions/`.
 - Segments. They stay in `definitions/`.
 
 ## Example

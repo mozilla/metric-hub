@@ -245,6 +245,18 @@ class NimbusConfig:
     spec: NimbusSpec
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
+        for name, nimbus_data_source in self.spec.data_sources.items():
+            definitions_data_source = configs.get_definitions_data_source_definition(
+                name, self.slug
+            )
+            if (
+                definitions_data_source is not None
+                and definitions_data_source != nimbus_data_source
+            ):
+                raise ValueError(
+                    f"Data source '{name}' in {NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml does not "
+                    f"match {DEFINITIONS_DIR}/{self.slug}.toml"
+                )
         for name, metric in self.spec.metrics.items():
             data_source = metric.data_source.name if metric.data_source else None
             if (
@@ -254,7 +266,8 @@ class NimbusConfig:
                 raise ValueError(
                     f"Metric '{name}' in {NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.slug}.toml"
+                    f"{DEFINITIONS_DIR}/{self.slug}.toml or "
+                    f"{NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml"
                 )
 
 
@@ -752,7 +765,9 @@ class ConfigCollection:
 
         return None
 
-    def get_data_source_definition(self, slug: str, app_name: str) -> DataSourceDefinition | None:
+    def get_definitions_data_source_definition(
+        self, slug: str, app_name: str
+    ) -> DataSourceDefinition | None:
         for definition in self.definitions:
             if app_name == definition.platform:
                 for (
@@ -761,6 +776,17 @@ class ConfigCollection:
                 ) in definition.spec.data_sources.definitions.items():
                     if data_source_slug == slug:
                         return data_source
+        return None
+
+    def get_data_source_definition(self, slug: str, app_name: str) -> DataSourceDefinition | None:
+        definitions_data_source = self.get_definitions_data_source_definition(slug, app_name)
+        if definitions_data_source is not None:
+            return definitions_data_source
+        for nimbus_config in self.nimbus_configs:
+            if app_name == nimbus_config.slug:
+                nimbus_data_source = nimbus_config.spec.data_sources.get(slug)
+                if nimbus_data_source is not None:
+                    return nimbus_data_source
         return None
 
     def get_segment_data_source_definition(

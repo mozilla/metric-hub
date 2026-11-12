@@ -2,7 +2,8 @@
 # <application>.toml (e.g. firefox_desktop.toml), and replace the metrics below.
 #
 # The application is inferred from the filename stem. Do not add it inside the file.
-# The only top-level table is [metrics]. Data sources stay in definitions/.
+# The only top-level tables are [metrics] and [data_sources]. A data source used only by
+# metrics here can be declared under [data_sources.<name>] instead of definitions/.
 # Any key not shown in this file is rejected, including select_expression.
 
 # ---------------------------------------------------------------------------

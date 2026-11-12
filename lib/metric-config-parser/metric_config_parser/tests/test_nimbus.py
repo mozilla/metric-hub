@@ -616,8 +616,44 @@ class TestNimbusSpec:
             parse_nimbus(aggregation="sum", column="a")
 
     def test_rejects_unknown_top_level_key(self):
-        with pytest.raises(ValueError, match="data_sources"):
-            NimbusSpec.from_dict({"metrics": {}, "data_sources": {}}, "firefox_desktop")
+        with pytest.raises(ValueError, match="segments"):
+            NimbusSpec.from_dict({"metrics": {}, "segments": {}}, "firefox_desktop")
+
+    def test_accepts_data_sources_top_level_key(self):
+        spec = NimbusSpec.from_dict(
+            {
+                "metrics": {},
+                "data_sources": {
+                    "events_certerror": {
+                        "from_expression": "(SELECT * FROM telemetry.events)",
+                        "submission_date_column": "submission_date",
+                    }
+                },
+            },
+            "firefox_desktop",
+        )
+
+        assert spec.data_sources["events_certerror"].from_expression == (
+            "(SELECT * FROM telemetry.events)"
+        )
+        assert spec.data_sources["events_certerror"].submission_date_column == "submission_date"
+
+    def test_lowercases_data_source_keys(self):
+        spec = NimbusSpec.from_dict(
+            {
+                "metrics": {},
+                "data_sources": {
+                    "events_certerror": {
+                        "From_Expression": "(SELECT * FROM telemetry.events)",
+                    }
+                },
+            },
+            "firefox_desktop",
+        )
+
+        assert spec.data_sources["events_certerror"].from_expression == (
+            "(SELECT * FROM telemetry.events)"
+        )
 
     def test_applies_aggregation_rules(self):
         with pytest.raises(ClassValidationError) as exc_info:
@@ -754,6 +790,65 @@ class TestNimbusCollection:
 
         with pytest.raises(ValueError, match=r"not defined in definitions/fenix\.toml"):
             LocalConfigCollection.from_local_path(tmp_path)
+
+    def test_resolves_data_source_declared_in_nimbus_itself(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n'
+            'submission_date_column = "submission_date"\n\n'
+            "[metrics.cert_error_page_loaded]\n"
+            'data_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        data_source = collection.get_data_source_definition("events_certerror", "firefox_desktop")
+        assert data_source is not None
+        assert data_source.from_expression == "(SELECT * FROM telemetry.events)"
+        assert (
+            collection.get_definitions_data_source_definition("events_certerror", "firefox_desktop")
+            is None
+        )
+        metric = collection.get_nimbus_metric_definition(
+            "cert_error_page_loaded", "firefox_desktop"
+        )
+        assert metric is not None
+        assert metric.data_source.name == "events_certerror"
+
+    def test_rejects_data_source_differing_from_definitions(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.other_table"\n\n'
+            "[metrics.search_count]\n"
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        with pytest.raises(ValueError, match=r"does not match definitions/firefox_desktop\.toml"):
+            LocalConfigCollection.from_local_path(tmp_path)
+
+    def test_accepts_data_source_identical_to_definitions(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.clients_daily"\n'
+            'friendly_name = "Clients Daily"\n\n'
+            "[metrics.search_count]\n"
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert collection.get_data_source_definition(
+            "clients_daily", "firefox_desktop"
+        ) == collection.get_definitions_data_source_definition("clients_daily", "firefox_desktop")
 
     def test_same_metric_in_definitions_and_nimbus(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
@@ -931,6 +1026,32 @@ class TestNimbusDefinitionMismatches:
 
         assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
         assert collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_matches_metric_using_data_source_declared_in_nimbus(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.nimbus_sourced_metric]\n"
+            "select_expression = '{{agg_sum(\"x\")}}'\n"
+            'data_source = "nimbus_only_source"\n'
+        )
+        nimbus_file = tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n[data_sources.nimbus_only_source]\n"
+            'from_expression = "mozdata.foo.bar"\n\n'
+            "[metrics.nimbus_sourced_metric]\n"
+            'data_source = "nimbus_only_source"\n'
+            'aggregation = "sum"\n'
+            'column = "x"\n'
+        )
+
+        collection = collection_with_functions(tmp_path)
+
+        assert (
+            collection.get_data_source_definition("nimbus_only_source", "firefox_desktop")
+            is not None
+        )
         assert collection.nimbus_definition_mismatches() == []
 
     def test_mismatch_message(self):
