@@ -325,6 +325,14 @@ description = "Legacy telemetry uninstall ping, one row per uninstall event."
 # first_seen_date as the fallback when it is missing or unparseable. Measured
 # against the enrollment date, same pattern as the built-in
 # profile_age_more_than_28_days, so the bands are disjoint and pre-treatment.
+# They read the built-in clients_last_seen source, whose default window is the
+# enrollment day (0..0), which is what these bands need.
+#
+# NOTE ON WINDOWS (applies to every segment in this file): Jetstream reads
+# window_start / window_end only on [segments.data_sources.X], never on
+# [segments.X]. On a segment they are silently dropped and the data source's
+# default window (enrollment day only) applies. The first version of this file
+# set them on the segments, which broke the prior-toast and FXE-1746 cuts.
 
 [segments.profile_age_28_to_90_days]
 friendly_name = "Profile age 28 to 90 days at enrollment"
@@ -338,8 +346,6 @@ select_expression = """COALESCE(
     FALSE
 )"""
 data_source = "clients_last_seen"
-window_start = 0
-window_end = 0
 
 [segments.profile_age_91_to_180_days]
 friendly_name = "Profile age 91 to 180 days at enrollment"
@@ -353,8 +359,6 @@ select_expression = """COALESCE(
     FALSE
 )"""
 data_source = "clients_last_seen"
-window_start = 0
-window_end = 0
 
 [segments.profile_age_181_to_365_days]
 friendly_name = "Profile age 181 to 365 days at enrollment"
@@ -368,8 +372,6 @@ select_expression = """COALESCE(
     FALSE
 )"""
 data_source = "clients_last_seen"
-window_start = 0
-window_end = 0
 
 [segments.profile_age_more_than_365_days]
 friendly_name = "Profile age over 365 days at enrollment"
@@ -383,38 +385,43 @@ select_expression = """COALESCE(
     FALSE
 )"""
 data_source = "clients_last_seen"
-window_start = 0
-window_end = 0
 
 # ============================================================================
 # SEGMENTS: prior pin toast (Glean taskbar.pin_winrt, all history)
 # ============================================================================
 # Separates re-asks from first asks. The Glean event exists since 2026-07-18,
-# so window_start = -120 from a 2026-11-04..11 enrollment covers its whole
-# history; window_end = -1 keeps the cut strictly pre-enrollment.
+# so window_start = -120 from a 2026-11-04..13 enrollment covers its whole
+# history.
+#
+# The history also stops at 2026-11-03, the day before this experiment
+# launched. window_end = -1 alone is not enough: some treatment enrollees'
+# own toasts are recorded a day or more before their Jetstream enrollment
+# date. Previewed against the enrollments table on 2026-11-14:
+#   window_end = -1, no cap:          control 19.01% vs treatment 19.23% (z ~4.6)
+#   window_end = -1, cap 2026-11-03:  control 18.77% vs treatment 18.83% (z ~1.2)
+# The cap means "shown before this experiment launched". It drops toasts from
+# other surfaces between launch and enrollment, which is balanced by
+# randomization.
 
 [segments.pin_toast_shown_before]
-friendly_name = "Pin toast shown before enrollment"
+friendly_name = "Pin toast shown before this experiment"
 description = """
 Client rendered the Windows pin toast (taskbar.pin_winrt result success_pinned
-or success_rejected) at least once before enrolling here, so this startup ask
-is a re-ask.
+or success_rejected) at least once in the 120 days before enrolling here and
+before this experiment launched (2026-11-04), so this startup ask is a re-ask.
 """
 select_expression = "COALESCE(LOGICAL_OR(toast_shown), FALSE)"
 data_source = "pin_toast_history"
-window_start = -120
-window_end = -1
 
 [segments.pin_toast_never_shown]
-friendly_name = "Pin toast never shown before enrollment"
+friendly_name = "Pin toast never shown before this experiment"
 description = """
-Client has no taskbar.pin_winrt toast-rendered event before enrolling here, so
-this is their first auto-fired pin ask.
+Client has no taskbar.pin_winrt toast-rendered event in the 120 days before
+enrolling here and before this experiment launched (2026-11-04), so this is
+their first auto-fired pin ask.
 """
 select_expression = "COALESCE(NOT LOGICAL_OR(toast_shown), TRUE)"
 data_source = "pin_toast_history"
-window_start = -120
-window_end = -1
 
 [segments.data_sources.pin_toast_history]
 from_expression = """(
@@ -426,31 +433,38 @@ from_expression = """(
     FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
     WHERE event_category = 'taskbar'
       AND event_name = 'pin_winrt'
-      AND DATE(submission_timestamp) >= '2026-07-01'
+      AND DATE(submission_timestamp) BETWEEN '2026-07-01' AND '2026-11-03'
 )"""
+window_start = -120
+window_end = -1
 friendly_name = "Pin Toast History"
 description = """
 Per-event flag for whether a Glean taskbar.pin_winrt attempt rendered the
-Windows pin toast, for pre-enrollment segmentation.
+Windows pin toast, up to the day before this experiment launched, for
+pre-enrollment segmentation.
 """
 
 # ============================================================================
 # SEGMENTS: new-user auto-pin rollout membership and FXE-1746 history
 # ============================================================================
 # Both read the clients_daily experiments annotation (key = slug, value =
-# branch string). One shared data source; the windows live on the segments.
+# branch string). They need different windows, and a window belongs to a data
+# source, so each cut has its own data source over the same table.
 #
 # Rollout membership at enrollment (window -7..0) confirms that capping the
 # rollout-v2 "Finish setup" button to profiles 7 days old or younger removed
 # the trigger conflict: exposure should now match across this cut, against
 # 6% vs 80% in FXE-1746. The LIKE prefix catches every rollout in the family
-# (rollout-v2, treatment-a-rollout, with-checklist).
+# (rollout-v2, treatment-a-rollout, with-checklist). Including the enrollment
+# day is fine because this experiment cannot change rollout membership.
 #
 # FXE-1746 (auto-trigger-pin-existing-user) enrolled 2026-08-25..09-03 and
 # ran 28 days, so window_start = -100 from a November enrollment covers its
-# whole life. Its treatment branch is excluded by this experiment's targeting,
-# so only control and never-enrolled are cut. FXE-1746 control was never asked;
-# the brief reads it as the 28-90 day band's first-ask baseline.
+# whole life. Its treatment branch is excluded by this experiment's targeting
+# (about 1K per arm got through anyway, too few to cut), so only control and
+# never-enrolled are cut. FXE-1746 control was never asked; the brief reads it
+# as the 28-90 day band's first-ask baseline. Previewed 2026-11-14 from
+# FXE-1746's enrollments table: about 5.0K FXE-1746 control per arm, balanced.
 
 [segments.in_new_user_pin_rollout]
 friendly_name = "In new-user auto-pin rollout at enrollment"
@@ -459,9 +473,7 @@ Client was enrolled in an auto-trigger-pin-to-taskbar-notification rollout
 (rollout-v2 family) in the week up to and including enrollment.
 """
 select_expression = "COALESCE(LOGICAL_OR(in_pin_rollout), FALSE)"
-data_source = "pin_experiment_history"
-window_start = -7
-window_end = 0
+data_source = "pin_rollout_history"
 
 [segments.not_in_new_user_pin_rollout]
 friendly_name = "Not in new-user auto-pin rollout at enrollment"
@@ -470,9 +482,7 @@ Client was NOT enrolled in any auto-trigger-pin-to-taskbar-notification
 rollout in the week up to and including enrollment.
 """
 select_expression = "COALESCE(NOT LOGICAL_OR(in_pin_rollout), TRUE)"
-data_source = "pin_experiment_history"
-window_start = -7
-window_end = 0
+data_source = "pin_rollout_history"
 
 [segments.fxe_1746_control]
 friendly_name = "FXE-1746 control"
@@ -481,9 +491,7 @@ Client was in the control branch of auto-trigger-pin-existing-user (FXE-1746)
 before enrolling here.
 """
 select_expression = "COALESCE(LOGICAL_OR(fxe_1746_control), FALSE)"
-data_source = "pin_experiment_history"
-window_start = -100
-window_end = -1
+data_source = "fxe_1746_history"
 
 [segments.fxe_1746_never_enrolled]
 friendly_name = "FXE-1746 never enrolled"
@@ -492,11 +500,9 @@ Client was never enrolled in auto-trigger-pin-existing-user (FXE-1746) before
 enrolling here.
 """
 select_expression = "COALESCE(NOT LOGICAL_OR(fxe_1746_any), TRUE)"
-data_source = "pin_experiment_history"
-window_start = -100
-window_end = -1
+data_source = "fxe_1746_history"
 
-[segments.data_sources.pin_experiment_history]
+[segments.data_sources.pin_rollout_history]
 from_expression = """(
     SELECT
         submission_date,
@@ -505,7 +511,25 @@ from_expression = """(
         EXISTS(
             SELECT 1 FROM UNNEST(experiments) AS x
             WHERE x.key LIKE 'auto-trigger-pin-to-taskbar-notification%'
-        ) AS in_pin_rollout,
+        ) AS in_pin_rollout
+    FROM `mozdata.telemetry.clients_daily`
+    WHERE submission_date >= '2026-10-28'
+)"""
+window_start = -7
+window_end = 0
+friendly_name = "Pin Rollout History"
+description = """
+Per-client-day flag for membership in the new-user auto-pin rollouts, read
+from the clients_daily experiments annotation, for the week up to and
+including enrollment.
+"""
+
+[segments.data_sources.fxe_1746_history]
+from_expression = """(
+    SELECT
+        submission_date,
+        client_id,
+        profile_group_id,
         EXISTS(
             SELECT 1 FROM UNNEST(experiments) AS x
             WHERE x.key = 'auto-trigger-pin-existing-user' AND x.value = 'control'
@@ -515,11 +539,13 @@ from_expression = """(
             WHERE x.key = 'auto-trigger-pin-existing-user'
         ) AS fxe_1746_any
     FROM `mozdata.telemetry.clients_daily`
-    WHERE submission_date >= '2026-07-01'
+    WHERE submission_date >= '2026-08-25'
 )"""
-friendly_name = "Pin Experiment History"
+window_start = -100
+window_end = -1
+friendly_name = "FXE-1746 History"
 description = """
-Per-client-day flags for membership in the new-user auto-pin rollouts and in
-FXE-1746, read from the clients_daily experiments annotation, for
+Per-client-day flags for membership in auto-trigger-pin-existing-user
+(FXE-1746), read from the clients_daily experiments annotation, for
 pre-enrollment segmentation.
 """
