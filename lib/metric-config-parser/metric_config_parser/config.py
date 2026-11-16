@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import attr
 import jinja2
 import toml
-from cattrs.errors import ClassValidationError
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from jinja2 import StrictUndefined
@@ -266,15 +265,18 @@ def is_nimbus_definition(path: Path) -> bool:
     return path.parent.name == DEFINITIONS_DIR and path.parent.parent.name == NIMBUS_DIR
 
 
-def _load_nimbus_configs(nimbus_dir: Path) -> list[NimbusConfig]:
+def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusConfig]:
     nimbus_configs = []
     if nimbus_dir.is_dir():
         for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-            try:
+            if strict:
                 spec = NimbusSpec.from_file(nimbus_file)
-            except (ValueError, ClassValidationError) as e:
-                logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
-                continue
+            else:
+                try:
+                    spec = NimbusSpec.from_file(nimbus_file)
+                except Exception as e:
+                    logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+                    continue
             nimbus_configs.append(NimbusConfig(slug=nimbus_file.stem, spec=spec))
     return nimbus_configs
 
@@ -284,7 +286,7 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
     for nimbus_config in collection.nimbus_configs:
         try:
             nimbus_config.validate(collection)
-        except ValueError as e:
+        except Exception as e:
             logger.warning(
                 "%s/%s.toml: skipping file, failed validation: %s",
                 NIMBUS_DEFINITIONS_DIR,
@@ -294,6 +296,13 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
             continue
         valid_configs.append(nimbus_config)
     collection.nimbus_configs = valid_configs
+
+
+def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
+    if strict:
+        collection.validate_nimbus_configs()
+    else:
+        _drop_invalid_nimbus_configs(collection)
 
 
 def entity_from_path(
@@ -433,6 +442,7 @@ class ConfigCollection:
         path: str | None = None,
         depth: int | None = None,
         validate_nimbus: bool = True,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         """Pull in external config files."""
         # download files to a persisted tmp directory
@@ -482,36 +492,47 @@ class ConfigCollection:
             main_branch=repo.active_branch.name,
             is_tmp_repo=is_tmp_repo,
             validate_nimbus=validate_nimbus,
+            strict_nimbus=strict_nimbus,
         )
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         """Load configs from the provided repos."""
         if repo_urls is None or len(repo_urls) < 1:
-            return ConfigCollection.from_github_repo()
+            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
 
         configs = None
 
         for repo in repo_urls:
             if configs is None:
                 configs = ConfigCollection.from_github_repo(
-                    repo, is_private=is_private, validate_nimbus=False
+                    repo, is_private=is_private, validate_nimbus=False, strict_nimbus=strict_nimbus
                 )
             else:
                 collection = ConfigCollection.from_github_repo(
-                    repo, is_private=is_private, validate_nimbus=False
+                    repo, is_private=is_private, validate_nimbus=False, strict_nimbus=strict_nimbus
                 )
                 configs.merge(collection)
         if configs is None:
-            return ConfigCollection.from_github_repo()
-        _drop_invalid_nimbus_configs(configs)
+            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
+        _validate_nimbus(configs, strict_nimbus)
         return configs
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_nimbus=True
+        cls,
+        repo,
+        path,
+        is_private,
+        main_branch,
+        is_tmp_repo=False,
+        validate_nimbus=True,
+        strict_nimbus=False,
     ) -> "ConfigCollection":
         """Load configs from a local repository."""
 
@@ -607,7 +628,9 @@ class ConfigCollection:
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
+        nimbus_configs = _load_nimbus_configs(
+            files_path / NIMBUS_DEFINITIONS_DIR, strict=strict_nimbus
+        )
 
         collection = cls(
             external_configs,
@@ -628,10 +651,10 @@ class ConfigCollection:
             nimbus_configs=nimbus_configs,
         )
         if validate_nimbus:
-            _drop_invalid_nimbus_configs(collection)
+            _validate_nimbus(collection, strict_nimbus)
         return collection
 
-    def as_of(self, timestamp: datetime) -> "ConfigCollection":
+    def as_of(self, timestamp: datetime, strict_nimbus: bool = False) -> "ConfigCollection":
         """Get configs as they were at the provided timestamp."""
         if timestamp is None:
             return self
@@ -688,6 +711,7 @@ class ConfigCollection:
                         repo.main_branch,
                         is_tmp_repo=True,
                         validate_nimbus=False,
+                        strict_nimbus=strict_nimbus,
                     )
                 except Exception as e:
                     could_load_configs = False
@@ -704,6 +728,7 @@ class ConfigCollection:
                                 repo.main_branch,
                                 is_tmp_repo=True,
                                 validate_nimbus=False,
+                                strict_nimbus=strict_nimbus,
                             )
                             could_load_configs = True
                             rev = newer_commit.hexsha
@@ -727,7 +752,7 @@ class ConfigCollection:
         if config_collection is None:
             return self
 
-        _drop_invalid_nimbus_configs(config_collection)
+        _validate_nimbus(config_collection, strict_nimbus)
         return config_collection
 
     def spec_for_outcome(self, slug: str, platform: str) -> OutcomeSpec | None:
@@ -1012,7 +1037,9 @@ class LocalConfigCollection(ConfigCollection):
     """
 
     @classmethod
-    def from_local_path(cls, path: str, is_private: bool = False) -> "ConfigCollection":
+    def from_local_path(
+        cls, path: str, is_private: bool = False, strict_nimbus: bool = False
+    ) -> "ConfigCollection":
         """Load configs from a local non-repo copy of a metric-hub-like folder structure.
 
         Args:
@@ -1107,7 +1134,9 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DEFINITIONS_DIR)
+        nimbus_configs = _load_nimbus_configs(
+            files_path / NIMBUS_DEFINITIONS_DIR, strict=strict_nimbus
+        )
 
         collection = cls(
             external_configs,
@@ -1120,7 +1149,7 @@ class LocalConfigCollection(ConfigCollection):
             featmon_configs=featmons,
             nimbus_configs=nimbus_configs,
         )
-        _drop_invalid_nimbus_configs(collection)
+        _validate_nimbus(collection, strict_nimbus)
         return collection
 
     @classmethod
@@ -1131,6 +1160,7 @@ class LocalConfigCollection(ConfigCollection):
         path: str | None = None,
         depth: int | None = None,
         validate_nimbus: bool = True,
+        strict_nimbus: bool = False,
     ):
         raise NotImplementedError(
             "`from_github_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -1139,7 +1169,10 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_github_repos` is not valid for non-repo-based LocalConfigCollection. "
@@ -1148,7 +1181,14 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_nimbus=True
+        cls,
+        repo,
+        path,
+        is_private,
+        main_branch,
+        is_tmp_repo=False,
+        validate_nimbus=True,
+        strict_nimbus=False,
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_local_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -1156,7 +1196,7 @@ class LocalConfigCollection(ConfigCollection):
         )
 
     @classmethod
-    def as_of(self, timestamp: datetime) -> "ConfigCollection":
+    def as_of(self, timestamp: datetime, strict_nimbus: bool = False) -> "ConfigCollection":
         raise NotImplementedError(
             "`as_of` is not valid for non-repo-based LocalConfigCollection. "
             + "Use ConfigCollection for this feature."

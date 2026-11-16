@@ -221,7 +221,7 @@ def _nimbus_metric_queries(config_collection, entity):
 def validate(path, config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos)
+    config_collection = ConfigCollection.from_github_repos(config_repos, strict_nimbus=True)
 
     # get updated function definitions
     for config_file in path:

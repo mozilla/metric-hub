@@ -864,6 +864,50 @@ class TestNimbusCollection:
 
         assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
 
+    def test_strict_raises_on_unknown_metric_key(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[metrics.active_hours]\nfriendly_name = "Active hours"\n'
+            'data_source = "clients_daily"\naggregation = "sum"\ncolumn = "active_hours_sum"\n'
+            "bogus = 1\n",
+        )
+
+        with pytest.raises(ValueError, match="unexpected keys"):
+            LocalConfigCollection.from_local_path(tmp_path, strict_nimbus=True)
+
+    def test_strict_raises_on_unparseable_toml(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(tmp_path, "[metrics.active_hours\n")
+
+        with pytest.raises(toml.TomlDecodeError):
+            LocalConfigCollection.from_local_path(tmp_path, strict_nimbus=True)
+
+    def test_strict_raises_on_failed_collection_validation(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "search_clients_engines_sources_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+
+        with pytest.raises(ValueError, match="search_clients_engines_sources_daily"):
+            LocalConfigCollection.from_local_path(tmp_path, strict_nimbus=True)
+
+    def test_strict_collection_load_fails_on_an_unrelated_invalid_file(self, tmp_path):
+        make_repo(tmp_path)
+        write_fenix_nimbus(
+            tmp_path,
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n'
+            "bogus = 1\n",
+        )
+        Repo(tmp_path).git.add(".")
+        Repo(tmp_path).git.commit("-am", "add fenix nimbus metrics")
+
+        with pytest.raises(ValueError, match="unexpected keys"):
+            ConfigCollection.from_github_repos([str(tmp_path)], strict_nimbus=True)
+
 
 class TestNimbusDefinitionMismatches:
     def test_matching_metrics(self):
