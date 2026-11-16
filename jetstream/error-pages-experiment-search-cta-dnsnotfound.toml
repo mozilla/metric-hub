@@ -1,0 +1,166 @@
+# Custom Jetstream configuration for error-pages-experiment-search-cta-dnsnotfound
+# (one-click search CTA on the online dnsNotFound error page; rollout + holdback, 1:1).
+#
+# STATUS: DRAFT, 2026-11-16. The experiment is not in Experimenter yet; revisit the
+# exposure window (below) once the enrollment period is final.
+#
+# What this config adds on top of the Desktop defaults:
+#   1. A primary search metric that can see the CTA's own searches (search_count cannot).
+#   2. CUPED (7-day pre-enrollment covariate) on it, as the sizing assumed.
+#   3. A custom exposure signal, because the feature sends no Nimbus exposure event.
+#
+# Sizing: +2% search volume among exposed clients at 80% power needs ~32K exposed /
+# ~300K enrolled per branch on the exposures basis.
+
+[experiment]
+# end_date / enrollment_period are taken from Experimenter.
+
+# ---------------------------------------------------------------------------------
+# EXPOSURE SIGNAL
+#
+# WHY A CUSTOM SIGNAL IS NEEDED
+#   The Nimbus feature (netErrorSearchCTA) is declared with `hasExposure: false`, so
+#   Firefox never sends a Nimbus exposure event, in either branch. Without a custom
+#   signal the "exposures" results would be empty.
+#
+# WHAT "EXPOSED" MEANS HERE
+#   A client is exposed once they land on a dnsNotFound error page ("we can't find that
+#   site") where the CTA *would* be offered if they were in treatment. We use the
+#   security.ui.neterror.load_aboutneterror event because it fires on every such
+#   page load in BOTH branches, regardless of whether the CTA is switched on. That
+#   makes the two branches directly comparable: same rule, same telemetry, so a
+#   difference between branches can only come from the CTA itself.
+#
+# THE FOUR CONDITIONS, AND WHY EACH IS THERE
+#   They mirror the browser's own "is this page eligible for the CTA?" check
+#   (isSearchCTAEligible() in toolkit/content/net-error-card.mjs):
+#     value = 'dnsNotFound'      the CTA only exists on this error type.
+#     is_frame = false           the error is the whole page, not a broken embedded
+#                                piece (ad, widget) of a page that otherwise loaded.
+#                                The CTA is never drawn inside frames.
+#     no_connectivity = false    the computer has a network connection; the CTA is
+#                                not offered when Firefox knows it is offline.
+#     trr_only = false           not a failure of strict DNS-over-HTTPS mode, which
+#                                gets its own dedicated error page instead.
+#
+# WHAT IS DELIBERATELY *NOT* REQUIRED, AND WHY
+#   * Captive-portal state (hotel / airport Wi-Fi login pages). Pages blocked by a
+#     Wi-Fi login screen never send this event at all, so they are already excluded.
+#     The sizing additionally required captive_portal_state = 'not_captive'
+#     ("Firefox recently confirmed you are online"), but the browser does NOT
+#     require that to offer the CTA. On Nightly a quarter of eligible loads were
+#     'unknown' and most of them still showed the CTA, so requiring 'not_captive'
+#     would throw away real exposures.
+#   * The later, treatment-only checks: a last-moment connectivity re-check, a
+#     300 ms decision deadline, whether a search can be built from the address, and
+#     whether the default engine is a general web search engine (not e.g.
+#     Wikipedia). These only run, and are only recorded, when the CTA is switched on,
+#     so they cannot be reproduced for the control branch. Filtering on them in
+#     treatment alone would compare different kinds of users across branches (bias).
+#
+# THE TRADE-OFF WE ACCEPTED: DILUTION OVER BIAS
+#   Because those later checks are skipped, some "exposed" clients never actually saw
+#   the button (on Nightly ~79% of eligible loads showed it; Nov 2026 probe). That
+#   shrinks the measured effect somewhat but treats both branches identically, so it
+#   cannot create a fake difference. A smaller-but-honest estimate is preferred to a
+#   cleaner-looking but biased one.
+#   Validation: the rebuilt count of eligible top-level loads matched the browser's own
+#   decision count to 99.9% on Nightly (analysis repo,
+#   investigations/error_page_search_cta_sizing/reports/exposure_signal_probe.md).
+#
+# TIMING (window_start / window_end)
+#   Jetstream counts a client as exposed if the event happens on or after their
+#   enrollment day and on or before (FIRST enrollment date of the experiment +
+#   window_end) -- one fixed cut-off for everyone, not per client. Metric windows stay
+#   anchored to each client's enrollment date. window_end = 20 assumes an enrollment
+#   period of up to 14 days, so the last clients to enroll still get a full week to
+#   hit an error page, matching the sizing's "exposed within week 1" assumption.
+#   UPDATE THIS if the enrollment period ends up different (enrollment days + 6).
+# ---------------------------------------------------------------------------------
+[experiment.exposure_signal]
+name = "eligible_dnsnotfound_page"
+friendly_name = "Saw a CTA-eligible dnsNotFound error page"
+description = """
+Clients who loaded a top-level dnsNotFound error page while online (not offline, not a
+strict DNS-over-HTTPS failure) on or after enrollment -- the pages where the search CTA
+is offered in treatment. Rebuilt identically for both branches from
+security.ui.neterror.load_aboutneterror because the feature sends no Nimbus exposure event.
+"""
+data_source = "eligible_dnsnotfound_loads"
+select_expression = "TRUE"
+window_start = 0
+window_end = 20
+
+[data_sources.eligible_dnsnotfound_loads]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id,
+    client_id AS glean_client_id,
+    profile_group_id,
+    DATE(submission_timestamp) AS submission_date
+  FROM `mozdata.firefox_desktop.events_stream`
+  WHERE event_category = 'security.ui.neterror'
+    AND event_name = 'load_aboutneterror'
+    AND JSON_VALUE(event_extra, '$.value') = 'dnsNotFound'
+    -- Missing extras are treated as false, as the client sends them on Fx 153+.
+    AND COALESCE(JSON_VALUE(event_extra, '$.is_frame'), 'false') = 'false'
+    AND COALESCE(JSON_VALUE(event_extra, '$.no_connectivity'), 'false') = 'false'
+    AND COALESCE(JSON_VALUE(event_extra, '$.trr_only'), 'false') = 'false'
+)"""
+submission_date_column = "submission_date"
+client_id_column = "legacy_telemetry_client_id"
+legacy_client_id_column = "legacy_telemetry_client_id"
+glean_client_id_column = "glean_client_id"
+group_id_column = "profile_group_id"
+experiments_column_type = "none"
+friendly_name = "CTA-eligible dnsNotFound loads"
+description = "Top-level, online, non-TRR-only dnsNotFound error page loads (exposure signal source)."
+
+# ---------------------------------------------------------------------------------
+# METRICS
+#
+# search_count_incl_errorpage (legacy telemetry) is the PRIMARY metric, as sized.
+#   The standard search_count = SUM(sap) cannot see CTA searches: `sap` is built from a
+#   whitelist of search access points and the CTA's source, 'errorpage', is not on it,
+#   so those searches land in `unknown` (verified on Nightly). sap + unknown restores
+#   them. `unknown` is ~1e-5 of searches today, so this is otherwise identical to
+#   search_count and the sizing carries over unchanged.
+#   Statistic: linear_model_mean (clip at the 99.5th percentile, computed within the
+#   analysis population) with CUPED on the same metric over the 7 days before
+#   enrollment. Do not read results from an unclipped variant: it is ~10x less
+#   sensitive for this metric.
+#
+# search_count_glean (Glean telemetry, existing metric-hub definition) is the paired
+#   SECONDARY. Glean SAP events do include source = 'errorpage', so no custom
+#   definition is needed. Not used for sizing; shown for the legacy/Glean comparison.
+#
+# Intervals: weekly (the sizing is for week 1) and overall.
+# ---------------------------------------------------------------------------------
+[metrics]
+weekly = ["search_count_incl_errorpage", "search_count_glean"]
+overall = ["search_count_incl_errorpage", "search_count_glean"]
+preenrollment_weekly = ["search_count_incl_errorpage", "search_count_glean"]
+
+[metrics.search_count_incl_errorpage]
+friendly_name = "SAP searches incl. error-page CTA"
+description = """
+SAP searches plus searches from access points outside the SAP whitelist (`unknown`),
+so that searches launched from the error-page search CTA (source `errorpage`) are
+counted. Equivalent to search_count apart from those searches.
+"""
+select_expression = "COALESCE(SUM(sap), 0) + COALESCE(SUM(`unknown`), 0)"
+data_source = "search_clients_engines_sources_daily"
+analysis_bases = ["enrollments", "exposures"]
+category = "search"
+type = "scalar"
+
+[metrics.search_count_incl_errorpage.statistics.linear_model_mean]
+[metrics.search_count_incl_errorpage.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.search_count_glean]
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.search_count_glean.statistics.linear_model_mean]
+[metrics.search_count_glean.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
