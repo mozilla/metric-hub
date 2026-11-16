@@ -222,7 +222,7 @@ def _nimbus_metric_queries(config_collection, entity):
 def validate(path, config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos)
+    config_collection = ConfigCollection.from_github_repos(config_repos, strict_nimbus=True)
 
     # get updated function definitions
     for config_file in path:
@@ -236,7 +236,9 @@ def validate(path, config_repos):
     if jetstream_dir.is_dir():
         nimbus_check_collection = copy.deepcopy(config_collection)
         nimbus_check_collection.merge(
-            ConfigCollection.from_github_repo(str(jetstream_dir), validate_nimbus=False)
+            ConfigCollection.from_github_repo(
+                str(jetstream_dir), validate_nimbus=False, strict_nimbus=True
+            )
         )
 
     for mismatch in nimbus_check_collection.nimbus_definition_mismatches():

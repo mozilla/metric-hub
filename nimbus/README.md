@@ -366,7 +366,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 Booleans are not accepted where a number or integer is required.
 
-In `nimbus/definitions/`, loading also fails when:
+In `nimbus/definitions/`, a file is also rejected when:
 
 - The file has a top-level key other than `metrics`.
 - A metric has `select_expression`.
@@ -379,6 +379,11 @@ directory loaded counts:
 
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
   same application.
+
+A consumer that loads metric-hub skips a `nimbus/definitions/` file that fails any of these checks,
+with a warning, so metric-hub keeps loading for it, including every other `definitions/` and
+`nimbus/definitions/` file. metric-hub CI loads `nimbus/definitions/` strictly and rejects such a
+file.
 
 Between `definitions/` and `nimbus/definitions/`. metric-hub CI runs this check in
 `.script/validate.py`. It does not run when a repository is loaded, so a mismatch fails CI without
