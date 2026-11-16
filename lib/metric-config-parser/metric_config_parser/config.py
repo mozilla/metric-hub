@@ -814,34 +814,64 @@ class ConfigCollection:
         for nimbus_config in self.nimbus_configs:
             for name, metric in nimbus_config.spec.metrics.items():
                 definition = self.get_metric_definition(name, nimbus_config.slug)
-                if definition is None:
-                    continue
-                nimbus_template = metric.select_expression_from_aggregation or ""
-                nimbus_sql = normalize_sql(env.from_string(nimbus_template).render())
-                definitions_template = (
-                    definition.select_expression or definition.select_expression_from_aggregation
-                )
-                definitions_sql = (
-                    normalize_sql(env.from_string(definitions_template).render())
-                    if definitions_template is not None
-                    else None
-                )
-                nimbus_data_source = metric.data_source.name if metric.data_source else None
-                definitions_data_source = (
-                    definition.data_source.name if definition.data_source else None
-                )
-                if nimbus_sql != definitions_sql or nimbus_data_source != definitions_data_source:
-                    mismatches.append(
-                        NimbusDefinitionMismatch(
-                            app_name=nimbus_config.slug,
-                            metric=name,
-                            nimbus_select_expression=nimbus_sql,
-                            definitions_select_expression=definitions_sql,
-                            nimbus_data_source=nimbus_data_source,
-                            definitions_data_source=definitions_data_source,
-                        )
+                if definition is not None:
+                    mismatch = self._nimbus_definition_mismatch(
+                        env, nimbus_config.slug, name, metric, definition
                     )
+                    if mismatch is not None:
+                        mismatches.append(mismatch)
+
+                for outcome in self.outcomes:
+                    if outcome.platform != nimbus_config.slug:
+                        continue
+                    outcome_metric = outcome.spec.metrics.get(name)
+                    if outcome_metric is None:
+                        continue
+                    if (
+                        outcome_metric.select_expression is None
+                        and outcome_metric.data_source is None
+                    ):
+                        continue
+                    mismatch = self._nimbus_definition_mismatch(
+                        env, nimbus_config.slug, name, metric, outcome_metric, outcome=outcome.slug
+                    )
+                    if mismatch is not None:
+                        mismatches.append(mismatch)
         return mismatches
+
+    def _nimbus_definition_mismatch(
+        self,
+        env: jinja2.Environment,
+        app_name: str,
+        name: str,
+        nimbus_metric: MetricDefinition,
+        other: MetricDefinition,
+        outcome: str | None = None,
+    ) -> NimbusDefinitionMismatch | None:
+        nimbus_template = nimbus_metric.select_expression_from_aggregation or ""
+        nimbus_sql = normalize_sql(env.from_string(nimbus_template).render())
+        nimbus_data_source = nimbus_metric.data_source.name if nimbus_metric.data_source else None
+
+        other_template = other.select_expression or other.select_expression_from_aggregation
+        other_sql = (
+            normalize_sql(env.from_string(other_template).render())
+            if other_template is not None
+            else None
+        )
+        other_data_source = other.data_source.name if other.data_source else None
+
+        if nimbus_sql == other_sql and nimbus_data_source == other_data_source:
+            return None
+
+        return NimbusDefinitionMismatch(
+            app_name=app_name,
+            metric=name,
+            nimbus_select_expression=nimbus_sql,
+            definitions_select_expression=other_sql,
+            nimbus_data_source=nimbus_data_source,
+            definitions_data_source=other_data_source,
+            outcome=outcome,
+        )
 
     def get_metrics_sql(
         self,
