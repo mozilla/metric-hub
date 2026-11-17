@@ -254,7 +254,7 @@ class NimbusConfig:
     @property
     def path(self) -> Path:
         if self.kind == NimbusConfigKind.OUTCOMES:
-            return Path(NIMBUS_DIR) / OUTCOMES_DIR / self.app_name / f"{self.slug}.toml"
+            return Path(NIMBUS_DIR) / self.kind / self.app_name / f"{self.slug}.toml"
         return Path(NIMBUS_DIR) / self.kind / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
@@ -304,7 +304,7 @@ def _load_nimbus_config(
         try:
             spec = NimbusSpec.from_file(nimbus_file)
         except Exception as e:
-            logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+            logger.warning(f"{nimbus_file}: skipping file, failed to load: {e}")
             return None
     return NimbusConfig(slug=nimbus_file.stem, app_name=app_name, spec=spec, kind=kind)
 
@@ -314,7 +314,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
     if not nimbus_dir.is_dir():
         return nimbus_configs
 
-    definitions_dir = nimbus_dir / DEFINITIONS_DIR
+    definitions_dir = nimbus_dir / NimbusConfigKind.DEFINITIONS
     if definitions_dir.is_dir():
         for nimbus_file in sorted(definitions_dir.glob("*.toml")):
             config = _load_nimbus_config(
@@ -326,7 +326,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
             if config is not None:
                 nimbus_configs.append(config)
 
-    defaults_dir = nimbus_dir / DEFAULTS_DIR
+    defaults_dir = nimbus_dir / NimbusConfigKind.DEFAULTS
     if defaults_dir.is_dir():
         for nimbus_file in sorted(defaults_dir.glob("*.toml")):
             config = _load_nimbus_config(
@@ -338,7 +338,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
             if config is not None:
                 nimbus_configs.append(config)
 
-    outcomes_dir = nimbus_dir / OUTCOMES_DIR
+    outcomes_dir = nimbus_dir / NimbusConfigKind.OUTCOMES
     if outcomes_dir.is_dir():
         for app_dir in sorted(outcomes_dir.iterdir()):
             if not app_dir.is_dir():
@@ -362,7 +362,7 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
         try:
             nimbus_config.validate(collection)
         except Exception as e:
-            logger.warning("%s: skipping file, failed validation: %s", nimbus_config.path, e)
+            logger.warning(f"{nimbus_config.path}: skipping file, failed validation: {e}")
             continue
         valid_configs.append(nimbus_config)
     collection.nimbus_configs = valid_configs
@@ -373,6 +373,31 @@ def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
         collection.validate_nimbus_configs()
     else:
         _drop_invalid_nimbus_configs(collection)
+
+
+def _merge_nimbus_configs(
+    self_configs: list[NimbusConfig], other_configs: list[NimbusConfig]
+) -> list[NimbusConfig]:
+    other_by_key = {(nc.app_name, nc.kind, nc.slug): nc for nc in other_configs}
+    other_metric_names_by_app: dict[str, set[str]] = {}
+    for nc in other_configs:
+        other_metric_names_by_app.setdefault(nc.app_name, set()).update(nc.spec.metrics)
+
+    merged = []
+    for nc in self_configs:
+        if (nc.app_name, nc.kind, nc.slug) in other_by_key:
+            continue
+        redefined = other_metric_names_by_app.get(nc.app_name, set())
+        if redefined.isdisjoint(nc.spec.metrics):
+            merged.append(nc)
+            continue
+        remaining_metrics = {
+            name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
+        }
+        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=remaining_metrics)))
+
+    merged += other_configs
+    return merged
 
 
 def entity_from_path(
@@ -403,18 +428,18 @@ def entity_from_path(
         )
 
     if is_nimbus_definition(path):
-        if path.parent.parent.name == OUTCOMES_DIR:
+        if path.parent.parent.name == NimbusConfigKind.OUTCOMES:
             kind = NimbusConfigKind.OUTCOMES
             app_name = path.parent.name
-            context = f"{NIMBUS_DIR}/{OUTCOMES_DIR}/{app_name}/{slug}.toml"
-        elif path.parent.name == DEFAULTS_DIR:
+            context = f"{NIMBUS_DIR}/{kind}/{app_name}/{slug}.toml"
+        elif path.parent.name == NimbusConfigKind.DEFAULTS:
             kind = NimbusConfigKind.DEFAULTS
             app_name = slug
-            context = f"{NIMBUS_DIR}/{DEFAULTS_DIR}/{slug}.toml"
+            context = f"{NIMBUS_DIR}/{kind}/{slug}.toml"
         else:
             kind = NimbusConfigKind.DEFINITIONS
             app_name = slug
-            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{slug}.toml"
+            context = f"{NIMBUS_DIR}/{kind}/{slug}.toml"
         return NimbusConfig(
             slug=slug,
             app_name=app_name,
@@ -1137,17 +1162,9 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
-        other_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
-        for nc in deepcopy(other.nimbus_configs):
-            other_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
-        self_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
-        for nc in self.nimbus_configs:
-            self_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
-
-        nimbus_configs = []
-        for app_name in sorted(set(self_nimbus_by_app) | set(other_nimbus_by_app)):
-            nimbus_configs += other_nimbus_by_app.get(app_name) or self_nimbus_by_app[app_name]
-        self.nimbus_configs = nimbus_configs
+        self.nimbus_configs = _merge_nimbus_configs(
+            self.nimbus_configs, deepcopy(other.nimbus_configs)
+        )
 
         self.repos += other.repos
 

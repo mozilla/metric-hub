@@ -707,6 +707,91 @@ class TestNimbusCollection:
             "firefox_desktop",
         ]
 
+    def test_merge_overrides_one_metric_keeps_others_in_same_file(self, tmp_path):
+        base = make_repo(tmp_path / "base")
+        override_root = tmp_path / "override"
+        (override_root / "definitions").mkdir(parents=True)
+        (override_root / "definitions" / "firefox_desktop.toml").write_text(
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.clients_daily"\n'
+        )
+        write_nimbus_defaults_file(
+            override_root,
+            "firefox_desktop",
+            '[metrics.active_hours]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "active_hours_sum"\n',
+        )
+        init_repo(override_root)
+
+        collection = ConfigCollection.from_github_repo(base)
+        collection.merge(ConfigCollection.from_github_repo(override_root))
+
+        definitions_config = next(
+            c for c in collection.nimbus_configs if c.kind == NimbusConfigKind.DEFINITIONS
+        )
+        assert "active_hours" not in definitions_config.spec.metrics
+        assert "days_of_use" in definitions_config.spec.metrics
+        assert "is_default_browser" in definitions_config.spec.metrics
+
+        defaults_config = next(
+            c for c in collection.nimbus_configs if c.kind == NimbusConfigKind.DEFAULTS
+        )
+        assert set(defaults_config.spec.metrics) == {"active_hours"}
+
+    def test_merge_adds_new_file_without_dropping_unrelated_metrics(self, tmp_path):
+        base = make_repo(tmp_path / "base")
+        override_root = make_repo(tmp_path / "override")
+        write_nimbus_outcome_file(
+            override_root,
+            "firefox_desktop",
+            "engagement",
+            '[metrics.search_count]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        Repo(override_root).git.add(".")
+        Repo(override_root).git.commit("-am", "add a new outcome file")
+
+        collection = ConfigCollection.from_github_repo(base)
+        collection.merge(ConfigCollection.from_github_repo(override_root))
+
+        definitions_config = next(
+            c for c in collection.nimbus_configs if c.kind == NimbusConfigKind.DEFINITIONS
+        )
+        assert "active_hours" in definitions_config.spec.metrics
+        assert "days_of_use" in definitions_config.spec.metrics
+
+        outcome_config = next(
+            c for c in collection.nimbus_configs if c.kind == NimbusConfigKind.OUTCOMES
+        )
+        assert set(outcome_config.spec.metrics) == {"search_count"}
+
+    def test_double_merge_is_idempotent(self, tmp_path):
+        base = make_repo(tmp_path / "base")
+        override_root = tmp_path / "override"
+        (override_root / "definitions").mkdir(parents=True)
+        (override_root / "definitions" / "firefox_desktop.toml").write_text(
+            '[data_sources.clients_daily]\nfrom_expression = "mozdata.telemetry.clients_daily"\n'
+        )
+        write_nimbus_defaults_file(
+            override_root,
+            "firefox_desktop",
+            '[metrics.active_hours]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "active_hours_sum"\n',
+        )
+        init_repo(override_root)
+
+        collection = ConfigCollection.from_github_repo(base)
+        collection.merge(ConfigCollection.from_github_repo(override_root))
+        once = {
+            (c.app_name, c.kind, c.slug): dict(c.spec.metrics) for c in collection.nimbus_configs
+        }
+
+        collection.merge(ConfigCollection.from_github_repo(override_root))
+        twice = {
+            (c.app_name, c.kind, c.slug): dict(c.spec.metrics) for c in collection.nimbus_configs
+        }
+
+        assert once == twice
+
     def test_config_failing_validation_is_dropped_at_load(self, tmp_path, caplog):
         make_repo(tmp_path)
         write_nimbus(
