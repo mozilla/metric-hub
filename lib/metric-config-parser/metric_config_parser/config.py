@@ -26,7 +26,15 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusConfigKind, NimbusDefinitionMismatch, NimbusSpec
+from .nimbus import (
+    DEFAULTS_DIR,
+    DEFINITIONS_DIR,
+    NIMBUS_DIR,
+    OUTCOMES_DIR,
+    NimbusConfigKind,
+    NimbusDefinitionMismatch,
+    NimbusSpec,
+)
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory, normalize_sql
@@ -36,9 +44,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-OUTCOMES_DIR = "outcomes"
-DEFAULTS_DIR = "defaults"
-DEFINITIONS_DIR = "definitions"
 FUNCTIONS_FILE = "functions.toml"
 NIMBUS_DEFINITIONS_DIR = Path(NIMBUS_DIR) / DEFINITIONS_DIR
 JETSTREAM_CONFIG_URL = "https://github.com/mozilla/jetstream-config"
@@ -240,6 +245,13 @@ class FeatmonConfig:
         pass
 
 
+NIMBUS_KIND_DIRS = {
+    NimbusConfigKind.DEFINITIONS: DEFINITIONS_DIR,
+    NimbusConfigKind.DEFAULTS: DEFAULTS_DIR,
+    NimbusConfigKind.OUTCOMES: OUTCOMES_DIR,
+}
+
+
 @attr.s(auto_attribs=True)
 class NimbusConfig:
     """Represents one file of aggregation-form metrics for a single application: a
@@ -253,9 +265,10 @@ class NimbusConfig:
 
     @property
     def path(self) -> Path:
+        folder = NIMBUS_KIND_DIRS[self.kind]
         if self.kind == NimbusConfigKind.OUTCOMES:
-            return Path(NIMBUS_DIR) / self.kind / self.app_name / f"{self.slug}.toml"
-        return Path(NIMBUS_DIR) / self.kind / f"{self.slug}.toml"
+            return Path(NIMBUS_DIR) / folder / self.app_name / f"{self.slug}.toml"
+        return Path(NIMBUS_DIR) / folder / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
         for name, metric in self.spec.metrics.items():
@@ -285,14 +298,11 @@ class NimbusConfig:
 
 def is_nimbus_definition(path: Path) -> bool:
     if path.parent.parent.name == NIMBUS_DIR and path.parent.name in (
-        NimbusConfigKind.DEFINITIONS,
-        NimbusConfigKind.DEFAULTS,
+        DEFINITIONS_DIR,
+        DEFAULTS_DIR,
     ):
         return True
-    return (
-        path.parent.parent.name == NimbusConfigKind.OUTCOMES
-        and path.parent.parent.parent.name == NIMBUS_DIR
-    )
+    return path.parent.parent.name == OUTCOMES_DIR and path.parent.parent.parent.name == NIMBUS_DIR
 
 
 def _load_nimbus_config(
@@ -314,7 +324,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
     if not nimbus_dir.is_dir():
         return nimbus_configs
 
-    definitions_dir = nimbus_dir / NimbusConfigKind.DEFINITIONS
+    definitions_dir = nimbus_dir / DEFINITIONS_DIR
     if definitions_dir.is_dir():
         for nimbus_file in sorted(definitions_dir.glob("*.toml")):
             config = _load_nimbus_config(
@@ -326,7 +336,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
             if config is not None:
                 nimbus_configs.append(config)
 
-    defaults_dir = nimbus_dir / NimbusConfigKind.DEFAULTS
+    defaults_dir = nimbus_dir / DEFAULTS_DIR
     if defaults_dir.is_dir():
         for nimbus_file in sorted(defaults_dir.glob("*.toml")):
             config = _load_nimbus_config(
@@ -338,7 +348,7 @@ def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusC
             if config is not None:
                 nimbus_configs.append(config)
 
-    outcomes_dir = nimbus_dir / NimbusConfigKind.OUTCOMES
+    outcomes_dir = nimbus_dir / OUTCOMES_DIR
     if outcomes_dir.is_dir():
         for app_dir in sorted(outcomes_dir.iterdir()):
             if not app_dir.is_dir():
@@ -428,18 +438,18 @@ def entity_from_path(
         )
 
     if is_nimbus_definition(path):
-        if path.parent.parent.name == NimbusConfigKind.OUTCOMES:
+        if path.parent.parent.name == OUTCOMES_DIR:
             kind = NimbusConfigKind.OUTCOMES
             app_name = path.parent.name
-            context = f"{NIMBUS_DIR}/{kind}/{app_name}/{slug}.toml"
-        elif path.parent.name == NimbusConfigKind.DEFAULTS:
+            context = f"{NIMBUS_DIR}/{OUTCOMES_DIR}/{app_name}/{slug}.toml"
+        elif path.parent.name == DEFAULTS_DIR:
             kind = NimbusConfigKind.DEFAULTS
             app_name = slug
-            context = f"{NIMBUS_DIR}/{kind}/{slug}.toml"
+            context = f"{NIMBUS_DIR}/{DEFAULTS_DIR}/{slug}.toml"
         else:
             kind = NimbusConfigKind.DEFINITIONS
             app_name = slug
-            context = f"{NIMBUS_DIR}/{kind}/{slug}.toml"
+            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{slug}.toml"
         return NimbusConfig(
             slug=slug,
             app_name=app_name,

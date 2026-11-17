@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from enum import StrEnum
+from enum import Enum, auto
 from pathlib import Path
 from typing import Any
 
@@ -11,12 +11,15 @@ from .metric import MetricDefinition
 from .util import converter
 
 NIMBUS_DIR = "nimbus"
+DEFINITIONS_DIR = "definitions"
+DEFAULTS_DIR = "defaults"
+OUTCOMES_DIR = "outcomes"
 
 
-class NimbusConfigKind(StrEnum):
-    DEFINITIONS = "definitions"
-    DEFAULTS = "defaults"
-    OUTCOMES = "outcomes"
+class NimbusConfigKind(Enum):
+    DEFINITIONS = auto()
+    DEFAULTS = auto()
+    OUTCOMES = auto()
 
 
 NIMBUS_METRIC_KEYS = {
@@ -81,7 +84,7 @@ class NimbusSpec:
         cls, d: Mapping[str, Any], platform: str, context: str | None = None
     ) -> "NimbusSpec":
         if context is None:
-            context = f"{NIMBUS_DIR}/{NimbusConfigKind.DEFINITIONS}/{platform}.toml"
+            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{platform}.toml"
         reject_unknown_keys(d, {"metrics"}, context)
         metrics = {}
         for name, metric in d.get("metrics", {}).items():
@@ -99,13 +102,13 @@ class NimbusSpec:
 
     @classmethod
     def from_file(cls, path: Path) -> "NimbusSpec":
-        if path.parent.parent.name == NimbusConfigKind.OUTCOMES:
+        if path.parent.parent.name == OUTCOMES_DIR:
             platform = path.parent.name
-            context = f"{NIMBUS_DIR}/{NimbusConfigKind.OUTCOMES}/{platform}/{path.stem}.toml"
-        elif path.parent.name == NimbusConfigKind.DEFAULTS:
+            context = f"{NIMBUS_DIR}/{OUTCOMES_DIR}/{platform}/{path.stem}.toml"
+        elif path.parent.name == DEFAULTS_DIR:
             platform = path.stem
-            context = f"{NIMBUS_DIR}/{NimbusConfigKind.DEFAULTS}/{path.stem}.toml"
+            context = f"{NIMBUS_DIR}/{DEFAULTS_DIR}/{path.stem}.toml"
         else:
             platform = path.stem
-            context = f"{NIMBUS_DIR}/{NimbusConfigKind.DEFINITIONS}/{path.stem}.toml"
+            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{path.stem}.toml"
         return cls.from_dict(toml.load(str(path)), platform=platform, context=context)
