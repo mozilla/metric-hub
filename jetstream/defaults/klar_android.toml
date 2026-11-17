@@ -16,7 +16,7 @@ binomial = {}
 
 [metrics.active_hours.statistics]
 deciles = {}
-linear_model_mean = { covariate_adjustment = { period = "preenrollment_week" } }
+linear_model_mean = { drop_highest = 0.005, covariate_adjustment = { period = "preenrollment_week" } }
 
 ##
 
