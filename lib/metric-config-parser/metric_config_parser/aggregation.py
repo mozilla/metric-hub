@@ -40,11 +40,13 @@ class Operator(StrEnum):
     LE = "<="
     EQ = "="
     NE = "!="
+    LIKE = "LIKE"
+    IN = "IN"
     IS_NULL = "IS NULL"
     IS_NOT_NULL = "IS NOT NULL"
 
 
-COMPARISON_OPERATORS = {
+THRESHOLD_OPERATORS = {
     Operator.GT,
     Operator.GE,
     Operator.LT,
@@ -52,6 +54,10 @@ COMPARISON_OPERATORS = {
     Operator.EQ,
     Operator.NE,
 }
+
+COMPARISON_OPERATORS = THRESHOLD_OPERATORS | {Operator.LIKE}
+
+LIST_OPERATORS = {Operator.IN}
 
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
@@ -63,6 +69,7 @@ DEFAULT_KEEP_NULLS = False
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
 COLUMN_FORM_KEYS = {"map", "key", "json", "path"}
+ANY_OF_KEYS = {"any_of"}
 
 
 def is_number(value: Any) -> bool:
@@ -193,7 +200,13 @@ class Clause:
 
     def __attrs_post_init__(self) -> None:
         validate_column(self.column, "where clause")
-        if self.op is None or self.op not in COMPARISON_OPERATORS:
+        if self.op in LIST_OPERATORS:
+            if not isinstance(self.value, list) or not self.value:
+                raise ValueError(
+                    f"where clause on '{self.column}' with '{self.op}' requires a "
+                    "non-empty list value"
+                )
+        elif self.op is None or self.op not in COMPARISON_OPERATORS:
             if self.value is not None:
                 raise ValueError(f"where clause on '{self.column}' takes no value")
         elif self.value is None:
@@ -204,6 +217,9 @@ class Clause:
         column_text = column_sql(self.column)
         if self.op is None:
             return column_text
+        if self.op in LIST_OPERATORS:
+            values = ", ".join(sql_value(v) for v in self.value)
+            return f"{column_text} {self.op} ({values})"
         if self.op in COMPARISON_OPERATORS:
             return f"{column_text} {self.op} {sql_value(self.value)}"
         return f"{column_text} {self.op}"
@@ -221,13 +237,36 @@ class Clause:
         )
 
 
+@attr.s(auto_attribs=True, frozen=True)
+class AnyOf:
+    """A group of clauses joined with OR, in place of one AND'd clause in `where`."""
+
+    clauses: list[Clause]
+
+    def __attrs_post_init__(self) -> None:
+        if len(self.clauses) < 2:
+            raise ValueError("any_of requires at least two clauses")
+
+    @property
+    def sql(self) -> str:
+        return " OR ".join(clause.sql for clause in self.clauses)
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> "AnyOf":
+        reject_unknown_keys(d, ANY_OF_KEYS, "where clause")
+        clauses = d.get("any_of")
+        if not isinstance(clauses, list) or len(clauses) < 2:
+            raise ValueError("any_of requires a list of at least two clauses")
+        return cls(clauses=[Clause.from_dict(clause) for clause in clauses])
+
+
 @attr.s(auto_attribs=True)
 class Threshold:
     op: Operator
     value: int | float
 
     def __attrs_post_init__(self) -> None:
-        if self.op not in COMPARISON_OPERATORS:
+        if self.op not in THRESHOLD_OPERATORS:
             raise ValueError(f"threshold operator '{self.op}' must be a comparison")
         if not is_number(self.value):
             raise ValueError(f"threshold value '{self.value}' must be a number")
@@ -243,8 +282,21 @@ class Threshold:
         return cls(op=to_enum(Operator, d["op"], "threshold"), value=d["value"])
 
 
-def predicate_sql(conditions: list[Clause]) -> str:
-    return " AND ".join(clause.sql for clause in conditions)
+def parse_condition(d: Mapping[str, Any]) -> Any:
+    if "any_of" in d:
+        return AnyOf.from_dict(d)
+    return Clause.from_dict(d)
+
+
+def predicate_sql(conditions: list[Any]) -> str:
+    multiple = len(conditions) > 1
+    parts = []
+    for condition in conditions:
+        text = condition.sql
+        if multiple and isinstance(condition, AnyOf):
+            text = f"({text})"
+        parts.append(text)
+    return " AND ".join(parts)
 
 
 def recency_inner_expression(
@@ -259,7 +311,7 @@ def recency_inner_expression(
 def aggregation_select_expression(
     aggregation: Aggregation,
     column: ColumnReference | None,
-    conditions: list[Clause],
+    conditions: list[Any],
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
@@ -322,7 +374,7 @@ class BucketedAggregation:
 def aggregation_bucketed(
     aggregation: Aggregation,
     column: ColumnReference | None,
-    conditions: list[Clause],
+    conditions: list[Any],
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
