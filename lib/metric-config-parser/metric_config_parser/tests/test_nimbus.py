@@ -10,6 +10,7 @@ from git import Repo
 from metric_config_parser.aggregation import (
     Aggregation,
     Clause,
+    ColumnForm,
     Operator,
     RecencyEncoding,
     Threshold,
@@ -262,6 +263,34 @@ class TestAggregationFields:
     def test_direct_construction_validates(self):
         with pytest.raises(ValueError, match="requires a column"):
             MetricDefinition(name="m", aggregation=Aggregation.SUM)
+
+
+class TestColumnFormsThroughNimbusSpec:
+    def test_map_column_form_loads_from_toml(self):
+        metric = parse_nimbus(
+            data_source="metrics",
+            aggregation="sum",
+            column={
+                "map": "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms",
+                "key": "CRLite",
+            },
+        ).metrics["m"]
+
+        assert metric.select_expression_from_aggregation == (
+            '{{agg_sum("mozfun.map.get_key(metrics.labeled_counter.'
+            "cert_verifier_cert_revocation_mechanisms, 'CRLite')\")}}"
+        )
+
+    def test_json_column_form_in_a_where_clause_loads_from_toml(self):
+        metric = parse_nimbus(
+            data_source="metrics",
+            aggregation="any",
+            where=[{"column": {"json": "event_extra", "path": "result"}, "op": "=", "value": "ok"}],
+        ).metrics["m"]
+
+        assert metric.conditions == [
+            Clause(column=ColumnForm(json="event_extra", path="result"), op=Operator.EQ, value="ok")
+        ]
 
 
 class TestAtMostOneDefinition:

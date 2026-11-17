@@ -228,3 +228,30 @@ aggregation = "any"
 column = "event_name"
 op = "="
 value = "example_event"
+
+# ---------------------------------------------------------------------------
+# column forms: a keyed-map extraction or a JSON field extraction, in place of
+# a plain column name
+# ---------------------------------------------------------------------------
+
+[metrics.crlite_use_counter]
+data_source = "clients_daily"
+aggregation = "sum"
+# A table with map (and optionally key) in place of a plain column name:
+# mozfun.map.get_key(map, key). Omit key for mozfun.map.extract_keyed_scalar_sum(map).
+column = { map = "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms", key = "CRLite" }
+
+[metrics.pin_prompt_accepted]
+data_source = "clients_daily"
+aggregation = "any"
+
+[[metrics.pin_prompt_accepted.where]]
+column = "event_category"
+op = "="
+value = "taskbar"
+
+[[metrics.pin_prompt_accepted.where]]
+# A table with json and path in place of a plain column name: JSON_VALUE(json, path).
+column = { json = "event_extra", path = "result" }
+op = "="
+value = "success_pinned"
