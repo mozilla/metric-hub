@@ -1,7 +1,10 @@
+from typing import Any
+
 import attr
 
 from .aggregation import (
     DEFAULT_KEEP_NULLS,
+    AnyOf,
     BucketedAggregation,
     ColumnForm,
     ColumnReference,
@@ -54,12 +57,18 @@ class _ResolvedMetric:
     repeat_windows: bool
 
 
+def _condition_columns(condition: Any) -> set[str]:
+    if isinstance(condition, AnyOf):
+        return {column_source(clause.column) for clause in condition.clauses}
+    return {column_source(condition.column)}
+
+
 def _metric_columns(metric: MetricDefinition) -> set[str]:
     columns: set[str] = set()
     if metric.column is not None:
         columns.add(column_source(metric.column))
-    for clause in metric.conditions:
-        columns.add(column_source(clause.column))
+    for condition in metric.conditions:
+        columns |= _condition_columns(condition)
     return columns
 
 

@@ -532,7 +532,7 @@ class TestAggregationFieldRejections:
             (
                 {
                     "aggregation": "count_where",
-                    "where": [{"column": "a", "op": "LIKE", "value": 0}],
+                    "where": [{"column": "a", "op": "~", "value": 0}],
                 },
                 "is not one of",
             ),
