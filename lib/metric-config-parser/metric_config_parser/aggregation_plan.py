@@ -1,6 +1,11 @@
 import attr
 
-from .aggregation import DEFAULT_KEEP_NULLS, BucketedAggregation, aggregation_bucketed
+from .aggregation import (
+    DEFAULT_KEEP_NULLS,
+    BucketedAggregation,
+    aggregation_bucketed,
+    column_source,
+)
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -50,9 +55,9 @@ class _ResolvedMetric:
 def _metric_columns(metric: MetricDefinition) -> set[str]:
     columns: set[str] = set()
     if metric.column is not None:
-        columns.add(metric.column)
+        columns.add(column_source(metric.column))
     for clause in metric.conditions:
-        columns.add(clause.column)
+        columns.add(column_source(clause.column))
     return columns
 
 
