@@ -12,6 +12,11 @@ segments = [
     "profile_age_more_than_28_days",
     "pre_enrollment_low_sap_searchers",
     "pre_enrollment_non_sap_searchers",
+    # Activity tiers on Firefox use in the 28 days before enrollment, to split results by how often clients use Firefox.
+    "activity_infrequent",
+    "activity_casual",
+    "activity_regular",
+    "activity_core",
 ]
 
 [metrics]
