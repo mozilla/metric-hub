@@ -859,7 +859,7 @@ above).
 
 ## Example
 
-A complete file for `nimbus/definitions/firefox_desktop.toml`:
+A complete file for `nimbus/defaults/firefox_desktop.toml`:
 
 ```toml
 [metrics.active_hours]
