@@ -26,7 +26,7 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusDefinitionMismatch, NimbusSpec
+from .nimbus import NIMBUS_DIR, NimbusConfigKind, NimbusDefinitionMismatch, NimbusSpec
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory, normalize_sql
@@ -242,42 +242,117 @@ class FeatmonConfig:
 
 @attr.s(auto_attribs=True)
 class NimbusConfig:
-    """Represents a nimbus/definitions config file for a single application."""
+    """Represents one file of aggregation-form metrics for a single application: a
+    nimbus/definitions/<application>.toml, a nimbus/defaults/<application>.toml (the
+    application's guardrails), or one outcome's nimbus/outcomes/<application>/<outcome>.toml."""
 
     slug: str
+    app_name: str
     spec: NimbusSpec
+    kind: NimbusConfigKind = NimbusConfigKind.DEFINITIONS
+
+    @property
+    def path(self) -> Path:
+        if self.kind == NimbusConfigKind.OUTCOMES:
+            return Path(NIMBUS_DIR) / OUTCOMES_DIR / self.app_name / f"{self.slug}.toml"
+        return Path(NIMBUS_DIR) / self.kind / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
         for name, metric in self.spec.metrics.items():
             data_source = metric.data_source.name if metric.data_source else None
             if (
                 data_source is None
-                or configs.get_data_source_definition(data_source, self.slug) is None
+                or configs.get_data_source_definition(data_source, self.app_name) is None
             ):
                 raise ValueError(
-                    f"Metric '{name}' in {NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml references "
+                    f"Metric '{name}' in {self.path} references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.slug}.toml"
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml"
+                )
+
+        for other in configs.nimbus_configs:
+            if other.app_name != self.app_name:
+                continue
+            if other.slug == self.slug and other.kind == self.kind:
+                continue
+            duplicates = sorted(set(self.spec.metrics) & set(other.spec.metrics))
+            if duplicates:
+                raise ValueError(
+                    f"Metric(s) {', '.join(duplicates)} in {self.path} are also defined in "
+                    f"{other.path}"
                 )
 
 
 def is_nimbus_definition(path: Path) -> bool:
-    return path.parent.name == DEFINITIONS_DIR and path.parent.parent.name == NIMBUS_DIR
+    if path.parent.parent.name == NIMBUS_DIR and path.parent.name in (
+        NimbusConfigKind.DEFINITIONS,
+        NimbusConfigKind.DEFAULTS,
+    ):
+        return True
+    return (
+        path.parent.parent.name == NimbusConfigKind.OUTCOMES
+        and path.parent.parent.parent.name == NIMBUS_DIR
+    )
+
+
+def _load_nimbus_config(
+    nimbus_file: Path, app_name: str, kind: NimbusConfigKind, strict: bool = False
+) -> NimbusConfig | None:
+    if strict:
+        spec = NimbusSpec.from_file(nimbus_file)
+    else:
+        try:
+            spec = NimbusSpec.from_file(nimbus_file)
+        except Exception as e:
+            logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+            return None
+    return NimbusConfig(slug=nimbus_file.stem, app_name=app_name, spec=spec, kind=kind)
 
 
 def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusConfig]:
-    nimbus_configs = []
-    if nimbus_dir.is_dir():
-        for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-            if strict:
-                spec = NimbusSpec.from_file(nimbus_file)
-            else:
-                try:
-                    spec = NimbusSpec.from_file(nimbus_file)
-                except Exception as e:
-                    logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
-                    continue
-            nimbus_configs.append(NimbusConfig(slug=nimbus_file.stem, spec=spec))
+    nimbus_configs: list[NimbusConfig] = []
+    if not nimbus_dir.is_dir():
+        return nimbus_configs
+
+    definitions_dir = nimbus_dir / DEFINITIONS_DIR
+    if definitions_dir.is_dir():
+        for nimbus_file in sorted(definitions_dir.glob("*.toml")):
+            config = _load_nimbus_config(
+                nimbus_file,
+                app_name=nimbus_file.stem,
+                kind=NimbusConfigKind.DEFINITIONS,
+                strict=strict,
+            )
+            if config is not None:
+                nimbus_configs.append(config)
+
+    defaults_dir = nimbus_dir / DEFAULTS_DIR
+    if defaults_dir.is_dir():
+        for nimbus_file in sorted(defaults_dir.glob("*.toml")):
+            config = _load_nimbus_config(
+                nimbus_file,
+                app_name=nimbus_file.stem,
+                kind=NimbusConfigKind.DEFAULTS,
+                strict=strict,
+            )
+            if config is not None:
+                nimbus_configs.append(config)
+
+    outcomes_dir = nimbus_dir / OUTCOMES_DIR
+    if outcomes_dir.is_dir():
+        for app_dir in sorted(outcomes_dir.iterdir()):
+            if not app_dir.is_dir():
+                continue
+            for nimbus_file in sorted(app_dir.glob("*.toml")):
+                config = _load_nimbus_config(
+                    nimbus_file,
+                    app_name=app_dir.name,
+                    kind=NimbusConfigKind.OUTCOMES,
+                    strict=strict,
+                )
+                if config is not None:
+                    nimbus_configs.append(config)
+
     return nimbus_configs
 
 
@@ -287,12 +362,7 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
         try:
             nimbus_config.validate(collection)
         except Exception as e:
-            logger.warning(
-                "%s/%s.toml: skipping file, failed validation: %s",
-                NIMBUS_DEFINITIONS_DIR,
-                nimbus_config.slug,
-                e,
-            )
+            logger.warning("%s: skipping file, failed validation: %s", nimbus_config.path, e)
             continue
         valid_configs.append(nimbus_config)
     collection.nimbus_configs = valid_configs
@@ -333,9 +403,23 @@ def entity_from_path(
         )
 
     if is_nimbus_definition(path):
+        if path.parent.parent.name == OUTCOMES_DIR:
+            kind = NimbusConfigKind.OUTCOMES
+            app_name = path.parent.name
+            context = f"{NIMBUS_DIR}/{OUTCOMES_DIR}/{app_name}/{slug}.toml"
+        elif path.parent.name == DEFAULTS_DIR:
+            kind = NimbusConfigKind.DEFAULTS
+            app_name = slug
+            context = f"{NIMBUS_DIR}/{DEFAULTS_DIR}/{slug}.toml"
+        else:
+            kind = NimbusConfigKind.DEFINITIONS
+            app_name = slug
+            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{slug}.toml"
         return NimbusConfig(
             slug=slug,
-            spec=NimbusSpec.from_dict(config_dict, platform=slug),
+            app_name=app_name,
+            spec=NimbusSpec.from_dict(config_dict, platform=app_name, context=context),
+            kind=kind,
         )
 
     validate_config_settings(path)
@@ -628,9 +712,7 @@ class ConfigCollection:
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(
-            files_path / NIMBUS_DEFINITIONS_DIR, strict=strict_nimbus
-        )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR, strict=strict_nimbus)
 
         collection = cls(
             external_configs,
@@ -849,8 +931,10 @@ class ConfigCollection:
 
     def get_nimbus_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
         for nimbus_config in self.nimbus_configs:
-            if app_name == nimbus_config.slug:
-                return nimbus_config.spec.metrics.get(slug)
+            if app_name == nimbus_config.app_name:
+                metric = nimbus_config.spec.metrics.get(slug)
+                if metric is not None:
+                    return metric
 
         return None
 
@@ -863,16 +947,16 @@ class ConfigCollection:
         mismatches = []
         for nimbus_config in self.nimbus_configs:
             for name, metric in nimbus_config.spec.metrics.items():
-                definition = self.get_metric_definition(name, nimbus_config.slug)
+                definition = self.get_metric_definition(name, nimbus_config.app_name)
                 if definition is not None:
                     mismatch = self._nimbus_definition_mismatch(
-                        env, nimbus_config.slug, name, metric, definition
+                        env, nimbus_config.app_name, name, metric, definition
                     )
                     if mismatch is not None:
                         mismatches.append(mismatch)
 
                 for outcome in self.outcomes:
-                    if outcome.platform != nimbus_config.slug:
+                    if outcome.platform != nimbus_config.app_name:
                         continue
                     outcome_metric = outcome.spec.metrics.get(name)
                     if outcome_metric is None:
@@ -883,7 +967,12 @@ class ConfigCollection:
                     ):
                         continue
                     mismatch = self._nimbus_definition_mismatch(
-                        env, nimbus_config.slug, name, metric, outcome_metric, outcome=outcome.slug
+                        env,
+                        nimbus_config.app_name,
+                        name,
+                        metric,
+                        outcome_metric,
+                        outcome=outcome.slug,
                     )
                     if mismatch is not None:
                         mismatches.append(mismatch)
@@ -1048,11 +1137,17 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
-        nimbus_configs = {nc.slug: nc for nc in deepcopy(other.nimbus_configs)}
+        other_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
+        for nc in deepcopy(other.nimbus_configs):
+            other_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
+        self_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
         for nc in self.nimbus_configs:
-            if nc.slug not in nimbus_configs:
-                nimbus_configs[nc.slug] = nc
-        self.nimbus_configs = list(nimbus_configs.values())
+            self_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
+
+        nimbus_configs = []
+        for app_name in sorted(set(self_nimbus_by_app) | set(other_nimbus_by_app)):
+            nimbus_configs += other_nimbus_by_app.get(app_name) or self_nimbus_by_app[app_name]
+        self.nimbus_configs = nimbus_configs
 
         self.repos += other.repos
 
@@ -1164,9 +1259,7 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        nimbus_configs = _load_nimbus_configs(
-            files_path / NIMBUS_DEFINITIONS_DIR, strict=strict_nimbus
-        )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR, strict=strict_nimbus)
 
         collection = cls(
             external_configs,
