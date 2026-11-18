@@ -404,6 +404,8 @@ def _merge_nimbus_configs(
         remaining_metrics = {
             name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
         }
+        if not remaining_metrics:
+            continue
         merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=remaining_metrics)))
 
     merged += other_configs
