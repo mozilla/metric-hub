@@ -2,7 +2,7 @@ from typing import Any
 
 import attr
 
-from .aggregation import AnyOf, BucketedAggregation, column_source
+from .aggregation import Aggregation, AnyOf, BucketedAggregation, column_source
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -32,9 +32,17 @@ class AggregationMetric:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class AggregationRatio:
+    name: str
+    numerator: str
+    denominator: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class AggregationPlan:
     sources: dict[str, AggregationSource]
     metrics: dict[str, AggregationMetric]
+    ratios: dict[str, AggregationRatio]
     missing: list[str]
 
 
@@ -108,12 +116,36 @@ def aggregation_plan(
 ) -> AggregationPlan:
     missing: list[str] = []
     resolved: list[_ResolvedMetric] = []
+    resolved_names: set[str] = set()
+
+    def resolve_component(name: str) -> bool:
+        if name in resolved_names:
+            return True
+        metric = configs.get_nimbus_metric_definition(name, app_name)
+        if metric is None or metric.aggregation == Aggregation.RATIO:
+            return False
+        resolved.append(_resolve_metric(name, metric))
+        resolved_names.add(name)
+        return True
+
+    ratios: dict[str, AggregationRatio] = {}
     for name in sorted(metric_names):
         metric = configs.get_nimbus_metric_definition(name, app_name)
         if metric is None:
             missing.append(name)
+        elif metric.aggregation == Aggregation.RATIO:
+            numerator = metric.numerator or ""
+            denominator = metric.denominator or ""
+            numerator_ok = resolve_component(numerator)
+            denominator_ok = resolve_component(denominator)
+            if numerator_ok and denominator_ok:
+                ratios[name] = AggregationRatio(
+                    name=name, numerator=numerator, denominator=denominator
+                )
+            else:
+                missing.append(name)
         else:
-            resolved.append(_resolve_metric(name, metric))
+            resolve_component(name)
 
     columns_by_source: dict[str, set[str]] = {}
     for resolved_metric in resolved:
@@ -140,4 +172,4 @@ def aggregation_plan(
         for resolved_metric in sorted(resolved, key=lambda m: m.name)
     }
 
-    return AggregationPlan(sources=sources, metrics=metrics, missing=missing)
+    return AggregationPlan(sources=sources, metrics=metrics, ratios=ratios, missing=missing)

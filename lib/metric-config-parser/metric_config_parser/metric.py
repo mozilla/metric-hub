@@ -192,6 +192,8 @@ class MetricDefinition:
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
+    numerator: str | None = None
+    denominator: str | None = None
     # analysis_bases from platform defaults or outcomes; not configurable, these
     # are overridden by experiment-level analysis_bases (see inherit_analysis_bases)
     inherited_analysis_bases: list[AnalysisBasis] | None = attr.ib(default=None, init=False)
@@ -210,11 +212,13 @@ class MetricDefinition:
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
+                or self.numerator is not None
+                or self.denominator is not None
             ):
                 raise ValueError(
                     f"{context}: column, where, within_days, threshold, scale, keep_nulls, "
-                    "encoding, cumulative_window, incremental_window and repeat_windows "
-                    "require aggregation"
+                    "encoding, cumulative_window, incremental_window, repeat_windows, "
+                    "numerator and denominator require aggregation"
                 )
             return
 
@@ -222,6 +226,47 @@ class MetricDefinition:
             raise ValueError(
                 f"{context}: declare either select_expression or aggregation, not both"
             )
+
+        if self.aggregation == Aggregation.RATIO:
+            if (
+                self.data_source is not None
+                or self.column is not None
+                or self.where
+                or self.within_days is not None
+                or self.threshold is not None
+                or self.scale is not None
+                or self.keep_nulls is not None
+                or self.encoding is not None
+            ):
+                raise ValueError(
+                    f"{context}: ratio does not take data_source, column, where, within_days, "
+                    "threshold, scale, keep_nulls or encoding"
+                )
+            if not self.numerator or not self.denominator:
+                raise ValueError(f"{context}: ratio requires numerator and denominator")
+            if self.numerator == self.denominator:
+                raise ValueError(f"{context}: ratio numerator and denominator must differ")
+        elif self.numerator is not None or self.denominator is not None:
+            raise ValueError(f"{context}: numerator and denominator are only valid for ratio")
+        else:
+            self._validate_non_ratio_aggregation(context)
+
+        if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
+            raise ValueError(f"{context}: cumulative_window must be a positive integer")
+        if self.incremental_window is not None and not is_positive_int(self.incremental_window):
+            raise ValueError(f"{context}: incremental_window must be a positive integer")
+        if not isinstance(self.repeat_windows, bool):
+            raise ValueError(f"{context}: repeat_windows must be a boolean")
+        if (
+            self.repeat_windows
+            and self.cumulative_window is None
+            and self.incremental_window is None
+        ):
+            raise ValueError(
+                f"{context}: repeat_windows requires cumulative_window or incremental_window"
+            )
+
+    def _validate_non_ratio_aggregation(self, context: str) -> None:
         if (
             self.aggregation
             not in COLUMN_AGGREGATIONS | CONDITION_AGGREGATIONS | VALUE_AND_CONDITION_AGGREGATIONS
@@ -264,21 +309,6 @@ class MetricDefinition:
                 f"{self.aggregation.value} never returns null for a unit with no rows"
             )
 
-        if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
-            raise ValueError(f"{context}: cumulative_window must be a positive integer")
-        if self.incremental_window is not None and not is_positive_int(self.incremental_window):
-            raise ValueError(f"{context}: incremental_window must be a positive integer")
-        if not isinstance(self.repeat_windows, bool):
-            raise ValueError(f"{context}: repeat_windows must be a boolean")
-        if (
-            self.repeat_windows
-            and self.cumulative_window is None
-            and self.incremental_window is None
-        ):
-            raise ValueError(
-                f"{context}: repeat_windows requires cumulative_window or incremental_window"
-            )
-
     def inherit_analysis_bases(self) -> None:
         """Mark analysis_bases as coming from platform defaults or outcomes.
 
@@ -297,7 +327,7 @@ class MetricDefinition:
 
     @property
     def select_expression_from_aggregation(self) -> str | None:
-        if self.aggregation is None:
+        if self.aggregation is None or self.aggregation == Aggregation.RATIO:
             return None
         return aggregation_select_expression(
             self.aggregation,
@@ -312,7 +342,7 @@ class MetricDefinition:
 
     @property
     def bucketed_aggregation(self) -> BucketedAggregation | None:
-        if self.aggregation is None:
+        if self.aggregation is None or self.aggregation == Aggregation.RATIO:
             return None
         return aggregation_bucketed(
             self.aggregation,

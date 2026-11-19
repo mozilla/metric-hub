@@ -29,6 +29,7 @@ from urllib.request import Request, urlopen
 import click
 import requests
 import requests.exceptions
+from metric_config_parser.aggregation import Aggregation
 from metric_config_parser.config import (
     DEFINITIONS_DIR,
     ConfigCollection,
@@ -202,6 +203,7 @@ def _nimbus_metric_queries(config_collection, entity):
             .render(),
         )
         for metric in entity.spec.metrics.values()
+        if metric.aggregation != Aggregation.RATIO
     ]
     queries = []
     for start in range(0, len(metrics), NUM_QUERIES_PER_REQUEST):

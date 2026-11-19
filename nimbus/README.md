@@ -69,7 +69,8 @@ is always safe for it. It still reads `nimbus/definitions/`, and skips a file th
 
 ## Rules for `nimbus/`
 
-- `aggregation` and `data_source` are required.
+- `aggregation` is required. `data_source` is required too, except for a ratio
+  (`aggregation = "ratio"`), which takes none; see [Ratios](#ratios).
 - `select_expression` is not allowed.
 - Only the keys in the field reference below are allowed. Other metric keys accepted in
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
@@ -87,7 +88,7 @@ Aggregation fields:
 
 | field | type | default | meaning |
 | --- | --- | --- | --- |
-| `aggregation` | string | | One of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
+| `aggregation` | string | | One of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`, `ratio`. Decides how a unit's rows become one value. |
 | `column` | string, or a column form | | A column name on the data source, a dotted path to one, or a column form. See [Column forms](#column-forms). |
 | `where` | list of conditions | empty | Row conditions for `count_where`, `any` and `sum_where`. |
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
@@ -98,9 +99,12 @@ Aggregation fields:
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
+| `numerator` | string | | For `ratio` only: the name of a metric declared in `nimbus/` for the same application. See [Ratios](#ratios). |
+| `denominator` | string | | For `ratio` only: the name of a metric declared in `nimbus/` for the same application, distinct from `numerator`. See [Ratios](#ratios). |
 
 Every field other than `aggregation` requires `aggregation`. Which of `column`, `where` and
-`within_days` are required depends on the aggregation:
+`within_days` are required depends on the aggregation; `ratio` takes none of them, `numerator` or
+`denominator` instead:
 
 | aggregation | `column` | `where` | `within_days` |
 | --- | --- | --- | --- |
@@ -122,7 +126,7 @@ they are in `definitions/`:
 
 | field | type | required | default | meaning |
 | --- | --- | --- | --- | --- |
-| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml` or in this file's own `[data_sources]` table. |
+| `data_source` | string | yes, except for `ratio` | | Name of a data source defined in `definitions/<application>.toml` or in this file's own `[data_sources]` table. |
 | `statistics` | table of tables | no | | Statistics for the metric. |
 | `friendly_name` | string | no | | Display name on the results page. |
 | `description` | string | no | | Display description on the results page. |
@@ -252,6 +256,36 @@ column = "days_since_desktop_active"
 encoding = "days"
 within_days = 3
 ```
+
+## Ratios
+
+`aggregation = "ratio"` divides one metric by another, such as a click-through rate. A ratio takes
+no `data_source`, `column`, `where` or other aggregation field; it names its two components
+instead:
+
+```toml
+[metrics.example_ratio]
+friendly_name = "Example click-through rate"
+numerator = "example_ratio_clicks"
+denominator = "example_ratio_impressions"
+aggregation = "ratio"
+```
+
+`numerator` and `denominator` each name a metric declared in `nimbus/` for the same application,
+in either `definitions/`, `defaults/` or an outcome file. Neither may itself be a ratio. A ratio
+may carry the usual metadata (`friendly_name`, `description`, `category`, `owner`, `deprecated`,
+`level`, `statistics`) and the window fields, the same as any other metric.
+
+A ratio generates no SQL of its own: `select_expression_from_aggregation` and
+`bucketed_aggregation` are both `None` for a ratio metric. Its numerator and denominator are
+ordinary metrics, each with its own `data_source` and aggregation, computed and reported
+independently. See [Highwind](#highwind) for how `aggregation_plan()` exposes a ratio alongside
+its components.
+
+This mirrors how Jetstream already expresses a ratio in `definitions/` and outcomes: a metric with
+`depends_on = [numerator, denominator]` and no SQL of its own, analysed with the
+`population_ratio` statistic. See [Validation](#validation) for how a `nimbus/` ratio is checked
+against that definition.
 
 ## Column forms
 
@@ -520,7 +554,11 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 - `select_expression` and `aggregation` are both set.
 - Any other aggregation field is set without `aggregation`.
-- `aggregation` is not one of the six.
+- `aggregation` is not one of the seven.
+- A `ratio` has `data_source`, `column`, `where`, `within_days`, `threshold`, `scale`, `keep_nulls`
+  or `encoding` set.
+- A `ratio` has no `numerator` or no `denominator`, or they are equal.
+- `numerator` or `denominator` is set on any aggregation other than `ratio`.
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
 - `sum_where` does not have both `column` and `where` set.
@@ -552,7 +590,7 @@ In `nimbus/`, a file is also rejected when:
 
 - The file has a top-level key other than `metrics` or `data_sources`.
 - A metric has `select_expression`.
-- A metric has no `data_source` or no `aggregation`.
+- A metric has no `aggregation`, or has no `data_source` and is not a `ratio`.
 - A metric has a key not listed in the field reference.
 
 Across files. When several repositories or directories are loaded together, such as metric-hub,
@@ -570,6 +608,9 @@ Across an application's own files under `nimbus/`:
   `nimbus/defaults/<application>.toml`, and `nimbus/outcomes/<application>/<outcome>.toml`, in any
   combination.
 - A data source name is declared in more than one of those same three locations, the same way.
+- A `ratio`'s `numerator` or `denominator` does not name a metric declared across those three
+  locations for the application, or names one that is itself a `ratio`. See
+  [Ratios](#ratios).
 
 metric-hub CI rejects a `nimbus/` file that fails any of these checks. A consumer that loads
 metric-hub skips such a file with a warning instead, so metric-hub keeps loading for it, including
@@ -581,15 +622,20 @@ loading metric-hub:
 
 - A metric defined under the same name in `definitions/<application>.toml` and under `nimbus/` for
   the application renders different SQL in each, or names a different `data_source`.
+- A `ratio` defined under the same name in `nimbus/` and in `definitions/<application>.toml` or an
+  outcome names a different pair of metrics than that metric's `depends_on`, or than its
+  `population_ratio` statistic's `numerator`/`denominator` when one is set.
 
 The `select_expression` generated for the `nimbus/` copy and the `select_expression` of the
 `definitions/` copy are both rendered with the functions in `definitions/functions.toml`, so
 `agg_sum` and `agg_any` are expanded. Runs of whitespace are collapsed, and whitespace just inside
 parentheses is removed, before comparing. Metrics defined in only one of the two files are not
-compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ.
+compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ,
+reporting a `ratio` mismatch the same way as a SQL mismatch, with each side's numerator and
+denominator in place of its `select_expression`.
 
 metric-hub CI also dry-runs the SQL generated for every metric in a changed file under `nimbus/`, as
-it does for `definitions/`.
+it does for `definitions/`. A `ratio` has no SQL, so it is not dry-run.
 
 Not checked:
 
@@ -693,9 +739,21 @@ each requested name with `get_nimbus_metric_definition`, and returns an `Aggrega
   `analysis_units`, `submission_date_column`, and the sorted union of columns every requesting
   metric needs.
 - `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
-  source name, the `BucketedAggregation`, and the window fields.
+  source name, the `BucketedAggregation`, and the window fields. A `ratio`'s numerator and
+  denominator are resolved into this dict like any other requested metric, even when only the
+  ratio itself was requested; the ratio's own name is not a key here.
+- `ratios`: one `AggregationRatio` per resolved `ratio`, keyed by metric name. Carries the
+  `numerator` and `denominator` metric names, both of which are also keys in `metrics`.
 - `missing`: requested names with no `nimbus/` definition for the app. A missing name never raises,
-  so Highwind computes every name that resolved and reports the rest.
+  so Highwind computes every name that resolved and reports the rest. A requested `ratio` whose
+  numerator or denominator has no `nimbus/` definition (or is itself a `ratio`) goes here instead
+  of in `ratios`.
+
+Highwind's contract for a ratio is simple by design: `aggregation_plan()` only identifies the two
+components and confirms both resolve. Highwind computes the numerator and denominator per unit per
+window, the same as any other metric, and divides the two at the branch level, a delta-method
+population ratio over the branch's units. That computation is Highwind's own, not part of this
+package.
 
 ### Equivalence
 
@@ -745,7 +803,6 @@ above).
 
 ## Not supported yet
 
-- Ratios, where one metric is divided by another.
 - Histograms and percentiles.
 - Averages, or any aggregation that cannot be split into per-bucket values that combine into the
   window value.

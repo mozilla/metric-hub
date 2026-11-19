@@ -418,6 +418,8 @@ class TestAggregationFieldRejections:
             ({"cumulative_window": 7}, "require aggregation"),
             ({"incremental_window": 7}, "require aggregation"),
             ({"repeat_windows": True}, "require aggregation"),
+            ({"numerator": "a"}, "require aggregation"),
+            ({"denominator": "b"}, "require aggregation"),
             ({"select_expression": "SUM(a)", "column": "a"}, "require aggregation"),
             ({"aggregation": "sum"}, "requires a column"),
             ({"aggregation": "count"}, "requires a column"),
@@ -618,6 +620,40 @@ class TestAggregationFieldRejections:
                 {"aggregation": "recency_within", "column": "a", "within_days": 3, "encoding": "x"},
                 "is not one of",
             ),
+            (
+                {"aggregation": "sum", "column": "a", "numerator": "b"},
+                "only valid for ratio",
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "denominator": "b"},
+                "only valid for ratio",
+            ),
+            (
+                {"aggregation": "ratio", "numerator": "a", "denominator": "b"},
+                "does not take data_source",
+            ),
+            (
+                {
+                    "aggregation": "ratio",
+                    "data_source": None,
+                    "column": "a",
+                    "numerator": "b",
+                    "denominator": "c",
+                },
+                "does not take data_source",
+            ),
+            (
+                {"aggregation": "ratio", "data_source": None, "denominator": "b"},
+                "requires numerator and denominator",
+            ),
+            (
+                {"aggregation": "ratio", "data_source": None, "numerator": "a"},
+                "requires numerator and denominator",
+            ),
+            (
+                {"aggregation": "ratio", "data_source": None, "numerator": "a", "denominator": "a"},
+                "numerator and denominator must differ",
+            ),
         ],
     )
     def test_rejects(self, fields, match):
@@ -625,6 +661,34 @@ class TestAggregationFieldRejections:
             parse_metric(**fields)
 
         assert exc_info.group_contains(ValueError, match=match)
+
+
+class TestRatioFields:
+    def test_parses_ratio(self):
+        metric = parse_metric(data_source=None, aggregation="ratio", numerator="a", denominator="b")
+
+        assert metric.aggregation == Aggregation.RATIO
+        assert metric.numerator == "a"
+        assert metric.denominator == "b"
+        assert metric.data_source is None
+        assert metric.select_expression_from_aggregation is None
+        assert metric.bucketed_aggregation is None
+
+    def test_ratio_accepts_metadata_and_windows(self):
+        metric = parse_metric(
+            data_source=None,
+            aggregation="ratio",
+            numerator="a",
+            denominator="b",
+            friendly_name="Ratio",
+            description="A ratio",
+            cumulative_window=7,
+            repeat_windows=True,
+        )
+
+        assert metric.friendly_name == "Ratio"
+        assert metric.cumulative_window == 7
+        assert metric.repeat_windows is True
 
 
 class TestNimbusSpec:
@@ -662,6 +726,15 @@ class TestNimbusSpec:
     def test_rejects_missing_data_source(self):
         with pytest.raises(ValueError, match="data_source is required"):
             parse_nimbus(aggregation="sum", column="a")
+
+    def test_ratio_does_not_require_data_source(self):
+        spec = parse_nimbus(aggregation="ratio", numerator="a", denominator="b")
+
+        metric = spec.metrics["m"]
+        assert metric.aggregation == Aggregation.RATIO
+        assert metric.numerator == "a"
+        assert metric.denominator == "b"
+        assert metric.data_source is None
 
     def test_rejects_unknown_top_level_key(self):
         with pytest.raises(ValueError, match="segments"):
@@ -1080,6 +1153,56 @@ class TestNimbusCollection:
         collection = LocalConfigCollection.from_local_path(tmp_path)
 
         with pytest.raises(ValueError, match="search_clients_engines_sources_daily"):
+            entity.validate(collection)
+
+    def test_validate_accepts_ratio_with_components_in_nimbus(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        assert (
+            collection.get_nimbus_metric_definition("example_ratio", "firefox_desktop") is not None
+        )
+
+    def test_validate_raises_on_ratio_with_missing_component(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "not_a_real_metric"\n',
+        )
+        entity = entity_from_path(tmp_path / NIMBUS_DIR / "defaults" / "firefox_desktop.toml")
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        with pytest.raises(ValueError, match="not_a_real_metric"):
+            entity.validate(collection)
+
+    def test_validate_raises_on_ratio_depending_on_a_ratio(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio_of_ratio]\naggregation = "ratio"\n'
+            'numerator = "example_ratio"\ndenominator = "days_of_use"\n',
+        )
+        entity = entity_from_path(tmp_path / NIMBUS_DIR / "defaults" / "firefox_desktop.toml")
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+
+        with pytest.raises(ValueError, match="itself a ratio"):
             entity.validate(collection)
 
     def test_unknown_metric_key_skips_file_others_still_load(self, tmp_path, caplog):
@@ -1854,6 +1977,148 @@ class TestNimbusDefinitionMismatches:
         assert collection.get_metric_definition("active_hours", "firefox_desktop") is None
         assert collection.get_nimbus_metric_definition("active_hours", "firefox_desktop")
         assert collection.nimbus_definition_mismatches() == []
+
+    def test_ratio_matches_depends_on(self, tmp_path):
+        make_repo(tmp_path)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.example_ratio]\n"
+            'depends_on = ["active_hours", "days_of_use"]\n'
+        )
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == []
+
+    def test_ratio_matches_population_ratio_statistic(self, tmp_path):
+        make_repo(tmp_path)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.example_ratio]\n"
+            'depends_on = ["active_hours", "days_of_use"]\n\n'
+            "[metrics.example_ratio.statistics.population_ratio]\n"
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n'
+        )
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        assert collection_with_functions(tmp_path).nimbus_definition_mismatches() == []
+
+    def test_ratio_reports_mismatched_depends_on(self, tmp_path):
+        make_repo(tmp_path)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.example_ratio]\n"
+            'depends_on = ["active_hours", "is_default_browser"]\n'
+        )
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        mismatches = collection_with_functions(tmp_path).nimbus_definition_mismatches()
+
+        assert len(mismatches) == 1
+        assert mismatches[0].metric == "example_ratio"
+
+    def test_ratio_reports_mismatched_population_ratio_statistic(self, tmp_path):
+        make_repo(tmp_path)
+        definitions_file = tmp_path / "definitions" / "firefox_desktop.toml"
+        definitions_file.write_text(
+            f"{definitions_file.read_text()}\n[metrics.example_ratio]\n"
+            'depends_on = ["active_hours", "days_of_use"]\n\n'
+            "[metrics.example_ratio.statistics.population_ratio]\n"
+            'numerator = "days_of_use"\ndenominator = "active_hours"\n'
+        )
+        write_nimbus_defaults_file(
+            tmp_path,
+            "firefox_desktop",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        mismatches = collection_with_functions(tmp_path).nimbus_definition_mismatches()
+
+        assert len(mismatches) == 1
+        assert mismatches[0].metric == "example_ratio"
+
+    def test_ratio_in_outcome_matches(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        collection = collection_with_functions(tmp_path)
+        collection.outcomes = [
+            Outcome(
+                slug="engagement",
+                spec=OutcomeSpec(
+                    friendly_name="Engagement",
+                    description="Engagement",
+                    metrics={
+                        "example_ratio": parse_metric(
+                            name="example_ratio",
+                            data_source=None,
+                            depends_on=["active_hours", "days_of_use"],
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        assert collection.nimbus_definition_mismatches() == []
+
+    def test_ratio_in_outcome_reports_mismatch(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus_outcome_file(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            '[metrics.example_ratio]\naggregation = "ratio"\n'
+            'numerator = "active_hours"\ndenominator = "days_of_use"\n',
+        )
+
+        collection = collection_with_functions(tmp_path)
+        collection.outcomes = [
+            Outcome(
+                slug="engagement",
+                spec=OutcomeSpec(
+                    friendly_name="Engagement",
+                    description="Engagement",
+                    metrics={
+                        "example_ratio": parse_metric(
+                            name="example_ratio",
+                            data_source=None,
+                            depends_on=["active_hours", "is_default_browser"],
+                        )
+                    },
+                ),
+                platform="firefox_desktop",
+                commit_hash=None,
+            )
+        ]
+
+        mismatches = collection.nimbus_definition_mismatches()
+
+        assert len(mismatches) == 1
+        assert mismatches[0].metric == "example_ratio"
+        assert mismatches[0].outcome == "engagement"
 
     def test_outcome_redefines_metric_sql_is_reported(self):
         collection = collection_with_functions(FIXTURE_DIR)
