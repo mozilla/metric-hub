@@ -21,6 +21,7 @@ class Aggregation(StrEnum):
     COUNT_WHERE = "count_where"
     ANY = "any"
     RECENCY_WITHIN = "recency_within"
+    RATIO = "ratio"
 
 
 class Combine(StrEnum):

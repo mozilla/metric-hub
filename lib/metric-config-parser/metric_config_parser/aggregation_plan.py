@@ -4,6 +4,7 @@ import attr
 
 from .aggregation import (
     DEFAULT_KEEP_NULLS,
+    Aggregation,
     AnyOf,
     BucketedAggregation,
     ColumnForm,
@@ -40,9 +41,17 @@ class AggregationMetric:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class AggregationRatio:
+    name: str
+    numerator: str
+    denominator: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class AggregationPlan:
     sources: dict[str, AggregationSource]
     metrics: dict[str, AggregationMetric]
+    ratios: dict[str, AggregationRatio]
     missing: list[str]
 
 
@@ -168,12 +177,47 @@ def aggregation_plan(
 ) -> AggregationPlan:
     missing: list[str] = []
     resolved: list[_ResolvedMetric] = []
+    resolved_names: set[str] = set()
+
+    metric_cache: dict[str, MetricDefinition | None] = {}
+
+    def get_metric(name: str) -> MetricDefinition | None:
+        if name not in metric_cache:
+            metric_cache[name] = configs.get_nimbus_metric_definition(name, app_name)
+        return metric_cache[name]
+
+    def resolvable_component(name: str) -> MetricDefinition | None:
+        metric = get_metric(name)
+        if metric is None or metric.aggregation == Aggregation.RATIO:
+            return None
+        return metric
+
+    def commit_component(name: str, metric: MetricDefinition) -> None:
+        if name in resolved_names:
+            return
+        resolved.append(_resolve_metric(name, metric))
+        resolved_names.add(name)
+
+    ratios: dict[str, AggregationRatio] = {}
     for name in sorted(metric_names):
-        metric = configs.get_nimbus_metric_definition(name, app_name)
+        metric = get_metric(name)
         if metric is None:
             missing.append(name)
+        elif metric.aggregation == Aggregation.RATIO:
+            numerator = metric.numerator or ""
+            denominator = metric.denominator or ""
+            numerator_metric = resolvable_component(numerator)
+            denominator_metric = resolvable_component(denominator)
+            if numerator_metric is not None and denominator_metric is not None:
+                commit_component(numerator, numerator_metric)
+                commit_component(denominator, denominator_metric)
+                ratios[name] = AggregationRatio(
+                    name=name, numerator=numerator, denominator=denominator
+                )
+            else:
+                missing.append(name)
         else:
-            resolved.append(_resolve_metric(name, metric))
+            commit_component(name, metric)
 
     columns_by_source: dict[str, set[str]] = {}
     for resolved_metric in resolved:
@@ -203,4 +247,4 @@ def aggregation_plan(
         for resolved_metric in sorted(resolved, key=lambda m: m.name)
     }
 
-    return AggregationPlan(sources=sources, metrics=metrics, missing=missing)
+    return AggregationPlan(sources=sources, metrics=metrics, ratios=ratios, missing=missing)
