@@ -388,6 +388,7 @@ def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
 def _merge_nimbus_configs(
     self_configs: list[NimbusConfig], other_configs: list[NimbusConfig]
 ) -> list[NimbusConfig]:
+    self_keys = {(nc.app_name, nc.kind, nc.slug) for nc in self_configs}
     other_by_key = {(nc.app_name, nc.kind, nc.slug): nc for nc in other_configs}
     other_metric_names_by_app: dict[str, set[str]] = {}
     for nc in other_configs:
@@ -395,20 +396,22 @@ def _merge_nimbus_configs(
 
     merged = []
     for nc in self_configs:
-        if (nc.app_name, nc.kind, nc.slug) in other_by_key:
-            continue
+        key = (nc.app_name, nc.kind, nc.slug)
+        other_nc = other_by_key.get(key)
         redefined = other_metric_names_by_app.get(nc.app_name, set())
-        if redefined.isdisjoint(nc.spec.metrics):
+        if other_nc is None and redefined.isdisjoint(nc.spec.metrics):
             merged.append(nc)
             continue
+        other_metrics = other_nc.spec.metrics if other_nc is not None else {}
         remaining_metrics = {
             name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
         }
-        if not remaining_metrics:
+        merged_metrics = {**remaining_metrics, **other_metrics}
+        if not merged_metrics:
             continue
-        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=remaining_metrics)))
+        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=merged_metrics)))
 
-    merged += other_configs
+    merged += [nc for nc in other_configs if (nc.app_name, nc.kind, nc.slug) not in self_keys]
     return merged
 
 

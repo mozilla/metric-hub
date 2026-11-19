@@ -678,7 +678,7 @@ class TestNimbusCollection:
 
         entity_from_path(NIMBUS_FILE).validate(collection)
 
-    def test_merge(self, tmp_path):
+    def test_merge_same_file_adds_new_metric_keeps_existing(self, tmp_path):
         base = make_repo(tmp_path / "base")
         override = make_repo(tmp_path / "override")
         write_nimbus(
@@ -686,13 +686,33 @@ class TestNimbusCollection:
             '[metrics.search_count]\ndata_source = "clients_daily"\n'
             'aggregation = "sum"\ncolumn = "sap"\n',
         )
-        Repo(override).git.commit("-am", "replace nimbus metrics")
+        Repo(override).git.commit("-am", "add a metric to nimbus")
 
         collection = ConfigCollection.from_github_repo(base)
+        base_metrics = set(collection.nimbus_configs[0].spec.metrics)
         collection.merge(ConfigCollection.from_github_repo(override))
 
         assert len(collection.nimbus_configs) == 1
-        assert set(collection.nimbus_configs[0].spec.metrics) == {"search_count"}
+        assert set(collection.nimbus_configs[0].spec.metrics) == base_metrics | {"search_count"}
+
+    def test_merge_same_file_redefines_one_metric_keeps_others(self, tmp_path):
+        base = make_repo(tmp_path / "base")
+        override = make_repo(tmp_path / "override")
+        write_nimbus(
+            override,
+            '[metrics.active_hours]\ndata_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "active_hours_sum_v2"\n',
+        )
+        Repo(override).git.commit("-am", "redefine a nimbus metric")
+
+        collection = ConfigCollection.from_github_repo(base)
+        base_metrics = set(collection.nimbus_configs[0].spec.metrics)
+        collection.merge(ConfigCollection.from_github_repo(override))
+
+        assert len(collection.nimbus_configs) == 1
+        merged_metrics = collection.nimbus_configs[0].spec.metrics
+        assert set(merged_metrics) == base_metrics
+        assert merged_metrics["active_hours"].column == "active_hours_sum_v2"
 
     def test_merge_keeps_configs_for_other_apps(self, tmp_path):
         collection = ConfigCollection.from_github_repo(make_repo(tmp_path))
