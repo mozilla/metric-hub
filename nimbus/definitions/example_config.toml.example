@@ -305,3 +305,29 @@ any_of = [
   { column = "event_name", op = "=", value = "send" },
   { column = "event_name", op = "=", value = "send_more_info" },
 ]
+
+# ---------------------------------------------------------------------------
+# ratio: one metric divided by another
+# ---------------------------------------------------------------------------
+
+[metrics.example_ratio_clicks]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_click_count"
+
+[metrics.example_ratio_impressions]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_impression_count"
+
+[metrics.example_ratio]
+friendly_name = "Example click-through rate"
+description = "Example ratio of clicks to impressions."
+# Required: a metric declared in nimbus/ for this application. Neither
+# numerator nor denominator may itself be a ratio.
+numerator = "example_ratio_clicks"
+# Required: a metric declared in nimbus/ for this application, distinct from
+# numerator.
+denominator = "example_ratio_impressions"
+# A ratio takes no data_source, column, where or other aggregation field.
+aggregation = "ratio"

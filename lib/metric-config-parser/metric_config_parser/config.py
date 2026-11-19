@@ -15,6 +15,7 @@ from git.exc import InvalidGitRepositoryError
 from jinja2 import StrictUndefined
 from pytz import UTC
 
+from metric_config_parser.aggregation import Aggregation
 from metric_config_parser.data_source import DataSourceDefinition
 from metric_config_parser.definition import DefinitionSpec, DefinitionSpecSub
 from metric_config_parser.function import FunctionsSpec
@@ -285,6 +286,9 @@ class NimbusConfig:
                 )
 
         for name, metric in self.spec.metrics.items():
+            if metric.aggregation == Aggregation.RATIO:
+                self._validate_ratio_metric(name, metric, configs)
+                continue
             data_source = metric.data_source.name if metric.data_source else None
             if (
                 data_source is None
@@ -315,6 +319,26 @@ class NimbusConfig:
                 raise ValueError(
                     f"Data source(s) {', '.join(duplicate_data_sources)} in {self.path} are also "
                     f"defined in {other.path}"
+                )
+
+    def _validate_ratio_metric(
+        self, name: str, metric: MetricDefinition, configs: "ConfigCollection"
+    ) -> None:
+        components = (
+            ("numerator", metric.numerator or ""),
+            ("denominator", metric.denominator or ""),
+        )
+        for role, component_name in components:
+            component = configs.get_nimbus_metric_definition(component_name, self.app_name)
+            if component is None:
+                raise ValueError(
+                    f"Metric '{name}' in {self.path} has {role} '{component_name}', which is not "
+                    f"defined in {NIMBUS_DIR}/ for {self.app_name}"
+                )
+            if component.aggregation == Aggregation.RATIO:
+                raise ValueError(
+                    f"Metric '{name}' in {self.path} has {role} '{component_name}', which is "
+                    "itself a ratio"
                 )
 
 
@@ -1066,7 +1090,18 @@ class ConfigCollection:
                     outcome_metric = outcome.spec.metrics.get(name)
                     if outcome_metric is None:
                         continue
-                    if (
+                    if metric.aggregation == Aggregation.RATIO:
+                        outcome_population_ratio = (outcome_metric.statistics or {}).get(
+                            "population_ratio"
+                        )
+                        if (
+                            outcome_metric.select_expression is None
+                            and outcome_metric.data_source is None
+                            and not outcome_metric.depends_on
+                            and not outcome_population_ratio
+                        ):
+                            continue
+                    elif (
                         outcome_metric.select_expression is None
                         and outcome_metric.data_source is None
                     ):
@@ -1092,6 +1127,9 @@ class ConfigCollection:
         other: MetricDefinition,
         outcome: str | None = None,
     ) -> NimbusDefinitionMismatch | None:
+        if nimbus_metric.aggregation == Aggregation.RATIO:
+            return self._nimbus_ratio_mismatch(app_name, name, nimbus_metric, other, outcome)
+
         nimbus_template = nimbus_metric.select_expression_from_aggregation or ""
         nimbus_sql = normalize_sql(env.from_string(nimbus_template).render())
         nimbus_data_source = nimbus_metric.data_source.name if nimbus_metric.data_source else None
@@ -1114,6 +1152,60 @@ class ConfigCollection:
             definitions_select_expression=other_sql,
             nimbus_data_source=nimbus_data_source,
             definitions_data_source=other_data_source,
+            outcome=outcome,
+        )
+
+    @staticmethod
+    def _ratio_text(numerator: str, denominator: str) -> str:
+        return f"ratio(numerator={numerator}, denominator={denominator})"
+
+    def _nimbus_ratio_mismatch(
+        self,
+        app_name: str,
+        name: str,
+        nimbus_metric: MetricDefinition,
+        other: MetricDefinition,
+        outcome: str | None,
+    ) -> NimbusDefinitionMismatch | None:
+        nimbus_numerator = nimbus_metric.numerator or ""
+        nimbus_denominator = nimbus_metric.denominator or ""
+        nimbus_components = {nimbus_numerator, nimbus_denominator}
+
+        depends_on_names = (
+            {metric_ref.name for metric_ref in other.depends_on} if other.depends_on else None
+        )
+        population_ratio = (other.statistics or {}).get("population_ratio")
+        numerator_value = population_ratio.get("numerator") if population_ratio else None
+        denominator_value = population_ratio.get("denominator") if population_ratio else None
+        statistic_pair: tuple[str, str] | None = (
+            (str(numerator_value), str(denominator_value))
+            if numerator_value is not None and denominator_value is not None
+            else None
+        )
+
+        depends_on_mismatch = depends_on_names is not None and depends_on_names != nimbus_components
+        statistic_mismatch = statistic_pair is not None and statistic_pair != (
+            nimbus_numerator,
+            nimbus_denominator,
+        )
+        mismatched = depends_on_mismatch or statistic_mismatch
+        if not mismatched:
+            return None
+
+        if statistic_pair is not None:
+            other_text: str | None = self._ratio_text(*statistic_pair)
+        elif depends_on_names is not None:
+            other_text = f"ratio({', '.join(sorted(depends_on_names))})"
+        else:
+            other_text = None
+
+        return NimbusDefinitionMismatch(
+            app_name=app_name,
+            metric=name,
+            nimbus_select_expression=self._ratio_text(nimbus_numerator, nimbus_denominator),
+            definitions_select_expression=other_text,
+            nimbus_data_source=None,
+            definitions_data_source=None,
             outcome=outcome,
         )
 
