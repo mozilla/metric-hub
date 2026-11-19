@@ -17,12 +17,8 @@ jobs:
       path_filter: |
         definitions/*.toml
         definitions/*.toml.example
-        nimbus/definitions/*.toml
-        nimbus/definitions/*.toml.example
-        nimbus/defaults/*.toml
-        nimbus/defaults/*.toml.example
-        nimbus/outcomes/*/*.toml
-        nimbus/outcomes/*/*.toml.example
+        nimbus/**/*.toml
+        nimbus/**/*.toml.example
 
   validate-metrics:
     runs-on: ubuntu-latest

@@ -26,7 +26,15 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusConfigKind, NimbusDefinitionMismatch, NimbusSpec
+from .nimbus import (
+    DEFAULTS_DIR,
+    DEFINITIONS_DIR,
+    NIMBUS_DIR,
+    OUTCOMES_DIR,
+    NimbusConfigKind,
+    NimbusDefinitionMismatch,
+    NimbusSpec,
+)
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
 from .util import TemporaryDirectory, normalize_sql
@@ -36,9 +44,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-OUTCOMES_DIR = "outcomes"
-DEFAULTS_DIR = "defaults"
-DEFINITIONS_DIR = "definitions"
 FUNCTIONS_FILE = "functions.toml"
 NIMBUS_DEFINITIONS_DIR = Path(NIMBUS_DIR) / DEFINITIONS_DIR
 JETSTREAM_CONFIG_URL = "https://github.com/mozilla/jetstream-config"
@@ -240,6 +245,13 @@ class FeatmonConfig:
         pass
 
 
+NIMBUS_KIND_DIRS = {
+    NimbusConfigKind.DEFINITIONS: DEFINITIONS_DIR,
+    NimbusConfigKind.DEFAULTS: DEFAULTS_DIR,
+    NimbusConfigKind.OUTCOMES: OUTCOMES_DIR,
+}
+
+
 @attr.s(auto_attribs=True)
 class NimbusConfig:
     """Represents one file of aggregation-form metrics for a single application: a
@@ -253,9 +265,10 @@ class NimbusConfig:
 
     @property
     def path(self) -> Path:
+        folder = NIMBUS_KIND_DIRS[self.kind]
         if self.kind == NimbusConfigKind.OUTCOMES:
-            return Path(NIMBUS_DIR) / OUTCOMES_DIR / self.app_name / f"{self.slug}.toml"
-        return Path(NIMBUS_DIR) / self.kind / f"{self.slug}.toml"
+            return Path(NIMBUS_DIR) / folder / self.app_name / f"{self.slug}.toml"
+        return Path(NIMBUS_DIR) / folder / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
         for name, metric in self.spec.metrics.items():
@@ -285,14 +298,11 @@ class NimbusConfig:
 
 def is_nimbus_definition(path: Path) -> bool:
     if path.parent.parent.name == NIMBUS_DIR and path.parent.name in (
-        NimbusConfigKind.DEFINITIONS,
-        NimbusConfigKind.DEFAULTS,
+        DEFINITIONS_DIR,
+        DEFAULTS_DIR,
     ):
         return True
-    return (
-        path.parent.parent.name == NimbusConfigKind.OUTCOMES
-        and path.parent.parent.parent.name == NIMBUS_DIR
-    )
+    return path.parent.parent.name == OUTCOMES_DIR and path.parent.parent.parent.name == NIMBUS_DIR
 
 
 def _load_nimbus_config(
@@ -304,7 +314,7 @@ def _load_nimbus_config(
         try:
             spec = NimbusSpec.from_file(nimbus_file)
         except Exception as e:
-            logger.warning("%s: skipping file, failed to load: %s", nimbus_file, e)
+            logger.warning(f"{nimbus_file}: skipping file, failed to load: {e}")
             return None
     return NimbusConfig(slug=nimbus_file.stem, app_name=app_name, spec=spec, kind=kind)
 
@@ -362,7 +372,7 @@ def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
         try:
             nimbus_config.validate(collection)
         except Exception as e:
-            logger.warning("%s: skipping file, failed validation: %s", nimbus_config.path, e)
+            logger.warning(f"{nimbus_config.path}: skipping file, failed validation: {e}")
             continue
         valid_configs.append(nimbus_config)
     collection.nimbus_configs = valid_configs
@@ -373,6 +383,36 @@ def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
         collection.validate_nimbus_configs()
     else:
         _drop_invalid_nimbus_configs(collection)
+
+
+def _merge_nimbus_configs(
+    self_configs: list[NimbusConfig], other_configs: list[NimbusConfig]
+) -> list[NimbusConfig]:
+    self_keys = {(nc.app_name, nc.kind, nc.slug) for nc in self_configs}
+    other_by_key = {(nc.app_name, nc.kind, nc.slug): nc for nc in other_configs}
+    other_metric_names_by_app: dict[str, set[str]] = {}
+    for nc in other_configs:
+        other_metric_names_by_app.setdefault(nc.app_name, set()).update(nc.spec.metrics)
+
+    merged = []
+    for nc in self_configs:
+        key = (nc.app_name, nc.kind, nc.slug)
+        other_nc = other_by_key.get(key)
+        redefined = other_metric_names_by_app.get(nc.app_name, set())
+        if other_nc is None and redefined.isdisjoint(nc.spec.metrics):
+            merged.append(nc)
+            continue
+        other_metrics = other_nc.spec.metrics if other_nc is not None else {}
+        remaining_metrics = {
+            name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
+        }
+        merged_metrics = {**remaining_metrics, **other_metrics}
+        if not merged_metrics:
+            continue
+        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=merged_metrics)))
+
+    merged += [nc for nc in other_configs if (nc.app_name, nc.kind, nc.slug) not in self_keys]
+    return merged
 
 
 def entity_from_path(
@@ -1137,17 +1177,9 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
-        other_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
-        for nc in deepcopy(other.nimbus_configs):
-            other_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
-        self_nimbus_by_app: dict[str, list[NimbusConfig]] = {}
-        for nc in self.nimbus_configs:
-            self_nimbus_by_app.setdefault(nc.app_name, []).append(nc)
-
-        nimbus_configs = []
-        for app_name in sorted(set(self_nimbus_by_app) | set(other_nimbus_by_app)):
-            nimbus_configs += other_nimbus_by_app.get(app_name) or self_nimbus_by_app[app_name]
-        self.nimbus_configs = nimbus_configs
+        self.nimbus_configs = _merge_nimbus_configs(
+            self.nimbus_configs, deepcopy(other.nimbus_configs)
+        )
 
         self.repos += other.repos
 
