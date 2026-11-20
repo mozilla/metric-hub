@@ -288,15 +288,17 @@ call, cast or further nesting beyond the two forms above.
 
 ## Conditions
 
-`where` is a list of conditions. A row matches when every condition holds. There is no OR.
+`where` is a list of conditions. A row matches when every condition holds; conditions in the list
+are AND'd together. Each condition is either a clause or an `any_of` group of clauses, OR'd
+together; see [OR within a condition](#or-within-a-condition).
 
-Each condition is a table with these keys:
+Each clause is a table with these keys:
 
 | key | required | meaning |
 | --- | --- | --- |
 | `column` | yes | A column name, a dotted path to one, or a column form. See [Column forms](#column-forms). |
 | `op` | no | One of the operators below. Leave it out to test a boolean column for true. |
-| `value` | with a comparison operator | The value to compare against. |
+| `value` | with a comparison or list operator | The value, or list of values, to compare against. |
 
 Operators:
 
@@ -308,19 +310,22 @@ Operators:
 | `<=` | column is less than or equal to value | required |
 | `=` | column equals value | required |
 | `!=` | column does not equal value | required |
+| `LIKE` | column matches the pattern | required |
+| `IN` | column equals one of a list of values | required, a non-empty list |
 | `IS NULL` | column is null | not allowed |
 | `IS NOT NULL` | column is not null | not allowed |
 | (no `op`) | column is true | not allowed |
 
-`value` is a number, string or boolean. The parser checks that it is present when the operator
-needs it, and absent otherwise. It does not check its type. Generating SQL fails for a value of
-any other type.
+`value` is a number, string or boolean, except for `IN`, where it is a non-empty list of them. The
+parser checks that `value` is present when the operator needs it, and absent otherwise. It does
+not check the type of `value` or its elements. Generating SQL fails for a value, or list element,
+of any other type.
 
-Null handling: a comparison against a null column does not match. This includes `!=`, so
-`column != 0` does not match rows where the column is null. The boolean form matches only true, not
-false or null. Use `IS NULL` or `IS NOT NULL` to test for null.
+Null handling: a comparison against a null column does not match. This includes `!=` and `IN`, so
+`column != 0` and `column IN (0, 1)` do not match rows where the column is null. The boolean form
+matches only true, not false or null. Use `IS NULL` or `IS NOT NULL` to test for null.
 
-There is no IN, NOT, LIKE, function call or expression.
+There is no NOT, function call or expression, beyond the column forms covered above.
 
 ```toml
 [[metrics.release_days_with_search_engine.where]]
@@ -332,6 +337,22 @@ value = "release"
 column = "default_search_engine"
 op = "IS NOT NULL"
 ```
+
+### OR within a condition
+
+A condition in `where` may instead be a table with one key, `any_of`, a list of at least two
+clauses. The clauses OR together to form one condition, which AND's with the rest of `where` the
+same as any other condition.
+
+```toml
+[[metrics.site_breakage_uses.where]]
+any_of = [
+  { column = "event_name", op = "=", value = "send" },
+  { column = "event_name", op = "=", value = "send_more_info" },
+]
+```
+
+OR nests no further: each clause inside `any_of` is a plain clause, never another `any_of`.
 
 ### The `column` shorthand
 
@@ -513,11 +534,14 @@ metric-config-parser checks the following wherever it parses a metric definition
 - A column form declares both `map` and `json`, or neither; declares `path` without `json`, or
   `key` with `json`; declares `json` without `path`; or has a key not listed in
   [Column forms](#column-forms).
-- A condition or threshold has a key not listed in this document.
-- A condition has no `column`, or a threshold is missing `op` or `value`.
-- A condition's `op` is not one of the listed operators.
-- A comparison operator has no `value`, or `IS NULL`, `IS NOT NULL` or the boolean form has one.
-- `threshold.op` is not a comparison operator, or `threshold.value` is not a number.
+- A clause, `any_of` group or threshold has a key not listed in this document.
+- A clause has no `column`, or a threshold is missing `op` or `value`.
+- A clause's `op` is not one of the listed operators.
+- A comparison or `LIKE` operator has no `value`, `IN` has no non-empty list `value`, or `IS NULL`,
+  `IS NOT NULL` or the boolean form has a `value`.
+- `any_of` has fewer than two clauses.
+- `threshold.op` is not one of `>`, `>=`, `<`, `<=`, `=`, `!=`, or `threshold.value` is not a
+  number.
 - `scale` is not a number.
 - `cumulative_window` or `incremental_window` is set and is not a positive integer.
 - `repeat_windows` is not a boolean, or is `true` with neither window length set.
@@ -578,7 +602,8 @@ Not checked:
 
 metric-config-parser generates two shapes of SQL from the same fields, one for each consumer. In
 the tables below, `c` is `column` and `p` is the conditions joined with AND (the `column` shorthand
-is the condition `c`).
+is the condition `c`; an `any_of` condition is its clauses joined with OR, parenthesized when `where`
+has more than one condition).
 
 ### Jetstream
 
@@ -725,8 +750,9 @@ above).
 - Averages, or any aggregation that cannot be split into per-bucket values that combine into the
   window value.
 - `count_distinct`.
-- OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the
-  dotted-path column names and column forms covered above.
+- NOT, function calls and expressions in conditions or columns, beyond the dotted-path column
+  names, column forms, and OR within a condition covered above. OR does not nest: an `any_of`
+  group holds only plain clauses.
 - A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
   for how Highwind resolves them.
 

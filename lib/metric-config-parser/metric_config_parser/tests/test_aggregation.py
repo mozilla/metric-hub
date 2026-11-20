@@ -158,6 +158,9 @@ class TestConditions:
             ({"column": "a", "op": "=", "value": "it's"}, "a = 'it\\'s'"),
             ({"column": "a", "op": "=", "value": 'a\\b "c"'}, "a = 'a\\\\b \"c\"'"),
             ({"column": "a", "op": "=", "value": "{{ x }}"}, "a = '\\x7b\\x7b x }}'"),
+            ({"column": "a", "op": "LIKE", "value": "%x%"}, "a LIKE '%x%'"),
+            ({"column": "a", "op": "IN", "value": ["x", "y"]}, "a IN ('x', 'y')"),
+            ({"column": "a", "op": "IN", "value": [1, 2]}, "a IN (1, 2)"),
         ],
     )
     def test_operator(self, clause, predicate):
@@ -190,6 +193,176 @@ class TestConditions:
             shorthand.select_expression_from_aggregation == where.select_expression_from_aggregation
         )
         assert shorthand.bucketed_aggregation == where.bucketed_aggregation
+
+
+class TestLike:
+    def test_rejects_missing_value(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(aggregation="count_where", where=[{"column": "a", "op": "LIKE"}])
+
+        assert exc_info.group_contains(ValueError, match="requires a value")
+
+    def test_single_bucket_collapse(self):
+        metric = parse_metric(
+            aggregation="count_where", where=[{"column": "a", "op": "LIKE", "value": "%x%"}]
+        )
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
+
+
+class TestIn:
+    def test_json_value_column_with_in(self):
+        metric = parse_metric(
+            aggregation="any",
+            where=[
+                {
+                    "column": {"json": "event_extra", "path": "result"},
+                    "op": "IN",
+                    "value": ["a", "b"],
+                }
+            ],
+        )
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(LOGICAL_OR(JSON_VALUE(event_extra, '$.result') IN ('a', 'b')), FALSE)"
+        )
+
+    @pytest.mark.parametrize(
+        ("value", "match"),
+        [
+            (None, "requires a non-empty list value"),
+            ("x", "requires a non-empty list value"),
+            ([], "requires a non-empty list value"),
+        ],
+    )
+    def test_rejects_invalid_value(self, value, match):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(
+                aggregation="count_where", where=[{"column": "a", "op": "IN", "value": value}]
+            )
+
+        assert exc_info.group_contains(ValueError, match=match)
+
+    def test_single_bucket_collapse(self):
+        metric = parse_metric(
+            aggregation="count_where", where=[{"column": "a", "op": "IN", "value": ["x", "y"]}]
+        )
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
+
+
+class TestAnyOf:
+    def test_or_within_one_condition_has_no_parens(self):
+        metric = parse_metric(
+            aggregation="any",
+            where=[
+                {
+                    "any_of": [
+                        {"column": "event_name", "op": "=", "value": "send"},
+                        {"column": "event_name", "op": "=", "value": "send_more_info"},
+                    ]
+                }
+            ],
+        )
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(LOGICAL_OR(event_name = 'send' OR event_name = 'send_more_info'), FALSE)"
+        )
+        assert metric.bucketed_aggregation.bucket_aggregate == (
+            "COUNTIF(event_name = 'send' OR event_name = 'send_more_info')"
+        )
+
+    def test_or_combined_with_and_is_parenthesized(self):
+        metric = parse_metric(
+            aggregation="count_where",
+            where=[
+                {"column": "a", "op": "=", "value": 1},
+                {
+                    "any_of": [
+                        {"column": "b", "op": "=", "value": 2},
+                        {"column": "b", "op": "=", "value": 3},
+                    ]
+                },
+            ],
+        )
+
+        assert metric.select_expression_from_aggregation == ("COUNTIF(a = 1 AND (b = 2 OR b = 3))")
+
+    @pytest.mark.parametrize(
+        ("any_of", "match"),
+        [
+            ([{"column": "a"}], "any_of requires a list of at least two clauses"),
+            ([], "any_of requires a list of at least two clauses"),
+            ("x", "any_of requires a list of at least two clauses"),
+        ],
+    )
+    def test_rejects_fewer_than_two_clauses(self, any_of, match):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(aggregation="count_where", where=[{"any_of": any_of}])
+
+        assert exc_info.group_contains(ValueError, match=match)
+
+    def test_rejects_any_of_combined_with_other_keys(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(
+                aggregation="count_where",
+                where=[
+                    {
+                        "any_of": [
+                            {"column": "a", "op": "=", "value": 1},
+                            {"column": "b", "op": "=", "value": 2},
+                        ],
+                        "column": "c",
+                    }
+                ],
+            )
+
+        assert exc_info.group_contains(ValueError, match="unexpected keys")
+
+    def test_rejects_nested_any_of(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(
+                aggregation="count_where",
+                where=[
+                    {
+                        "any_of": [
+                            {
+                                "any_of": [
+                                    {"column": "a", "op": "=", "value": 1},
+                                    {"column": "b", "op": "=", "value": 2},
+                                ]
+                            },
+                            {"column": "c", "op": "=", "value": 3},
+                        ]
+                    }
+                ],
+            )
+
+        assert exc_info.group_contains(ValueError, match="unexpected keys")
+
+    def test_single_bucket_collapse(self):
+        metric = parse_metric(
+            aggregation="count_where",
+            where=[
+                {
+                    "any_of": [
+                        {"column": "a", "op": "=", "value": 1},
+                        {"column": "b", "op": "=", "value": 2},
+                    ]
+                }
+            ],
+        )
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
 
 
 class TestDottedColumn:
@@ -521,6 +694,25 @@ class TestSingleBucketCollapse:
             },
             {"aggregation": "count", "column": "a"},
             {"aggregation": "count_where", "column": "a"},
+            {
+                "aggregation": "count_where",
+                "where": [{"column": "a", "op": "LIKE", "value": "%x%"}],
+            },
+            {
+                "aggregation": "count_where",
+                "where": [{"column": "a", "op": "IN", "value": ["x", "y"]}],
+            },
+            {
+                "aggregation": "count_where",
+                "where": [
+                    {
+                        "any_of": [
+                            {"column": "a", "op": "=", "value": 1},
+                            {"column": "b", "op": "=", "value": 2},
+                        ]
+                    }
+                ],
+            },
         ],
     )
     def test_collapses_to_jetstream_text(self, fields):

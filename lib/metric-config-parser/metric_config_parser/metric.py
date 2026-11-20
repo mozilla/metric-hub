@@ -39,6 +39,7 @@ from .aggregation import (
     is_number,
     is_positive_int,
     parse_column,
+    parse_condition,
     to_enum,
     validate_column,
 )
@@ -182,7 +183,7 @@ class MetricDefinition:
     analysis_units: list[AnalysisUnit] | None = None
     aggregation: Aggregation | None = None
     column: ColumnReference | None = None
-    where: list[Clause] = attr.Factory(list)
+    where: list[Any] = attr.Factory(list)
     within_days: int | None = None
     threshold: Threshold | None = None
     scale: int | float | None = None
@@ -289,7 +290,7 @@ class MetricDefinition:
             self.analysis_bases = None
 
     @property
-    def conditions(self) -> list[Clause]:
+    def conditions(self) -> list[Any]:
         if self.aggregation in CONDITION_AGGREGATIONS and self.column is not None:
             return [Clause(column=self.column)]
         return self.where
@@ -569,7 +570,7 @@ converter.register_structure_hook(
             struct_hook=lambda obj, _type: to_enum(Aggregation, obj, "aggregation")
         ),
         column=override(struct_hook=lambda obj, _type: parse_column(obj)),
-        where=override(struct_hook=lambda obj, _type: [Clause.from_dict(clause) for clause in obj]),
+        where=override(struct_hook=lambda obj, _type: [parse_condition(clause) for clause in obj]),
         within_days=override(struct_hook=_passthrough),
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),

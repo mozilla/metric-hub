@@ -1,6 +1,8 @@
+from typing import Any
+
 import attr
 
-from .aggregation import BucketedAggregation, column_source
+from .aggregation import AnyOf, BucketedAggregation, column_source
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -47,12 +49,18 @@ class _ResolvedMetric:
     repeat_windows: bool
 
 
+def _condition_columns(condition: Any) -> set[str]:
+    if isinstance(condition, AnyOf):
+        return {column_source(clause.column) for clause in condition.clauses}
+    return {column_source(condition.column)}
+
+
 def _metric_columns(metric: MetricDefinition) -> set[str]:
     columns: set[str] = set()
     if metric.column is not None:
         columns.add(column_source(metric.column))
-    for clause in metric.conditions:
-        columns.add(column_source(clause.column))
+    for condition in metric.conditions:
+        columns |= _condition_columns(condition)
     return columns
 
 
