@@ -90,6 +90,7 @@ Aggregation fields:
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
+| `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum` and `any`. See [Keep nulls](#keep-nulls). |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
@@ -131,7 +132,8 @@ unit's rows in one window to one value.
 ### `sum`
 
 The sum of `column` over the unit's rows. Null values are ignored. A unit with no rows, or with only
-null values, gets 0. The result is a number.
+null values, gets 0 by default; set `keep_nulls = true` to leave it null instead. The result is a
+number.
 
 ```toml
 [metrics.active_hours]
@@ -174,8 +176,8 @@ value = 0
 
 ### `any`
 
-1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0. The result
-is 0/1.
+1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0 by default;
+set `keep_nulls = true` to leave it null instead. The result is 0/1.
 
 ```toml
 [metrics.is_default_browser]
@@ -305,6 +307,24 @@ column = "is_default_browser"
 scale = 1000
 ```
 
+## Keep nulls
+
+`sum` and `any` return 0 (or `FALSE`) for a unit with no matching rows, unless `keep_nulls` is set.
+`keep_nulls = true` leaves that unit null instead. Valid only for `sum` and `any`: `count`,
+`count_where` and `recency_within` are rejected, since none of them can return null for a unit with
+no rows.
+
+Set `keep_nulls = true` when a unit with no matching rows had no opportunity to act, so it should
+drop out of the mean rather than count as 0.
+
+```toml
+[metrics.example_sum_keep_nulls]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_column"
+keep_nulls = true
+```
+
 ## Windows
 
 Three fields say which windows Highwind computes for the metric. Lengths are in days, counted from
@@ -372,6 +392,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
+- `keep_nulls` is set on any aggregation other than `sum` or `any`.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
@@ -455,11 +476,13 @@ fields are not used.
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` | same |
 | with `threshold` | `<expression> <op> <value>` | |
 | with `scale` k | `<expression> * k` | |
+| with `keep_nulls = true` (`sum`, `any` only) | drops the default above: bare `SUM(c)` or `LOGICAL_OR(p)` | |
 
 `any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
 described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
-renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`.
+renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`. See [Keep nulls](#keep-nulls) for the
+`keep_nulls` field.
 
 In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
@@ -485,13 +508,22 @@ which splits the aggregation into four parts:
 
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
-| `sum` | `COALESCE(SUM(c), 0)` | `SUM` | `0` | `x` |
+| `sum` | `COALESCE(SUM(c), 0)` (`keep_nulls = true`: bare `SUM(c)`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
-| `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
+| `any` | `COUNTIF(p)` | `SUM` | `0` (`keep_nulls = true`: `NULL`) | `CAST(x > 0 AS INT64)` |
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30)` | `MIN` | `30` | `CAST(x < N AS INT64)` |
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
+
+`keep_nulls = true` does not change `finalize`, only `bucket_aggregate` (for `sum`) or `no_rows`
+(for `any`). For `sum`, a bare `SUM(c)` over a bucket with no matching rows is `NULL` in SQL, and
+`SUM` combine ignores nulls, so `no_rows = "NULL"` reproduces the same value Jetstream's bare
+`SUM(c)` would return for a unit with zero rows in the whole window, and collapses correctly over a
+single bucket. For `any`, `bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket
+that has any rows at all always returns a real count, never null; only `no_rows` changes, so a unit
+with zero rows in every bucket combines to `NULL` and `finalize` casts that to `NULL`, matching
+Jetstream's bare `LOGICAL_OR(p)`.
 
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.
