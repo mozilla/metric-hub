@@ -6,7 +6,7 @@ from typing import Any, TypeGuard
 
 import attr
 
-IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
 NO_ACTIVITY_DAYS = 30
 MAX_WITHIN_DAYS = 28
 JINJA_OPEN = "{{"
@@ -72,7 +72,7 @@ def is_positive_int(value: Any) -> TypeGuard[int]:
 
 def validate_identifier(column: Any, context: str) -> None:
     if not isinstance(column, str) or not IDENTIFIER.match(column):
-        raise ValueError(f"{context}: column '{column}' must be a plain column name")
+        raise ValueError(f"{context}: column '{column}' must be a plain column name or dotted path")
 
 
 def to_enum(enum_cls: type[Enum], value: Any, context: str) -> Any:
