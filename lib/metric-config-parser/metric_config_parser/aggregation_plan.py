@@ -76,7 +76,7 @@ def _resolve_metric(name: str, metric: MetricDefinition) -> _ResolvedMetric:
 def _resolve_data_source(
     data_source_name: str, app_name: str, configs: ConfigCollection, columns: set[str]
 ) -> AggregationSource:
-    data_source_definition = configs.get_data_source_definition(data_source_name, app_name)
+    data_source_definition = configs.get_nimbus_data_source_definition(data_source_name, app_name)
     if data_source_definition is None:
         raise DefinitionNotFound(
             f"No data source '{data_source_name}' defined for app '{app_name}'"

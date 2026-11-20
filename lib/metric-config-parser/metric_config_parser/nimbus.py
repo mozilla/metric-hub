@@ -7,6 +7,7 @@ import attr
 import toml
 
 from .aggregation import reject_unknown_keys
+from .data_source import DataSourceDefinition
 from .metric import MetricDefinition
 from .util import converter
 
@@ -80,6 +81,7 @@ class NimbusSpec:
     nimbus/outcomes/<application>/<outcome>.toml."""
 
     metrics: dict[str, MetricDefinition] = attr.Factory(dict)
+    data_sources: dict[str, DataSourceDefinition] = attr.Factory(dict)
 
     @classmethod
     def from_dict(
@@ -87,7 +89,14 @@ class NimbusSpec:
     ) -> "NimbusSpec":
         if context is None:
             context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{platform}.toml"
-        reject_unknown_keys(d, {"metrics"}, context)
+        reject_unknown_keys(d, {"metrics", "data_sources"}, context)
+        data_sources = {
+            name: converter.structure(
+                {"name": name, **{key.lower(): value for key, value in data_source.items()}},
+                DataSourceDefinition,
+            )
+            for name, data_source in d.get("data_sources", {}).items()
+        }
         metrics = {}
         for name, metric in d.get("metrics", {}).items():
             metric_context = f"{context}: metric '{name}'"
@@ -100,7 +109,7 @@ class NimbusSpec:
                 if required not in metric:
                     raise ValueError(f"{metric_context}: {required} is required")
             metrics[name] = converter.structure({"name": name, **metric}, MetricDefinition)
-        return cls(metrics=metrics)
+        return cls(metrics=metrics, data_sources=data_sources)
 
     @classmethod
     def from_file(cls, path: Path) -> "NimbusSpec":

@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from metric_config_parser.aggregation import Combine
@@ -131,6 +132,26 @@ class TestAggregationPlan:
 
         source = plan.sources["clients_daily"]
         assert source.columns == ("active_hours_sum", "metrics.counter.example_counter")
+
+    def test_resolves_metric_using_data_source_declared_in_nimbus(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n[data_sources.nimbus_only_source]\n"
+            'from_expression = "mozdata.foo.bar"\n'
+            'submission_date_column = "submission_date"\n\n'
+            "[metrics.nimbus_sourced_metric]\n"
+            'data_source = "nimbus_only_source"\n'
+            'aggregation = "sum"\n'
+            'column = "x"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["nimbus_sourced_metric"])
+
+        assert plan.missing == []
+        assert plan.sources["nimbus_only_source"].from_expression == "mozdata.foo.bar"
+        assert plan.metrics["nimbus_sourced_metric"].data_source == "nimbus_only_source"
 
     def test_plan_ordering_is_deterministic(self):
         collection = load_collection()
