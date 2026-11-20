@@ -1,7 +1,10 @@
 [experiment]
-end_date = "2026-10-27"
+end_date = "2026-11-17"
 
-segments = ["pre_enrollment_low_sap_searchers", "pre_enrollment_non_sap_searchers"]
+segments = [
+    "pre_enrollment_low_sap_searchers", "pre_enrollment_high_sap_searchers", "pre_enrollment_non_sap_searchers",
+    "new_profiles", "established_profiles"
+]
 
 [metrics]
 
@@ -10,15 +13,45 @@ daily = [
 ]
 weekly = [
     "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
-    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+    "serp_tagged", "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads_tagged", "serp_ads_visible", "serp_ad_clicks_tagged",
+    # New Tab - Do No Harm metrics (metric-hub definitions), listed so covariate adjustment applies
+    "newtab_visits", "newtab_engaged_visits", "newtab_ad_click_rate", "sponsored_tile_clicks",
+    "sponsored_tile_impressions", "newtab_organic_topsite_clicks_v2", "newtab_organic_topsite_impressions_v2", "sponsored_content_clicks",
+    "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
+    # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
+    "topsites_enabled_clients",
+    # urlbar recent_search annoyances (urlbar_events)
+    "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
+    # urlbar admarketplace_sponsored (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
 ]
 overall = [
     "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
-    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+    "serp_tagged", "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads_tagged", "serp_ads_visible", "serp_ad_clicks_tagged",
+    # New Tab - Do No Harm metrics (metric-hub definitions), listed so covariate adjustment applies
+    "newtab_visits", "newtab_engaged_visits", "newtab_ad_click_rate", "sponsored_tile_clicks",
+    "sponsored_tile_impressions", "newtab_organic_topsite_clicks_v2", "newtab_organic_topsite_impressions_v2", "sponsored_content_clicks",
+    "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
+    # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
+    "topsites_enabled_clients",
+    # urlbar recent_search annoyances (urlbar_events)
+    "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
+    # urlbar admarketplace_sponsored (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
 ]
 preenrollment_weekly = [
     "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
-    "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads", "serp_ad_clicks"
+    "serp_tagged", "serp_tagged_follow_on", "serp_organic", "serp_searches_with_ads_tagged", "serp_ads_visible", "serp_ad_clicks_tagged",
+    # New Tab - Do No Harm metrics (metric-hub definitions), listed so covariate adjustment applies
+    "newtab_visits", "newtab_engaged_visits", "newtab_ad_click_rate", "sponsored_tile_clicks",
+    "sponsored_tile_impressions", "newtab_organic_topsite_clicks_v2", "newtab_organic_topsite_impressions_v2", "sponsored_content_clicks",
+    "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
+    # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
+    "topsites_enabled_clients",
+    # urlbar recent_search annoyances (urlbar_events)
+    "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
+    # urlbar admarketplace_sponsored (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
 ]
 
 
@@ -71,6 +104,17 @@ select_expression = "CAST(COUNT(DISTINCT IF(sap_counts_total > 0, submission_dat
 [metrics.sap_habit_3plus_days.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
+[metrics.serp_tagged]
+select_expression = "COALESCE(SUM(serp_searches_tagged_count), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Tagged SERPs"
+description = "SERP impressions carrying a partner code, follow-on included (Glean SERP events)."
+category = "search"
+
+[metrics.serp_tagged.statistics.linear_model_mean]
+[metrics.serp_tagged.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
 [metrics.serp_tagged_follow_on]
 select_expression = "COALESCE(SUM(serp_follow_on_searches_tagged_count), 0)"
 data_source = "search_clients_daily_glean"
@@ -93,28 +137,184 @@ category = "search"
 [metrics.serp_organic.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
-[metrics.serp_searches_with_ads]
-select_expression = "COALESCE(SUM(serp_searches_with_ads_tagged_count + serp_searches_with_ads_organic_count), 0)"
+[metrics.serp_searches_with_ads_tagged]
+select_expression = "COALESCE(SUM(serp_searches_with_ads_tagged_count), 0)"
 data_source = "search_clients_daily_glean"
-friendly_name = "Searches with ads"
-description = "SERP impressions, tagged and organic, with at least one ad visible (Glean SERP events)."
+friendly_name = "Tagged Searches with ads"
+description = "Tagged SERP impressions with at least one ad visible (Glean SERP events)."
 category = "search"
 
-[metrics.serp_searches_with_ads.statistics.linear_model_mean]
-[metrics.serp_searches_with_ads.statistics.linear_model_mean.covariate_adjustment]
+[metrics.serp_searches_with_ads_tagged.statistics.linear_model_mean]
+[metrics.serp_searches_with_ads_tagged.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
-[metrics.serp_ad_clicks]
-select_expression = "COALESCE(SUM(serp_ad_clicks_sum), 0)"
+[metrics.serp_ads_visible]
+select_expression = "COALESCE(SUM(serp_ads_visible_sum), 0)"
 data_source = "search_clients_daily_glean"
-friendly_name = "Ad clicks"
-description = "Ad clicks on SERP impressions, tagged and organic (Glean SERP events)."
+friendly_name = "Visible ads"
+description = "Number of ads visible to the client on SERP impressions, tagged and organic (Glean SERP events). Counts ads, not impressions."
 category = "search"
 
-[metrics.serp_ad_clicks.statistics.linear_model_mean]
-[metrics.serp_ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+[metrics.serp_ads_visible.statistics.linear_model_mean]
+[metrics.serp_ads_visible.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
+[metrics.serp_ad_clicks_tagged]
+select_expression = "COALESCE(SUM(serp_ad_clicks_tagged_sum), 0)"
+data_source = "search_clients_daily_glean"
+friendly_name = "Tagged ad clicks"
+description = "Ad clicks on tagged SERP impressions only; organic SERP ad clicks are excluded (Glean SERP events)."
+category = "search"
+
+[metrics.serp_ad_clicks_tagged.statistics.linear_model_mean]
+[metrics.serp_ad_clicks_tagged.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
+
+# ---------------------------------------------------------------------------
+# New Tab - Do No Harm (outcome: newtab_do_no_harm)
+# Definitions come from metric-hub; only statistics are overridden here.
+# The outcome's statistics are restated, with covariate adjustment added to
+# linear_model_mean. Binomial and population-ratio metrics are left as they are
+# because Jetstream only supports covariate adjustment on linear_model_mean.
+# ---------------------------------------------------------------------------
+
+[metrics.newtab_visits.statistics.linear_model_mean]
+[metrics.newtab_visits.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.newtab_engaged_visits.statistics.linear_model_mean]
+[metrics.newtab_engaged_visits.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.newtab_ad_click_rate.statistics.linear_model_mean]
+[metrics.newtab_ad_click_rate.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.sponsored_tile_clicks.statistics.linear_model_mean]
+[metrics.sponsored_tile_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.sponsored_tile_impressions.statistics.linear_model_mean]
+[metrics.sponsored_tile_impressions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.newtab_organic_topsite_clicks_v2.statistics.linear_model_mean]
+[metrics.newtab_organic_topsite_clicks_v2.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.newtab_organic_topsite_impressions_v2.statistics.linear_model_mean]
+[metrics.newtab_organic_topsite_impressions_v2.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.sponsored_content_clicks.statistics.linear_model_mean]
+[metrics.sponsored_content_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.sponsored_content_impressions.statistics.linear_model_mean]
+[metrics.sponsored_content_impressions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.organic_content_clicks.statistics.linear_model_mean]
+[metrics.organic_content_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.organic_content_impressions.statistics.linear_model_mean]
+[metrics.organic_content_impressions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
+# ---------------------------------------------------------------------------
+# New Tab top sites (tiles) enabled clients
+# Based only on newtab_clients_daily.organic_topsites_enabled.
+# ---------------------------------------------------------------------------
+
+[metrics.topsites_enabled_clients]
+# last reported value in the window, so the overall result reflects the setting at the end of the analysis period
+select_expression = """CAST(COALESCE(
+    ARRAY_AGG(organic_topsites_enabled IGNORE NULLS ORDER BY submission_date DESC LIMIT 1)[SAFE_OFFSET(0)],
+    FALSE
+) AS INT64)"""
+data_source = "newtab_topsites_daily"
+friendly_name = "Top sites enabled clients"
+description = """1 if the client's last reported organic top sites (tiles) setting in the window was enabled, else 0.
+    The branch mean is the share of the branch with top sites enabled at the end of the window;
+    clients with no New Tab data in the window count as 0."""
+category = "newtab"
+
+[metrics.topsites_enabled_clients.statistics.linear_model_mean]
+[metrics.topsites_enabled_clients.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+
+# ---------------------------------------------------------------------------
+# urlbar recent_search annoyances
+# Source: mozdata.firefox_desktop.urlbar_events. The view drops
+# annoyance_signal_type, so annoyances are event_action = 'annoyance' and the
+# annoyance type is engagement_type. recent_search is matched on the product
+# result type (product_selected_result / results.product_result_type).
+# ---------------------------------------------------------------------------
+
+[metrics.recent_search_impressions]
+select_expression = "COALESCE(SUM(recent_search_impressions), 0)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "Recent search impressions"
+description = "urlbar sessions (terminal events) where at least one recent_search result was shown."
+category = "urlbar"
+
+[metrics.recent_search_impressions.statistics.linear_model_mean]
+[metrics.recent_search_impressions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.recent_search_annoyances]
+select_expression = "COALESCE(SUM(recent_search_annoyances), 0)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "Recent search annoyances"
+description = "urlbar annoyance events (any annoyance type, e.g. dismiss) on a recent_search result."
+category = "urlbar"
+
+[metrics.recent_search_annoyances.statistics.linear_model_mean]
+[metrics.recent_search_annoyances.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.recent_search_annoyance_clients]
+select_expression = "CAST(COALESCE(SUM(recent_search_annoyances), 0) > 0 AS INT64)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "Clients with a recent search annoyance"
+description = "1 if the client had at least one annoyance event on a recent_search result in the window, else 0."
+category = "urlbar"
+
+[metrics.recent_search_annoyance_clients.statistics.linear_model_mean]
+[metrics.recent_search_annoyance_clients.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+# ---------------------------------------------------------------------------
+# urlbar admarketplace_sponsored impressions and clicks
+# Same source and matching rules as the recent_search metrics above.
+# ---------------------------------------------------------------------------
+
+[metrics.admarketplace_sponsored_impressions]
+select_expression = "COALESCE(SUM(admarketplace_sponsored_impressions), 0)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "AdMarketplace sponsored suggestion impressions"
+description = "urlbar sessions (terminal events) where at least one admarketplace_sponsored result was shown."
+category = "urlbar"
+
+[metrics.admarketplace_sponsored_impressions.statistics.linear_model_mean]
+[metrics.admarketplace_sponsored_impressions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.admarketplace_sponsored_clicks]
+select_expression = "COALESCE(SUM(admarketplace_sponsored_clicks), 0)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "AdMarketplace sponsored suggestion clicks"
+description = "urlbar engaged events where the selected result was admarketplace_sponsored."
+category = "urlbar"
+
+[metrics.admarketplace_sponsored_clicks.statistics.linear_model_mean]
+[metrics.admarketplace_sponsored_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 
 
 [data_sources]
@@ -128,11 +328,12 @@ from_expression = """(
       profile_group_id,
       submission_date,
       sap_counts_total,
+      serp_searches_tagged_count,
       serp_follow_on_searches_tagged_count,
       serp_searches_organic_count,
       serp_searches_with_ads_tagged_count,
-      serp_searches_with_ads_organic_count,
-      serp_ad_clicks_sum
+      serp_ads_visible_sum,
+      serp_ad_clicks_tagged_sum
     FROM
       `mozdata.search.search_clients_daily_glean`
 )"""
@@ -141,12 +342,70 @@ friendly_name = "Search Clients Daily (Glean)"
 description = "Glean search aggregate, one row per client x day x engine x partner code x source"
 
 
+[data_sources.newtab_topsites_daily]
+from_expression = """(
+    SELECT
+      -- Glean client_id; not used for the join (Jetstream joins on profile_group_id)
+      client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      profile_group_id,
+      submission_date,
+      organic_topsites_enabled
+    FROM
+      `mozdata.firefox_desktop.newtab_clients_daily`
+)"""
+experiments_column_type = "none"
+friendly_name = "New Tab top sites daily"
+# not named newtab_clients_daily: that name is a metric-hub data source and a local definition would override it for the do-no-harm metrics
+description = "organic_topsites_enabled from New Tab client-level data, one row per client x day"
+
+
+[data_sources.urlbar_recent_search_daily]
+from_expression = """(
+    SELECT
+      -- desktop enrollments are keyed on the legacy client id
+      legacy_telemetry_client_id AS client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      profile_group_id,
+      submission_date,
+      COUNTIF(
+        is_terminal
+        AND EXISTS (SELECT 1 FROM UNNEST(results) AS r WHERE r.product_result_type = 'recent_search')
+      ) AS recent_search_impressions,
+      COUNTIF(
+        event_action = 'annoyance' AND product_selected_result = 'recent_search'
+      ) AS recent_search_annoyances,
+      COUNTIF(
+        is_terminal
+        AND EXISTS (SELECT 1 FROM UNNEST(results) AS r WHERE r.product_result_type = 'admarketplace_sponsored')
+      ) AS admarketplace_sponsored_impressions,
+      COUNTIF(
+        event_action = 'engaged' AND product_selected_result = 'admarketplace_sponsored'
+      ) AS admarketplace_sponsored_clicks
+    FROM
+      `mozdata.firefox_desktop.urlbar_events`
+    GROUP BY
+      client_id,
+      profile_group_id,
+      submission_date
+)"""
+experiments_column_type = "none"
+friendly_name = "urlbar recent_search and sponsored daily"
+description = "urlbar events rolled up to client x day: recent_search impressions and annoyances, admarketplace_sponsored impressions and clicks"
+
+
 [segments]
 
 [segments.pre_enrollment_low_sap_searchers]
-friendly_name = "Pre-enrollment SAP searchers"
+friendly_name = "Pre-enrollment low SAP searchers"
 description = "Clients with between one and 10 SAP searches in the 28 days before enrollment."
 select_expression = "COALESCE(SUM(sap_searches), 0) BETWEEN 1 AND 10"
+data_source = "pre_enrollment_activity"
+
+[segments.pre_enrollment_high_sap_searchers]
+friendly_name = "Pre-enrollment high SAP searchers"
+description = "Clients with more than 10 SAP searches in the 28 days before enrollment."
+select_expression = "COALESCE(SUM(sap_searches), 0) > 10"
 data_source = "pre_enrollment_activity"
 
 [segments.pre_enrollment_non_sap_searchers]
@@ -154,6 +413,19 @@ friendly_name = "Pre-enrollment non-SAP searchers"
 description = "Clients active in the 28 days before enrollment with no SAP searches."
 select_expression = "COALESCE(SUM(sap_searches), 0) = 0"
 data_source = "pre_enrollment_activity"
+
+
+[segments.new_profiles]
+friendly_name = "New profiles"
+description = "Profiles less than 28 days old on enrollment day (days since first_seen_date)."
+select_expression = "COALESCE(MIN(profile_age_days) < 28, FALSE)"
+data_source = "enrollment_day_profile_age"
+
+[segments.established_profiles]
+friendly_name = "Established profiles"
+description = "Profiles 28 or more days old on enrollment day (days since first_seen_date)."
+select_expression = "COALESCE(MIN(profile_age_days) >= 28, FALSE)"
+data_source = "enrollment_day_profile_age"
 
 
 [segments.data_sources.pre_enrollment_activity]
@@ -186,3 +458,21 @@ from_expression = """(
 # Days relative to enrollment: the 28 days before enrollment day.
 window_start = -28
 window_end = -1
+
+
+[segments.data_sources.enrollment_day_profile_age]
+from_expression = """(
+    SELECT
+      -- desktop enrollments are keyed on the legacy client id
+      legacy_telemetry_client_id AS client_id,
+      -- experiment is randomized on group_id, so Jetstream joins on this
+      profile_group_id,
+      submission_date,
+      DATE_DIFF(submission_date, first_seen_date, DAY) AS profile_age_days
+    FROM
+      `mozdata.firefox_desktop.baseline_clients_daily`
+)"""
+# Enrollment day only, so profile age is measured as of enrollment.
+# New profiles may have no rows before enrollment, so a pre-enrollment window would drop them.
+window_start = 0
+window_end = 0
