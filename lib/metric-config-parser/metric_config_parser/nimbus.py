@@ -29,7 +29,7 @@ NIMBUS_METRIC_KEYS = {
     "where",
     "threshold",
     "scale",
-    "coalesce",
+    "keep_nulls",
     "within_days",
     "cumulative_window",
     "incremental_window",

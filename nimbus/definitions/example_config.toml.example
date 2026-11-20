@@ -165,15 +165,15 @@ repeat_windows = true
 bigger_is_better = true
 
 # ---------------------------------------------------------------------------
-# coalesce: whether a unit with no matching rows defaults to 0/FALSE
+# keep_nulls: whether a unit with no matching rows stays null
 # ---------------------------------------------------------------------------
 
-[metrics.example_sum_no_coalesce]
+[metrics.example_sum_keep_nulls]
 data_source = "clients_daily"
 aggregation = "sum"
 column = "example_column"
-# Optional: true (default) defaults a unit with no matching rows to 0 (sum) or
-# FALSE (any); false leaves it null. Valid for sum and any.
-coalesce = false
+# Optional: false (default) defaults a unit with no matching rows to 0 (sum) or
+# FALSE (any); true leaves it null. Valid for sum and any.
+keep_nulls = true
 cumulative_window = 7
 repeat_windows = true

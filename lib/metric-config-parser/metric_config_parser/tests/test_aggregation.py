@@ -230,7 +230,7 @@ class TestThresholdAndScale:
         assert metric.bucketed_aggregation.finalize == finalize
 
 
-class TestCoalesce:
+class TestKeepNulls:
     @pytest.mark.parametrize(
         ("fields", "template", "bucketed"),
         [
@@ -240,7 +240,7 @@ class TestCoalesce:
                 BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
             ),
             (
-                {"aggregation": "sum", "column": "a", "coalesce": False},
+                {"aggregation": "sum", "column": "a", "keep_nulls": True},
                 "SUM(a)",
                 BucketedAggregation("SUM(a)", Combine.SUM, "NULL", "{combined}"),
             ),
@@ -252,7 +252,7 @@ class TestCoalesce:
                 ),
             ),
             (
-                {"aggregation": "any", "column": "a", "coalesce": False},
+                {"aggregation": "any", "column": "a", "keep_nulls": True},
                 "LOGICAL_OR(a)",
                 BucketedAggregation(
                     "COUNTIF(a)", Combine.SUM, "NULL", "CAST({combined} > 0 AS INT64)"
@@ -260,33 +260,35 @@ class TestCoalesce:
             ),
         ],
     )
-    def test_coalesce(self, fields, template, bucketed):
+    def test_keep_nulls(self, fields, template, bucketed):
         metric = parse_metric(**fields)
 
         assert metric.select_expression_from_aggregation == template
         assert metric.bucketed_aggregation == bucketed
 
     @pytest.mark.parametrize("aggregation", ["count", "count_where", "recency_within"])
-    def test_rejects_coalesce_on_other_aggregations(self, aggregation):
-        fields = {"aggregation": aggregation, "column": "a", "coalesce": False}
+    def test_rejects_keep_nulls_on_other_aggregations(self, aggregation):
+        fields = {"aggregation": aggregation, "column": "a", "keep_nulls": True}
         if aggregation == "recency_within":
             fields["within_days"] = 3
         with pytest.raises(ClassValidationError) as exc_info:
             parse_metric(**fields)
-        assert exc_info.group_contains(ValueError, match="coalesce is only valid for")
+        assert exc_info.group_contains(
+            ValueError, match=f"{aggregation} never returns null for a unit with no rows"
+        )
 
-    def test_rejects_coalesce_without_aggregation(self):
+    def test_rejects_keep_nulls_without_aggregation(self):
         with pytest.raises(ClassValidationError) as exc_info:
-            parse_metric(coalesce=False)
+            parse_metric(keep_nulls=True)
         assert exc_info.group_contains(ValueError, match="require aggregation")
 
-    def test_merge_keeps_an_overlay_coalesce_false(self):
+    def test_merge_keeps_an_overlay_keep_nulls_true(self):
         base = parse_metric(aggregation="sum", column="a")
-        overlay = parse_metric(aggregation="sum", column="a", coalesce=False)
+        overlay = parse_metric(aggregation="sum", column="a", keep_nulls=True)
 
         base.merge(overlay)
 
-        assert base.coalesce is False
+        assert base.keep_nulls is True
         assert base.select_expression_from_aggregation == "SUM(a)"
 
 
@@ -305,7 +307,7 @@ class TestSingleBucketCollapse:
         "fields",
         [
             {"aggregation": "sum", "column": "a"},
-            {"aggregation": "sum", "column": "a", "coalesce": False},
+            {"aggregation": "sum", "column": "a", "keep_nulls": True},
             {"aggregation": "count", "column": "a"},
             {"aggregation": "count_where", "column": "a"},
         ],
@@ -322,7 +324,7 @@ class TestSingleBucketCollapse:
         "fields",
         [
             {"aggregation": "any", "column": "a"},
-            {"aggregation": "any", "column": "a", "coalesce": False},
+            {"aggregation": "any", "column": "a", "keep_nulls": True},
             {"aggregation": "recency_within", "column": "a", "within_days": 3},
             {"aggregation": "sum", "column": "a", "threshold": {"op": ">", "value": 0}},
         ],
@@ -338,23 +340,23 @@ class TestSingleBucketCollapse:
         assert collapsed.startswith("CAST(")
         assert collapsed.endswith("AS INT64)")
 
-    def test_sum_no_rows_collapses_to_null_without_coalesce(self):
-        metric = parse_metric(aggregation="sum", column="a", coalesce=False)
+    def test_sum_no_rows_collapses_to_null_with_keep_nulls(self):
+        metric = parse_metric(aggregation="sum", column="a", keep_nulls=True)
         bucketed = metric.bucketed_aggregation
 
         assert bucketed.no_rows == "NULL"
         assert render(bucketed.finalize_sql(bucketed.no_rows)) == "NULL"
 
-    def test_any_no_rows_collapses_to_null_without_coalesce(self):
-        metric = parse_metric(aggregation="any", column="a", coalesce=False)
+    def test_any_no_rows_collapses_to_null_with_keep_nulls(self):
+        metric = parse_metric(aggregation="any", column="a", keep_nulls=True)
         bucketed = metric.bucketed_aggregation
 
         assert bucketed.no_rows == "NULL"
         assert render(bucketed.finalize_sql(bucketed.no_rows)) == "CAST(NULL > 0 AS INT64)"
 
-    def test_sum_no_rows_with_threshold_stays_null_without_coalesce(self):
+    def test_sum_no_rows_with_threshold_stays_null_with_keep_nulls(self):
         metric = parse_metric(
-            aggregation="sum", column="a", coalesce=False, threshold={"op": ">", "value": 0}
+            aggregation="sum", column="a", keep_nulls=True, threshold={"op": ">", "value": 0}
         )
         bucketed = metric.bucketed_aggregation
 
@@ -362,11 +364,11 @@ class TestSingleBucketCollapse:
         assert bucketed.no_rows == "NULL"
         assert render(bucketed.finalize_sql(bucketed.no_rows)) == "CAST(NULL > 0 AS INT64)"
 
-    def test_sum_no_rows_with_threshold_and_scale_stays_null_without_coalesce(self):
+    def test_sum_no_rows_with_threshold_and_scale_stays_null_with_keep_nulls(self):
         metric = parse_metric(
             aggregation="sum",
             column="a",
-            coalesce=False,
+            keep_nulls=True,
             threshold={"op": ">", "value": 0},
             scale=10,
         )

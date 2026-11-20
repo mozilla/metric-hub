@@ -22,9 +22,10 @@ if TYPE_CHECKING:
 
 from . import AnalysisUnit
 from .aggregation import (
-    COALESCE_AGGREGATIONS,
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
+    DEFAULT_KEEP_NULLS,
+    KEEP_NULLS_AGGREGATIONS,
     MAX_WITHIN_DAYS,
     Aggregation,
     BucketedAggregation,
@@ -181,7 +182,7 @@ class MetricDefinition:
     within_days: int | None = None
     threshold: Threshold | None = None
     scale: int | float | None = None
-    coalesce: bool | None = None
+    keep_nulls: bool | None = None
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
@@ -198,13 +199,13 @@ class MetricDefinition:
                 or self.within_days is not None
                 or self.threshold is not None
                 or self.scale is not None
-                or self.coalesce is not None
+                or self.keep_nulls is not None
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
             ):
                 raise ValueError(
-                    f"{context}: column, where, within_days, threshold, scale, coalesce, "
+                    f"{context}: column, where, within_days, threshold, scale, keep_nulls, "
                     "cumulative_window, incremental_window and repeat_windows require aggregation"
                 )
             return
@@ -239,10 +240,11 @@ class MetricDefinition:
         if self.scale is not None and not is_number(self.scale):
             raise ValueError(f"{context}: scale must be a number")
 
-        if self.coalesce is not None and self.aggregation not in COALESCE_AGGREGATIONS:
+        if self.keep_nulls is not None and self.aggregation not in KEEP_NULLS_AGGREGATIONS:
             raise ValueError(
-                f"{context}: coalesce is only valid for "
-                f"{sorted(a.value for a in COALESCE_AGGREGATIONS)}"
+                f"{context}: keep_nulls is only valid for "
+                f"{sorted(a.value for a in KEEP_NULLS_AGGREGATIONS)}; "
+                f"{self.aggregation.value} never returns null for a unit with no rows"
             )
 
         if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
@@ -287,7 +289,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
-            self.coalesce if self.coalesce is not None else True,
+            self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
         )
 
     @property
@@ -301,7 +303,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
-            self.coalesce if self.coalesce is not None else True,
+            self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
         )
 
     @staticmethod
@@ -527,9 +529,11 @@ class MetricDefinition:
     def merge(self, other: "MetricDefinition"):
         """Merge with another metric definition."""
         for key in attr.fields_dict(type(self)):
-            if key == "coalesce":
-                other_coalesce = other.coalesce
-                setattr(self, key, other_coalesce if other_coalesce is not None else self.coalesce)
+            if key == "keep_nulls":
+                other_keep_nulls = other.keep_nulls
+                setattr(
+                    self, key, other_keep_nulls if other_keep_nulls is not None else self.keep_nulls
+                )
             else:
                 setattr(self, key, getattr(other, key) or getattr(self, key))
 
@@ -551,7 +555,7 @@ converter.register_structure_hook(
         within_days=override(struct_hook=_passthrough),
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),
-        coalesce=override(struct_hook=_passthrough),
+        keep_nulls=override(struct_hook=_passthrough),
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),
