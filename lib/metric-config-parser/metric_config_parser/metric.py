@@ -31,14 +31,16 @@ from .aggregation import (
     Aggregation,
     BucketedAggregation,
     Clause,
+    ColumnReference,
     RecencyEncoding,
     Threshold,
     aggregation_bucketed,
     aggregation_select_expression,
     is_number,
     is_positive_int,
+    parse_column,
     to_enum,
-    validate_identifier,
+    validate_column,
 )
 from .data_source import DataSource, DataSourceReference
 from .parameter import ParameterDefinition
@@ -179,7 +181,7 @@ class MetricDefinition:
     level: MetricLevel | None = None
     analysis_units: list[AnalysisUnit] | None = None
     aggregation: Aggregation | None = None
-    column: str | None = None
+    column: ColumnReference | None = None
     where: list[Clause] = attr.Factory(list)
     within_days: int | None = None
     threshold: Threshold | None = None
@@ -225,7 +227,7 @@ class MetricDefinition:
         ):
             raise ValueError(f"{context}: unknown aggregation '{self.aggregation}'")
         if self.column is not None:
-            validate_identifier(self.column, context)
+            validate_column(self.column, context)
 
         if self.aggregation in COLUMN_AGGREGATIONS:
             if self.column is None:
@@ -566,7 +568,7 @@ converter.register_structure_hook(
         aggregation=override(
             struct_hook=lambda obj, _type: to_enum(Aggregation, obj, "aggregation")
         ),
-        column=override(struct_hook=_passthrough),
+        column=override(struct_hook=lambda obj, _type: parse_column(obj)),
         where=override(struct_hook=lambda obj, _type: [Clause.from_dict(clause) for clause in obj]),
         within_days=override(struct_hook=_passthrough),
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),

@@ -62,6 +62,7 @@ DEFAULT_KEEP_NULLS = False
 
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
+COLUMN_FORM_KEYS = {"map", "key", "json", "path"}
 
 
 def is_number(value: Any) -> bool:
@@ -75,6 +76,80 @@ def is_positive_int(value: Any) -> TypeGuard[int]:
 def validate_identifier(column: Any, context: str) -> None:
     if not isinstance(column, str) or not IDENTIFIER.match(column):
         raise ValueError(f"{context}: column '{column}' must be a plain column name or dotted path")
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ColumnForm:
+    """A derived column reference, in place of a plain column name: either a keyed-map
+    extraction (`map`, with an optional `key`) or a JSON field extraction (`json` and
+    `path`)."""
+
+    map: str | None = None
+    key: str | None = None
+    json: str | None = None
+    path: str | None = None
+
+    def __attrs_post_init__(self) -> None:
+        if self.map is not None and self.json is not None:
+            raise ValueError("column: declare either map or json, not both")
+        if self.map is not None:
+            validate_identifier(self.map, "column")
+            if self.path is not None:
+                raise ValueError("column: path is only valid with json")
+            if self.key is not None and not isinstance(self.key, str):
+                raise ValueError("column: key must be a string")
+        elif self.json is not None:
+            validate_identifier(self.json, "column")
+            if self.key is not None:
+                raise ValueError("column: key is not valid with json")
+            if not isinstance(self.path, str):
+                raise ValueError("column: json requires path")
+        else:
+            raise ValueError("column: must declare map or json")
+
+    @property
+    def sql(self) -> str:
+        if self.map is not None:
+            if self.key is not None:
+                return f"mozfun.map.get_key({self.map}, {sql_value(self.key)})"
+            return f"mozfun.map.extract_keyed_scalar_sum({self.map})"
+        return f"JSON_VALUE({self.json}, {sql_value(f'$.{self.path}')})"
+
+    @property
+    def source_column(self) -> str:
+        return self.map if self.map is not None else str(self.json)
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> "ColumnForm":
+        reject_unknown_keys(d, COLUMN_FORM_KEYS, "column")
+        return cls(map=d.get("map"), key=d.get("key"), json=d.get("json"), path=d.get("path"))
+
+
+ColumnReference = str | ColumnForm
+
+
+def parse_column(value: Any) -> ColumnReference:
+    if isinstance(value, Mapping):
+        return ColumnForm.from_dict(value)
+    return value
+
+
+def validate_column(column: ColumnReference, context: str) -> None:
+    if isinstance(column, ColumnForm):
+        return
+    validate_identifier(column, context)
+
+
+def column_sql(column: ColumnReference | None) -> str:
+    if isinstance(column, ColumnForm):
+        return column.sql
+    return str(column)
+
+
+def column_source(column: ColumnReference | None) -> str:
+    if isinstance(column, ColumnForm):
+        return column.source_column
+    return str(column)
 
 
 def to_enum(enum_cls: type[Enum], value: Any, context: str) -> Any:
@@ -112,12 +187,12 @@ def reject_unknown_keys(d: Mapping[str, Any], allowed: set[str], context: str) -
 
 @attr.s(auto_attribs=True)
 class Clause:
-    column: str
+    column: ColumnReference
     op: Operator | None = None
     value: Any = None
 
     def __attrs_post_init__(self) -> None:
-        validate_identifier(self.column, "where clause")
+        validate_column(self.column, "where clause")
         if self.op is None or self.op not in COMPARISON_OPERATORS:
             if self.value is not None:
                 raise ValueError(f"where clause on '{self.column}' takes no value")
@@ -126,11 +201,12 @@ class Clause:
 
     @property
     def sql(self) -> str:
+        column_text = column_sql(self.column)
         if self.op is None:
-            return self.column
+            return column_text
         if self.op in COMPARISON_OPERATORS:
-            return f"{self.column} {self.op} {sql_value(self.value)}"
-        return f"{self.column} {self.op}"
+            return f"{column_text} {self.op} {sql_value(self.value)}"
+        return f"{column_text} {self.op}"
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "Clause":
@@ -139,7 +215,7 @@ class Clause:
             raise ValueError("where clause requires a column")
         op = d.get("op")
         return cls(
-            column=d["column"],
+            column=parse_column(d["column"]),
             op=None if op is None else to_enum(Operator, op, "where clause"),
             value=d.get("value"),
         )
@@ -171,15 +247,18 @@ def predicate_sql(conditions: list[Clause]) -> str:
     return " AND ".join(clause.sql for clause in conditions)
 
 
-def recency_inner_expression(column: str | None, encoding: RecencyEncoding | None) -> str:
+def recency_inner_expression(
+    column: ColumnReference | None, encoding: RecencyEncoding | None
+) -> str:
+    column_text = column_sql(column)
     if encoding == RecencyEncoding.DAYS:
-        return str(column)
-    return f"mozfun.bits28.days_since_seen({column})"
+        return column_text
+    return f"mozfun.bits28.days_since_seen({column_text})"
 
 
 def aggregation_select_expression(
     aggregation: Aggregation,
-    column: str | None,
+    column: ColumnReference | None,
     conditions: list[Clause],
     within_days: int | None,
     threshold: Threshold | None,
@@ -188,14 +267,15 @@ def aggregation_select_expression(
     encoding: RecencyEncoding | None = None,
 ) -> str:
     predicate = predicate_sql(conditions)
+    column_text = column_sql(column)
     is_boolean = False
     if aggregation == Aggregation.SUM:
-        expression = f"SUM({column})" if keep_nulls else macro_call("agg_sum", str(column))
+        expression = f"SUM({column_text})" if keep_nulls else macro_call("agg_sum", column_text)
     elif aggregation == Aggregation.SUM_WHERE:
-        base = f"SUM(IF({predicate}, {column}, 0))"
+        base = f"SUM(IF({predicate}, {column_text}, 0))"
         expression = base if keep_nulls else f"COALESCE({base}, 0)"
     elif aggregation == Aggregation.COUNT:
-        expression = f"COUNT({column})"
+        expression = f"COUNT({column_text})"
     elif aggregation == Aggregation.COUNT_WHERE:
         expression = f"COUNTIF({predicate})"
     elif aggregation == Aggregation.ANY:
@@ -241,7 +321,7 @@ class BucketedAggregation:
 
 def aggregation_bucketed(
     aggregation: Aggregation,
-    column: str | None,
+    column: ColumnReference | None,
     conditions: list[Clause],
     within_days: int | None,
     threshold: Threshold | None,
@@ -250,24 +330,25 @@ def aggregation_bucketed(
     encoding: RecencyEncoding | None = None,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
+    column_text = column_sql(column)
     combine = Combine.SUM
     no_rows = "0"
     finalize = COMBINED
     if aggregation == Aggregation.SUM:
         if keep_nulls:
-            bucket_aggregate = f"SUM({column})"
+            bucket_aggregate = f"SUM({column_text})"
             no_rows = "NULL"
         else:
-            bucket_aggregate = f"COALESCE(SUM({column}), 0)"
+            bucket_aggregate = f"COALESCE(SUM({column_text}), 0)"
     elif aggregation == Aggregation.SUM_WHERE:
-        base = f"SUM(IF({predicate}, {column}, 0))"
+        base = f"SUM(IF({predicate}, {column_text}, 0))"
         if keep_nulls:
             bucket_aggregate = base
             no_rows = "NULL"
         else:
             bucket_aggregate = f"COALESCE({base}, 0)"
     elif aggregation == Aggregation.COUNT:
-        bucket_aggregate = f"COUNT({column})"
+        bucket_aggregate = f"COUNT({column_text})"
     elif aggregation == Aggregation.COUNT_WHERE:
         bucket_aggregate = f"COUNTIF({predicate})"
     elif aggregation == Aggregation.ANY:
