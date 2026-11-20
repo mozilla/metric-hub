@@ -1,0 +1,114 @@
+# Form Autofill outcome
+#
+# Selectable in Experimenter as a primary/secondary outcome for Firefox Desktop
+# experiments. Same metrics and statistics as the per-experiment configs for the
+# form-auto-fill-field-detection-* experiments.
+#
+# The eight metrics and the `form_autofill_forms` data source are defined in
+# definitions/firefox_desktop.toml; this outcome only selects them and sets
+# statistics.
+
+friendly_name = "Form Autofill"
+description = "Address and credit card autofill usage: fields filled, fields modified after fill, net fields kept, and form submissions."
+
+weekly = [
+  "form_autofill_address_fields_filled",
+  "form_autofill_address_fields_modified",
+  "form_autofill_address_fields_net_kept",
+  "form_autofill_credit_card_fields_filled",
+  "form_autofill_credit_card_fields_modified",
+  "form_autofill_credit_card_fields_net_kept",
+  "form_autofill_address_form_submissions",
+  "form_autofill_credit_card_form_submissions",
+]
+overall = [
+  "form_autofill_address_fields_filled",
+  "form_autofill_address_fields_modified",
+  "form_autofill_address_fields_net_kept",
+  "form_autofill_credit_card_fields_filled",
+  "form_autofill_credit_card_fields_modified",
+  "form_autofill_credit_card_fields_net_kept",
+  "form_autofill_address_form_submissions",
+  "form_autofill_credit_card_form_submissions",
+]
+# Requested for the pre-enrollment week as well, so the statistics below can
+# covariate-adjust on each group's own prior autofill behaviour.
+preenrollment_weekly = [
+  "form_autofill_address_fields_filled",
+  "form_autofill_address_fields_modified",
+  "form_autofill_address_fields_net_kept",
+  "form_autofill_credit_card_fields_filled",
+  "form_autofill_credit_card_fields_modified",
+  "form_autofill_credit_card_fields_net_kept",
+  "form_autofill_address_form_submissions",
+  "form_autofill_credit_card_form_submissions",
+]
+
+
+# Statistics: these are zero-inflated, long-tailed per-client counts, so report
+# the mean both with the default 0.5% top clip and unclipped, plus the full
+# distribution so a volume cap can be chosen downstream rather than baked in.
+
+[metrics.form_autofill_address_fields_filled.statistics.linear_model_mean]
+[metrics.form_autofill_address_fields_filled.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_filled.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_address_fields_filled.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_filled.statistics.deciles]
+
+[metrics.form_autofill_address_fields_modified.statistics.linear_model_mean]
+[metrics.form_autofill_address_fields_modified.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_modified.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_address_fields_modified.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_modified.statistics.deciles]
+
+[metrics.form_autofill_address_fields_net_kept.statistics.linear_model_mean]
+[metrics.form_autofill_address_fields_net_kept.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_net_kept.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_address_fields_net_kept.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_fields_net_kept.statistics.deciles]
+
+[metrics.form_autofill_credit_card_fields_filled.statistics.linear_model_mean]
+[metrics.form_autofill_credit_card_fields_filled.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_filled.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_credit_card_fields_filled.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_filled.statistics.deciles]
+
+[metrics.form_autofill_credit_card_fields_modified.statistics.linear_model_mean]
+[metrics.form_autofill_credit_card_fields_modified.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_modified.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_credit_card_fields_modified.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_modified.statistics.deciles]
+
+[metrics.form_autofill_credit_card_fields_net_kept.statistics.linear_model_mean]
+[metrics.form_autofill_credit_card_fields_net_kept.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_net_kept.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_credit_card_fields_net_kept.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_fields_net_kept.statistics.deciles]
+
+[metrics.form_autofill_address_form_submissions.statistics.linear_model_mean]
+[metrics.form_autofill_address_form_submissions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_form_submissions.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_address_form_submissions.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_address_form_submissions.statistics.deciles]
+
+[metrics.form_autofill_credit_card_form_submissions.statistics.linear_model_mean]
+[metrics.form_autofill_credit_card_form_submissions.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_form_submissions.statistics.linear_model_mean_no_clip]
+[metrics.form_autofill_credit_card_form_submissions.statistics.linear_model_mean_no_clip.covariate_adjustment]
+period = "preenrollment_week"
+[metrics.form_autofill_credit_card_form_submissions.statistics.deciles]
