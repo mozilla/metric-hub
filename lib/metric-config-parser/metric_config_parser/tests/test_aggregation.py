@@ -292,6 +292,50 @@ class TestKeepNulls:
         assert base.select_expression_from_aggregation == "SUM(a)"
 
 
+class TestRecencyEncoding:
+    def test_bits28_is_the_default(self):
+        default = parse_metric(aggregation="recency_within", column="a", within_days=3)
+        explicit = parse_metric(
+            aggregation="recency_within", column="a", within_days=3, encoding="bits28"
+        )
+
+        assert (
+            default.select_expression_from_aggregation
+            == explicit.select_expression_from_aggregation
+        )
+        assert default.bucketed_aggregation == explicit.bucketed_aggregation
+
+    def test_days_encoding(self):
+        metric = parse_metric(
+            aggregation="recency_within",
+            column="days_since_desktop_active",
+            encoding="days",
+            within_days=3,
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "COALESCE(MIN(days_since_desktop_active), 30) < 3"
+        )
+        assert metric.bucketed_aggregation == BucketedAggregation(
+            "COALESCE(MIN(days_since_desktop_active), 30)",
+            Combine.MIN,
+            "30",
+            "CAST({combined} < 3 AS INT64)",
+        )
+
+    def test_days_encoding_accepts_within_days_above_28(self):
+        metric = parse_metric(
+            aggregation="recency_within",
+            column="days_since_desktop_active",
+            encoding="days",
+            within_days=60,
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "COALESCE(MIN(days_since_desktop_active), 30) < 60"
+        )
+
+
 class TestSingleBucketCollapse:
     """Over exactly one bucket, combine(bucket_aggregate) is the identity, so the
     window's combined value is bucket_aggregate itself. Where neither side casts a
@@ -327,6 +371,12 @@ class TestSingleBucketCollapse:
             {"aggregation": "any", "column": "a", "keep_nulls": True},
             {"aggregation": "recency_within", "column": "a", "within_days": 3},
             {"aggregation": "sum", "column": "a", "threshold": {"op": ">", "value": 0}},
+            {
+                "aggregation": "recency_within",
+                "column": "days_since_desktop_active",
+                "encoding": "days",
+                "within_days": 3,
+            },
         ],
     )
     def test_collapses_to_the_same_value_not_text(self, fields):

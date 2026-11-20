@@ -177,3 +177,16 @@ column = "example_column"
 keep_nulls = true
 cumulative_window = 7
 repeat_windows = true
+
+# ---------------------------------------------------------------------------
+# recency_within with encoding: the column is already a days-since-active count
+# ---------------------------------------------------------------------------
+
+[metrics.active_in_last_3_days]
+data_source = "firefox_desktop_baseline_active_users_view"
+aggregation = "recency_within"
+column = "days_since_desktop_active"
+# Optional: bits28 (default) decodes a 28-day activity bit pattern; days means
+# the column already holds the number of days since the unit was last active.
+encoding = "days"
+within_days = 3
