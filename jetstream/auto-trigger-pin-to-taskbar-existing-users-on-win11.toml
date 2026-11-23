@@ -150,6 +150,32 @@ data_source = "metrics"
 # makes consented pins (success_pinned, treatment minus control) part of the
 # per-band ship rule, to keep silent pins out of it. Control fires the same
 # events only when the user reaches a pin prompt some other way.
+#
+# All five metrics read pin_winrt_events, which filters events_stream on
+# event_category / event_name in its from_expression. They previously read the
+# unfiltered built-in glean_events_stream with the filter in each
+# select_expression, which joined every enrollee event to enrollments and timed
+# out. Results are unchanged: a client with no pin_winrt events gets no joined
+# rows and COALESCE returns FALSE (or 0), as before.
+
+[data_sources.pin_winrt_events]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        legacy_telemetry_client_id AS client_id,
+        profile_group_id,
+        JSON_VALUE(event_extra, '$.result') AS pin_result
+    FROM `moz-fx-data-shared-prod.firefox_desktop.events_stream`
+    WHERE event_category = 'taskbar'
+      AND event_name = 'pin_winrt'
+      AND DATE(submission_timestamp) >= '2026-11-04'
+)"""
+experiments_column_type = "none"
+friendly_name = "Taskbar pin_winrt Events"
+description = """
+Glean taskbar.pin_winrt events from events_stream, one row per pin attempt
+with its result extra, from this experiment's launch onward.
+"""
 
 [metrics.pin_prompt_accepted]
 friendly_name = "Pin Prompt Accepted"
@@ -157,11 +183,8 @@ description = """
 Client had at least one taskbar.pin_winrt event with result = success_pinned
 in the interval (the user consented to the Windows pin prompt).
 """
-select_expression = """COALESCE(LOGICAL_OR(
-    event_category = 'taskbar' AND event_name = 'pin_winrt'
-    AND JSON_VALUE(event_extra, '$.result') = 'success_pinned'
-), FALSE)"""
-data_source = "glean_events_stream"
+select_expression = "COALESCE(LOGICAL_OR(pin_result = 'success_pinned'), FALSE)"
+data_source = "pin_winrt_events"
 
 [metrics.pin_prompt_accepted.statistics.binomial]
 
@@ -171,11 +194,8 @@ description = """
 Client had at least one taskbar.pin_winrt event with result = success_pinned
 or success_rejected in the interval (the Windows pin toast rendered).
 """
-select_expression = """COALESCE(LOGICAL_OR(
-    event_category = 'taskbar' AND event_name = 'pin_winrt'
-    AND JSON_VALUE(event_extra, '$.result') IN ('success_pinned', 'success_rejected')
-), FALSE)"""
-data_source = "glean_events_stream"
+select_expression = "COALESCE(LOGICAL_OR(pin_result IN ('success_pinned', 'success_rejected')), FALSE)"
+data_source = "pin_winrt_events"
 
 [metrics.pin_prompt_shown.statistics.binomial]
 
@@ -185,11 +205,8 @@ description = """
 Client had at least one taskbar.pin_winrt event with result = success_rejected
 in the interval (the user or system declined the Windows pin prompt).
 """
-select_expression = """COALESCE(LOGICAL_OR(
-    event_category = 'taskbar' AND event_name = 'pin_winrt'
-    AND JSON_VALUE(event_extra, '$.result') = 'success_rejected'
-), FALSE)"""
-data_source = "glean_events_stream"
+select_expression = "COALESCE(LOGICAL_OR(pin_result = 'success_rejected'), FALSE)"
+data_source = "pin_winrt_events"
 
 [metrics.pin_prompt_rejected.statistics.binomial]
 
@@ -200,11 +217,8 @@ Client had at least one taskbar.pin_winrt event with an error_* result in the
 interval (the WinRT pin request failed; the code may then fall back to a silent
 COM pin, which is why consented pins are required alongside is_pinned).
 """
-select_expression = """COALESCE(LOGICAL_OR(
-    event_category = 'taskbar' AND event_name = 'pin_winrt'
-    AND STARTS_WITH(JSON_VALUE(event_extra, '$.result'), 'error')
-), FALSE)"""
-data_source = "glean_events_stream"
+select_expression = "COALESCE(LOGICAL_OR(STARTS_WITH(pin_result, 'error')), FALSE)"
+data_source = "pin_winrt_events"
 
 [metrics.pin_prompt_error.statistics.binomial]
 
@@ -216,11 +230,8 @@ success_rejected in the interval. The message is capped at 2 asks at least
 7 days apart, so a mean above ~2 in treatment points at the lifetime-cap
 breach seen in FXE-1746 (FIDE-4171).
 """
-select_expression = """COALESCE(COUNTIF(
-    event_category = 'taskbar' AND event_name = 'pin_winrt'
-    AND JSON_VALUE(event_extra, '$.result') IN ('success_pinned', 'success_rejected')
-), 0)"""
-data_source = "glean_events_stream"
+select_expression = "COALESCE(COUNTIF(pin_result IN ('success_pinned', 'success_rejected')), 0)"
+data_source = "pin_winrt_events"
 
 [metrics.pin_prompts_shown_count.statistics.linear_model_mean]
 drop_highest = 0.005
