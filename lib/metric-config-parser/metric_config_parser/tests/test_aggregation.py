@@ -323,17 +323,15 @@ class TestRecencyEncoding:
             "CAST({combined} < 3 AS INT64)",
         )
 
-    def test_days_encoding_accepts_within_days_above_28(self):
-        metric = parse_metric(
-            aggregation="recency_within",
-            column="days_since_desktop_active",
-            encoding="days",
-            within_days=60,
-        )
-
-        assert metric.select_expression_from_aggregation == (
-            "COALESCE(MIN(days_since_desktop_active), 30) < 60"
-        )
+    def test_days_encoding_rejects_within_days_above_28(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(
+                aggregation="recency_within",
+                column="days_since_desktop_active",
+                encoding="days",
+                within_days=60,
+            )
+        assert exc_info.group_contains(ValueError, match="within_days must be at most 28")
 
 
 class TestSingleBucketCollapse:

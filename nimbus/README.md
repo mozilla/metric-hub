@@ -197,9 +197,9 @@ Each row is decoded to the number of days since the most recent active day, wher
 the row's own date. The unit's value is the smallest of these over its rows in the window. A unit
 with no rows, or with no active days recorded, gets 30, which is outside the 28-day range. The
 result is 1 when that value is less than `within_days`, so `within_days = 3` means active on the
-row's date or one of the two days before it. With the default `bits28` encoding, `within_days` is at
-most 28, matching the bit pattern's own range, so a unit with no activity is never counted as active.
-The result is 0/1.
+row's date or one of the two days before it. `within_days` is at most 28 with either encoding,
+because a unit with no rows counts as 30 days since last seen, and a longer window would count it as
+active. The result is 0/1.
 
 The decoding, the comparison and the value for a unit with no rows are fixed. The author supplies
 only the column and the number of days.
@@ -213,9 +213,8 @@ within_days = 3
 ```
 
 Set `encoding = "days"` when `column` already holds the number of days since the unit was last
-active, rather than a 28-day bit pattern to decode. The no-rows value (30) and the `< within_days`
-comparison are unchanged, but `within_days` is not capped at 28: that cap comes from the `bits28`
-bit pattern's own range, which does not apply to a plain day count.
+active, rather than a 28-day bit pattern to decode. The no-rows value (30), the `< within_days`
+comparison and the 28-day cap on `within_days` are all unchanged.
 
 ```toml
 [metrics.active_in_last_3_days]
@@ -406,7 +405,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `sum`, `count` or `recency_within` has no `column`, or has `where`.
 - `count_where` or `any` has both `column` and `where`, or neither.
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
-- `within_days` is greater than 28, unless `encoding = "days"`.
+- `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
 - `keep_nulls` is set on any aggregation other than `sum` or `any`.
 - `encoding` is set on any aggregation other than `recency_within`.

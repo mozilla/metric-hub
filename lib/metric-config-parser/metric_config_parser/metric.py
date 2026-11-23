@@ -236,7 +236,7 @@ class MetricDefinition:
         if self.aggregation == Aggregation.RECENCY_WITHIN:
             if not is_positive_int(self.within_days):
                 raise ValueError(f"{context}: within_days must be a positive integer")
-            if self.encoding != RecencyEncoding.DAYS and self.within_days > MAX_WITHIN_DAYS:
+            if self.within_days > MAX_WITHIN_DAYS:
                 raise ValueError(f"{context}: within_days must be at most {MAX_WITHIN_DAYS}")
         elif self.within_days is not None:
             raise ValueError(f"{context}: within_days is only valid for recency_within")

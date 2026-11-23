@@ -442,6 +442,15 @@ class TestAggregationFieldRejections:
                 "within_days must be at most 28",
             ),
             (
+                {
+                    "aggregation": "recency_within",
+                    "column": "a",
+                    "encoding": "days",
+                    "within_days": 29,
+                },
+                "within_days must be at most 28",
+            ),
+            (
                 {"aggregation": "sum", "column": "a", "within_days": 3},
                 "only valid for recency_within",
             ),
