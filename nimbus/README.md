@@ -266,7 +266,9 @@ value out of a map or a JSON-valued column rather than a plain column:
 `map` and `json` take the same column name or dotted path as a plain `column`. A column form
 declares exactly one of `map` or `json`; `key` is only valid with `map`, and `path` is required
 with `json`. Highwind selects the underlying `map` or `json` column from the data source, the same
-way it selects a plain `column`.
+way it selects a plain `column`, including the projection a dotted path gets (see
+[Highwind](#highwind)); the generated expression (`mozfun.map.get_key(...)` or `JSON_VALUE(...)`)
+then reads that projected name.
 
 ```toml
 [metrics.crlite_use_counter]
@@ -657,13 +659,14 @@ With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself wh
 `encoding = "days"`, the same substitution as on the Jetstream side.
 
 The columns Highwind reads from each data source are derived from the aggregation-form
-definitions: every `column` and every condition column, grouped by `data_source`. These are
-SELECT-list items for the source scan: a plain name stays as is, and a dotted path is projected
-under a flat name with `__` in place of `.` (`metrics.counter.x AS metrics__counter__x`). The
-bucketed aggregation reads that flat name instead of the path, so `bucket_aggregate` and any
-condition built from the same column reference `metrics__counter__x`. Two columns that would
-project to the same flat name is an error. A column form (see [Column forms](#column-forms))
-contributes its underlying `map` or `json` column, not the generated expression.
+definitions: every `column` and every condition column, grouped by `data_source`. A column form
+(see [Column forms](#column-forms)) contributes its underlying `map` or `json` column, not the
+generated expression. These are SELECT-list items for the source scan: a plain name stays as is,
+and a dotted path is projected under a flat name with `__` in place of `.`
+(`metrics.counter.x AS metrics__counter__x`). The bucketed aggregation reads that flat name instead
+of the path, so `bucket_aggregate`, any condition built from the same column, and a column form's
+generated expression all reference `metrics__counter__x`. Two columns that would project to the
+same flat name is an error.
 
 `aggregation_plan(configs, app_name, metric_names)` builds this grouping for a run. It looks up
 each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:

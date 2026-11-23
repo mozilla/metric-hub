@@ -243,10 +243,11 @@ class TestColumnFormSource:
         plan = aggregation_plan(collection, "firefox_desktop", ["crlite_use_counter"])
 
         assert plan.sources["clients_daily"].columns == (
-            "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms",
+            "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms AS "
+            "metrics__labeled_counter__cert_verifier_cert_revocation_mechanisms",
         )
         assert plan.metrics["crlite_use_counter"].aggregation.bucket_aggregate == (
-            "COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter."
+            "COALESCE(SUM(mozfun.map.get_key(metrics__labeled_counter__"
             "cert_verifier_cert_revocation_mechanisms, 'CRLite')), 0)"
         )
 
@@ -268,3 +269,27 @@ class TestColumnFormSource:
         plan = aggregation_plan(collection, "firefox_desktop", ["pin_prompt_accepted"])
 
         assert plan.sources["clients_daily"].columns == ("event_extra",)
+
+    def test_dotted_json_column_in_a_condition_is_projected(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.pin_prompt_accepted_dotted]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.pin_prompt_accepted_dotted.where]]\n"
+            'column = { json = "metrics.text.event_extra", path = "result" }\n'
+            'op = "="\n'
+            'value = "success_pinned"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["pin_prompt_accepted_dotted"])
+
+        assert plan.sources["clients_daily"].columns == (
+            "metrics.text.event_extra AS metrics__text__event_extra",
+        )
+        assert plan.metrics["pin_prompt_accepted_dotted"].aggregation.bucket_aggregate == (
+            "COUNTIF(JSON_VALUE(metrics__text__event_extra, '$.result') = 'success_pinned')"
+        )
