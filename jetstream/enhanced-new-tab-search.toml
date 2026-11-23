@@ -1,5 +1,5 @@
 [experiment]
-end_date = "2026-11-17"
+end_date = "2026-10-27"
 
 segments = [
     "pre_enrollment_low_sap_searchers", "pre_enrollment_high_sap_searchers", "pre_enrollment_non_sap_searchers",
@@ -20,10 +20,11 @@ weekly = [
     "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
     # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
     "topsites_enabled_clients",
-    # urlbar recent_search annoyances (urlbar_events)
+    # urlbar recent_search annoyances, clicks and CTR (urlbar_events)
     "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
-    # urlbar admarketplace_sponsored (urlbar_events)
-    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
+    "recent_search_clicks", "recent_search_ctr",
+    # urlbar admarketplace_sponsored impressions, clicks and CTR (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks", "admarketplace_sponsored_ctr"
 ]
 overall = [
     "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
@@ -34,10 +35,11 @@ overall = [
     "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
     # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
     "topsites_enabled_clients",
-    # urlbar recent_search annoyances (urlbar_events)
+    # urlbar recent_search annoyances, clicks and CTR (urlbar_events)
     "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
-    # urlbar admarketplace_sponsored (urlbar_events)
-    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
+    "recent_search_clicks", "recent_search_ctr",
+    # urlbar admarketplace_sponsored impressions, clicks and CTR (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks", "admarketplace_sponsored_ctr"
 ]
 preenrollment_weekly = [
     "sap_clients", "sap_searches_per_searcher", "sap_habit_3plus_days", "sap_search_count",
@@ -48,10 +50,11 @@ preenrollment_weekly = [
     "sponsored_content_impressions", "organic_content_clicks", "organic_content_impressions",
     # New Tab organic top sites (tiles) enabled (newtab_clients_daily)
     "topsites_enabled_clients",
-    # urlbar recent_search annoyances (urlbar_events)
+    # urlbar recent_search annoyances, clicks and CTR (urlbar_events)
     "recent_search_impressions", "recent_search_annoyances", "recent_search_annoyance_clients",
-    # urlbar admarketplace_sponsored (urlbar_events)
-    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks"
+    "recent_search_clicks", "recent_search_ctr",
+    # urlbar admarketplace_sponsored impressions, clicks and CTR (urlbar_events)
+    "admarketplace_sponsored_impressions", "admarketplace_sponsored_clicks", "admarketplace_sponsored_ctr"
 ]
 
 
@@ -289,8 +292,33 @@ category = "urlbar"
 [metrics.recent_search_annoyance_clients.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
 
+[metrics.recent_search_clicks]
+select_expression = "COALESCE(SUM(recent_search_clicks), 0)"
+data_source = "urlbar_recent_search_daily"
+friendly_name = "Recent search clicks"
+description = "urlbar engaged events where the selected result was recent_search, at any position."
+category = "urlbar"
+
+[metrics.recent_search_clicks.statistics.linear_model_mean]
+[metrics.recent_search_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
+
+[metrics.recent_search_ctr]
+depends_on = ["recent_search_clicks", "recent_search_impressions"]
+friendly_name = "Recent search CTR"
+description = """
+    This is a Population Ratio Metric. It is the total number of
+    recent_search clicks in the population divided by the total number
+    of urlbar sessions where a recent_search result was shown.
+"""
+category = "urlbar"
+
+[metrics.recent_search_ctr.statistics.population_ratio]
+numerator = "recent_search_clicks"
+denominator = "recent_search_impressions"
+
 # ---------------------------------------------------------------------------
-# urlbar admarketplace_sponsored impressions and clicks
+# urlbar admarketplace_sponsored impressions, clicks and CTR
 # Same source and matching rules as the recent_search metrics above.
 # ---------------------------------------------------------------------------
 
@@ -315,6 +343,20 @@ category = "urlbar"
 [metrics.admarketplace_sponsored_clicks.statistics.linear_model_mean]
 [metrics.admarketplace_sponsored_clicks.statistics.linear_model_mean.covariate_adjustment]
 period = "preenrollment_week"
+
+[metrics.admarketplace_sponsored_ctr]
+depends_on = ["admarketplace_sponsored_clicks", "admarketplace_sponsored_impressions"]
+friendly_name = "AdMarketplace sponsored suggestion CTR"
+description = """
+    This is a Population Ratio Metric. It is the total number of
+    admarketplace_sponsored clicks in the population divided by the total
+    number of urlbar sessions where an admarketplace_sponsored result was shown.
+"""
+category = "urlbar"
+
+[metrics.admarketplace_sponsored_ctr.statistics.population_ratio]
+numerator = "admarketplace_sponsored_clicks"
+denominator = "admarketplace_sponsored_impressions"
 
 
 [data_sources]
@@ -375,6 +417,9 @@ from_expression = """(
       COUNTIF(
         event_action = 'annoyance' AND product_selected_result = 'recent_search'
       ) AS recent_search_annoyances,
+      COUNTIF(
+        event_action = 'engaged' AND product_selected_result = 'recent_search'
+      ) AS recent_search_clicks,
       COUNTIF(
         is_terminal
         AND EXISTS (SELECT 1 FROM UNNEST(results) AS r WHERE r.product_result_type = 'admarketplace_sponsored')
