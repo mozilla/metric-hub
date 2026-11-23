@@ -192,17 +192,20 @@ description = "messaging_system IMPRESSION events on about:welcome, keyed on the
 
 # --- Guardrails ---------------------------------------------------------------------------
 # Early uninstalls: legacy uninstall ping (Windows only; sent by the uninstaller when telemetry is on).
+# Jetstream left-joins the data source onto every enrolled unit, so a unit with no ping still gets one
+# all-NULL row. COUNT(*) > 0 was therefore true for everyone (the metric read 1.0 in every branch).
+# Read a column that is only non-NULL on real ping rows instead.
 [metrics.uninstalled]
 friendly_name = "Uninstalled"
 description = "Client sent a legacy uninstall ping during the window (Windows only)."
 data_source = "legacy_uninstall"
-select_expression = "CAST(COUNT(*) > 0 AS INT)"
+select_expression = "COALESCE(MAX(uninstall_ping), 0)"
 
 [metrics.uninstalled.statistics.binomial]
 
 [data_sources.legacy_uninstall]
 from_expression = """(
-  SELECT client_id, profile_group_id, DATE(submission_timestamp) AS submission_date
+  SELECT client_id, profile_group_id, DATE(submission_timestamp) AS submission_date, 1 AS uninstall_ping
   FROM `mozdata.telemetry.uninstall`
 )"""
 submission_date_column = "submission_date"
