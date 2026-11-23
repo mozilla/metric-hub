@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from metric_config_parser.aggregation import Combine
 from metric_config_parser.aggregation_plan import aggregation_plan
 from metric_config_parser.config import LocalConfigCollection
@@ -114,13 +116,21 @@ class TestAggregationPlan:
         assert plan.missing == ["not_a_real_metric"]
         assert set(plan.metrics) == {"active_hours"}
 
-    def test_dotted_column_contributes_its_full_path(self):
+    def test_dotted_column_is_projected_under_a_flat_name(self):
         collection = load_collection()
 
         plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_example"])
 
         source = plan.sources["clients_daily"]
-        assert source.columns == ("metrics.counter.example_counter",)
+        assert source.columns == (
+            "metrics.counter.example_counter AS metrics__counter__example_counter",
+        )
+
+        metric = plan.metrics["glean_counter_example"]
+        assert (
+            metric.aggregation.bucket_aggregate
+            == "COALESCE(SUM(metrics__counter__example_counter), 0)"
+        )
 
     def test_dotted_column_shares_a_source_with_a_plain_column(self):
         collection = load_collection()
@@ -130,7 +140,57 @@ class TestAggregationPlan:
         )
 
         source = plan.sources["clients_daily"]
-        assert source.columns == ("active_hours_sum", "metrics.counter.example_counter")
+        assert source.columns == (
+            "active_hours_sum",
+            "metrics.counter.example_counter AS metrics__counter__example_counter",
+        )
+
+    def test_dotted_column_select_expression_keeps_the_full_path(self):
+        collection = load_collection()
+
+        metric = collection.get_nimbus_metric_definition("glean_counter_example", "firefox_desktop")
+
+        assert metric is not None
+        assert (
+            metric.select_expression_from_aggregation
+            == '{{agg_sum("metrics.counter.example_counter")}}'
+        )
+
+    def test_dotted_condition_column_is_projected_under_a_flat_name(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["glean_counter_where_example"])
+
+        source = plan.sources["clients_daily"]
+        assert source.columns == (
+            "metrics.counter.example_counter AS metrics__counter__example_counter",
+        )
+
+        metric = plan.metrics["glean_counter_where_example"]
+        assert (
+            metric.aggregation.bucket_aggregate == "COUNTIF(metrics__counter__example_counter > 0)"
+        )
+
+    def test_plain_column_is_unchanged_in_the_plan(self):
+        collection = load_collection()
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["active_hours"])
+
+        source = plan.sources["clients_daily"]
+        assert source.columns == ("active_hours_sum",)
+        assert plan.metrics["active_hours"].aggregation.bucket_aggregate == (
+            "COALESCE(SUM(active_hours_sum), 0)"
+        )
+
+    def test_colliding_projected_columns_raise(self):
+        collection = load_collection()
+
+        with pytest.raises(ValueError, match="both project to 'metrics__counter__example_counter'"):
+            aggregation_plan(
+                collection,
+                "firefox_desktop",
+                ["glean_counter_example", "glean_counter_collision_example"],
+            )
 
     def test_plan_ordering_is_deterministic(self):
         collection = load_collection()

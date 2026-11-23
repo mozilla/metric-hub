@@ -137,6 +137,8 @@ class TestAggregationFields:
             "active_in_last_3_days_legacy",
             "daily_active_users_per_1000_clients_legacy",
             "glean_counter_example",
+            "glean_counter_where_example",
+            "glean_counter_collision_example",
         }
 
     def test_sum(self):

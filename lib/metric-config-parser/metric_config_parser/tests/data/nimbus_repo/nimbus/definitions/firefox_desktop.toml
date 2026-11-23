@@ -73,3 +73,21 @@ aggregation = "sum"
 column = "metrics.counter.example_counter"
 cumulative_window = 7
 repeat_windows = true
+
+[metrics.glean_counter_where_example]
+data_source = "clients_daily"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.glean_counter_where_example.where]]
+column = "metrics.counter.example_counter"
+op = ">"
+value = 0
+
+[metrics.glean_counter_collision_example]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "metrics__counter__example_counter"
+cumulative_window = 7
+repeat_windows = true
