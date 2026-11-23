@@ -185,15 +185,15 @@ repeat_windows = true
 bigger_is_better = true
 
 # ---------------------------------------------------------------------------
-# keep_nulls: whether a unit with no matching rows stays null
+# keep_nulls: whether a unit with no rows stays null
 # ---------------------------------------------------------------------------
 
 [metrics.example_sum_keep_nulls]
 data_source = "clients_daily"
 aggregation = "sum"
 column = "example_column"
-# Optional: false (default) defaults a unit with no matching rows to 0 (sum) or
-# FALSE (any); true leaves it null. Valid for sum and any.
+# Optional: false (default) defaults a unit with no rows to 0 (sum, sum_where)
+# or FALSE (any); true leaves it null. Valid for sum, sum_where and any.
 keep_nulls = true
 cumulative_window = 7
 repeat_windows = true

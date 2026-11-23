@@ -93,7 +93,7 @@ Aggregation fields:
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
-| `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum`, `sum_where` and `any`. See [Keep nulls](#keep-nulls). |
+| `keep_nulls` | boolean | `false` | Whether a unit with no rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum`, `sum_where` and `any`. See [Keep nulls](#keep-nulls). |
 | `encoding` | string | `bits28` | For `recency_within`: `bits28` decodes a 28-day activity bit pattern; `days` means `column` already holds the number of days since the unit was last active. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
@@ -152,10 +152,10 @@ column = "active_hours_sum"
 ### `sum_where`
 
 The sum of `column` over the unit's rows where every condition holds. A row where a condition
-evaluates to null does not match, and contributes nothing to the sum. A unit with no rows, or no
-matching rows, gets 0 by default; set `keep_nulls = true` to leave it null instead. The result is a
-number. There is no `column` shorthand: both `column` and `where` are required, since `column`
-already names the value to sum.
+evaluates to null does not match, and contributes nothing to the sum. A unit with rows but no
+matching rows gets 0. A unit with no rows at all also gets 0 by default; set `keep_nulls = true`
+to leave it null instead. The result is a number. There is no `column` shorthand: both `column`
+and `where` are required, since `column` already names the value to sum.
 
 ```toml
 [metrics.example_sum_where]
@@ -350,13 +350,14 @@ scale = 1000
 
 ## Keep nulls
 
-`sum`, `sum_where` and `any` return 0 (or `FALSE`) for a unit with no matching rows, unless
-`keep_nulls` is set. `keep_nulls = true` leaves that unit null instead. Valid only for `sum`,
-`sum_where` and `any`: `count`, `count_where` and `recency_within` are rejected, since none of them
-can return null for a unit with no rows.
+`sum`, `sum_where` and `any` return 0 (or `FALSE`) for a unit with no rows, unless `keep_nulls` is
+set. `keep_nulls = true` leaves that unit null instead. For `sum_where` and `any`, a unit that has
+rows but none matching still gets 0 (or `FALSE`) either way; only a unit with no rows at all is
+affected. Valid only for `sum`, `sum_where` and `any`: `count`, `count_where` and `recency_within`
+are rejected, since none of them can return null for a unit with no rows.
 
-Set `keep_nulls = true` when a unit with no matching rows had no opportunity to act, so it should
-drop out of the mean rather than count as 0.
+Set `keep_nulls = true` when a unit with no rows had no opportunity to act, so it should drop out
+of the mean rather than count as 0.
 
 ```toml
 [metrics.example_sum_keep_nulls]
@@ -603,14 +604,16 @@ which splits the aggregation into four parts:
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
 `keep_nulls = true` does not change `finalize`, only `bucket_aggregate` (for `sum` and `sum_where`)
-or `no_rows` (for `any`). For `sum` and `sum_where`, a bare `SUM(c)` or `SUM(IF(p, c, 0))` over a
-bucket with no matching rows is `NULL` in SQL, and `SUM` combine ignores nulls, so
-`no_rows = "NULL"` reproduces the same value Jetstream's bare expression would return for a unit
-with zero rows in the whole window, and collapses correctly over a single bucket. For `any`,
-`bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket that has any rows at all
-always returns a real count, never null; only `no_rows` changes, so a unit with zero rows in every
-bucket combines to `NULL` and `finalize` casts that to `NULL`, matching Jetstream's bare
-`LOGICAL_OR(p)`.
+or `no_rows` (for `any`). For `sum`, a bare `SUM(c)` over a bucket with no rows, or where every
+row's `c` is null, is `NULL` in SQL, and `SUM` combine ignores nulls, so `no_rows = "NULL"`
+reproduces the same value Jetstream's bare expression would return for a unit with zero rows in the
+whole window, and collapses correctly over a single bucket. For `sum_where`, `SUM(IF(p, c, 0))`
+zeroes out a row that does not match `p`, so a bucket with rows but no matches is `0`, not `NULL`;
+only a bucket with no rows at all is `NULL`, the same distinction `no_rows = "NULL"` carries for the
+whole window. For `any`, `bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket
+that has any rows at all always returns a real count, never null; only `no_rows` changes, so a unit
+with zero rows in every bucket combines to `NULL` and `finalize` casts that to `NULL`, matching
+Jetstream's bare `LOGICAL_OR(p)`.
 
 With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself when
 `encoding = "days"`, the same substitution as on the Jetstream side.
