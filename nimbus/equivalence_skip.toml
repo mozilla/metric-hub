@@ -6,4 +6,8 @@ metrics = [
     "newtab_content_enabled",
     "newtab_sponsored_content_stories_enabled",
     "newtab_sponsored_tiles_enabled",
+    "backup_scheduler_enabled_glean_v1",
+    "backup_started_v1",
+    "restore_started_v1",
+    "restore_complete_v1",
 ]
