@@ -30,4 +30,5 @@ metrics = [
     "pdf_save",
     "pdf_signature",
     "pdf_stamp",
+    "site_breakage_uses",
 ]

@@ -9,3 +9,16 @@ repeat_windows = true
 column = "event_name"
 op = "="
 value = "opened"
+
+[metrics.site_breakage_uses]
+friendly_name = "Webcompat Reporting Panel Uses"
+data_source = "site_breakage_events"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.site_breakage_uses.where]]
+any_of = [
+  { column = "event_name", op = "=", value = "send" },
+  { column = "event_name", op = "=", value = "send_more_info" },
+]
