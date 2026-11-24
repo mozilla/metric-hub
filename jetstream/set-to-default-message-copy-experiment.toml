@@ -11,7 +11,7 @@ name = "saw_default_modal"
 friendly_name = "Saw Make Default Modal"
 description = "Clients who interacted with the make-default modal during the analysis window"
 select_expression = """COALESCE(
-    SUM(CAST(v.value AS INT64)) > 0,
+    SUM(bucket_value) > 0,
     FALSE
 )"""
 data_source = "make_default_modal"
@@ -23,7 +23,9 @@ from_expression = """(
         m.*,
         m.metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
         DATE(m.submission_timestamp) AS submission_date,
-        m.metrics.uuid.legacy_telemetry_client_id AS client_id
+        m.metrics.uuid.legacy_telemetry_client_id AS client_id,
+        CAST(v.key AS INT64) AS bucket_key,
+        v.value AS bucket_value
     FROM `mozdata.firefox_desktop.metrics` m,
     UNNEST(m.metrics.custom_distribution.browser_set_default_result.values) v
 )"""
@@ -38,8 +40,8 @@ overall = ["default_modal_set_default", "default_modal_not_now", "default_modal_
 # Per-impression: fraction of modal impressions where user clicked "Set as default"
 [metrics.default_modal_set_default]
 select_expression = """SAFE_DIVIDE(
-    SUM(IF(CAST(v.key AS INT64) IN (0, 1), v.value, 0)),
-    SUM(v.value)
+    SUM(IF(bucket_key IN (0, 1), bucket_value, 0)),
+    SUM(bucket_value)
 )"""
 data_source = "make_default_modal"
 friendly_name = "Set Default Rate (per impression)"
@@ -52,8 +54,8 @@ analysis_bases = ["enrollments", "exposures"]
 # Per-impression: fraction of modal impressions where user clicked "Not now"
 [metrics.default_modal_not_now]
 select_expression = """SAFE_DIVIDE(
-    SUM(IF(CAST(v.key AS INT64) IN (2, 3), v.value, 0)),
-    SUM(v.value)
+    SUM(IF(bucket_key IN (2, 3), bucket_value, 0)),
+    SUM(bucket_value)
 )"""
 data_source = "make_default_modal"
 friendly_name = "Not Now Rate (per impression)"
@@ -66,8 +68,8 @@ analysis_bases = ["enrollments", "exposures"]
 # Per-impression: fraction of impressions where "Don't show again" was checked
 [metrics.default_modal_dont_ask_again]
 select_expression = """SAFE_DIVIDE(
-    SUM(IF(CAST(v.key AS INT64) IN (0, 2), v.value, 0)),
-    SUM(v.value)
+    SUM(IF(bucket_key IN (0, 2), bucket_value, 0)),
+    SUM(bucket_value)
 )"""
 data_source = "make_default_modal"
 friendly_name = "Don't Ask Again Rate (per impression)"
@@ -80,7 +82,7 @@ analysis_bases = ["enrollments", "exposures"]
 # Per-user: did this user click "Set as default" at least once?
 [metrics.default_modal_set_default_per_user]
 select_expression = """COALESCE(
-    SUM(IF(CAST(v.key AS INT64) IN (0, 1), v.value, 0)) > 0,
+    SUM(IF(bucket_key IN (0, 1), bucket_value, 0)) > 0,
     FALSE
 )"""
 data_source = "make_default_modal"
