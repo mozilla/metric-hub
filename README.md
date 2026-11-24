@@ -24,9 +24,9 @@ A metric definition describes its computation in one of two ways:
 
 A metric declares at most one of the two. A metric that declares neither is still valid, for example one that only overrides `statistics` or one that derives from other metrics with `depends_on`.
 
-Metrics in aggregation form go in `nimbus/definitions/<application>.toml`, which is stricter than `definitions/`: `aggregation` and `data_source` are required, `select_expression` is not allowed, and only a fixed set of keys is accepted. Data sources are not defined there. A metric in `nimbus/definitions/` refers to a data source defined in `definitions/<application>.toml`.
+Metrics in aggregation form go under `nimbus/`, which is stricter than `definitions/`: `aggregation` and `data_source` are required, `select_expression` is not allowed, and only a fixed set of keys is accepted. `nimbus/definitions/<application>.toml` holds an application's other aggregation-form metrics, `nimbus/defaults/<application>.toml` holds its guardrail metrics, and `nimbus/outcomes/<application>/<outcome>.toml` holds each outcome's metrics. A metric under `nimbus/` refers to a data source defined in `definitions/<application>.toml`, or in a `[data_sources]` table in its own `nimbus/` file.
 
-A metric may be defined under the same name in both `definitions/` and `nimbus/definitions/`. Highwind prefers the `nimbus/definitions/` copy. Jetstream reads `definitions/` only.
+A metric may be defined under the same name in both `definitions/` and under `nimbus/`. Highwind uses the `nimbus/` copy. Jetstream reads `definitions/` only.
 
 See [nimbus/README.md](nimbus/README.md) for the field reference and an annotated example.
 
