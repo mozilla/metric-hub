@@ -28,3 +28,14 @@ column = "urlbar_clicks"
 keep_nulls = true
 cumulative_window = 7
 repeat_windows = true
+
+[metrics.urlbar_annoyances_rate]
+friendly_name = "Urlbar annoyance clients"
+description = "Percentage of clients that had a Urlbar annoyance"
+bigger_is_better = false
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+aggregation = "sum"
+column = "urlbar_annoyances"
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
