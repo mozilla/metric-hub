@@ -1,2 +1,9 @@
 [firefox_desktop]
-metrics = []
+metrics = [
+    "newtab_engagement",
+    "newtab_gt4_searches",
+    "newtab_homepage_enabled",
+    "newtab_content_enabled",
+    "newtab_sponsored_content_stories_enabled",
+    "newtab_sponsored_tiles_enabled",
+]
