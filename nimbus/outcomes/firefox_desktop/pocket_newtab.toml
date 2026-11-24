@@ -1,0 +1,17 @@
+[metrics.newtab_content_enabled]
+friendly_name = "Newtab Content Enabled"
+description = "Whether or not Content is enabled on the New Tab."
+data_source = "newtab_clients_daily"
+aggregation = "any"
+column = "organic_content_enabled"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.newtab_sponsored_content_stories_enabled]
+friendly_name = "Newtab Sponsored Content Stories Enabled"
+description = "Whether or not Content Sponsored Stories is enabled on the New Tab."
+data_source = "newtab_clients_daily"
+aggregation = "any"
+column = "sponsored_content_enabled"
+cumulative_window = 7
+repeat_windows = true
