@@ -91,6 +91,7 @@ Aggregation fields:
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
 | `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum` and `any`. See [Keep nulls](#keep-nulls). |
+| `encoding` | string | `bits28` | For `recency_within`: `bits28` decodes a 28-day activity bit pattern; `days` means `column` already holds the number of days since the unit was last active. |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
@@ -196,8 +197,9 @@ Each row is decoded to the number of days since the most recent active day, wher
 the row's own date. The unit's value is the smallest of these over its rows in the window. A unit
 with no rows, or with no active days recorded, gets 30, which is outside the 28-day range. The
 result is 1 when that value is less than `within_days`, so `within_days = 3` means active on the
-row's date or one of the two days before it. `within_days` is at most 28, so a unit with no activity
-is never counted as active. The result is 0/1.
+row's date or one of the two days before it. `within_days` is at most 28 with either encoding,
+because a unit with no rows counts as 30 days since last seen, and a longer window would count it as
+active. The result is 0/1.
 
 The decoding, the comparison and the value for a unit with no rows are fixed. The author supplies
 only the column and the number of days.
@@ -207,6 +209,19 @@ only the column and the number of days.
 data_source = "firefox_desktop_active_users_view"
 aggregation = "recency_within"
 column = "days_active_bits"
+within_days = 3
+```
+
+Set `encoding = "days"` when `column` already holds the number of days since the unit was last
+active, rather than a 28-day bit pattern to decode. The no-rows value (30), the `< within_days`
+comparison and the 28-day cap on `within_days` are all unchanged.
+
+```toml
+[metrics.active_in_last_3_days]
+data_source = "firefox_desktop_active_users_view"
+aggregation = "recency_within"
+column = "days_since_desktop_active"
+encoding = "days"
 within_days = 3
 ```
 
@@ -393,6 +408,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
 - `keep_nulls` is set on any aggregation other than `sum` or `any`.
+- `encoding` is set on any aggregation other than `recency_within`.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
@@ -482,7 +498,8 @@ fields are not used.
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
 described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
 renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`. See [Keep nulls](#keep-nulls) for the
-`keep_nulls` field.
+`keep_nulls` field. With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself
+when `encoding = "days"`; see [recency_within](#recency_within).
 
 In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
@@ -525,6 +542,9 @@ that has any rows at all always returns a real count, never null; only `no_rows`
 with zero rows in every bucket combines to `NULL` and `finalize` casts that to `NULL`, matching
 Jetstream's bare `LOGICAL_OR(p)`.
 
+With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself when
+`encoding = "days"`, the same substitution as on the Jetstream side.
+
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.
 
@@ -544,7 +564,10 @@ each requested name with `get_nimbus_metric_definition`, and returns an `Aggrega
 
 The column and condition text is the same in both consumers. Only the wrapper differs. Over a
 single bucket the four Highwind parts reduce to the Jetstream expression, so both consumers compute
-the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans.
+the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans; that
+is also why a threshold, `any` or `recency_within` collapses to the same *value* as the Jetstream
+expression but not always the same SQL *text* (Highwind's `finalize` always casts to `INT64`,
+Jetstream's `select_expression` only does when something follows a boolean base expression).
 
 ### Segments
 

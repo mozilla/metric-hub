@@ -7,7 +7,13 @@ import toml
 from cattrs.errors import ClassValidationError
 from git import Repo
 
-from metric_config_parser.aggregation import Aggregation, Clause, Operator, Threshold
+from metric_config_parser.aggregation import (
+    Aggregation,
+    Clause,
+    Operator,
+    RecencyEncoding,
+    Threshold,
+)
 from metric_config_parser.aggregation_plan import aggregation_plan
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.config import (
@@ -376,6 +382,7 @@ class TestAggregationFieldRejections:
             ({"within_days": 3}, "require aggregation"),
             ({"threshold": {"op": ">", "value": 0}}, "require aggregation"),
             ({"scale": 1000}, "require aggregation"),
+            ({"encoding": "days"}, "require aggregation"),
             ({"cumulative_window": 7}, "require aggregation"),
             ({"incremental_window": 7}, "require aggregation"),
             ({"repeat_windows": True}, "require aggregation"),
@@ -432,6 +439,15 @@ class TestAggregationFieldRejections:
             ),
             (
                 {"aggregation": "recency_within", "column": "a", "within_days": 29},
+                "within_days must be at most 28",
+            ),
+            (
+                {
+                    "aggregation": "recency_within",
+                    "column": "a",
+                    "encoding": "days",
+                    "within_days": 29,
+                },
                 "within_days must be at most 28",
             ),
             (
@@ -542,6 +558,18 @@ class TestAggregationFieldRejections:
                 {"aggregation": "sum", "column": "a", "cumulative_window": 7, "repeat_windows": 1},
                 "repeat_windows must be a boolean",
             ),
+            (
+                {"aggregation": "sum", "column": "a", "encoding": "days"},
+                "encoding is only valid for recency_within",
+            ),
+            (
+                {"aggregation": "any", "column": "a", "encoding": "days"},
+                "encoding is only valid for recency_within",
+            ),
+            (
+                {"aggregation": "recency_within", "column": "a", "within_days": 3, "encoding": "x"},
+                "is not one of",
+            ),
         ],
     )
     def test_rejects(self, fields, match):
@@ -596,6 +624,17 @@ class TestNimbusSpec:
             parse_nimbus(data_source="clients_daily", aggregation="sum")
 
         assert exc_info.group_contains(ValueError, match="requires a column")
+
+    def test_accepts_encoding(self):
+        spec = parse_nimbus(
+            data_source="clients_daily",
+            aggregation="recency_within",
+            column="a",
+            within_days=3,
+            encoding="days",
+        )
+
+        assert spec.metrics["m"].encoding == RecencyEncoding.DAYS
 
     def test_invalid_file_fails_to_load(self, tmp_path):
         make_repo(tmp_path)
