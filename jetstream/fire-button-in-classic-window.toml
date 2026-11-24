@@ -1,0 +1,261 @@
+# Custom Jetstream config for fire-button-in-classic-window
+# Core question: does the Fire Button displace existing clear-data flows,
+# or does it unlock latent demand (new users clearing data)?
+#
+# Fire Button probes (fire_button.*) landed in Nightly 160 (FELTPY-100).
+# See FELTPY-197 for consolidated telemetry events list.
+
+[experiment]
+enrollment_period = 7
+segments = ["regular_users_v3", "new_or_resurrected_v3", "no_recent_clear_data"]
+
+[metrics]
+weekly = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
+]
+28_day = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
+]
+overall = [
+    "existing_flow_actions",
+    "total_sanitize_actions",
+    "any_clear_data_activity",
+    "existing_flow_app_menu",
+    "existing_flow_keyboard",
+    "existing_flow_menu_bar",
+    "existing_flow_settings",
+    "existing_flow_forget_button",
+    "fire_button_activations",
+    "fire_button_completions",
+    "fire_button_any_use",
+    "fire_button_abandonments",
+    "fire_button_choose_clicked",
+]
+
+# Segment: users with no clear-data activity in the 28 days before enrollment.
+# Directly measures "net new users clearing browsing data."
+[segments.no_recent_clear_data]
+select_expression = """COALESCE(SUM(
+    app_menu_actions + keyboard_actions + menu_bar_actions
+    + settings_actions + forget_button_actions
+), 0) = 0"""
+data_source = "clear_data_interactions"
+window_start = -28
+window_end = -1
+
+# ── DISPLACEMENT METRICS ──
+
+# Total existing clear-data flow actions across all pathways
+[metrics.existing_flow_actions]
+select_expression = """COALESCE(SUM(
+    app_menu_actions + keyboard_actions + menu_bar_actions
+    + settings_actions + forget_button_actions
+), 0)"""
+data_source = "clear_data_interactions"
+friendly_name = "Existing Clear-Data Flow Actions"
+description = "Total interactions with existing clear-data flows (app menu, keyboard, menu bar, settings, forget button). Decrease in treatment = displacement."
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_actions.statistics.bootstrap_mean]
+[metrics.existing_flow_actions.statistics.deciles]
+
+# Total sanitize actions from ALL entry points (existing + Fire Button)
+[metrics.total_sanitize_actions]
+select_expression = "COALESCE(SUM(sanitizer_total), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "Total Sanitize Actions (all entry points)"
+description = "Count of all sanitize completions regardless of entry point. Increase in treatment = latent demand unlocked."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.total_sanitize_actions.statistics.bootstrap_mean]
+[metrics.total_sanitize_actions.statistics.deciles]
+
+# Binary: did user do any clear-data action at all?
+[metrics.any_clear_data_activity]
+select_expression = """COALESCE(SUM(
+    app_menu_actions + keyboard_actions + menu_bar_actions
+    + settings_actions + forget_button_actions
+), 0) > 0 OR COALESCE(SUM(sanitizer_total), 0) > 0"""
+data_source = "clear_data_interactions"
+friendly_name = "Any Clear-Data Activity"
+description = "Proportion of users who performed any clear-data action. Increase in treatment among no_recent_clear_data segment = net new users."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.any_clear_data_activity.statistics.binomial]
+
+# ── PER-PATHWAY BREAKDOWN ──
+
+[metrics.existing_flow_app_menu]
+select_expression = "COALESCE(SUM(app_menu_actions), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "App Menu: Clear Recent History"
+description = "Clear-data actions via app menu (dominant pathway, ~56% of existing-flow actions)"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_app_menu.statistics.bootstrap_mean]
+
+[metrics.existing_flow_keyboard]
+select_expression = "COALESCE(SUM(keyboard_actions), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "Keyboard Shortcut: Clear History"
+description = "Clear-data actions via Ctrl+Shift+Delete / Cmd+Shift+Delete"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_keyboard.statistics.bootstrap_mean]
+
+[metrics.existing_flow_menu_bar]
+select_expression = "COALESCE(SUM(menu_bar_actions), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "Menu Bar: Sanitize"
+description = "Clear-data actions via menu bar"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_menu_bar.statistics.bootstrap_mean]
+
+[metrics.existing_flow_settings]
+select_expression = "COALESCE(SUM(settings_actions), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "Settings: Clear Site Data / History"
+description = "Clear-data actions via privacy settings"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_settings.statistics.bootstrap_mean]
+
+[metrics.existing_flow_forget_button]
+select_expression = "COALESCE(SUM(forget_button_actions), 0)"
+data_source = "clear_data_interactions"
+friendly_name = "Forget Button"
+description = "Clear-data actions via the Forget Button (closest analogue to Fire Button)"
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.existing_flow_forget_button.statistics.bootstrap_mean]
+
+# ── FIRE BUTTON METRICS (fire_button.* events, landed Nightly 160) ──
+
+[metrics.fire_button_activations]
+select_expression = "COALESCE(SUM(CASE WHEN event_name = 'activated' THEN 1 ELSE 0 END), 0)"
+data_source = "fire_button_events"
+friendly_name = "Fire Button Activations"
+description = "Number of Fire Button activations (button clicks). Denominator for completion rate."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_activations.statistics.bootstrap_mean]
+[metrics.fire_button_activations.statistics.deciles]
+
+[metrics.fire_button_completions]
+select_expression = """COALESCE(SUM(CASE
+  WHEN event_name = 'flow_completed'
+  AND JSON_VALUE(event_extra, '$.outcome') = 'deleted'
+  THEN 1 ELSE 0
+END), 0)"""
+data_source = "fire_button_events"
+friendly_name = "Fire Button Completions"
+description = "Fire Button flows that resulted in data deletion. Numerator for completion rate."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_completions.statistics.bootstrap_mean]
+[metrics.fire_button_completions.statistics.deciles]
+
+[metrics.fire_button_any_use]
+select_expression = "COALESCE(LOGICAL_OR(event_name = 'activated'), FALSE)"
+data_source = "fire_button_events"
+friendly_name = "Any Fire Button Use"
+description = "Proportion of users who activated the Fire Button at least once. Key adoption metric."
+bigger_is_better = true
+analysis_bases = ["enrollments", "exposures"]
+
+[metrics.fire_button_any_use.statistics.binomial]
+
+[metrics.fire_button_abandonments]
+select_expression = """COALESCE(SUM(CASE
+  WHEN event_name = 'flow_completed'
+  AND JSON_VALUE(event_extra, '$.outcome') IN ('cancelled', 'dismissed', 'aborted')
+  THEN 1 ELSE 0
+END), 0)"""
+data_source = "fire_button_events"
+friendly_name = "Fire Button Abandonments"
+description = "Fire Button flows where user backed out without deleting (cancelled, dismissed, or aborted)."
+bigger_is_better = false
+analysis_bases = ["enrollments"]
+
+[metrics.fire_button_abandonments.statistics.bootstrap_mean]
+
+[metrics.fire_button_choose_clicked]
+select_expression = "COALESCE(SUM(CASE WHEN event_name = 'choose_clicked' THEN 1 ELSE 0 END), 0)"
+data_source = "fire_button_events"
+friendly_name = "Fire Button Choose Clicked"
+description = "Users who clicked 'Choose what to delete' from the confirmation panel (panel flow only)."
+bigger_is_better = true
+analysis_bases = ["enrollments"]
+
+[metrics.fire_button_choose_clicked.statistics.bootstrap_mean]
+
+# ── DATA SOURCES ──
+
+[data_sources.clear_data_interactions]
+from_expression = """(
+  SELECT
+    p.*,
+    p.metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
+    DATE(p.submission_timestamp) AS submission_date,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_app_menu) kv WHERE kv.key = 'appMenuClearRecentHistory'), 0) AS app_menu_actions,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_keyboard) kv WHERE kv.key IN ('key-sanitize', 'key-sanitize-mac')), 0) AS keyboard_actions,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_menu_bar) kv WHERE kv.key = 'sanitizeItem'), 0) AS menu_bar_actions,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_preferences_pane_privacy) kv WHERE kv.key IN ('clearSiteDataButton', 'clearHistoryButton')), 0) AS settings_actions,
+    COALESCE((SELECT SUM(kv.value) FROM UNNEST(p.metrics.labeled_counter.browser_ui_interaction_nav_bar) kv WHERE kv.key = 'panic-button'), 0) AS forget_button_actions,
+    COALESCE((SELECT SUM(v.value) FROM UNNEST(p.metrics.timing_distribution.browser_sanitizer_total.values) v), 0) AS sanitizer_total
+  FROM `mozdata.firefox_desktop.metrics` p
+)"""
+experiments_column_type = "glean"
+client_id_column = "metrics.uuid.legacy_telemetry_client_id"
+friendly_name = "Clear Data Interactions"
+description = "Per-ping counts of clear-data flow interactions and sanitizer totals from the Glean metrics table"
+
+[data_sources.fire_button_events]
+from_expression = """(
+  SELECT
+    legacy_telemetry_client_id AS client_id,
+    profile_group_id,
+    DATE(submission_timestamp) AS submission_date,
+    event_name,
+    event_extra
+  FROM `mozdata.firefox_desktop.events_stream`
+  WHERE event_category = 'fire_button'
+)"""
+experiments_column_type = "none"
+friendly_name = "Fire Button Events"
+description = "Glean events for Fire Button (activated, flow_completed, choose_clicked)"
