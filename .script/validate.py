@@ -29,6 +29,7 @@ from urllib.request import Request, urlopen
 import click
 import requests
 import requests.exceptions
+import toml
 from metric_config_parser.config import (
     DEFINITIONS_DIR,
     ConfigCollection,
@@ -44,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/dryrun"
+EQUIVALENCE_SKIP_FILE = Path("nimbus") / "equivalence_skip.toml"
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 NUM_QUERIES_PER_REQUEST = 1
@@ -223,6 +225,31 @@ def _nimbus_metric_queries(config_collection, entity):
     return queries
 
 
+def _load_equivalence_skip_list(path):
+    if not path.exists():
+        return {}
+    return {
+        app_name: set(entry.get("metrics", [])) for app_name, entry in toml.load(path).items()
+    }
+
+
+def _filter_equivalence_mismatches(mismatches, skip_list):
+    skipped = {app_name: set() for app_name in skip_list}
+    reported = []
+    for mismatch in mismatches:
+        names = skip_list.get(mismatch.app_name, set())
+        if mismatch.metric in names:
+            skipped[mismatch.app_name].add(mismatch.metric)
+        else:
+            reported.append(mismatch)
+    stale = [
+        (app_name, name)
+        for app_name, names in skip_list.items()
+        for name in names - skipped[app_name]
+    ]
+    return reported, stale
+
+
 @cli.command("validate")
 @click.argument("path", type=click.Path(exists=True), nargs=-1)
 @click.option(
@@ -253,9 +280,19 @@ def validate(path, config_repos):
             )
         )
 
-    for mismatch in nimbus_check_collection.nimbus_definition_mismatches():
+    skip_list = _load_equivalence_skip_list(EQUIVALENCE_SKIP_FILE)
+    mismatches, stale_skip_entries = _filter_equivalence_mismatches(
+        nimbus_check_collection.nimbus_definition_mismatches(), skip_list
+    )
+    for mismatch in mismatches:
         dirty = True
         print(mismatch)
+    for app_name, name in stale_skip_entries:
+        dirty = True
+        print(
+            f"{EQUIVALENCE_SKIP_FILE} lists '{name}' for {app_name}, but it has no "
+            f"equivalence mismatch to skip"
+        )
 
     # get updated definition files
     sql_to_validate = []

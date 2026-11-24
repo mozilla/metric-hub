@@ -526,6 +526,13 @@ The `select_expression` generated for the `nimbus/` copy and the `select_express
 parentheses is removed, before comparing. Metrics defined in only one of the two files are not
 compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ.
 
+A metric name listed in `nimbus/equivalence_skip.toml`, under its application, is exempt from this
+check. A mismatch for a listed metric is still computed; it is only left out of CI's report. Use
+this for a metric whose `nimbus/` SQL and `definitions/` SQL differ only in how they are written,
+not in what they compute; the two SQL texts are reviewed side by side on the pull request that adds
+the metric to `nimbus/`. A listed name that has no mismatch to skip, or that is not a nimbus metric
+for that application, fails CI, so the list cannot go stale.
+
 metric-hub CI also dry-runs the SQL generated for every metric in a changed file under `nimbus/`, as
 it does for `definitions/`.
 
