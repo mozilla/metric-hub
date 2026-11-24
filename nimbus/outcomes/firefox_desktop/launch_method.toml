@@ -1,0 +1,95 @@
+[metrics.number_of_autostart_launches]
+friendly_name = "Number of Launches Using Autostart"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_autostart_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "Autostart"
+
+[metrics.number_of_desktop_launches]
+friendly_name = "Number of Launches Using an Desktop Shortcut (Normal Mode)"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_desktop_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "Desktop"
+
+[metrics.number_of_non_taskbartab_launches]
+friendly_name = "Number of Launches without Using Taskbar Tabs"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_non_taskbartab_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "!="
+value = "TaskbarTab"
+
+[metrics.number_of_other_launches]
+friendly_name = "Number of Launches Using an Unknown Method"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_other_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "Other"
+
+[metrics.number_of_othershortcut_launches]
+friendly_name = "Number of Launches Using Another Shortcut"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_othershortcut_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "OtherShortcut"
+
+[metrics.number_of_startmenu_launches]
+friendly_name = "Number of Launches Using Start Menu (Normal Mode)"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_startmenu_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "StartMenu"
+
+[metrics.number_of_taskbar_launches]
+friendly_name = "Number of Launches Using Taskbar (Normal Mode)"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_taskbar_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "Taskbar"
+
+[metrics.number_of_taskbartab_launches]
+friendly_name = "Number of Launches Using Taskbar Tabs"
+data_source = "metrics"
+aggregation = "count_where"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.number_of_taskbartab_launches.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "TaskbarTab"

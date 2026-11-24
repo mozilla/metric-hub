@@ -1,2 +1,11 @@
 [firefox_desktop]
-metrics = []
+metrics = [
+    "number_of_autostart_launches",
+    "number_of_desktop_launches",
+    "number_of_non_taskbartab_launches",
+    "number_of_other_launches",
+    "number_of_othershortcut_launches",
+    "number_of_startmenu_launches",
+    "number_of_taskbar_launches",
+    "number_of_taskbartab_launches",
+]
