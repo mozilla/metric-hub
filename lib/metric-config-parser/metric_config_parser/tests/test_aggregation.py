@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import toml
+from cattrs.errors import ClassValidationError
 
 from metric_config_parser.aggregation import BucketedAggregation, Combine
 from metric_config_parser.analysis import AnalysisSpec
@@ -227,6 +228,157 @@ class TestThresholdAndScale:
 
         assert render(metric.select_expression_from_aggregation) == rendered
         assert metric.bucketed_aggregation.finalize == finalize
+
+
+class TestKeepNulls:
+    @pytest.mark.parametrize(
+        ("fields", "template", "bucketed"),
+        [
+            (
+                {"aggregation": "sum", "column": "a"},
+                '{{agg_sum("a")}}',
+                BucketedAggregation("COALESCE(SUM(a), 0)", Combine.SUM, "0", "{combined}"),
+            ),
+            (
+                {"aggregation": "sum", "column": "a", "keep_nulls": True},
+                "SUM(a)",
+                BucketedAggregation("SUM(a)", Combine.SUM, "NULL", "{combined}"),
+            ),
+            (
+                {"aggregation": "any", "column": "a"},
+                '{{agg_any("a")}}',
+                BucketedAggregation(
+                    "COUNTIF(a)", Combine.SUM, "0", "CAST({combined} > 0 AS INT64)"
+                ),
+            ),
+            (
+                {"aggregation": "any", "column": "a", "keep_nulls": True},
+                "LOGICAL_OR(a)",
+                BucketedAggregation(
+                    "COUNTIF(a)", Combine.SUM, "NULL", "CAST({combined} > 0 AS INT64)"
+                ),
+            ),
+        ],
+    )
+    def test_keep_nulls(self, fields, template, bucketed):
+        metric = parse_metric(**fields)
+
+        assert metric.select_expression_from_aggregation == template
+        assert metric.bucketed_aggregation == bucketed
+
+    @pytest.mark.parametrize("aggregation", ["count", "count_where", "recency_within"])
+    def test_rejects_keep_nulls_on_other_aggregations(self, aggregation):
+        fields = {"aggregation": aggregation, "column": "a", "keep_nulls": True}
+        if aggregation == "recency_within":
+            fields["within_days"] = 3
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(**fields)
+        assert exc_info.group_contains(
+            ValueError, match=f"{aggregation} never returns null for a unit with no rows"
+        )
+
+    def test_rejects_keep_nulls_without_aggregation(self):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(keep_nulls=True)
+        assert exc_info.group_contains(ValueError, match="require aggregation")
+
+    def test_merge_keeps_an_overlay_keep_nulls_true(self):
+        base = parse_metric(aggregation="sum", column="a")
+        overlay = parse_metric(aggregation="sum", column="a", keep_nulls=True)
+
+        base.merge(overlay)
+
+        assert base.keep_nulls is True
+        assert base.select_expression_from_aggregation == "SUM(a)"
+
+
+class TestSingleBucketCollapse:
+    """Over exactly one bucket, combine(bucket_aggregate) is the identity, so the
+    window's combined value is bucket_aggregate itself. Where neither side casts a
+    boolean to INT64 (no threshold, and the aggregation is not any/recency_within),
+    that text must equal the Jetstream expression exactly. Where one side does
+    (any, recency_within, or any aggregation with a threshold), Highwind always
+    returns INT64 and Jetstream does not unless something follows the boolean, so
+    the two compute the same value without being the same text; that half of this
+    test documents the known gap instead of asserting a false equality.
+    """
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "sum", "column": "a"},
+            {"aggregation": "sum", "column": "a", "keep_nulls": True},
+            {"aggregation": "count", "column": "a"},
+            {"aggregation": "count_where", "column": "a"},
+        ],
+    )
+    def test_collapses_to_jetstream_text(self, fields):
+        metric = parse_metric(**fields)
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
+
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {"aggregation": "any", "column": "a"},
+            {"aggregation": "any", "column": "a", "keep_nulls": True},
+            {"aggregation": "recency_within", "column": "a", "within_days": 3},
+            {"aggregation": "sum", "column": "a", "threshold": {"op": ">", "value": 0}},
+        ],
+    )
+    def test_collapses_to_the_same_value_not_text(self, fields):
+        metric = parse_metric(**fields)
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = render(bucketed.finalize_sql(bucketed.bucket_aggregate))
+        jetstream = render(metric.select_expression_from_aggregation)
+
+        assert collapsed != jetstream
+        assert collapsed.startswith("CAST(")
+        assert collapsed.endswith("AS INT64)")
+
+    def test_sum_no_rows_collapses_to_null_with_keep_nulls(self):
+        metric = parse_metric(aggregation="sum", column="a", keep_nulls=True)
+        bucketed = metric.bucketed_aggregation
+
+        assert bucketed.no_rows == "NULL"
+        assert render(bucketed.finalize_sql(bucketed.no_rows)) == "NULL"
+
+    def test_any_no_rows_collapses_to_null_with_keep_nulls(self):
+        metric = parse_metric(aggregation="any", column="a", keep_nulls=True)
+        bucketed = metric.bucketed_aggregation
+
+        assert bucketed.no_rows == "NULL"
+        assert render(bucketed.finalize_sql(bucketed.no_rows)) == "CAST(NULL > 0 AS INT64)"
+
+    def test_sum_no_rows_with_threshold_stays_null_with_keep_nulls(self):
+        metric = parse_metric(
+            aggregation="sum", column="a", keep_nulls=True, threshold={"op": ">", "value": 0}
+        )
+        bucketed = metric.bucketed_aggregation
+
+        assert render(metric.select_expression_from_aggregation) == "SUM(a) > 0"
+        assert bucketed.no_rows == "NULL"
+        assert render(bucketed.finalize_sql(bucketed.no_rows)) == "CAST(NULL > 0 AS INT64)"
+
+    def test_sum_no_rows_with_threshold_and_scale_stays_null_with_keep_nulls(self):
+        metric = parse_metric(
+            aggregation="sum",
+            column="a",
+            keep_nulls=True,
+            threshold={"op": ">", "value": 0},
+            scale=10,
+        )
+        bucketed = metric.bucketed_aggregation
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "CAST(SUM(a) > 0 AS INT64) * 10"
+        )
+        assert bucketed.no_rows == "NULL"
+        assert render(bucketed.finalize_sql(bucketed.no_rows)) == "(CAST(NULL > 0 AS INT64)) * 10"
 
 
 class TestResolve:

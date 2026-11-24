@@ -1,0 +1,167 @@
+[metrics]
+
+weekly = [
+  "newtab_engaged_visits_excl_privacy_impressions",
+  "newtab_engagement_excl_privacy_impressions",
+]
+
+overall = [
+  "newtab_engaged_visits_excl_privacy_impressions",
+  "newtab_engagement_excl_privacy_impressions",
+]
+
+# Same as `newtab_engaged_visits` / `newtab_engagement` (newtab_clients_daily), except that
+# the privacy widget's passive `widgets_user_event` actions `message_impression` and
+# `trackers_blocked_impression` don't count as engagement.
+[metrics.newtab_engaged_visits_excl_privacy_impressions]
+data_source = "newtab_engaged_visits_excl_privacy_impressions"
+select_expression = "COALESCE(COUNT(DISTINCT newtab_visit_id), 0)"
+friendly_name = "Newtab Engaged Visit Count (excl. privacy widget impressions)"
+description = """
+Count of New Tab visits with any engagement, excluding the privacy widget's
+`message_impression` and `trackers_blocked_impression` user actions.
+"""
+
+[metrics.newtab_engaged_visits_excl_privacy_impressions.statistics.linear_model_mean]
+[metrics.newtab_engaged_visits_excl_privacy_impressions.statistics.deciles]
+
+[metrics.newtab_engagement_excl_privacy_impressions]
+data_source = "newtab_engaged_visits_excl_privacy_impressions"
+select_expression = "COALESCE(MAX(IF(newtab_visit_id IS NOT NULL, 1, 0)), 0)"
+friendly_name = "Newtab Engagement (excl. privacy widget impressions)"
+type = "scalar"
+description = """
+Whether or not the client had any New Tab engagement, excluding the privacy widget's
+`message_impression` and `trackers_blocked_impression` user actions.
+"""
+
+[metrics.newtab_engagement_excl_privacy_impressions.statistics.binomial]
+
+[data_sources.newtab_engaged_visits_excl_privacy_impressions]
+# Replicates the any_engagement_visits logic of
+# firefox_desktop_derived.newtab_visits_daily_v2 / newtab_clients_daily_v2 at the visit level,
+# keeping only engaged visits, with the privacy widget impressions removed from the
+# interaction count.
+from_expression = """(
+  WITH events AS (
+    SELECT
+      DATE(submission_timestamp) AS submission_date,
+      client_info.client_id AS client_id,
+      metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
+      ping_info.experiments AS experiments,
+      mozfun.map.get_key(e.extra, 'newtab_visit_id') AS newtab_visit_id,
+      mozfun.newtab.is_default_ui_v1(
+        e.category,
+        e.name,
+        e.extra,
+        metrics.string.newtab_homepage_category,
+        metrics.string.newtab_newtab_category
+      ) AS is_default_ui,
+      e.name IN (
+        'click',
+        'dismiss',
+        'issued',
+        'thumb_voting_interaction',
+        'weather_change_display',
+        'weather_open_provider_url',
+        'weather_location_selected',
+        'widgets_lists_user_event',
+        'widgets_lists_change_display',
+        'widgets_timer_change_display',
+        'widgets_timer_toggle_notification',
+        'widgets_timer_user_event',
+        'wallpaper_click',
+        'wallpaper_category_click',
+        'wallpaper_highlight_cta_click',
+        'wallpaper_highlight_dismissed',
+        'topic_selection_open',
+        'topic_selection_dismiss',
+        'topic_selection_topics_saved',
+        'sections_block_section',
+        'sections_follow_section',
+        'sections_unblock_section',
+        'sections_unfollow_section',
+        'inline_selection_click',
+        'widgets_enabled',
+        'widgets_user_event',
+        'widgets_container_action'
+      )
+      AND NOT (
+        e.category = 'newtab'
+        AND e.name = 'widgets_user_event'
+        AND mozfun.map.get_key(e.extra, 'user_action') IN (
+          'message_impression',
+          'trackers_blocked_impression'
+        )
+      ) AS is_interaction
+    FROM `moz-fx-data-shared-prod.firefox_desktop.newtab`, UNNEST(events) AS e
+    WHERE
+      (
+        (e.category = 'newtab.search' AND e.name IN ('issued'))
+        OR (e.category = 'newtab.search.ad' AND e.name IN ('click', 'impression'))
+        OR (
+          e.category = 'pocket'
+          AND e.name IN ('click', 'impression', 'dismiss', 'thumb_voting_interaction')
+        )
+        OR (
+          e.category = 'topsites'
+          AND e.name IN ('click', 'impression', 'dismiss', 'pin', 'unpin')
+        )
+        OR (
+          e.category = 'newtab'
+          AND e.name IN (
+            'opened',
+            'closed',
+            'weather_change_display',
+            'weather_open_provider_url',
+            'weather_location_selected',
+            'weather_impression',
+            'weather_load_error',
+            'widgets_lists_user_event',
+            'widgets_lists_change_display',
+            'widgets_timer_change_display',
+            'widgets_timer_toggle_notification',
+            'widgets_timer_user_event',
+            'widgets_lists_impression',
+            'widgets_timer_impression',
+            'widgets_impression',
+            'widgets_enabled',
+            'widgets_user_event',
+            'widgets_container_action',
+            'wallpaper_click',
+            'wallpaper_category_click',
+            'wallpaper_highlight_cta_click',
+            'wallpaper_highlight_dismissed',
+            'topic_selection_open',
+            'topic_selection_dismiss',
+            'topic_selection_topics_saved',
+            'sections_block_section',
+            'sections_follow_section',
+            'sections_unblock_section',
+            'sections_unfollow_section',
+            'sections_impression',
+            'inline_selection_click',
+            'inline_selection_impression'
+          )
+        )
+      )
+      AND NOT `moz-fx-data-shared-prod.udf.newtab_is_noise_widget_event`(e.category, e.name, e.extra)
+  )
+  SELECT
+    submission_date,
+    client_id,
+    newtab_visit_id,
+    ANY_VALUE(profile_group_id) AS profile_group_id,
+    ANY_VALUE(experiments) AS experiments
+  FROM events
+  WHERE newtab_visit_id IS NOT NULL
+  GROUP BY submission_date, client_id, newtab_visit_id
+  HAVING LOGICAL_OR(is_default_ui) AND COUNTIF(is_interaction) > 0
+)"""
+experiments_column_type = "native"
+friendly_name = "Newtab Engaged Visits (excl. privacy widget impressions)"
+description = """
+New Tab visits with any engagement (same definition as newtab_clients_daily.any_engagement_visits),
+excluding the privacy widget `message_impression` and `trackers_blocked_impression` user actions.
+One row per engaged visit.
+"""

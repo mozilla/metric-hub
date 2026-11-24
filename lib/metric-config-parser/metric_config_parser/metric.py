@@ -24,6 +24,8 @@ from . import AnalysisUnit
 from .aggregation import (
     COLUMN_AGGREGATIONS,
     CONDITION_AGGREGATIONS,
+    DEFAULT_KEEP_NULLS,
+    KEEP_NULLS_AGGREGATIONS,
     MAX_WITHIN_DAYS,
     Aggregation,
     BucketedAggregation,
@@ -41,6 +43,8 @@ from .parameter import ParameterDefinition
 from .pre_treatment import PreTreatmentReference
 from .statistic import Statistic
 from .util import converter, is_valid_slug
+
+DEFAULT_ANALYSIS_BASES = (AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES)
 
 
 class AnalysisPeriod(Enum):
@@ -178,9 +182,13 @@ class MetricDefinition:
     within_days: int | None = None
     threshold: Threshold | None = None
     scale: int | float | None = None
+    keep_nulls: bool | None = None
     cumulative_window: int | None = None
     incremental_window: int | None = None
     repeat_windows: bool = False
+    # analysis_bases from platform defaults or outcomes; not configurable, these
+    # are overridden by experiment-level analysis_bases (see inherit_analysis_bases)
+    inherited_analysis_bases: list[AnalysisBasis] | None = attr.ib(default=None, init=False)
 
     def __attrs_post_init__(self) -> None:
         context = f"metric '{self.name}'"
@@ -191,12 +199,13 @@ class MetricDefinition:
                 or self.within_days is not None
                 or self.threshold is not None
                 or self.scale is not None
+                or self.keep_nulls is not None
                 or self.cumulative_window is not None
                 or self.incremental_window is not None
                 or self.repeat_windows is not False
             ):
                 raise ValueError(
-                    f"{context}: column, where, within_days, threshold, scale, "
+                    f"{context}: column, where, within_days, threshold, scale, keep_nulls, "
                     "cumulative_window, incremental_window and repeat_windows require aggregation"
                 )
             return
@@ -231,6 +240,13 @@ class MetricDefinition:
         if self.scale is not None and not is_number(self.scale):
             raise ValueError(f"{context}: scale must be a number")
 
+        if self.keep_nulls is not None and self.aggregation not in KEEP_NULLS_AGGREGATIONS:
+            raise ValueError(
+                f"{context}: keep_nulls is only valid for "
+                f"{sorted(a.value for a in KEEP_NULLS_AGGREGATIONS)}; "
+                f"{self.aggregation.value} never returns null for a unit with no rows"
+            )
+
         if self.cumulative_window is not None and not is_positive_int(self.cumulative_window):
             raise ValueError(f"{context}: cumulative_window must be a positive integer")
         if self.incremental_window is not None and not is_positive_int(self.incremental_window):
@@ -245,6 +261,16 @@ class MetricDefinition:
             raise ValueError(
                 f"{context}: repeat_windows requires cumulative_window or incremental_window"
             )
+
+    def inherit_analysis_bases(self) -> None:
+        """Mark analysis_bases as coming from platform defaults or outcomes.
+
+        Inherited analysis_bases take precedence over metric-hub definitions, but are
+        overridden by experiment-level analysis_bases.
+        """
+        if self.analysis_bases:
+            self.inherited_analysis_bases = self.analysis_bases
+            self.analysis_bases = None
 
     @property
     def conditions(self) -> list[Clause]:
@@ -263,6 +289,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
+            self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
         )
 
     @property
@@ -276,6 +303,7 @@ class MetricDefinition:
             self.within_days,
             self.threshold,
             self.scale,
+            self.keep_nulls if self.keep_nulls is not None else DEFAULT_KEEP_NULLS,
         )
 
     @staticmethod
@@ -328,17 +356,27 @@ class MetricDefinition:
         if conf.app_name == "firefox_desktop":
             default_analysis_units.append(AnalysisUnit.PROFILE_GROUP)
 
+        # precedence: experiment config metric > experiment-level > platform defaults
+        # or outcome metric > metric-hub definition > default
+        analysis_bases = (
+            self.analysis_bases
+            or getattr(conf, "analysis_bases", None)
+            or self.inherited_analysis_bases
+        )
+
         # check if metric depends on other metrics
         if self.depends_on:
             upstream_metrics = []
             # resolve upstream metrics
             for metric_ref in self.depends_on:
-                # check if upstream metric is defined externally as a "definition"
-                upstream_metric = configs.get_metric_definition(metric_ref.name, conf.app_name)
+                # prefer the analysis spec's version of the upstream metric, since it
+                # carries the statistics and overrides; it falls back to the external
+                # definition for its select_expression/data_source when resolved
+                upstream_metric = spec.metrics.definitions.get(metric_ref.name, None)
 
                 if upstream_metric is None:
-                    # check if upstream metric is part of the analysis spec
-                    upstream_metric = spec.metrics.definitions.get(metric_ref.name, None)
+                    # check if upstream metric is defined externally as a "definition"
+                    upstream_metric = configs.get_metric_definition(metric_ref.name, conf.app_name)
 
                 if upstream_metric is None:
                     raise DefinitionNotFound(
@@ -373,8 +411,7 @@ class MetricDefinition:
                         dedent(self.description) if self.description else self.description
                     ),
                     bigger_is_better=self.bigger_is_better,
-                    analysis_bases=self.analysis_bases
-                    or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
+                    analysis_bases=analysis_bases or list(DEFAULT_ANALYSIS_BASES),
                     type=self.type or "scalar",
                     category=self.category,
                     depends_on=upstream_metrics,
@@ -384,13 +421,12 @@ class MetricDefinition:
                     analysis_units=self.analysis_units or default_analysis_units,
                 )
             elif metric_definition:
+                # copy to avoid leaking overrides into the shared definition
+                metric_definition = copy.copy(metric_definition)
                 metric_definition.analysis_bases = (
-                    self.analysis_bases
+                    analysis_bases
                     or metric_definition.analysis_bases
-                    or [
-                        AnalysisBasis.ENROLLMENTS,
-                        AnalysisBasis.EXPOSURES,
-                    ]
+                    or list(DEFAULT_ANALYSIS_BASES)
                 )
                 metric_definition.statistics = self.statistics
                 metric_definition.analysis_units = (
@@ -428,8 +464,7 @@ class MetricDefinition:
                 ),
                 description=(dedent(self.description) if self.description else self.description),
                 bigger_is_better=self.bigger_is_better,
-                analysis_bases=self.analysis_bases
-                or [AnalysisBasis.ENROLLMENTS, AnalysisBasis.EXPOSURES],
+                analysis_bases=analysis_bases or list(DEFAULT_ANALYSIS_BASES),
                 type=self.type or "scalar",
                 category=self.category,
                 depends_on=upstream_metrics,
@@ -494,7 +529,13 @@ class MetricDefinition:
     def merge(self, other: "MetricDefinition"):
         """Merge with another metric definition."""
         for key in attr.fields_dict(type(self)):
-            setattr(self, key, getattr(other, key) or getattr(self, key))
+            if key == "keep_nulls":
+                other_keep_nulls = other.keep_nulls
+                setattr(
+                    self, key, other_keep_nulls if other_keep_nulls is not None else self.keep_nulls
+                )
+            else:
+                setattr(self, key, getattr(other, key) or getattr(self, key))
 
 
 def _passthrough(obj: Any, _type: Any) -> Any:
@@ -514,6 +555,7 @@ converter.register_structure_hook(
         within_days=override(struct_hook=_passthrough),
         threshold=override(struct_hook=lambda obj, _type: Threshold.from_dict(obj)),
         scale=override(struct_hook=_passthrough),
+        keep_nulls=override(struct_hook=_passthrough),
         cumulative_window=override(struct_hook=_passthrough),
         incremental_window=override(struct_hook=_passthrough),
         repeat_windows=override(struct_hook=_passthrough),

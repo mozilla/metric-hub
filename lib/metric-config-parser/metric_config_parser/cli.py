@@ -43,9 +43,9 @@ def cli():
 def validate(path: Iterable[os.PathLike], config_repos, private_config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos).from_github_repos(
-        private_config_repos, is_private=True
-    )
+    config_collection = ConfigCollection.from_github_repos(
+        config_repos, strict_nimbus=True
+    ).from_github_repos(private_config_repos, is_private=True, strict_nimbus=True)
 
     # get updated definition files
     for config_file in path:

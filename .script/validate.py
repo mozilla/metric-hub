@@ -11,6 +11,7 @@ accidentally running queries during tests, leaking and overwriting production
 data, we proxy the queries through the dry run service endpoint.
 """
 
+import copy
 import json
 import os
 import random
@@ -36,6 +37,7 @@ from metric_config_parser.config import (
 )
 from metric_config_parser.featmon import FEATMON_DIR
 from metric_config_parser.function import FunctionsSpec
+from metric_config_parser.metric import MetricDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +174,43 @@ def _is_sql_valid(sql):
     return True
 
 
+def _nimbus_metric_queries(config_collection, entity):
+    env = config_collection.get_env().from_string(
+        (Path(TEMPLATES_DIR) / "validation_query.sql").read_text()
+    )
+    definition = next(
+        d for d in config_collection.definitions if d.platform == entity.app_name
+    )
+    metrics = [
+        MetricDefinition(
+            name=metric.name,
+            data_source=metric.data_source,
+            select_expression=config_collection.get_env()
+            .from_string(metric.select_expression_from_aggregation)
+            .render(),
+        )
+        for metric in entity.spec.metrics.values()
+    ]
+    queries = []
+    for start in range(0, len(metrics), NUM_QUERIES_PER_REQUEST):
+        batch = metrics[start : start + NUM_QUERIES_PER_REQUEST]
+        queries.append(
+            env.render(
+                metrics=batch,
+                dimensions=[],
+                segments=[],
+                segment_data_sources=[],
+                data_sources={
+                    metric.data_source.name: metric.data_source.resolve(
+                        definition.spec, definition, config_collection
+                    )
+                    for metric in batch
+                },
+            )
+        )
+    return queries
+
+
 @cli.command("validate")
 @click.argument("path", type=click.Path(exists=True), nargs=-1)
 @click.option(
@@ -183,7 +222,7 @@ def _is_sql_valid(sql):
 def validate(path, config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos)
+    config_collection = ConfigCollection.from_github_repos(config_repos, strict_nimbus=True)
 
     # get updated function definitions
     for config_file in path:
@@ -192,9 +231,23 @@ def validate(path, config_repos):
             functions = entity_from_path(config_file)
             config_collection.functions = functions
 
+    jetstream_dir = Path("jetstream")
+    nimbus_check_collection = config_collection
+    if jetstream_dir.is_dir():
+        nimbus_check_collection = copy.deepcopy(config_collection)
+        nimbus_check_collection.merge(
+            ConfigCollection.from_github_repo(
+                str(jetstream_dir), validate_nimbus=False, strict_nimbus=True
+            )
+        )
+
+    for mismatch in nimbus_check_collection.nimbus_definition_mismatches():
+        dirty = True
+        print(mismatch)
+
     # get updated definition files
+    sql_to_validate = []
     for config_file in path:
-        sql_to_validate = []
         config_file = Path(config_file)
         if not config_file.is_file():
             continue
@@ -209,6 +262,9 @@ def validate(path, config_repos):
             except Exception as e:
                 dirty = True
                 print(e)
+                continue
+            if is_nimbus_definition(config_file):
+                sql_to_validate += _nimbus_metric_queries(config_collection, entity)
             continue
 
         if config_file.parent.name == DEFINITIONS_DIR:
@@ -313,7 +369,7 @@ def validate(path, config_repos):
 
     if not all(result):
         sys.exit(1)
-    print(f"{config_file} OK")
+    print("All SQL query batches are valid")
 
     sys.exit(1 if dirty else 0)
 

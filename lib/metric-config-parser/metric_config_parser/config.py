@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 import shutil
 import tempfile
 from copy import deepcopy
@@ -25,17 +26,24 @@ from .errors import UnexpectedKeyConfigurationException
 from .experiment import Channel, Experiment
 from .featmon import FEATMON_DIR, FeatmonSpec
 from .metric import MetricDefinition
-from .nimbus import NIMBUS_DIR, NimbusSpec
+from .nimbus import (
+    DEFAULTS_DIR,
+    DEFINITIONS_DIR,
+    NIMBUS_DIR,
+    OUTCOMES_DIR,
+    NimbusConfigKind,
+    NimbusDefinitionMismatch,
+    NimbusSpec,
+)
 from .outcome import OutcomeSpec
 from .sql import generate_data_source_sql, generate_metrics_sql
-from .util import TemporaryDirectory
+from .util import TemporaryDirectory, normalize_sql
 
 if TYPE_CHECKING:
     from git.objects.commit import Commit
 
-OUTCOMES_DIR = "outcomes"
-DEFAULTS_DIR = "defaults"
-DEFINITIONS_DIR = "definitions"
+logger = logging.getLogger(__name__)
+
 FUNCTIONS_FILE = "functions.toml"
 NIMBUS_DEFINITIONS_DIR = Path(NIMBUS_DIR) / DEFINITIONS_DIR
 JETSTREAM_CONFIG_URL = "https://github.com/mozilla/jetstream-config"
@@ -237,29 +245,174 @@ class FeatmonConfig:
         pass
 
 
+NIMBUS_KIND_DIRS = {
+    NimbusConfigKind.DEFINITIONS: DEFINITIONS_DIR,
+    NimbusConfigKind.DEFAULTS: DEFAULTS_DIR,
+    NimbusConfigKind.OUTCOMES: OUTCOMES_DIR,
+}
+
+
 @attr.s(auto_attribs=True)
 class NimbusConfig:
-    """Represents a nimbus/definitions config file for a single application."""
+    """Represents one file of aggregation-form metrics for a single application: a
+    nimbus/definitions/<application>.toml, a nimbus/defaults/<application>.toml (the
+    application's guardrails), or one outcome's nimbus/outcomes/<application>/<outcome>.toml."""
 
     slug: str
+    app_name: str
     spec: NimbusSpec
+    kind: NimbusConfigKind = NimbusConfigKind.DEFINITIONS
+
+    @property
+    def path(self) -> Path:
+        folder = NIMBUS_KIND_DIRS[self.kind]
+        if self.kind == NimbusConfigKind.OUTCOMES:
+            return Path(NIMBUS_DIR) / folder / self.app_name / f"{self.slug}.toml"
+        return Path(NIMBUS_DIR) / folder / f"{self.slug}.toml"
 
     def validate(self, configs: "ConfigCollection", _experiment=None) -> None:
         for name, metric in self.spec.metrics.items():
             data_source = metric.data_source.name if metric.data_source else None
             if (
                 data_source is None
-                or configs.get_data_source_definition(data_source, self.slug) is None
+                or configs.get_data_source_definition(data_source, self.app_name) is None
             ):
                 raise ValueError(
-                    f"Metric '{name}' in {NIMBUS_DEFINITIONS_DIR}/{self.slug}.toml references "
+                    f"Metric '{name}' in {self.path} references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.slug}.toml"
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml"
+                )
+
+        for other in configs.nimbus_configs:
+            if other.app_name != self.app_name:
+                continue
+            if other.slug == self.slug and other.kind == self.kind:
+                continue
+            duplicates = sorted(set(self.spec.metrics) & set(other.spec.metrics))
+            if duplicates:
+                raise ValueError(
+                    f"Metric(s) {', '.join(duplicates)} in {self.path} are also defined in "
+                    f"{other.path}"
                 )
 
 
 def is_nimbus_definition(path: Path) -> bool:
-    return path.parent.name == DEFINITIONS_DIR and path.parent.parent.name == NIMBUS_DIR
+    if path.parent.parent.name == NIMBUS_DIR and path.parent.name in (
+        DEFINITIONS_DIR,
+        DEFAULTS_DIR,
+    ):
+        return True
+    return path.parent.parent.name == OUTCOMES_DIR and path.parent.parent.parent.name == NIMBUS_DIR
+
+
+def _load_nimbus_config(
+    nimbus_file: Path, app_name: str, kind: NimbusConfigKind, strict: bool = False
+) -> NimbusConfig | None:
+    if strict:
+        spec = NimbusSpec.from_file(nimbus_file)
+    else:
+        try:
+            spec = NimbusSpec.from_file(nimbus_file)
+        except Exception as e:
+            logger.warning(f"{nimbus_file}: skipping file, failed to load: {e}")
+            return None
+    return NimbusConfig(slug=nimbus_file.stem, app_name=app_name, spec=spec, kind=kind)
+
+
+def _load_nimbus_configs(nimbus_dir: Path, strict: bool = False) -> list[NimbusConfig]:
+    nimbus_configs: list[NimbusConfig] = []
+    if not nimbus_dir.is_dir():
+        return nimbus_configs
+
+    definitions_dir = nimbus_dir / DEFINITIONS_DIR
+    if definitions_dir.is_dir():
+        for nimbus_file in sorted(definitions_dir.glob("*.toml")):
+            config = _load_nimbus_config(
+                nimbus_file,
+                app_name=nimbus_file.stem,
+                kind=NimbusConfigKind.DEFINITIONS,
+                strict=strict,
+            )
+            if config is not None:
+                nimbus_configs.append(config)
+
+    defaults_dir = nimbus_dir / DEFAULTS_DIR
+    if defaults_dir.is_dir():
+        for nimbus_file in sorted(defaults_dir.glob("*.toml")):
+            config = _load_nimbus_config(
+                nimbus_file,
+                app_name=nimbus_file.stem,
+                kind=NimbusConfigKind.DEFAULTS,
+                strict=strict,
+            )
+            if config is not None:
+                nimbus_configs.append(config)
+
+    outcomes_dir = nimbus_dir / OUTCOMES_DIR
+    if outcomes_dir.is_dir():
+        for app_dir in sorted(outcomes_dir.iterdir()):
+            if not app_dir.is_dir():
+                continue
+            for nimbus_file in sorted(app_dir.glob("*.toml")):
+                config = _load_nimbus_config(
+                    nimbus_file,
+                    app_name=app_dir.name,
+                    kind=NimbusConfigKind.OUTCOMES,
+                    strict=strict,
+                )
+                if config is not None:
+                    nimbus_configs.append(config)
+
+    return nimbus_configs
+
+
+def _drop_invalid_nimbus_configs(collection: "ConfigCollection") -> None:
+    valid_configs = []
+    for nimbus_config in collection.nimbus_configs:
+        try:
+            nimbus_config.validate(collection)
+        except Exception as e:
+            logger.warning(f"{nimbus_config.path}: skipping file, failed validation: {e}")
+            continue
+        valid_configs.append(nimbus_config)
+    collection.nimbus_configs = valid_configs
+
+
+def _validate_nimbus(collection: "ConfigCollection", strict: bool) -> None:
+    if strict:
+        collection.validate_nimbus_configs()
+    else:
+        _drop_invalid_nimbus_configs(collection)
+
+
+def _merge_nimbus_configs(
+    self_configs: list[NimbusConfig], other_configs: list[NimbusConfig]
+) -> list[NimbusConfig]:
+    self_keys = {(nc.app_name, nc.kind, nc.slug) for nc in self_configs}
+    other_by_key = {(nc.app_name, nc.kind, nc.slug): nc for nc in other_configs}
+    other_metric_names_by_app: dict[str, set[str]] = {}
+    for nc in other_configs:
+        other_metric_names_by_app.setdefault(nc.app_name, set()).update(nc.spec.metrics)
+
+    merged = []
+    for nc in self_configs:
+        key = (nc.app_name, nc.kind, nc.slug)
+        other_nc = other_by_key.get(key)
+        redefined = other_metric_names_by_app.get(nc.app_name, set())
+        if other_nc is None and redefined.isdisjoint(nc.spec.metrics):
+            merged.append(nc)
+            continue
+        other_metrics = other_nc.spec.metrics if other_nc is not None else {}
+        remaining_metrics = {
+            name: metric for name, metric in nc.spec.metrics.items() if name not in redefined
+        }
+        merged_metrics = {**remaining_metrics, **other_metrics}
+        if not merged_metrics:
+            continue
+        merged.append(attr.evolve(nc, spec=NimbusSpec(metrics=merged_metrics)))
+
+    merged += [nc for nc in other_configs if (nc.app_name, nc.kind, nc.slug) not in self_keys]
+    return merged
 
 
 def entity_from_path(
@@ -290,9 +443,23 @@ def entity_from_path(
         )
 
     if is_nimbus_definition(path):
+        if path.parent.parent.name == OUTCOMES_DIR:
+            kind = NimbusConfigKind.OUTCOMES
+            app_name = path.parent.name
+            context = f"{NIMBUS_DIR}/{OUTCOMES_DIR}/{app_name}/{slug}.toml"
+        elif path.parent.name == DEFAULTS_DIR:
+            kind = NimbusConfigKind.DEFAULTS
+            app_name = slug
+            context = f"{NIMBUS_DIR}/{DEFAULTS_DIR}/{slug}.toml"
+        else:
+            kind = NimbusConfigKind.DEFINITIONS
+            app_name = slug
+            context = f"{NIMBUS_DIR}/{DEFINITIONS_DIR}/{slug}.toml"
         return NimbusConfig(
             slug=slug,
-            spec=NimbusSpec.from_dict(config_dict, platform=slug),
+            app_name=app_name,
+            spec=NimbusSpec.from_dict(config_dict, platform=app_name, context=context),
+            kind=kind,
         )
 
     validate_config_settings(path)
@@ -399,6 +566,7 @@ class ConfigCollection:
         path: str | None = None,
         depth: int | None = None,
         validate_nimbus: bool = True,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         """Pull in external config files."""
         # download files to a persisted tmp directory
@@ -448,36 +616,47 @@ class ConfigCollection:
             main_branch=repo.active_branch.name,
             is_tmp_repo=is_tmp_repo,
             validate_nimbus=validate_nimbus,
+            strict_nimbus=strict_nimbus,
         )
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         """Load configs from the provided repos."""
         if repo_urls is None or len(repo_urls) < 1:
-            return ConfigCollection.from_github_repo()
+            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
 
         configs = None
 
         for repo in repo_urls:
             if configs is None:
                 configs = ConfigCollection.from_github_repo(
-                    repo, is_private=is_private, validate_nimbus=False
+                    repo, is_private=is_private, validate_nimbus=False, strict_nimbus=strict_nimbus
                 )
             else:
                 collection = ConfigCollection.from_github_repo(
-                    repo, is_private=is_private, validate_nimbus=False
+                    repo, is_private=is_private, validate_nimbus=False, strict_nimbus=strict_nimbus
                 )
                 configs.merge(collection)
         if configs is None:
-            return ConfigCollection.from_github_repo()
-        configs.validate_nimbus_configs()
+            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
+        _validate_nimbus(configs, strict_nimbus)
         return configs
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_nimbus=True
+        cls,
+        repo,
+        path,
+        is_private,
+        main_branch,
+        is_tmp_repo=False,
+        validate_nimbus=True,
+        strict_nimbus=False,
     ) -> "ConfigCollection":
         """Load configs from a local repository."""
 
@@ -573,16 +752,7 @@ class ConfigCollection:
                     )
                 )
 
-        nimbus_configs = []
-        nimbus_dir = files_path / NIMBUS_DEFINITIONS_DIR
-        if nimbus_dir.is_dir():
-            for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-                nimbus_configs.append(
-                    NimbusConfig(
-                        slug=nimbus_file.stem,
-                        spec=NimbusSpec.from_file(nimbus_file),
-                    )
-                )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR, strict=strict_nimbus)
 
         collection = cls(
             external_configs,
@@ -603,10 +773,10 @@ class ConfigCollection:
             nimbus_configs=nimbus_configs,
         )
         if validate_nimbus:
-            collection.validate_nimbus_configs()
+            _validate_nimbus(collection, strict_nimbus)
         return collection
 
-    def as_of(self, timestamp: datetime) -> "ConfigCollection":
+    def as_of(self, timestamp: datetime, strict_nimbus: bool = False) -> "ConfigCollection":
         """Get configs as they were at the provided timestamp."""
         if timestamp is None:
             return self
@@ -663,6 +833,7 @@ class ConfigCollection:
                         repo.main_branch,
                         is_tmp_repo=True,
                         validate_nimbus=False,
+                        strict_nimbus=strict_nimbus,
                     )
                 except Exception as e:
                     could_load_configs = False
@@ -679,6 +850,7 @@ class ConfigCollection:
                                 repo.main_branch,
                                 is_tmp_repo=True,
                                 validate_nimbus=False,
+                                strict_nimbus=strict_nimbus,
                             )
                             could_load_configs = True
                             rev = newer_commit.hexsha
@@ -702,7 +874,7 @@ class ConfigCollection:
         if config_collection is None:
             return self
 
-        config_collection.validate_nimbus_configs()
+        _validate_nimbus(config_collection, strict_nimbus)
         return config_collection
 
     def spec_for_outcome(self, slug: str, platform: str) -> OutcomeSpec | None:
@@ -799,14 +971,86 @@ class ConfigCollection:
 
     def get_nimbus_metric_definition(self, slug: str, app_name: str) -> MetricDefinition | None:
         for nimbus_config in self.nimbus_configs:
-            if app_name == nimbus_config.slug:
-                return nimbus_config.spec.metrics.get(slug)
+            if app_name == nimbus_config.app_name:
+                metric = nimbus_config.spec.metrics.get(slug)
+                if metric is not None:
+                    return metric
 
         return None
 
     def validate_nimbus_configs(self) -> None:
         for nimbus_config in self.nimbus_configs:
             nimbus_config.validate(self)
+
+    def nimbus_definition_mismatches(self) -> list[NimbusDefinitionMismatch]:
+        env = self.get_env()
+        mismatches = []
+        for nimbus_config in self.nimbus_configs:
+            for name, metric in nimbus_config.spec.metrics.items():
+                definition = self.get_metric_definition(name, nimbus_config.app_name)
+                if definition is not None:
+                    mismatch = self._nimbus_definition_mismatch(
+                        env, nimbus_config.app_name, name, metric, definition
+                    )
+                    if mismatch is not None:
+                        mismatches.append(mismatch)
+
+                for outcome in self.outcomes:
+                    if outcome.platform != nimbus_config.app_name:
+                        continue
+                    outcome_metric = outcome.spec.metrics.get(name)
+                    if outcome_metric is None:
+                        continue
+                    if (
+                        outcome_metric.select_expression is None
+                        and outcome_metric.data_source is None
+                    ):
+                        continue
+                    mismatch = self._nimbus_definition_mismatch(
+                        env,
+                        nimbus_config.app_name,
+                        name,
+                        metric,
+                        outcome_metric,
+                        outcome=outcome.slug,
+                    )
+                    if mismatch is not None:
+                        mismatches.append(mismatch)
+        return mismatches
+
+    def _nimbus_definition_mismatch(
+        self,
+        env: jinja2.Environment,
+        app_name: str,
+        name: str,
+        nimbus_metric: MetricDefinition,
+        other: MetricDefinition,
+        outcome: str | None = None,
+    ) -> NimbusDefinitionMismatch | None:
+        nimbus_template = nimbus_metric.select_expression_from_aggregation or ""
+        nimbus_sql = normalize_sql(env.from_string(nimbus_template).render())
+        nimbus_data_source = nimbus_metric.data_source.name if nimbus_metric.data_source else None
+
+        other_template = other.select_expression or other.select_expression_from_aggregation
+        other_sql = (
+            normalize_sql(env.from_string(other_template).render())
+            if other_template is not None
+            else None
+        )
+        other_data_source = other.data_source.name if other.data_source else None
+
+        if nimbus_sql == other_sql and nimbus_data_source == other_data_source:
+            return None
+
+        return NimbusDefinitionMismatch(
+            app_name=app_name,
+            metric=name,
+            nimbus_select_expression=nimbus_sql,
+            definitions_select_expression=other_sql,
+            nimbus_data_source=nimbus_data_source,
+            definitions_data_source=other_data_source,
+            outcome=outcome,
+        )
 
     def get_metrics_sql(
         self,
@@ -933,11 +1177,9 @@ class ConfigCollection:
                 featmons[fc.slug] = fc
         self.featmon_configs = list(featmons.values())
 
-        nimbus_configs = {nc.slug: nc for nc in deepcopy(other.nimbus_configs)}
-        for nc in self.nimbus_configs:
-            if nc.slug not in nimbus_configs:
-                nimbus_configs[nc.slug] = nc
-        self.nimbus_configs = list(nimbus_configs.values())
+        self.nimbus_configs = _merge_nimbus_configs(
+            self.nimbus_configs, deepcopy(other.nimbus_configs)
+        )
 
         self.repos += other.repos
 
@@ -952,7 +1194,9 @@ class LocalConfigCollection(ConfigCollection):
     """
 
     @classmethod
-    def from_local_path(cls, path: str, is_private: bool = False) -> "ConfigCollection":
+    def from_local_path(
+        cls, path: str, is_private: bool = False, strict_nimbus: bool = False
+    ) -> "ConfigCollection":
         """Load configs from a local non-repo copy of a metric-hub-like folder structure.
 
         Args:
@@ -1047,16 +1291,7 @@ class LocalConfigCollection(ConfigCollection):
                     )
                 )
 
-        nimbus_configs = []
-        nimbus_dir = files_path / NIMBUS_DEFINITIONS_DIR
-        if nimbus_dir.is_dir():
-            for nimbus_file in sorted(nimbus_dir.glob("*.toml")):
-                nimbus_configs.append(
-                    NimbusConfig(
-                        slug=nimbus_file.stem,
-                        spec=NimbusSpec.from_file(nimbus_file),
-                    )
-                )
+        nimbus_configs = _load_nimbus_configs(files_path / NIMBUS_DIR, strict=strict_nimbus)
 
         collection = cls(
             external_configs,
@@ -1069,7 +1304,7 @@ class LocalConfigCollection(ConfigCollection):
             featmon_configs=featmons,
             nimbus_configs=nimbus_configs,
         )
-        collection.validate_nimbus_configs()
+        _validate_nimbus(collection, strict_nimbus)
         return collection
 
     @classmethod
@@ -1080,6 +1315,7 @@ class LocalConfigCollection(ConfigCollection):
         path: str | None = None,
         depth: int | None = None,
         validate_nimbus: bool = True,
+        strict_nimbus: bool = False,
     ):
         raise NotImplementedError(
             "`from_github_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -1088,7 +1324,10 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_github_repos(
-        cls, repo_urls: list[str] | None = None, is_private: bool = False
+        cls,
+        repo_urls: list[str] | None = None,
+        is_private: bool = False,
+        strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_github_repos` is not valid for non-repo-based LocalConfigCollection. "
@@ -1097,7 +1336,14 @@ class LocalConfigCollection(ConfigCollection):
 
     @classmethod
     def from_local_repo(
-        cls, repo, path, is_private, main_branch, is_tmp_repo=False, validate_nimbus=True
+        cls,
+        repo,
+        path,
+        is_private,
+        main_branch,
+        is_tmp_repo=False,
+        validate_nimbus=True,
+        strict_nimbus=False,
     ) -> "ConfigCollection":
         raise NotImplementedError(
             "`from_local_repo` is not valid for non-repo-based LocalConfigCollection. "
@@ -1105,7 +1351,7 @@ class LocalConfigCollection(ConfigCollection):
         )
 
     @classmethod
-    def as_of(self, timestamp: datetime) -> "ConfigCollection":
+    def as_of(self, timestamp: datetime, strict_nimbus: bool = False) -> "ConfigCollection":
         raise NotImplementedError(
             "`as_of` is not valid for non-repo-based LocalConfigCollection. "
             + "Use ConfigCollection for this feature."

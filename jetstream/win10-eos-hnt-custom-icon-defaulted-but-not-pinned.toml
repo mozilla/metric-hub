@@ -1,0 +1,11 @@
+[metrics]
+weekly = ["is_pinned_glean"]
+overall = ["is_pinned_glean"]
+
+[metrics.is_pinned_glean]
+friendly_name = "Is Pinned (Windows Taskbar, Glean)"
+description = "Glean os.environment.is_taskbar_pinned was true in any metrics ping during the window."
+data_source = "metrics"
+select_expression = "CAST(COALESCE(LOGICAL_OR(metrics.boolean.os_environment_is_taskbar_pinned), FALSE) AS INT)"
+
+[metrics.is_pinned_glean.statistics.binomial]

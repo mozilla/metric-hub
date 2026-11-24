@@ -50,6 +50,9 @@ COMPARISON_OPERATORS = {
 COLUMN_AGGREGATIONS = {Aggregation.SUM, Aggregation.COUNT, Aggregation.RECENCY_WITHIN}
 CONDITION_AGGREGATIONS = {Aggregation.COUNT_WHERE, Aggregation.ANY}
 
+KEEP_NULLS_AGGREGATIONS = {Aggregation.SUM, Aggregation.ANY}
+DEFAULT_KEEP_NULLS = False
+
 CLAUSE_KEYS = {"column", "op", "value"}
 THRESHOLD_KEYS = {"op", "value"}
 
@@ -168,17 +171,18 @@ def aggregation_select_expression(
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
+    keep_nulls: bool = DEFAULT_KEEP_NULLS,
 ) -> str:
     predicate = predicate_sql(conditions)
     is_boolean = False
     if aggregation == Aggregation.SUM:
-        expression = macro_call("agg_sum", str(column))
+        expression = f"SUM({column})" if keep_nulls else macro_call("agg_sum", str(column))
     elif aggregation == Aggregation.COUNT:
         expression = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
         expression = f"COUNTIF({predicate})"
     elif aggregation == Aggregation.ANY:
-        expression = macro_call("agg_any", predicate)
+        expression = f"LOGICAL_OR({predicate})" if keep_nulls else macro_call("agg_any", predicate)
         is_boolean = True
     elif aggregation == Aggregation.RECENCY_WITHIN:
         expression = (
@@ -198,6 +202,7 @@ def aggregation_select_expression(
         if is_boolean:
             expression = f"CAST({expression} AS INT64)"
         expression = f"{expression} * {sql_value(scale)}"
+
     return expression
 
 
@@ -226,13 +231,18 @@ def aggregation_bucketed(
     within_days: int | None,
     threshold: Threshold | None,
     scale: int | float | None,
+    keep_nulls: bool = DEFAULT_KEEP_NULLS,
 ) -> BucketedAggregation:
     predicate = predicate_sql(conditions)
     combine = Combine.SUM
     no_rows = "0"
     finalize = COMBINED
     if aggregation == Aggregation.SUM:
-        bucket_aggregate = f"COALESCE(SUM({column}), 0)"
+        if keep_nulls:
+            bucket_aggregate = f"SUM({column})"
+            no_rows = "NULL"
+        else:
+            bucket_aggregate = f"COALESCE(SUM({column}), 0)"
     elif aggregation == Aggregation.COUNT:
         bucket_aggregate = f"COUNT({column})"
     elif aggregation == Aggregation.COUNT_WHERE:
@@ -240,6 +250,8 @@ def aggregation_bucketed(
     elif aggregation == Aggregation.ANY:
         bucket_aggregate = f"COUNTIF({predicate})"
         finalize = f"CAST({COMBINED} > 0 AS INT64)"
+        if keep_nulls:
+            no_rows = "NULL"
     elif aggregation == Aggregation.RECENCY_WITHIN:
         bucket_aggregate = (
             f"COALESCE(MIN(mozfun.bits28.days_since_seen({column})), {NO_ACTIVITY_DAYS})"

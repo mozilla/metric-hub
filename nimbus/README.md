@@ -9,10 +9,10 @@ metric declares at most one of `select_expression` or the aggregation fields. A 
 declares neither stays valid, for example one that only overrides `statistics`, or one that derives
 from other metrics with `depends_on`.
 
-`nimbus/definitions/` holds metrics in aggregation form, under stricter rules than `definitions/`.
-Highwind prefers a metric's copy in `nimbus/definitions/`. Jetstream reads `definitions/` only.
+`nimbus/` holds metrics in aggregation form, under stricter rules than `definitions/`. Highwind
+prefers a metric's copy under `nimbus/`. Jetstream reads `definitions/` only.
 
-Keep aggregation-form metrics in `nimbus/definitions/` only for now. metric-config-parser generates
+Keep aggregation-form metrics under `nimbus/` only for now. metric-config-parser generates
 `select_expression` from the aggregation fields, but consumers on older metric-config-parser
 releases ignore keys they do not know, so they would read an aggregation-form metric in
 `definitions/` as a metric with no SQL.
@@ -22,22 +22,36 @@ annotated example that uses every field.
 
 ## Files and layout
 
+`nimbus/` follows the same three-folder convention as `jetstream/`:
+
 ```
 metric-hub/
   definitions/              metrics with select_expression, and every data source
     firefox_desktop.toml
   nimbus/
-    definitions/            metrics in aggregation form
+    definitions/            one file per application, aggregation form
       firefox_desktop.toml
+    defaults/               one file per application: its guardrail metrics
+      firefox_desktop.toml
+    outcomes/               one folder per application
+      firefox_desktop/
+        <outcome>.toml      one file per outcome, named after the outcome
 ```
 
-- One TOML file per application, named `<application>.toml`.
-- The application comes from the file stem, as in `definitions/`. Do not put it inside the file.
-- The only top-level table is `[metrics]`. Any other top-level key is rejected.
+- `nimbus/definitions/<application>.toml`, `nimbus/defaults/<application>.toml` and
+  `nimbus/outcomes/<application>/<outcome>.toml` are the only locations metric-config-parser reads
+  under `nimbus/`. Any other path there is ignored.
+- All three hold full metric definitions in aggregation form, in the same application namespace.
+  Which of the three a metric is declared in is only its default grouping; an application may use
+  any or all of them, and none is required to exist.
+- The only top-level table in any of these files is `[metrics]`. Any other top-level key is
+  rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
-- A metric may be defined under the same name in both `definitions/<application>.toml` and
-  `nimbus/definitions/<application>.toml`. Highwind uses the `nimbus/definitions/` copy and
-  Jetstream uses the `definitions/` copy.
+- A metric name is declared at most once per application, across all three locations. A metric
+  declared more than once is a validation error. See [Validation](#validation).
+- A metric may also be defined under the same name in `definitions/<application>.toml`. Highwind
+  uses the `nimbus/` copy and Jetstream uses the `definitions/` copy. The two copies must generate
+  the same SQL. See [Validation](#validation).
 - Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
   defined there.
 - Files ending in `.example` are not loaded.
@@ -46,14 +60,19 @@ metric-config-parser loads these files when it loads a repository. `ConfigCollec
 metric from them with `get_nimbus_metric_definition(slug, app_name)`. `get_metric_definition` reads
 `definitions/` only.
 
-## Rules for `nimbus/definitions/`
+A consumer on a metric-config-parser release from before `nimbus/defaults/` and
+`nimbus/outcomes/` existed does not read either at all, since it never looks there, so adding them
+is always safe for it. It still reads `nimbus/definitions/`, and skips a file there it cannot parse
+(see [Validation](#validation)).
+
+## Rules for `nimbus/`
 
 - `aggregation` and `data_source` are required.
 - `select_expression` is not allowed.
 - Only the keys in the field reference below are allowed. Other metric keys accepted in
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
   rejected.
-- Keys are case sensitive. `definitions/` lowercases keys, `nimbus/definitions/` does not.
+- Keys are case sensitive. `definitions/` lowercases keys, `nimbus/` does not.
 - `data_source` must name a data source defined in `definitions/<application>.toml`.
 
 ## Field reference
@@ -71,6 +90,7 @@ Aggregation fields:
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
 | `scale` | number | | Multiplies the final value. |
+| `keep_nulls` | boolean | `false` | Whether a unit with no matching rows stays null instead of defaulting to 0 (or `FALSE`). Valid only for `sum` and `any`. See [Keep nulls](#keep-nulls). |
 | `cumulative_window` | integer (days) | | Length of the cumulative windows Highwind computes. |
 | `incremental_window` | integer (days) | | Length of the incremental windows Highwind computes. |
 | `repeat_windows` | boolean | `false` | Whether the windows repeat for the length of the experiment. |
@@ -89,7 +109,7 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 A column name must match `^[A-Za-z_][A-Za-z0-9_]*$`. It is a name, never an expression, so
 `COALESCE(x, 0)`, `a.b` and `x > 0` are all rejected. No aggregation field takes SQL.
 
-Other fields allowed in `nimbus/definitions/`. These are existing metric fields and are parsed as
+Other fields allowed in `nimbus/`. These are existing metric fields and are parsed as
 they are in `definitions/`:
 
 | field | type | required | default | meaning |
@@ -112,7 +132,8 @@ unit's rows in one window to one value.
 ### `sum`
 
 The sum of `column` over the unit's rows. Null values are ignored. A unit with no rows, or with only
-null values, gets 0. The result is a number.
+null values, gets 0 by default; set `keep_nulls = true` to leave it null instead. The result is a
+number.
 
 ```toml
 [metrics.active_hours]
@@ -155,8 +176,8 @@ value = 0
 
 ### `any`
 
-1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0. The result
-is 0/1.
+1 if at least one row matches every condition, otherwise 0. A unit with no rows gets 0 by default;
+set `keep_nulls = true` to leave it null instead. The result is 0/1.
 
 ```toml
 [metrics.is_default_browser]
@@ -286,6 +307,24 @@ column = "is_default_browser"
 scale = 1000
 ```
 
+## Keep nulls
+
+`sum` and `any` return 0 (or `FALSE`) for a unit with no matching rows, unless `keep_nulls` is set.
+`keep_nulls = true` leaves that unit null instead. Valid only for `sum` and `any`: `count`,
+`count_where` and `recency_within` are rejected, since none of them can return null for a unit with
+no rows.
+
+Set `keep_nulls = true` when a unit with no matching rows had no opportunity to act, so it should
+drop out of the mean rather than count as 0.
+
+```toml
+[metrics.example_sum_keep_nulls]
+data_source = "clients_daily"
+aggregation = "sum"
+column = "example_column"
+keep_nulls = true
+```
+
 ## Windows
 
 Three fields say which windows Highwind computes for the metric. Lengths are in days, counted from
@@ -337,13 +376,13 @@ statistic's parameters. An empty table means no parameters.
 [metrics.active_hours.statistics.deciles]
 ```
 
-Nothing reads this field in `nimbus/definitions/` yet. Jetstream takes statistics from
+Nothing reads this field in `nimbus/` yet. Jetstream takes statistics from
 `definitions/` and `jetstream/defaults/`. The parser does not check statistic names.
 
 ## Validation
 
 metric-config-parser checks the following wherever it parses a metric definition, including
-`definitions/`, `nimbus/definitions/`, experiment configs and outcomes:
+`definitions/`, `nimbus/`, experiment configs and outcomes:
 
 - `select_expression` and `aggregation` are both set.
 - Any other aggregation field is set without `aggregation`.
@@ -353,6 +392,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `recency_within` has no `within_days`, or `within_days` is not a positive integer.
 - `within_days` is greater than 28.
 - `within_days` is set on any other aggregation.
+- `keep_nulls` is set on any aggregation other than `sum` or `any`.
 - A `column`, or a condition's `column`, is not a plain column name.
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
@@ -365,7 +405,7 @@ metric-config-parser checks the following wherever it parses a metric definition
 
 Booleans are not accepted where a number or integer is required.
 
-In `nimbus/definitions/`, loading also fails when:
+In `nimbus/`, a file is also rejected when:
 
 - The file has a top-level key other than `metrics`.
 - A metric has `select_expression`.
@@ -379,12 +419,36 @@ directory loaded counts:
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
   same application.
 
+Across an application's own files under `nimbus/`:
+
+- A metric name is declared in more than one of `nimbus/definitions/<application>.toml`,
+  `nimbus/defaults/<application>.toml`, and `nimbus/outcomes/<application>/<outcome>.toml`, in any
+  combination.
+
+metric-hub CI rejects a `nimbus/` file that fails any of these checks. A consumer that loads
+metric-hub skips such a file with a warning instead, so metric-hub keeps loading for it, including
+every other file under `definitions/` and `nimbus/`.
+
+Between `definitions/` and `nimbus/`. metric-hub CI runs this check in `.script/validate.py`. It
+does not run when a repository is loaded, so a mismatch fails CI without stopping consumers from
+loading metric-hub:
+
+- A metric defined under the same name in `definitions/<application>.toml` and under `nimbus/` for
+  the application renders different SQL in each, or names a different `data_source`.
+
+The `select_expression` generated for the `nimbus/` copy and the `select_expression` of the
+`definitions/` copy are both rendered with the functions in `definitions/functions.toml`, so
+`agg_sum` and `agg_any` are expanded. Runs of whitespace are collapsed, and whitespace just inside
+parentheses is removed, before comparing. Metrics defined in only one of the two files are not
+compared. `ConfigCollection.nimbus_definition_mismatches()` returns the metrics that differ.
+
+metric-hub CI also dry-runs the SQL generated for every metric in a changed file under `nimbus/`, as
+it does for `definitions/`.
+
 Not checked:
 
 - Whether a column exists on the data source. The parser has no table schemas.
 - Whether window lengths used together fit a common grid.
-- Whether a metric defined in both `definitions/` and `nimbus/definitions/` computes the same value
-  in each.
 - Statistic names. The fields shared with `definitions/` get no checks beyond those `definitions/`
   applies.
 
@@ -412,22 +476,25 @@ fields are not used.
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30) < N` | same |
 | with `threshold` | `<expression> <op> <value>` | |
 | with `scale` k | `<expression> * k` | |
+| with `keep_nulls = true` (`sum`, `any` only) | drops the default above: bare `SUM(c)` or `LOGICAL_OR(p)` | |
 
 `any`, `recency_within` and a threshold produce a boolean. When a threshold or a scale follows a
 boolean, the boolean is cast first, as `CAST(<expression> AS INT64)`, so the value is 0/1 as
 described in Threshold and scale. For example, `sum` with a threshold of `> 0` and a scale of 10
-renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`.
+renders as `CAST(COALESCE(SUM(c), 0) > 0 AS INT64) * 10`. See [Keep nulls](#keep-nulls) for the
+`keep_nulls` field.
 
 In both shapes, condition values become SQL literals. Numbers are written as they are and booleans
 as `TRUE` or `FALSE`. Strings are single quoted, with `\`, `'` and `{` escaped. A number that is
 not finite, or a value of any other type, fails.
 
-Checking that a metric defined in both directories computes the same value in each is not
-implemented yet.
+When a metric is defined in both directories, CI checks that the `select_expression` generated
+from `nimbus/` matches the one in `definitions/`, so moving a metric to `nimbus/` does not
+change what Jetstream computes. See [Validation](#validation).
 
 ### Highwind
 
-Highwind reads a metric from `nimbus/definitions/` when it is defined there. It scans each data
+Highwind reads a metric from `nimbus/` when it is defined there. It scans each data
 source once per analysis. It reduces each unit's rows once per bucket, then builds each window from
 those bucket values. `MetricDefinition.bucketed_aggregation` returns a `BucketedAggregation`,
 which splits the aggregation into four parts:
@@ -441,22 +508,80 @@ which splits the aggregation into four parts:
 
 | aggregation | `bucket_aggregate` | `combine` | `no_rows` | `finalize(x)` |
 | --- | --- | --- | --- | --- |
-| `sum` | `COALESCE(SUM(c), 0)` | `SUM` | `0` | `x` |
+| `sum` | `COALESCE(SUM(c), 0)` (`keep_nulls = true`: bare `SUM(c)`, `no_rows` `NULL`) | `SUM` | `0` | `x` |
 | `count` | `COUNT(c)` | `SUM` | `0` | `x` |
 | `count_where` | `COUNTIF(p)` | `SUM` | `0` | `x` |
-| `any` | `COUNTIF(p)` | `SUM` | `0` | `CAST(x > 0 AS INT64)` |
+| `any` | `COUNTIF(p)` | `SUM` | `0` (`keep_nulls = true`: `NULL`) | `CAST(x > 0 AS INT64)` |
 | `recency_within` N | `COALESCE(MIN(mozfun.bits28.days_since_seen(c)), 30)` | `MIN` | `30` | `CAST(x < N AS INT64)` |
 | with `threshold` | unchanged | unchanged | unchanged | `CAST(finalize(x) <op> <value> AS INT64)` |
 | with `scale` k | unchanged | unchanged | unchanged | `(finalize(x)) * k` |
 
+`keep_nulls = true` does not change `finalize`, only `bucket_aggregate` (for `sum`) or `no_rows`
+(for `any`). For `sum`, a bare `SUM(c)` over a bucket with no matching rows is `NULL` in SQL, and
+`SUM` combine ignores nulls, so `no_rows = "NULL"` reproduces the same value Jetstream's bare
+`SUM(c)` would return for a unit with zero rows in the whole window, and collapses correctly over a
+single bucket. For `any`, `bucket_aggregate` (`COUNTIF(p)`) is unchanged either way, since a bucket
+that has any rows at all always returns a real count, never null; only `no_rows` changes, so a unit
+with zero rows in every bucket combines to `NULL` and `finalize` casts that to `NULL`, matching
+Jetstream's bare `LOGICAL_OR(p)`.
+
 The columns Highwind reads from each data source are derived from the aggregation-form
 definitions: every `column` and every condition column, grouped by `data_source`.
+
+`aggregation_plan(configs, app_name, metric_names)` builds this grouping for a run. It looks up
+each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:
+
+- `sources`: one `AggregationSource` per data source the resolved metrics read, keyed by data
+  source name. Carries the resolved `from_expression`, `client_id_column`, `group_id_column`,
+  `analysis_units`, `submission_date_column`, and the sorted union of columns every requesting
+  metric needs.
+- `metrics`: one `AggregationMetric` per resolved name, keyed by metric name. Carries the data
+  source name, the `BucketedAggregation`, and the window fields.
+- `missing`: requested names with no `nimbus/` definition for the app. A missing name never raises,
+  so Highwind computes every name that resolved and reports the rest.
 
 ### Equivalence
 
 The column and condition text is the same in both consumers. Only the wrapper differs. Over a
 single bucket the four Highwind parts reduce to the Jetstream expression, so both consumers compute
 the same value for a window. Highwind returns 0/1 integers where Jetstream returns booleans.
+
+### Segments
+
+A segment is not an aggregation-form metric. It keeps its existing SQL `select_expression` and
+`data_source` in `definitions/<app>.toml`, the same definitions Jetstream and mozanalysis read, so
+Highwind computes a segment from the same SQL rather than a ported definition.
+
+`segment_plan(configs, app_name, segment_names)` resolves a list of shared segment names for an app
+into what Highwind needs to compute them. It looks up each requested name with
+`get_segment_definition` and returns a `SegmentPlan`:
+
+- `sources`: one `SegmentSource` per segment data source the resolved segments read, keyed by data
+  source name. Carries the resolved `from_expression`, `window_start`, `window_end`,
+  `client_id_column`, `group_id_column` and `submission_date_column`.
+- `segments`: one `SegmentMetric` per resolved name, keyed by segment name. Carries the data source
+  name and the rendered `select_expression`.
+- `missing`: requested names with no definition in `definitions/` for the app. A missing name never
+  raises, so Highwind computes every name that resolved and reports the rest.
+
+A segment's `select_expression` is written for mozanalysis's segment query
+(`SegmentDataSource.build_query`), not as a standalone predicate. Some shared segments refer to that
+query's aliases directly, such as `e.enrollment_date` or `ds.<column>`. A consumer running the SQL
+itself must use the same shape:
+
+- Enrollments aliased `e`, with `e.analysis_id` and `e.enrollment_date`.
+- The data source's `from_expression` aliased `ds`, left joined on `ds.<client_id_column or
+  group_id_column> = e.analysis_id`.
+- `ds.<submission_date_column>` bounded both by literal dates (first enrollment date plus
+  `window_start`, last enrollment date plus `window_end`) and by `e.enrollment_date` plus the same
+  offsets. The literal bound lets BigQuery prune partitions, and some sources, such as
+  `clients_last_seen`, require a partition filter.
+- Grouped by `e.analysis_id`.
+
+A segment data source whose `from_expression` references `{{experiment...}}` needs an experiment to
+render. `segment_plan` resolves with no experiment in scope, so such a source raises rather than
+silently resolving, the same as a templated `nimbus/definitions/` metric data source (see Highwind
+above).
 
 ## Not supported yet
 
@@ -466,8 +591,9 @@ the same value for a window. Highwind returns 0/1 integers where Jetstream retur
   window value.
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns.
-- Data sources in `nimbus/definitions/`. They stay in `definitions/`.
-- Segments. They stay in `definitions/`.
+- Data sources in `nimbus/`. They stay in `definitions/`.
+- A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
+  for how Highwind resolves them.
 
 ## Example
 

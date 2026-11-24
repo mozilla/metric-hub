@@ -6,19 +6,28 @@
 daily = ["retained", "unenroll"]
 weekly = ["retained", "active_hours", "uri_count", "ad_clicks", "search_count"]
 overall = ["active_hours", "uri_count", "ad_clicks", "search_count"]
+preenrollment_weekly = ["active_hours", "uri_count", "ad_clicks", "search_count"]
 
 [metrics.unenroll.statistics.binomial]
 
-[metrics.active_hours.statistics.bootstrap_mean]
+[metrics.active_hours.statistics.linear_model_mean]
+[metrics.active_hours.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 [metrics.active_hours.statistics.deciles]
 
-[metrics.uri_count.statistics.bootstrap_mean]
+[metrics.uri_count.statistics.linear_model_mean]
+[metrics.uri_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 [metrics.uri_count.statistics.deciles]
 
-[metrics.ad_clicks.statistics.bootstrap_mean]
+[metrics.ad_clicks.statistics.linear_model_mean]
+[metrics.ad_clicks.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 [metrics.ad_clicks.statistics.deciles]
 
-[metrics.search_count.statistics.bootstrap_mean]
+[metrics.search_count.statistics.linear_model_mean]
+[metrics.search_count.statistics.linear_model_mean.covariate_adjustment]
+period = "preenrollment_week"
 [metrics.search_count.statistics.deciles]
 
 [metrics.retained]

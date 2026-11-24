@@ -7,6 +7,7 @@ import pytest
 import pytz
 import toml
 from cattrs.errors import ClassValidationError
+from mozilla_nimbus_schemas.jetstream import AnalysisBasis
 
 from metric_config_parser.analysis import AnalysisSpec
 from metric_config_parser.experiment import Experiment
@@ -385,6 +386,50 @@ class TestOutcomes:
         # declared lists win: metrics are not force-added to weekly
         assert [m.name for m in spec.metrics.weekly] == []
         assert [m.name for m in spec.metrics.days28] == []
+
+    def test_merge_outcome_experiment_analysis_bases(self):
+        outcome_str = dedent(
+            """
+            friendly_name = "Test outcome"
+            description = "Outcome for testing"
+
+            [metrics.spam]
+            analysis_bases = ["exposures"]
+
+            [metrics.spam.statistics.bootstrap_mean]
+
+            [metrics.eggs]
+            analysis_bases = ["exposures"]
+
+            [metrics.eggs.statistics.bootstrap_mean]
+            """
+        )
+        experiment_str = dedent(
+            """
+            [experiment]
+            analysis_bases = ["enrollments"]
+
+            [metrics.eggs]
+            analysis_bases = ["enrollments", "exposures"]
+            """
+        )
+        outcome_spec = OutcomeSpec.from_dict(toml.loads(outcome_str))
+
+        spec = AnalysisSpec.from_dict(toml.loads(experiment_str))
+        spec.merge_outcome(outcome_spec)
+
+        # outcome analysis_bases are inherited, so experiment-level analysis_bases
+        # override them, but metric-level analysis_bases in the experiment config are kept
+        assert spec.metrics.definitions["spam"].analysis_bases is None
+        assert spec.metrics.definitions["spam"].inherited_analysis_bases == [
+            AnalysisBasis.EXPOSURES
+        ]
+        assert spec.metrics.definitions["eggs"].analysis_bases == [
+            AnalysisBasis.ENROLLMENTS,
+            AnalysisBasis.EXPOSURES,
+        ]
+        # the shared outcome definitions are not modified
+        assert outcome_spec.metrics["spam"].analysis_bases == [AnalysisBasis.EXPOSURES]
 
     def test_merge_outcome_defaults_to_weekly_overall(self):
         config_str = dedent(
