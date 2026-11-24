@@ -31,4 +31,8 @@ metrics = [
     "pdf_signature",
     "pdf_stamp",
     "site_breakage_uses",
+    "backup_scheduler_enabled_glean_v1",
+    "backup_started_v1",
+    "restore_started_v1",
+    "restore_complete_v1",
 ]

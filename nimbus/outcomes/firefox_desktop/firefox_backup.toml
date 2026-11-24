@@ -1,0 +1,39 @@
+[metrics.backup_scheduler_enabled_glean_v1]
+data_source = "metrics"
+aggregation = "any"
+column = "metrics.boolean.browser_backup_scheduler_enabled"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.backup_started_v1]
+data_source = "backup_events_v1"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.backup_started_v1.where]]
+column = "event_name"
+op = "="
+value = "backup_start"
+
+[metrics.restore_started_v1]
+data_source = "profile_restore_events_v1"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.restore_started_v1.where]]
+column = "event_name"
+op = "="
+value = "restore_started"
+
+[metrics.restore_complete_v1]
+data_source = "profile_restore_events_v1"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.restore_complete_v1.where]]
+column = "event_name"
+op = "="
+value = "restore_complete"
