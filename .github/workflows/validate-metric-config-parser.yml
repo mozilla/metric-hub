@@ -39,7 +39,7 @@ jobs:
         python-version: "3.11"
         cache: 'pip'
     - name: restore_cache
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         key: python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
         path: venv/
