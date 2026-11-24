@@ -1,0 +1,46 @@
+[metrics.lal_enabled]
+friendly_name = "Launch at login enabled"
+description = """
+Whether the client reported launch on login as enabled at any startup in the
+analysis window (Glean os.environment.launch_on_login_state = 'enabled' on the
+metrics ping). The state is recorded at startup, so a client that turns LaL on
+shows as enabled from its next launch.
+"""
+data_source = "metrics"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.lal_enabled.where]]
+column = "metrics.string.os_environment_launch_on_login_state"
+op = "="
+value = "enabled"
+
+[metrics.is_taskbar_pinned_glean]
+friendly_name = "Is Pinned (Windows Taskbar, Glean)"
+description = """
+Did any Glean metrics ping in the interval report Firefox pinned to the Windows
+taskbar (os.environment.is_taskbar_pinned = TRUE)? Replaces the built-in
+is_pinned, whose legacy scalar was removed in Firefox 156.
+"""
+data_source = "metrics"
+aggregation = "any"
+column = "metrics.boolean.os_environment_is_taskbar_pinned"
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.taskbar_launch_rate_glean]
+friendly_name = "Taskbar Launch Rate (Glean)"
+description = """
+Fraction of clients with at least one Glean metrics ping in the interval whose
+os.environment.launch_method was Taskbar (normal mode).
+"""
+data_source = "metrics"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.taskbar_launch_rate_glean.where]]
+column = "metrics.string.os_environment_launch_method"
+op = "="
+value = "Taskbar"
