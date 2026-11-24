@@ -1,0 +1,6 @@
+[metrics.sync_enabled_v1]
+data_source = "metrics"
+aggregation = "any"
+column = "metrics.boolean.fxa_sync_enabled"
+cumulative_window = 7
+repeat_windows = true
