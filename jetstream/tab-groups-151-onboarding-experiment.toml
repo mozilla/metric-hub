@@ -1,0 +1,51 @@
+## No overrides of existing configuration settings; just adding two custom metrics
+##  for feature-specific usage.
+
+[metrics]
+
+daily = ["tab_group_active_usage", "tab_group_any_usage"]
+
+weekly = ["tab_group_active_usage", "tab_group_any_usage"]
+
+overall = ["tab_group_active_usage", "tab_group_any_usage"]
+
+[metrics.tab_group_active_usage]
+select_expression = "COALESCE(LOGICAL_OR(count_tab_interactions > 0), FALSE)"
+data_source = "tab_group_metrics"
+friendly_name = "Tab Group Usage (Active Use Only)"
+description = """
+  The number of unique daily clients who actively interacted with at least one tab in a tab group during the given period.
+  This includes switching to a tab in a tab group, as well as actions like adding, removing, or reordering tabs within groups.
+"""
+
+[metrics.tab_group_any_usage]
+select_expression = "COALESCE(LOGICAL_OR(count_active_tabgroups > 0 OR count_saved_tabgroups > 0), FALSE)"
+data_source = "tab_group_metrics"
+friendly_name = "Tab Group Usage (Any Usage)"
+description = """
+  The number of unique daily clients who had any tab groups in usage -- either active or saved -- during the given period.
+  A client need not *interact* with those tabs or groups in the period to qualify, making it a broader category than the
+  `Active Use Only` metric. It is more suitable for understanding a population that includes those who may get a more general
+  organizational benefit from being able to organize infrequent tabs into groups.
+"""
+
+[metrics.tab_group_active_usage.statistics.binomial]
+[metrics.tab_group_any_usage.statistics.binomial]
+
+[data_sources]
+
+[data_sources.tab_group_metrics]
+from_expression = """(
+    SELECT
+        DATE(submission_timestamp) AS submission_date,
+        metrics.uuid.legacy_telemetry_client_id AS client_id,
+        metrics.uuid.legacy_telemetry_profile_group_id AS profile_group_id,
+        ping_info,
+        mozfun.map.extract_keyed_scalar_sum(metrics.labeled_quantity.tabgroup_active_groups) AS count_active_tabgroups,
+        metrics.quantity.tabgroup_saved_groups AS count_saved_tabgroups,
+        mozfun.map.extract_keyed_scalar_sum(metrics.labeled_counter.tabgroup_tab_interactions) AS count_tab_interactions
+    FROM
+        `mozdata.firefox_desktop.metrics` 
+)"""
+client_id_column = "client_id"
+experiments_column_type = "glean"
