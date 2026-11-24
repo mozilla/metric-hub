@@ -51,3 +51,17 @@ value = [
   "trending_suggestion",
   "recent_search",
 ]
+
+[metrics.urlbar_ctr]
+friendly_name = "Urlbar engagement rate"
+description = "Count of urlbar engagements divided by count of urlbar sessions. This is a `population-ratio` metric, not a client-level metric."
+numerator = "urlbar_clicks"
+denominator = "urlbar_impressions_suggest"
+aggregation = "ratio"
+
+[metrics.search_engine_rate]
+friendly_name = "SERP engagement rate"
+description = "Proportion of urlbar sessions ending with an engagement leading to a SERP"
+numerator = "search_engine_clicks"
+denominator = "urlbar_impressions_suggest"
+aggregation = "ratio"

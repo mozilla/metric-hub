@@ -33,3 +33,21 @@ repeat_windows = true
 column = "homepage_category"
 op = "="
 value = "enabled"
+
+[metrics.sponsored_tile_ctr]
+friendly_name = "Sponsored Tile Click Through Rate"
+description = """
+Rate of Clicks per Impression Sponsored Tiles (aka Sponsored Topsites on New Tab) across all positions.
+"""
+numerator = "sponsored_tile_clicks"
+denominator = "sponsored_tile_impressions"
+aggregation = "ratio"
+
+[metrics.sponsored_content_ctr]
+friendly_name = "Sponsored Content Click Through Rate"
+description = """
+Rate of Clicks per impression for Sponsored Content
+"""
+numerator = "sponsored_content_clicks"
+denominator = "sponsored_content_impressions"
+aggregation = "ratio"
