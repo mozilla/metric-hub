@@ -44,16 +44,18 @@ metric-hub/
 - All three hold full metric definitions in aggregation form, in the same application namespace.
   Which of the three a metric is declared in is only its default grouping; an application may use
   any or all of them, and none is required to exist.
-- The only top-level table in any of these files is `[metrics]`. Any other top-level key is
-  rejected.
+- The only top-level tables in any of these files are `[metrics]` and `[data_sources]`. Any other
+  top-level key is rejected.
 - Each metric is a table under `[metrics]`, keyed by the metric name.
 - A metric name is declared at most once per application, across all three locations. A metric
   declared more than once is a validation error. See [Validation](#validation).
 - A metric may also be defined under the same name in `definitions/<application>.toml`. Highwind
   uses the `nimbus/` copy and Jetstream uses the `definitions/` copy. The two copies must generate
   the same SQL. See [Validation](#validation).
-- Data sources are not defined here. They stay in `definitions/`, and a metric here refers to one
-  defined there.
+- A metric's `data_source` usually names a data source defined in
+  `definitions/<application>.toml`. A data source used only by `nimbus/` metrics, such as one
+  defined inside an outcome file, can instead be declared in any of the application's own files
+  under `nimbus/`, under `[data_sources]`. See [Data sources](#data-sources).
 - Files ending in `.example` are not loaded.
 
 metric-config-parser loads these files when it loads a repository. `ConfigCollection` returns a
@@ -73,7 +75,8 @@ is always safe for it. It still reads `nimbus/definitions/`, and skips a file th
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
   rejected.
 - Keys are case sensitive. `definitions/` lowercases keys, `nimbus/` does not.
-- `data_source` must name a data source defined in `definitions/<application>.toml`.
+- `data_source` must name a data source defined in `definitions/<application>.toml` or in one of
+  the application's own files under `nimbus/`.
 
 ## Field reference
 
@@ -117,7 +120,7 @@ they are in `definitions/`:
 
 | field | type | required | default | meaning |
 | --- | --- | --- | --- | --- |
-| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml`. |
+| `data_source` | string | yes | | Name of a data source defined in `definitions/<application>.toml` or in this file's own `[data_sources]` table. |
 | `statistics` | table of tables | no | | Statistics for the metric. |
 | `friendly_name` | string | no | | Display name on the results page. |
 | `description` | string | no | | Display description on the results page. |
@@ -396,6 +399,43 @@ statistic's parameters. An empty table means no parameters.
 Nothing reads this field in `nimbus/` yet. Jetstream takes statistics from
 `definitions/` and `jetstream/defaults/`. The parser does not check statistic names.
 
+## Data sources
+
+A metric's `data_source` usually names a data source already defined in
+`definitions/<application>.toml`. When a data source is used only by `nimbus/`
+metrics, such as one that otherwise exists only inside an outcome file, it can be declared in any
+of the application's own files instead, under a top-level `[data_sources]` table:
+
+```toml
+[data_sources.events_certerror]
+from_expression = "(SELECT * FROM telemetry.events)"
+submission_date_column = "submission_date"
+
+[metrics.cert_error_page_loaded]
+data_source = "events_certerror"
+aggregation = "any"
+
+[[metrics.cert_error_page_loaded.where]]
+column = "event_name"
+op = "="
+value = "loaded"
+```
+
+A `[data_sources.<name>]` table here takes the same fields as a `definitions/` data source. Keys
+are lowercased, matching `definitions/`.
+
+A `data_source` reference on a metric resolves against `definitions/<application>.toml` first.
+Only when no data source of that name exists there does the parser look across the application's
+own files under `nimbus/`. `ConfigCollection.get_nimbus_data_source_definition(slug, app_name)` and
+`aggregation_plan()` both resolve a data source this way.
+
+A data source declared under `nimbus/` under a name that also exists in
+`definitions/<application>.toml` must be identical to the `definitions/` copy. A name means one
+data source per application, so a differing copy under the same name fails validation; an
+identical copy is redundant but allowed. A data source name is also declared at most once across
+an application's own files under `nimbus/`; declaring it in more than one file is a validation
+error. See [Validation](#validation).
+
 ## Validation
 
 metric-config-parser checks the following wherever it parses a metric definition, including
@@ -425,7 +465,7 @@ Booleans are not accepted where a number or integer is required.
 
 In `nimbus/`, a file is also rejected when:
 
-- The file has a top-level key other than `metrics`.
+- The file has a top-level key other than `metrics` or `data_sources`.
 - A metric has `select_expression`.
 - A metric has no `data_source` or no `aggregation`.
 - A metric has a key not listed in the field reference.
@@ -434,14 +474,17 @@ Across files. When several repositories or directories are loaded together, such
 `jetstream/` and `opmon/`, this check runs once on the merged set, so every `definitions/`
 directory loaded counts:
 
-- `data_source` does not name a data source in any loaded `definitions/<application>.toml` for the
-  same application.
+- `data_source` does not name a data source in any loaded `definitions/<application>.toml`, nor in
+  any of that application's own files under `nimbus/`, for the same application.
+- A data source declared under `nimbus/` has the same name as one in
+  `definitions/<application>.toml`, but the two differ.
 
 Across an application's own files under `nimbus/`:
 
 - A metric name is declared in more than one of `nimbus/definitions/<application>.toml`,
   `nimbus/defaults/<application>.toml`, and `nimbus/outcomes/<application>/<outcome>.toml`, in any
   combination.
+- A data source name is declared in more than one of those same three locations, the same way.
 
 metric-hub CI rejects a `nimbus/` file that fails any of these checks. A consumer that loads
 metric-hub skips such a file with a warning instead, so metric-hub keeps loading for it, including
@@ -622,7 +665,6 @@ above).
 - `count_distinct`.
 - OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the single
   dotted-path column names covered above.
-- Data sources in `nimbus/`. They stay in `definitions/`.
 - A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
   for how Highwind resolves them.
 

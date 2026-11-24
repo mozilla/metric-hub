@@ -2,7 +2,8 @@
 # <application>.toml (e.g. firefox_desktop.toml), and replace the metrics below.
 #
 # The application is inferred from the filename stem. Do not add it inside the file.
-# The only top-level table is [metrics]. Data sources stay in definitions/.
+# The only top-level tables are [metrics] and [data_sources]. A data source used only by
+# metrics here can be declared under [data_sources.<name>] instead of definitions/.
 # Any key not shown in this file is rejected, including select_expression.
 
 # ---------------------------------------------------------------------------
@@ -190,3 +191,21 @@ column = "days_since_desktop_active"
 # the column already holds the number of days since the unit was last active.
 encoding = "days"
 within_days = 3
+
+# ---------------------------------------------------------------------------
+# data_sources: a data source used only by nimbus/ metrics, declared here
+# instead of in definitions/<application>.toml
+# ---------------------------------------------------------------------------
+
+[data_sources.example_events]
+from_expression = "(SELECT * FROM telemetry.example_events)"
+submission_date_column = "submission_date"
+
+[metrics.example_data_source_metric]
+data_source = "example_events"
+aggregation = "any"
+
+[[metrics.example_data_source_metric.where]]
+column = "event_name"
+op = "="
+value = "example_event"
