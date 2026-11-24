@@ -228,24 +228,36 @@ def _nimbus_metric_queries(config_collection, entity):
 def _load_equivalence_skip_list(path):
     if not path.exists():
         return {}
-    return {
-        app_name: set(entry.get("metrics", [])) for app_name, entry in toml.load(path).items()
-    }
+    skip_list = {}
+    for app_name, entry in toml.load(path).items():
+        if not isinstance(entry, dict) or set(entry.keys()) != {"metrics"}:
+            raise ValueError(
+                f"{path}: [{app_name}] must be a table with a single 'metrics' key"
+            )
+        metrics = entry["metrics"]
+        if not isinstance(metrics, list) or not all(
+            isinstance(metric, str) for metric in metrics
+        ):
+            raise ValueError(f"{path}: [{app_name}].metrics must be a list of strings")
+        skip_list[app_name] = set(metrics)
+    return skip_list
 
 
 def _filter_equivalence_mismatches(mismatches, skip_list):
-    skipped = {app_name: set() for app_name in skip_list}
+    addressed = {app_name: set() for app_name in skip_list}
     reported = []
     for mismatch in mismatches:
         names = skip_list.get(mismatch.app_name, set())
         if mismatch.metric in names:
-            skipped[mismatch.app_name].add(mismatch.metric)
+            addressed[mismatch.app_name].add(mismatch.metric)
+            if mismatch.nimbus_data_source != mismatch.definitions_data_source:
+                reported.append(mismatch)
         else:
             reported.append(mismatch)
     stale = [
         (app_name, name)
         for app_name, names in skip_list.items()
-        for name in names - skipped[app_name]
+        for name in names - addressed[app_name]
     ]
     return reported, stale
 
