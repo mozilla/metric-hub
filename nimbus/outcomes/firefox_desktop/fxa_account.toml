@@ -1,0 +1,8 @@
+[metrics.fxa_signed_in_glean]
+friendly_name = "FxA Sign-in Rate (Glean)"
+description = "Is the client signed in at any point during the experiment, based on the Glean `fxa.account_enabled` metric"
+data_source = "metrics"
+aggregation = "any"
+column = "metrics.boolean.fxa_account_enabled"
+cumulative_window = 7
+repeat_windows = true

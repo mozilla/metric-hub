@@ -1,0 +1,11 @@
+[metrics.site_breakage_impressions]
+friendly_name = "Webcompat Reporting Panel Impressions"
+data_source = "site_breakage_events"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.site_breakage_impressions.where]]
+column = "event_name"
+op = "="
+value = "opened"
