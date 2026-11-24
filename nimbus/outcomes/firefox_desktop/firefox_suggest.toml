@@ -28,3 +28,26 @@ column = "urlbar_clicks"
 keep_nulls = true
 cumulative_window = 7
 repeat_windows = true
+
+[metrics.search_engine_clicks]
+friendly_name = "Urlbar sessions ending on a SERP"
+description = "Count of clicks on a result shown in the urlbar dropdown menu leading to a SERP"
+data_source = "urlbar_events_daily_engagement_by_product_result_type_v1"
+aggregation = "sum_where"
+column = "urlbar_clicks"
+keep_nulls = true
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.search_engine_clicks.where]]
+column = "product_result_type"
+op = "IN"
+value = [
+  "default_partner_search_suggestion",
+  "search_suggest",
+  "search_history",
+  "search_suggest_rich",
+  "search_engine",
+  "trending_suggestion",
+  "recent_search",
+]
