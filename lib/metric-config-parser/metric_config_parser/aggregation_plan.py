@@ -1,6 +1,6 @@
 import attr
 
-from .aggregation import BucketedAggregation
+from .aggregation import DEFAULT_KEEP_NULLS, BucketedAggregation, aggregation_bucketed
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -56,12 +56,46 @@ def _metric_columns(metric: MetricDefinition) -> set[str]:
     return columns
 
 
+def _projected_column(column: str) -> str:
+    return column.replace(".", "__")
+
+
+def _column_select_item(column: str) -> str:
+    projected = _projected_column(column)
+    if projected == column:
+        return column
+    return f"{column} AS {projected}"
+
+
+def _validate_no_column_collisions(data_source_name: str, columns: set[str]) -> None:
+    projected_to_column: dict[str, str] = {}
+    for column in sorted(columns):
+        projected = _projected_column(column)
+        if projected in projected_to_column:
+            raise ValueError(
+                f"data source '{data_source_name}': columns '{projected_to_column[projected]}' "
+                f"and '{column}' both project to '{projected}'"
+            )
+        projected_to_column[projected] = column
+
+
 def _resolve_metric(name: str, metric: MetricDefinition) -> _ResolvedMetric:
     if metric.data_source is None or metric.aggregation is None:
         raise ValueError(f"nimbus metric '{name}' is missing data_source or aggregation")
-    bucketed = metric.bucketed_aggregation
-    if bucketed is None:
-        raise ValueError(f"nimbus metric '{name}' has no bucketed aggregation")
+    projected_column = None if metric.column is None else _projected_column(metric.column)
+    projected_conditions = [
+        attr.evolve(clause, column=_projected_column(clause.column)) for clause in metric.conditions
+    ]
+    bucketed = aggregation_bucketed(
+        metric.aggregation,
+        projected_column,
+        projected_conditions,
+        metric.within_days,
+        metric.threshold,
+        metric.scale,
+        metric.keep_nulls if metric.keep_nulls is not None else DEFAULT_KEEP_NULLS,
+        metric.encoding,
+    )
     return _ResolvedMetric(
         name=name,
         data_source_name=metric.data_source.name,
@@ -91,7 +125,7 @@ def _resolve_data_source(
         group_id_column=data_source.group_id_column,
         analysis_units=tuple(unit.value for unit in data_source.analysis_units),
         submission_date_column=data_source.submission_date_column,
-        columns=tuple(sorted(columns)),
+        columns=tuple(_column_select_item(column) for column in sorted(columns)),
     )
 
 
@@ -112,6 +146,9 @@ def aggregation_plan(
         columns_by_source.setdefault(resolved_metric.data_source_name, set()).update(
             resolved_metric.columns
         )
+
+    for data_source_name, columns in columns_by_source.items():
+        _validate_no_column_collisions(data_source_name, columns)
 
     sources = {
         data_source_name: _resolve_data_source(
