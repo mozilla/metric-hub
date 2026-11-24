@@ -1,2 +1,7 @@
 [firefox_desktop]
-metrics = []
+metrics = [
+    "backup_scheduler_enabled_glean_v1",
+    "backup_started_v1",
+    "restore_started_v1",
+    "restore_complete_v1",
+]
