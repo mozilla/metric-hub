@@ -10,10 +10,7 @@ segments = ["regular_users_v3", "new_or_resurrected_v3"]
 name = "saw_default_modal"
 friendly_name = "Saw Make Default Modal"
 description = "Clients who interacted with the make-default modal during the analysis window"
-select_expression = """COALESCE(
-    SUM(bucket_value) > 0,
-    FALSE
-)"""
+select_expression = "bucket_value > 0"
 data_source = "make_default_modal"
 window_end = "analysis_window_end"
 
