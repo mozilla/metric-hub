@@ -1,2 +1,8 @@
 [firefox_desktop]
-metrics = []
+metrics = [
+    "urlbar_annoyances_rate",
+    "chatbot_frequency",
+    "sync_enabled_v1",
+    "site_breakage_impressions",
+    "fxa_signed_in_glean",
+]
