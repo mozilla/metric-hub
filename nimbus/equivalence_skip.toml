@@ -10,4 +10,12 @@ metrics = [
     "backup_started_v1",
     "restore_started_v1",
     "restore_complete_v1",
+    "number_of_autostart_launches",
+    "number_of_desktop_launches",
+    "number_of_non_taskbartab_launches",
+    "number_of_other_launches",
+    "number_of_othershortcut_launches",
+    "number_of_startmenu_launches",
+    "number_of_taskbar_launches",
+    "number_of_taskbartab_launches",
 ]
