@@ -1,0 +1,8 @@
+[metrics.newtab_sponsored_tiles_enabled]
+friendly_name = "Newtab Sponsored Tiles Enabled"
+description = "Whether or not sponsored tiles are enabled on the New Tab. Includes both sponsored and nonsponsored tiles."
+data_source = "newtab_clients_daily"
+aggregation = "any"
+column = "sponsored_topsites_enabled"
+cumulative_window = 7
+repeat_windows = true

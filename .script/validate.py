@@ -29,6 +29,7 @@ from urllib.request import Request, urlopen
 import click
 import requests
 import requests.exceptions
+import toml
 from metric_config_parser.config import (
     DEFINITIONS_DIR,
     ConfigCollection,
@@ -44,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 DRY_RUN_URL = "https://us-central1-moz-fx-data-shared-prod.cloudfunctions.net/dryrun"
+EQUIVALENCE_SKIP_FILE = Path("nimbus") / "equivalence_skip.toml"
 FUNCTION_CONFIG = "functions.toml"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 NUM_QUERIES_PER_REQUEST = 1
@@ -223,6 +225,43 @@ def _nimbus_metric_queries(config_collection, entity):
     return queries
 
 
+def _load_equivalence_skip_list(path):
+    if not path.exists():
+        return {}
+    skip_list = {}
+    for app_name, entry in toml.load(path).items():
+        if not isinstance(entry, dict) or set(entry.keys()) != {"metrics"}:
+            raise ValueError(
+                f"{path}: [{app_name}] must be a table with a single 'metrics' key"
+            )
+        metrics = entry["metrics"]
+        if not isinstance(metrics, list) or not all(
+            isinstance(metric, str) for metric in metrics
+        ):
+            raise ValueError(f"{path}: [{app_name}].metrics must be a list of strings")
+        skip_list[app_name] = set(metrics)
+    return skip_list
+
+
+def _filter_equivalence_mismatches(mismatches, skip_list):
+    addressed = {app_name: set() for app_name in skip_list}
+    reported = []
+    for mismatch in mismatches:
+        names = skip_list.get(mismatch.app_name, set())
+        if mismatch.metric in names:
+            addressed[mismatch.app_name].add(mismatch.metric)
+            if mismatch.nimbus_data_source != mismatch.definitions_data_source:
+                reported.append(mismatch)
+        else:
+            reported.append(mismatch)
+    stale = [
+        (app_name, name)
+        for app_name, names in skip_list.items()
+        for name in names - addressed[app_name]
+    ]
+    return reported, stale
+
+
 @cli.command("validate")
 @click.argument("path", type=click.Path(exists=True), nargs=-1)
 @click.option(
@@ -253,9 +292,19 @@ def validate(path, config_repos):
             )
         )
 
-    for mismatch in nimbus_check_collection.nimbus_definition_mismatches():
+    skip_list = _load_equivalence_skip_list(EQUIVALENCE_SKIP_FILE)
+    mismatches, stale_skip_entries = _filter_equivalence_mismatches(
+        nimbus_check_collection.nimbus_definition_mismatches(), skip_list
+    )
+    for mismatch in mismatches:
         dirty = True
         print(mismatch)
+    for app_name, name in stale_skip_entries:
+        dirty = True
+        print(
+            f"{EQUIVALENCE_SKIP_FILE} lists '{name}' for {app_name}, but it has no "
+            f"equivalence mismatch to skip"
+        )
 
     # get updated definition files
     sql_to_validate = []

@@ -1,0 +1,35 @@
+[metrics.newtab_engagement]
+friendly_name = "Newtab Engagement"
+description = "Whether or not the client had a newtab search OR a content click OR a tile click."
+data_source = "newtab_clients_daily"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.newtab_engagement.where]]
+column = "any_engagement_visits"
+op = ">"
+value = 0
+
+[metrics.newtab_gt4_searches]
+friendly_name = "Greater Than 4 Newtab Searches"
+description = "Client performed at least 5 Newtab Handoff searches during the experiment"
+data_source = "newtab_clients_daily"
+aggregation = "sum"
+column = "search_interaction_count"
+threshold = { op = ">", value = 4 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.newtab_homepage_enabled]
+friendly_name = "Newtab Homepage Enabled"
+description = "Whether or not the homepage is set to display the default New Tab page."
+data_source = "newtab_clients_daily"
+aggregation = "any"
+cumulative_window = 7
+repeat_windows = true
+
+[[metrics.newtab_homepage_enabled.where]]
+column = "homepage_category"
+op = "="
+value = "enabled"
