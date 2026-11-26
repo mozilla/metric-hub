@@ -1,0 +1,91 @@
+[metrics.pdf_free_highlight]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing_highlight_kind", key = "free_highlight" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_freetext]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "freetext" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_highlight]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing_highlight_kind", key = "highlight" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_ink]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "ink" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_invoked_to_handle]
+friendly_name = "PDF Invoked to Handle"
+description = "Firefox was invoked (i.e., was already running and was not launched) to handle a pdf file"
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.os_environment_invoked_to_handle", key = ".pdf" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_launched_to_handle]
+friendly_name = "PDF Launched to Handle"
+description = "Firefox was launched afresh (i.e., was not already running) to handle a pdf file"
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.os_environment_launched_to_handle", key = ".pdf" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_opening]
+data_source = "metrics"
+aggregation = "sum"
+column = "metrics.counter.pdfjs_used"
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_print]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "print" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_save]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "save" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_signature]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "signature" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
+
+[metrics.pdf_stamp]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.pdfjs_editing", key = "stamp" }
+threshold = { op = ">", value = 0 }
+cumulative_window = 7
+repeat_windows = true
