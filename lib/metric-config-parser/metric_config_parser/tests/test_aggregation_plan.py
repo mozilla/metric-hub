@@ -293,3 +293,75 @@ class TestColumnFormSource:
         assert plan.metrics["pin_prompt_accepted_dotted"].aggregation.bucket_aggregate == (
             "COUNTIF(JSON_VALUE(metrics__text__event_extra, '$.result') = 'success_pinned')"
         )
+
+
+class TestConditionOperatorSource:
+    def test_any_of_contributes_every_clause_column(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.site_breakage_uses]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.site_breakage_uses.where]]\n"
+            "any_of = [\n"
+            '  { column = "event_name", op = "=", value = "send" },\n'
+            '  { column = "event_category", op = "=", value = "send_more_info" },\n'
+            "]\n"
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["site_breakage_uses"])
+
+        assert plan.sources["clients_daily"].columns == ("event_category", "event_name")
+
+    def test_any_of_with_a_dotted_column_is_projected(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.site_breakage_uses_dotted]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.site_breakage_uses_dotted.where]]\n"
+            "any_of = [\n"
+            '  { column = "metrics.text.event_name", op = "=", value = "send" },\n'
+            '  { column = "event_category", op = "=", value = "send_more_info" },\n'
+            "]\n"
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["site_breakage_uses_dotted"])
+
+        assert plan.sources["clients_daily"].columns == (
+            "event_category",
+            "metrics.text.event_name AS metrics__text__event_name",
+        )
+        assert plan.metrics["site_breakage_uses_dotted"].aggregation.bucket_aggregate == (
+            "COUNTIF(metrics__text__event_name = 'send' OR event_category = 'send_more_info')"
+        )
+
+    def test_like_and_in_columns_are_the_underlying_column(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.pip_disabled]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "count_where"\n'
+            'threshold = { op = ">", value = 0 }\n\n'
+            "[[metrics.pip_disabled.where]]\n"
+            'column = "event_category"\n'
+            'op = "="\n'
+            'value = "pictureinpicture"\n\n'
+            "[[metrics.pip_disabled.where]]\n"
+            'column = "event_name"\n'
+            'op = "LIKE"\n'
+            'value = "%disable%"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["pip_disabled"])
+
+        assert plan.sources["clients_daily"].columns == ("event_category", "event_name")

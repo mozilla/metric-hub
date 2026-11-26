@@ -1,7 +1,10 @@
+from typing import Any
+
 import attr
 
 from .aggregation import (
     DEFAULT_KEEP_NULLS,
+    AnyOf,
     BucketedAggregation,
     ColumnForm,
     ColumnReference,
@@ -54,12 +57,18 @@ class _ResolvedMetric:
     repeat_windows: bool
 
 
+def _condition_columns(condition: Any) -> set[str]:
+    if isinstance(condition, AnyOf):
+        return {column_source(clause.column) for clause in condition.clauses}
+    return {column_source(condition.column)}
+
+
 def _metric_columns(metric: MetricDefinition) -> set[str]:
     columns: set[str] = set()
     if metric.column is not None:
         columns.add(column_source(metric.column))
-    for clause in metric.conditions:
-        columns.add(column_source(clause.column))
+    for condition in metric.conditions:
+        columns |= _condition_columns(condition)
     return columns
 
 
@@ -94,14 +103,23 @@ def _project_column_reference(column: ColumnReference) -> ColumnReference:
     return _projected_column(column)
 
 
+def _project_condition(condition: Any) -> Any:
+    if isinstance(condition, AnyOf):
+        return attr.evolve(
+            condition,
+            clauses=[
+                attr.evolve(clause, column=_project_column_reference(clause.column))
+                for clause in condition.clauses
+            ],
+        )
+    return attr.evolve(condition, column=_project_column_reference(condition.column))
+
+
 def _resolve_metric(name: str, metric: MetricDefinition) -> _ResolvedMetric:
     if metric.data_source is None or metric.aggregation is None:
         raise ValueError(f"nimbus metric '{name}' is missing data_source or aggregation")
     projected_column = None if metric.column is None else _project_column_reference(metric.column)
-    projected_conditions = [
-        attr.evolve(clause, column=_project_column_reference(clause.column))
-        for clause in metric.conditions
-    ]
+    projected_conditions = [_project_condition(condition) for condition in metric.conditions]
     bucketed = aggregation_bucketed(
         metric.aggregation,
         projected_column,
