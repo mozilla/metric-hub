@@ -1,0 +1,8 @@
+[metrics.is_default_pdf_handler]
+friendly_name = "Is Default PDF Handler (Windows)"
+description = "Was Firefox the default PDF Handler at any point during the interval?"
+data_source = "metrics"
+aggregation = "any"
+column = { map = "metrics.labeled_boolean.os_environment_is_default_handler", key = ".pdf" }
+cumulative_window = 7
+repeat_windows = true
