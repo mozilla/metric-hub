@@ -6,7 +6,7 @@ from typing import Any
 import attr
 import toml
 
-from .aggregation import reject_unknown_keys
+from .aggregation import Aggregation, reject_unknown_keys
 from .data_source import DataSourceDefinition
 from .metric import MetricDefinition
 from .util import converter
@@ -36,6 +36,8 @@ NIMBUS_METRIC_KEYS = {
     "cumulative_window",
     "incremental_window",
     "repeat_windows",
+    "numerator",
+    "denominator",
     "statistics",
     "friendly_name",
     "description",
@@ -105,9 +107,10 @@ class NimbusSpec:
                     f"{metric_context}: select_expression is not allowed. Use aggregation instead."
                 )
             reject_unknown_keys(metric, NIMBUS_METRIC_KEYS, metric_context)
-            for required in ("data_source", "aggregation"):
-                if required not in metric:
-                    raise ValueError(f"{metric_context}: {required} is required")
+            if "aggregation" not in metric:
+                raise ValueError(f"{metric_context}: aggregation is required")
+            if metric["aggregation"] != Aggregation.RATIO.value and "data_source" not in metric:
+                raise ValueError(f"{metric_context}: data_source is required")
             metrics[name] = converter.structure({"name": name, **metric}, MetricDefinition)
         return cls(metrics=metrics, data_sources=data_sources)
 

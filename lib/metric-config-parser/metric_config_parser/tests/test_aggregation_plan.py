@@ -226,6 +226,94 @@ class TestAggregationPlan:
         assert list(plan.sources) == sorted(plan.sources)
 
 
+class TestRatioAggregationPlan:
+    def test_ratio_requested_alone_includes_its_components(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.example_ratio]\n"
+            'aggregation = "ratio"\n'
+            'numerator = "active_hours"\n'
+            'denominator = "days_of_use"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["example_ratio"])
+
+        assert plan.missing == []
+        assert set(plan.ratios) == {"example_ratio"}
+        assert plan.ratios["example_ratio"].numerator == "active_hours"
+        assert plan.ratios["example_ratio"].denominator == "days_of_use"
+        assert set(plan.metrics) == {"active_hours", "days_of_use"}
+        assert "example_ratio" not in plan.metrics
+
+    def test_ratio_with_a_missing_component_is_reported_missing(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.example_ratio]\n"
+            'aggregation = "ratio"\n'
+            'numerator = "active_hours"\n'
+            'denominator = "not_a_real_metric"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["example_ratio"])
+
+        assert plan.missing == ["example_ratio"]
+        assert plan.ratios == {}
+        assert plan.metrics == {}
+        assert plan.sources == {}
+
+    def test_two_ratios_sharing_a_component_resolve_it_once(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.example_ratio_one]\n"
+            'aggregation = "ratio"\n'
+            'numerator = "active_hours"\n'
+            'denominator = "days_of_use"\n\n'
+            "[metrics.example_ratio_two]\n"
+            'aggregation = "ratio"\n'
+            'numerator = "qualified_cumulative_days_of_use"\n'
+            'denominator = "days_of_use"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(
+            collection, "firefox_desktop", ["example_ratio_one", "example_ratio_two"]
+        )
+
+        assert plan.missing == []
+        assert set(plan.ratios) == {"example_ratio_one", "example_ratio_two"}
+        assert set(plan.metrics) == {
+            "active_hours",
+            "days_of_use",
+            "qualified_cumulative_days_of_use",
+        }
+
+    def test_ratio_and_one_of_its_own_components_both_requested_resolve_once(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.example_ratio]\n"
+            'aggregation = "ratio"\n'
+            'numerator = "active_hours"\n'
+            'denominator = "days_of_use"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["example_ratio", "active_hours"])
+
+        assert plan.missing == []
+        assert set(plan.ratios) == {"example_ratio"}
+        assert set(plan.metrics) == {"active_hours", "days_of_use"}
+
+
 class TestColumnFormSource:
     def test_map_column_source_is_the_map_not_the_expression(self, tmp_path):
         shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
