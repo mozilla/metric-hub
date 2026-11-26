@@ -18,4 +18,9 @@ metrics = [
     "number_of_startmenu_launches",
     "number_of_taskbar_launches",
     "number_of_taskbartab_launches",
+    "urlbar_annoyances_rate",
+    "chatbot_frequency",
+    "sync_enabled_v1",
+    "site_breakage_impressions",
+    "fxa_signed_in_glean",
 ]

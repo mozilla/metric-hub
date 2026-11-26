@@ -16,6 +16,15 @@ column = "chatbot"
 cumulative_window = 7
 repeat_windows = true
 
+[metrics.chatbot_frequency]
+friendly_name = "Chatbot Frequency"
+description = "Average number of times clients open chatbot panel in the sidebar after provider is selected"
+data_source = "sidebar_toggle"
+aggregation = "count_where"
+column = "chatbot"
+cumulative_window = 7
+repeat_windows = true
+
 [data_sources.sidebar_toggle]
 from_expression = """(
   SELECT
