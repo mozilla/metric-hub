@@ -1,6 +1,13 @@
 import attr
 
-from .aggregation import DEFAULT_KEEP_NULLS, BucketedAggregation, aggregation_bucketed
+from .aggregation import (
+    DEFAULT_KEEP_NULLS,
+    BucketedAggregation,
+    ColumnForm,
+    ColumnReference,
+    aggregation_bucketed,
+    column_source,
+)
 from .config import ConfigCollection
 from .definition import DefinitionSpec
 from .errors import DefinitionNotFound
@@ -50,9 +57,9 @@ class _ResolvedMetric:
 def _metric_columns(metric: MetricDefinition) -> set[str]:
     columns: set[str] = set()
     if metric.column is not None:
-        columns.add(metric.column)
+        columns.add(column_source(metric.column))
     for clause in metric.conditions:
-        columns.add(clause.column)
+        columns.add(column_source(clause.column))
     return columns
 
 
@@ -79,12 +86,21 @@ def _validate_no_column_collisions(data_source_name: str, columns: set[str]) -> 
         projected_to_column[projected] = column
 
 
+def _project_column_reference(column: ColumnReference) -> ColumnReference:
+    if isinstance(column, ColumnForm):
+        if column.map is not None:
+            return attr.evolve(column, map=_projected_column(column.map))
+        return attr.evolve(column, json=_projected_column(str(column.json)))
+    return _projected_column(column)
+
+
 def _resolve_metric(name: str, metric: MetricDefinition) -> _ResolvedMetric:
     if metric.data_source is None or metric.aggregation is None:
         raise ValueError(f"nimbus metric '{name}' is missing data_source or aggregation")
-    projected_column = None if metric.column is None else _projected_column(metric.column)
+    projected_column = None if metric.column is None else _project_column_reference(metric.column)
     projected_conditions = [
-        attr.evolve(clause, column=_projected_column(clause.column)) for clause in metric.conditions
+        attr.evolve(clause, column=_project_column_reference(clause.column))
+        for clause in metric.conditions
     ]
     bucketed = aggregation_bucketed(
         metric.aggregation,

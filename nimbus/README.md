@@ -88,7 +88,7 @@ Aggregation fields:
 | field | type | default | meaning |
 | --- | --- | --- | --- |
 | `aggregation` | string | | One of `sum`, `sum_where`, `count`, `count_where`, `any`, `recency_within`. Decides how a unit's rows become one value. |
-| `column` | string | | A column name on the data source, or a dotted path to one. |
+| `column` | string, or a column form | | A column name on the data source, a dotted path to one, or a column form. See [Column forms](#column-forms). |
 | `where` | list of conditions | empty | Row conditions for `count_where`, `any` and `sum_where`. |
 | `within_days` | integer | | Number of days for `recency_within`, from 1 to 28. |
 | `threshold` | `{ op, value }` | | Compares the aggregated value and turns it into 0/1. |
@@ -114,7 +114,8 @@ Every field other than `aggregation` requires `aggregation`. Which of `column`, 
 A column name must match `^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$`: one or more
 `.`-separated plain names, such as a Glean `metrics.counter.x` or legacy `payload.processes.y`
 field path. It is a name, never an expression, so `COALESCE(x, 0)`, `x + 1` and `x > 0` are all
-rejected. No aggregation field takes SQL.
+rejected. No aggregation field takes SQL. `column`, and a condition's `column`, may instead be a
+column form; see [Column forms](#column-forms).
 
 Other fields allowed in `nimbus/`. These are existing metric fields and are parsed as
 they are in `definitions/`:
@@ -251,6 +252,41 @@ encoding = "days"
 within_days = 3
 ```
 
+## Column forms
+
+`column`, and a condition's `column`, may be a table instead of a plain column name, to read a
+value out of a map or a JSON-valued column rather than a plain column:
+
+| form | keys | SQL |
+| --- | --- | --- |
+| keyed-map, with a key | `map`, `key` | `mozfun.map.get_key(map, key)` |
+| keyed-map, no key | `map` | `mozfun.map.extract_keyed_scalar_sum(map)` |
+| JSON field | `json`, `path` | `JSON_VALUE(json, "$.path")` |
+
+`map` and `json` take the same column name or dotted path as a plain `column`. A column form
+declares exactly one of `map` or `json`; `key` is only valid with `map`, and `path` is required
+with `json`. Highwind selects the underlying `map` or `json` column from the data source, the same
+way it selects a plain `column`, including the projection a dotted path gets (see
+[Highwind](#highwind)); the generated expression (`mozfun.map.get_key(...)` or `JSON_VALUE(...)`)
+then reads that projected name.
+
+```toml
+[metrics.crlite_use_counter]
+data_source = "metrics"
+aggregation = "sum"
+column = { map = "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms", key = "CRLite" }
+```
+
+```toml
+[[metrics.pin_prompt_accepted.where]]
+column = { json = "event_extra", path = "result" }
+op = "="
+value = "success_pinned"
+```
+
+A column form is a reference to one value, never an arbitrary expression; there is no function
+call, cast or further nesting beyond the two forms above.
+
 ## Conditions
 
 `where` is a list of conditions. A row matches when every condition holds. There is no OR.
@@ -259,7 +295,7 @@ Each condition is a table with these keys:
 
 | key | required | meaning |
 | --- | --- | --- |
-| `column` | yes | A column name, or a dotted path to one. |
+| `column` | yes | A column name, a dotted path to one, or a column form. See [Column forms](#column-forms). |
 | `op` | no | One of the operators below. Leave it out to test a boolean column for true. |
 | `value` | with a comparison operator | The value to compare against. |
 
@@ -474,7 +510,11 @@ metric-config-parser checks the following wherever it parses a metric definition
 - `within_days` is set on any other aggregation.
 - `keep_nulls` is set on any aggregation other than `sum`, `sum_where` or `any`.
 - `encoding` is set on any aggregation other than `recency_within`.
-- A `column`, or a condition's `column`, is not a plain column name or dotted path.
+- A `column`, or a condition's `column`, is not a plain column name or dotted path, and is not a
+  valid column form (see [Column forms](#column-forms)).
+- A column form declares both `map` and `json`, or neither; declares `path` without `json`, or
+  `key` with `json`; declares `json` without `path`; or has a key not listed in
+  [Column forms](#column-forms).
 - A condition or threshold has a key not listed in this document.
 - A condition has no `column`, or a threshold is missing `op` or `value`.
 - A condition's `op` is not one of the listed operators.
@@ -619,12 +659,14 @@ With `recency_within`, `mozfun.bits28.days_since_seen(c)` above is `c` itself wh
 `encoding = "days"`, the same substitution as on the Jetstream side.
 
 The columns Highwind reads from each data source are derived from the aggregation-form
-definitions: every `column` and every condition column, grouped by `data_source`. These are
-SELECT-list items for the source scan: a plain name stays as is, and a dotted path is projected
-under a flat name with `__` in place of `.` (`metrics.counter.x AS metrics__counter__x`). The
-bucketed aggregation reads that flat name instead of the path, so `bucket_aggregate` and any
-condition built from the same column reference `metrics__counter__x`. Two columns that would
-project to the same flat name is an error.
+definitions: every `column` and every condition column, grouped by `data_source`. A column form
+(see [Column forms](#column-forms)) contributes its underlying `map` or `json` column, not the
+generated expression. These are SELECT-list items for the source scan: a plain name stays as is,
+and a dotted path is projected under a flat name with `__` in place of `.`
+(`metrics.counter.x AS metrics__counter__x`). The bucketed aggregation reads that flat name instead
+of the path, so `bucket_aggregate`, any condition built from the same column, and a column form's
+generated expression all reference `metrics__counter__x`. Two columns that would project to the
+same flat name is an error.
 
 `aggregation_plan(configs, app_name, metric_names)` builds this grouping for a run. It looks up
 each requested name with `get_nimbus_metric_definition`, and returns an `AggregationPlan`:
@@ -691,8 +733,8 @@ above).
 - Averages, or any aggregation that cannot be split into per-bucket values that combine into the
   window value.
 - `count_distinct`.
-- OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the single
-  dotted-path column names covered above.
+- OR, IN, NOT, LIKE, function calls and expressions in conditions or columns, beyond the
+  dotted-path column names and column forms covered above.
 - A no-SQL segment format. Segments keep their existing SQL in `definitions/`; see Segments above
   for how Highwind resolves them.
 

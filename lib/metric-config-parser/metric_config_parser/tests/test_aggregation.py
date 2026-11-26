@@ -244,6 +244,86 @@ class TestDottedColumn:
         )
 
 
+class TestColumnForm:
+    def test_map_with_key_is_get_key(self):
+        metric = parse_metric(aggregation="sum", column={"map": "m", "key": "k"})
+
+        assert metric.select_expression_from_aggregation == (
+            "{{agg_sum(\"mozfun.map.get_key(m, 'k')\")}}"
+        )
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(SUM(mozfun.map.get_key(m, 'k')), 0)"
+        )
+        assert metric.bucketed_aggregation == BucketedAggregation(
+            "COALESCE(SUM(mozfun.map.get_key(m, 'k')), 0)", Combine.SUM, "0", "{combined}"
+        )
+
+    def test_map_without_key_is_extract_keyed_scalar_sum(self):
+        metric = parse_metric(aggregation="sum", column={"map": "m"})
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(SUM(mozfun.map.extract_keyed_scalar_sum(m)), 0)"
+        )
+
+    def test_dotted_map_column(self):
+        metric = parse_metric(
+            aggregation="sum", column={"map": "metrics.labeled_counter.x", "key": "k"}
+        )
+
+        assert render(metric.select_expression_from_aggregation) == (
+            "COALESCE(SUM(mozfun.map.get_key(metrics.labeled_counter.x, 'k')), 0)"
+        )
+
+    def test_json_with_path_is_json_value(self):
+        metric = parse_metric(
+            aggregation="count_where",
+            where=[{"column": {"json": "event_extra", "path": "result"}, "op": "=", "value": "ok"}],
+        )
+
+        assert metric.select_expression_from_aggregation == (
+            "COUNTIF(JSON_VALUE(event_extra, '$.result') = 'ok')"
+        )
+        assert metric.bucketed_aggregation.bucket_aggregate == (
+            "COUNTIF(JSON_VALUE(event_extra, '$.result') = 'ok')"
+        )
+
+    def test_column_shorthand_with_map_form(self):
+        shorthand = parse_metric(aggregation="any", column={"map": "m", "key": "k"})
+        where = parse_metric(aggregation="any", where=[{"column": {"map": "m", "key": "k"}}])
+
+        assert (
+            shorthand.select_expression_from_aggregation == where.select_expression_from_aggregation
+        )
+        assert shorthand.bucketed_aggregation == where.bucketed_aggregation
+
+    def test_single_bucket_collapse_with_map_form(self):
+        metric = parse_metric(aggregation="sum", column={"map": "m", "key": "k"})
+        bucketed = metric.bucketed_aggregation
+
+        collapsed = bucketed.finalize_sql(bucketed.bucket_aggregate)
+
+        assert render(collapsed) == render(metric.select_expression_from_aggregation)
+
+    @pytest.mark.parametrize(
+        ("column", "match"),
+        [
+            ({"map": "m", "json": "j"}, "declare either map or json, not both"),
+            ({}, "must declare map or json"),
+            ({"map": "m", "path": "p"}, "path is only valid with json"),
+            ({"json": "j", "key": "k"}, "key is not valid with json"),
+            ({"json": "j"}, "json requires path"),
+            ({"map": "COALESCE(a, 0)", "key": "k"}, "must be a plain column name"),
+            ({"json": "a.1b", "path": "p"}, "must be a plain column name"),
+            ({"map": "m", "key": "k", "x": 1}, "unexpected keys"),
+        ],
+    )
+    def test_rejects_invalid_column_forms(self, column, match):
+        with pytest.raises(ClassValidationError) as exc_info:
+            parse_metric(aggregation="sum", column=column)
+
+        assert exc_info.group_contains(ValueError, match=match)
+
+
 class TestThresholdAndScale:
     @pytest.mark.parametrize(
         ("fields", "rendered", "finalize"),

@@ -224,3 +224,72 @@ class TestAggregationPlan:
 
         assert list(plan.metrics) == sorted(plan.metrics)
         assert list(plan.sources) == sorted(plan.sources)
+
+
+class TestColumnFormSource:
+    def test_map_column_source_is_the_map_not_the_expression(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        map_column = "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.crlite_use_counter]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "sum"\n'
+            f'column = {{ map = "{map_column}", key = "CRLite" }}\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["crlite_use_counter"])
+
+        assert plan.sources["clients_daily"].columns == (
+            "metrics.labeled_counter.cert_verifier_cert_revocation_mechanisms AS "
+            "metrics__labeled_counter__cert_verifier_cert_revocation_mechanisms",
+        )
+        assert plan.metrics["crlite_use_counter"].aggregation.bucket_aggregate == (
+            "COALESCE(SUM(mozfun.map.get_key(metrics__labeled_counter__"
+            "cert_verifier_cert_revocation_mechanisms, 'CRLite')), 0)"
+        )
+
+    def test_json_column_source_in_a_condition(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.pin_prompt_accepted]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.pin_prompt_accepted.where]]\n"
+            'column = { json = "event_extra", path = "result" }\n'
+            'op = "="\n'
+            'value = "success_pinned"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["pin_prompt_accepted"])
+
+        assert plan.sources["clients_daily"].columns == ("event_extra",)
+
+    def test_dotted_json_column_in_a_condition_is_projected(self, tmp_path):
+        shutil.copytree(FIXTURE_DIR, tmp_path, dirs_exist_ok=True)
+        nimbus_file = tmp_path / "nimbus" / "definitions" / "firefox_desktop.toml"
+        nimbus_file.write_text(
+            f"{nimbus_file.read_text()}\n"
+            "[metrics.pin_prompt_accepted_dotted]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.pin_prompt_accepted_dotted.where]]\n"
+            'column = { json = "metrics.text.event_extra", path = "result" }\n'
+            'op = "="\n'
+            'value = "success_pinned"\n'
+        )
+
+        collection = LocalConfigCollection.from_local_path(tmp_path)
+        plan = aggregation_plan(collection, "firefox_desktop", ["pin_prompt_accepted_dotted"])
+
+        assert plan.sources["clients_daily"].columns == (
+            "metrics.text.event_extra AS metrics__text__event_extra",
+        )
+        assert plan.metrics["pin_prompt_accepted_dotted"].aggregation.bucket_aggregate == (
+            "COUNTIF(JSON_VALUE(metrics__text__event_extra, '$.result') = 'success_pinned')"
+        )
