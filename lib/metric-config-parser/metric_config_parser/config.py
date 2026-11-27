@@ -285,6 +285,19 @@ class NimbusConfig:
                     f"{DEFINITIONS_DIR}/{self.app_name}.toml"
                 )
 
+            conflicting_outcomes = sorted(
+                outcome_slug
+                for outcome_slug, outcome_data_source in configs._matching_outcome_data_sources(
+                    name, self.app_name
+                )
+                if outcome_data_source != nimbus_data_source
+            )
+            if conflicting_outcomes:
+                raise ValueError(
+                    f"Data source '{name}' in {self.path} does not match outcome(s) "
+                    f"{', '.join(conflicting_outcomes)}"
+                )
+
         for name, metric in self.spec.metrics.items():
             if metric.aggregation == Aggregation.RATIO:
                 self._validate_ratio_metric(name, metric, configs)
@@ -297,8 +310,8 @@ class NimbusConfig:
                 raise ValueError(
                     f"Metric '{name}' in {self.path} references "
                     f"data source '{data_source}', which is not defined in "
-                    f"{DEFINITIONS_DIR}/{self.app_name}.toml or under {NIMBUS_DIR}/ for "
-                    f"{self.app_name}"
+                    f"{DEFINITIONS_DIR}/{self.app_name}.toml, under {NIMBUS_DIR}/ for "
+                    f"{self.app_name}, or in a Jetstream outcome for {self.app_name}"
                 )
 
         for other in configs.nimbus_configs:
@@ -695,11 +708,14 @@ class ConfigCollection:
         cls,
         repo_urls: list[str] | None = None,
         is_private: bool = False,
+        validate_nimbus: bool = True,
         strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         """Load configs from the provided repos."""
         if repo_urls is None or len(repo_urls) < 1:
-            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
+            return ConfigCollection.from_github_repo(
+                validate_nimbus=validate_nimbus, strict_nimbus=strict_nimbus
+            )
 
         configs = None
 
@@ -714,8 +730,11 @@ class ConfigCollection:
                 )
                 configs.merge(collection)
         if configs is None:
-            return ConfigCollection.from_github_repo(strict_nimbus=strict_nimbus)
-        _validate_nimbus(configs, strict_nimbus)
+            return ConfigCollection.from_github_repo(
+                validate_nimbus=validate_nimbus, strict_nimbus=strict_nimbus
+            )
+        if validate_nimbus:
+            _validate_nimbus(configs, strict_nimbus)
         return configs
 
     @classmethod
@@ -1022,7 +1041,36 @@ class ConfigCollection:
                 nimbus_data_source = nimbus_config.spec.data_sources.get(slug)
                 if nimbus_data_source is not None:
                     return nimbus_data_source
-        return None
+        return self._get_outcome_data_source_definition(slug, app_name)
+
+    def _matching_outcome_data_sources(
+        self, slug: str, app_name: str
+    ) -> list[tuple[str, DataSourceDefinition]]:
+        matches: list[tuple[str, DataSourceDefinition]] = []
+        for outcome in self.outcomes:
+            if outcome.platform != app_name:
+                continue
+            outcome_data_source = outcome.spec.data_sources.definitions.get(slug)
+            if outcome_data_source is not None:
+                matches.append((outcome.slug, outcome_data_source))
+        return matches
+
+    def _get_outcome_data_source_definition(
+        self, slug: str, app_name: str
+    ) -> DataSourceDefinition | None:
+        matches = self._matching_outcome_data_sources(slug, app_name)
+
+        if not matches:
+            return None
+
+        _, first_data_source = matches[0]
+        if any(data_source != first_data_source for _, data_source in matches[1:]):
+            conflicting_outcomes = sorted({outcome_slug for outcome_slug, _ in matches})
+            raise ValueError(
+                f"Data source '{slug}' for {app_name} is defined differently across "
+                f"outcomes {', '.join(conflicting_outcomes)}"
+            )
+        return first_data_source
 
     def get_segment_data_source_definition(
         self, slug: str, app_name: str
@@ -1484,6 +1532,7 @@ class LocalConfigCollection(ConfigCollection):
         cls,
         repo_urls: list[str] | None = None,
         is_private: bool = False,
+        validate_nimbus: bool = True,
         strict_nimbus: bool = False,
     ) -> "ConfigCollection":
         raise NotImplementedError(

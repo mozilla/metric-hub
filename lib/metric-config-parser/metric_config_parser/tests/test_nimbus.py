@@ -35,6 +35,7 @@ from metric_config_parser.metric import MetricDefinition, MetricReference
 from metric_config_parser.nimbus import (
     NIMBUS_DIR,
     NIMBUS_METRIC_KEYS,
+    OUTCOMES_DIR,
     NimbusConfigKind,
     NimbusDefinitionMismatch,
     NimbusSpec,
@@ -102,6 +103,19 @@ def write_nimbus_outcome_file(root, app_name, outcome_name, metrics_toml):
     outcome_dir = root / NIMBUS_DIR / "outcomes" / app_name
     outcome_dir.mkdir(parents=True, exist_ok=True)
     (outcome_dir / f"{outcome_name}.toml").write_text(metrics_toml)
+
+
+def write_jetstream_outcome(root, app_name, outcome_name, outcome_toml):
+    outcome_dir = root / "jetstream" / OUTCOMES_DIR / app_name
+    outcome_dir.mkdir(parents=True, exist_ok=True)
+    (outcome_dir / f"{outcome_name}.toml").write_text(outcome_toml)
+    repo = Repo(root)
+    repo.git.add(str(outcome_dir))
+    repo.git.commit("-m", f"add {app_name}/{outcome_name} jetstream outcome")
+
+
+def load_with_jetstream_outcomes(root):
+    return ConfigCollection.from_github_repos([str(root), str(root / "jetstream")])
 
 
 def collection_with_functions(path):
@@ -1438,6 +1452,236 @@ class TestNimbusCollection:
         )
         assert metric is not None
         assert metric.data_source.name == "events_certerror"
+
+    def test_resolves_data_source_from_jetstream_outcome(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.backup_events]\n"
+            'data_source = "backup_events_v1"\n'
+            'aggregation = "sum"\ncolumn = "event_count"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use backup_events_v1")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "firefox_backup",
+            'friendly_name = "Firefox Backup"\ndescription = "Firefox Backup"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "backup_events_v1", "firefox_desktop"
+        )
+        assert data_source is not None
+        assert data_source.from_expression == "mozdata.firefox_desktop.backup_events_v1"
+
+        plan = aggregation_plan(collection, "firefox_desktop", ["backup_events"])
+        assert plan.missing == []
+        assert plan.sources["backup_events_v1"].from_expression == (
+            "mozdata.firefox_desktop.backup_events_v1"
+        )
+
+    def test_outcome_only_data_source_unresolved_without_jetstream_merge(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.backup_events]\n"
+            'data_source = "backup_events_v1"\n'
+            'aggregation = "sum"\ncolumn = "event_count"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use backup_events_v1")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "firefox_backup",
+            'friendly_name = "Firefox Backup"\ndescription = "Firefox Backup"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+
+        with pytest.raises(ValueError, match="backup_events_v1"):
+            ConfigCollection.from_github_repo(str(tmp_path), strict_nimbus=True)
+
+    def test_definitions_data_source_wins_over_outcome(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.search_count]\n"
+            'data_source = "clients_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use clients_daily")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            'friendly_name = "Engagement"\ndescription = "Engagement"\n\n'
+            "[data_sources.clients_daily]\n"
+            'from_expression = "mozdata.telemetry.other_table"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "clients_daily", "firefox_desktop"
+        )
+        assert data_source == collection.get_definitions_data_source_definition(
+            "clients_daily", "firefox_desktop"
+        )
+
+    def test_nimbus_data_source_matches_outcome_resolves(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n\n'
+            "[metrics.cert_error_page_loaded]\n"
+            'data_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "declare events_certerror")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            'friendly_name = "Engagement"\ndescription = "Engagement"\n\n'
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "events_certerror", "firefox_desktop"
+        )
+        assert data_source is not None
+        assert data_source.from_expression == "(SELECT * FROM telemetry.events)"
+
+    def test_rejects_data_source_differing_from_outcome(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM telemetry.events)"\n\n'
+            "[metrics.cert_error_page_loaded]\n"
+            'data_source = "events_certerror"\n'
+            'aggregation = "any"\n\n'
+            "[[metrics.cert_error_page_loaded.where]]\n"
+            'column = "event_name"\n'
+            'op = "="\n'
+            'value = "loaded"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "declare events_certerror")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "engagement",
+            'friendly_name = "Engagement"\ndescription = "Engagement"\n\n'
+            "[data_sources.events_certerror]\n"
+            'from_expression = "(SELECT * FROM other.events)"\n',
+        )
+
+        with pytest.raises(ValueError, match=r"does not match outcome\(s\) engagement"):
+            ConfigCollection.from_github_repos(
+                [str(tmp_path), str(tmp_path / "jetstream")], strict_nimbus=True
+            )
+
+    def test_conflicting_outcome_data_sources_raise(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.backup_events]\n"
+            'data_source = "backup_events_v1"\n'
+            'aggregation = "sum"\ncolumn = "event_count"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use backup_events_v1")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "firefox_backup",
+            'friendly_name = "Backup"\ndescription = "Backup"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "site_breakage",
+            'friendly_name = "Site Breakage"\ndescription = "Site Breakage"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.other_events"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+
+        with pytest.raises(ValueError, match=r"firefox_backup, site_breakage"):
+            collection.get_nimbus_data_source_definition("backup_events_v1", "firefox_desktop")
+
+    def test_identical_outcome_data_sources_resolve(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.backup_events]\n"
+            'data_source = "backup_events_v1"\n'
+            'aggregation = "sum"\ncolumn = "event_count"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "use backup_events_v1")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "firefox_backup",
+            'friendly_name = "Backup"\ndescription = "Backup"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "site_breakage",
+            'friendly_name = "Site Breakage"\ndescription = "Site Breakage"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+
+        data_source = collection.get_nimbus_data_source_definition(
+            "backup_events_v1", "firefox_desktop"
+        )
+        assert data_source is not None
+        assert data_source.from_expression == "mozdata.firefox_desktop.backup_events_v1"
+
+    def test_unknown_data_source_still_fails_validation_with_outcomes_present(self, tmp_path):
+        make_repo(tmp_path)
+        write_nimbus(
+            tmp_path,
+            "[metrics.search_count]\n"
+            'data_source = "search_clients_engines_sources_daily"\n'
+            'aggregation = "sum"\ncolumn = "sap"\n',
+        )
+        Repo(tmp_path).git.commit("-am", "reference an undefined data source")
+        write_jetstream_outcome(
+            tmp_path,
+            "firefox_desktop",
+            "firefox_backup",
+            'friendly_name = "Backup"\ndescription = "Backup"\n\n'
+            "[data_sources.backup_events_v1]\n"
+            'from_expression = "mozdata.firefox_desktop.backup_events_v1"\n',
+        )
+
+        collection = load_with_jetstream_outcomes(tmp_path)
+        entity = entity_from_path(tmp_path / NIMBUS_DEFINITIONS_DIR / "firefox_desktop.toml")
+
+        with pytest.raises(ValueError, match="search_clients_engines_sources_daily"):
+            entity.validate(collection)
 
     def test_rejects_data_source_differing_from_definitions(self, tmp_path):
         make_repo(tmp_path)

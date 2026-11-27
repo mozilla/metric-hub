@@ -18,7 +18,7 @@ repeat_windows = true
 
 [data_sources.sidebar_toggle]
 from_expression = """(
-  SELECT
+  SELECT 
     legacy_telemetry_client_id as client_id,
     profile_group_id,
     CAST(submission_timestamp as DATE) as submission_date,

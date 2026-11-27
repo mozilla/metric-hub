@@ -236,7 +236,9 @@ def _nimbus_metric_queries(config_collection, entity):
 def validate(path, config_repos):
     """Validate config files."""
     dirty = False
-    config_collection = ConfigCollection.from_github_repos(config_repos, strict_nimbus=True)
+    config_collection = ConfigCollection.from_github_repos(
+        config_repos, validate_nimbus=False, strict_nimbus=True
+    )
 
     # get updated function definitions
     for config_file in path:
@@ -254,6 +256,7 @@ def validate(path, config_repos):
                 str(jetstream_dir), validate_nimbus=False, strict_nimbus=True
             )
         )
+    nimbus_check_collection.validate_nimbus_configs()
 
     for mismatch in nimbus_check_collection.nimbus_definition_mismatches():
         dirty = True
@@ -271,14 +274,19 @@ def validate(path, config_repos):
 
         if is_nimbus_definition(config_file) or config_file.parent.name == FEATMON_DIR:
             entity = entity_from_path(config_file)
+            validation_collection = (
+                nimbus_check_collection
+                if is_nimbus_definition(config_file)
+                else config_collection
+            )
             try:
-                entity.validate(config_collection)
+                entity.validate(validation_collection)
             except Exception as e:
                 dirty = True
                 print(e)
                 continue
             if is_nimbus_definition(config_file):
-                sql_to_validate += _nimbus_metric_queries(config_collection, entity)
+                sql_to_validate += _nimbus_metric_queries(nimbus_check_collection, entity)
             continue
 
         if config_file.parent.name == DEFINITIONS_DIR:

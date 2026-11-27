@@ -53,8 +53,9 @@ metric-hub/
   uses the `nimbus/` copy and Jetstream uses the `definitions/` copy. The two copies must generate
   the same SQL. See [Validation](#validation).
 - A metric's `data_source` usually names a data source defined in
-  `definitions/<application>.toml`. A data source used only by `nimbus/` metrics, such as one
-  defined inside an outcome file, can instead be declared in any of the application's own files
+  `definitions/<application>.toml`. A data source that exists only inside one of the application's
+  Jetstream outcome configs can be referenced directly, with no copy needed in `nimbus/`. A data
+  source used only by `nimbus/` metrics can also be declared in any of the application's own files
   under `nimbus/`, under `[data_sources]`. See [Data sources](#data-sources).
 - Files ending in `.example` are not loaded.
 
@@ -76,8 +77,9 @@ is always safe for it. It still reads `nimbus/definitions/`, and skips a file th
   `definitions/`, such as `analysis_bases`, `analysis_units`, `type` and `depends_on`, are
   rejected.
 - Keys are case sensitive. `definitions/` lowercases keys, `nimbus/` does not.
-- `data_source` must name a data source defined in `definitions/<application>.toml` or in one of
-  the application's own files under `nimbus/`.
+- `data_source` must name a data source defined in `definitions/<application>.toml`, in one of
+  the application's own files under `nimbus/`, or in one of the application's Jetstream outcome
+  configs.
 
 ## Field reference
 
@@ -128,7 +130,7 @@ they are in `definitions/`:
 
 | field | type | required | default | meaning |
 | --- | --- | --- | --- | --- |
-| `data_source` | string | yes, except for `ratio` | | Name of a data source defined in `definitions/<application>.toml` or in this file's own `[data_sources]` table. |
+| `data_source` | string | yes, except for `ratio` | | Name of a data source defined in `definitions/<application>.toml`, in this file's own `[data_sources]` table, or in one of the application's Jetstream outcome configs. |
 | `statistics` | table of tables | no | | Statistics for the metric. |
 | `friendly_name` | string | no | | Display name on the results page. |
 | `description` | string | no | | Display description on the results page. |
@@ -574,10 +576,17 @@ value = "loaded"
 A `[data_sources.<name>]` table here takes the same fields as a `definitions/` data source. Keys
 are lowercased, matching `definitions/`.
 
-A `data_source` reference on a metric resolves against `definitions/<application>.toml` first.
-Only when no data source of that name exists there does the parser look across the application's
-own files under `nimbus/`. `ConfigCollection.get_nimbus_data_source_definition(slug, app_name)` and
-`aggregation_plan()` both resolve a data source this way.
+A `data_source` reference on a metric resolves against `definitions/<application>.toml` first,
+then across the application's own files under `nimbus/`, then against the data sources declared in
+the application's Jetstream outcome configs. So a `nimbus/` metric can reference a data source that
+exists only inside a Jetstream outcome, such as `jetstream/outcomes/<application>/<outcome>.toml`,
+with no copy declared under `nimbus/`. `ConfigCollection.get_nimbus_data_source_definition(slug,
+app_name)` and `aggregation_plan()` both resolve a data source this way. A data source declared the
+same way in more than one of the application's outcome configs resolves to that shared definition;
+one declared differently across outcome configs fails to resolve, naming the conflicting outcomes.
+Resolving against a Jetstream outcome requires loading the `jetstream/` subtree alongside
+metric-hub's root; a consumer that loads only the root cannot see the application's outcome configs
+and so cannot resolve a data source declared only there.
 
 A data source declared under `nimbus/` under a name that also exists in
 `definitions/<application>.toml` must be identical to the `definitions/` copy. A name means one
@@ -642,9 +651,14 @@ Across files. When several repositories or directories are loaded together, such
 directory loaded counts:
 
 - `data_source` does not name a data source in any loaded `definitions/<application>.toml`, nor in
-  any of that application's own files under `nimbus/`, for the same application.
+  any of that application's own files under `nimbus/`, nor in any of that application's loaded
+  Jetstream outcome configs, for the same application.
 - A data source declared under `nimbus/` has the same name as one in
   `definitions/<application>.toml`, but the two differ.
+- A data source declared under `nimbus/` has the same name as one declared in one of the
+  application's Jetstream outcome configs, but the two differ.
+- A `data_source` resolves only against the application's Jetstream outcome configs, and those
+  configs declare it differently from one another.
 
 Across an application's own files under `nimbus/`:
 
